@@ -289,7 +289,7 @@
     <div class="sun-dot"></div>
     <div class="wave"></div>
     <h1>רשימת קניות מיקונוס</h1>
-    <div class="sub">רשימה משותפת לכולם</div>
+    <div class="sub">רשימה משותפת לכולם בזמן אמת ⚡</div>
   </header>
 
   <div class="whoami">
@@ -319,166 +319,147 @@
     </div>
   </div>
 
-  <div class="footer-note">כל שינוי נשמר במכשיר שלך</div>
+  <div class="footer-note">כל שינוי מסתנכרן בלייב אצל כולם 🔥</div>
 </div>
 
-<script>
-const KEY = 'mykonos-shopping-list';
-const NAME_KEY = 'mykonos-my-name';
-let items = [];
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const listEl = document.getElementById('list');
-const emptyMsg = document.getElementById('emptyMsg');
-const form = document.getElementById('addForm');
-const productInput = document.getElementById('productInput');
-const qtyInput = document.getElementById('qtyInput');
-const myNameInput = document.getElementById('myName');
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
+    authDomain: "mykonos-list.firebaseapp.com",
+    databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
+    projectId: "mykonos-list",
+    storageBucket: "mykonos-list.firebasestorage.app",
+    messagingSenderId: "471388041921",
+    appId: "1:471388041921:web:c0100252c6397f67dc1a40",
+    measurementId: "G-0VXCEZ117S"
+  };
 
-function render(){
-  listEl.innerHTML = '';
-  emptyMsg.style.display = items.length === 0 ? 'block' : 'none';
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const listRef = ref(db, 'shoppingList');
 
-  items.forEach(item => {
-    const li = document.createElement('li');
+  const NAME_KEY = 'mykonos-my-name';
+  let itemsMap = {};
 
-    const check = document.createElement('div');
-    check.className = 'check' + (item.done ? ' done' : '');
-    check.onclick = () => toggleItem(item.id);
+  const listEl = document.getElementById('list');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const form = document.getElementById('addForm');
+  const productInput = document.getElementById('productInput');
+  const qtyInput = document.getElementById('qtyInput');
+  const myNameInput = document.getElementById('myName');
 
-    const main = document.createElement('div');
-    main.className = 'item-main';
-
-    const top = document.createElement('div');
-    top.className = 'item-top';
-
-    const text = document.createElement('div');
-    text.className = 'item-text' + (item.done ? ' done' : '');
-    text.textContent = item.name;
-    top.appendChild(text);
-
-    if(item.qty){
-      const qty = document.createElement('div');
-      qty.className = 'item-qty' + (item.done ? ' done' : '');
-      qty.textContent = item.qty;
-      top.appendChild(qty);
-    }
-
-    main.appendChild(top);
-
-    if(item.by){
-      const by = document.createElement('div');
-      by.className = 'item-by' + (item.done ? ' done' : '');
-      by.textContent = 'הוסיף/ה: ' + item.by;
-      main.appendChild(by);
-    }
-
-    const del = document.createElement('button');
-    del.className = 'del';
-    del.textContent = '✕';
-    del.onclick = () => deleteItem(item.id);
-
-    li.appendChild(check);
-    li.appendChild(main);
-    li.appendChild(del);
-    listEl.appendChild(li);
+  const savedName = localStorage.getItem(NAME_KEY);
+  if (savedName) myNameInput.value = savedName;
+  myNameInput.addEventListener('change', () => {
+    localStorage.setItem(NAME_KEY, myNameInput.value.trim());
   });
-}
 
-function loadName(){
-  const saved = localStorage.getItem(NAME_KEY);
-  if(saved){
-    myNameInput.value = saved;
+  function render() {
+    listEl.innerHTML = '';
+    const keys = Object.keys(itemsMap);
+    emptyMsg.style.display = keys.length === 0 ? 'block' : 'none';
+
+    keys.forEach(id => {
+      const item = itemsMap[id];
+      const li = document.createElement('li');
+
+      const check = document.createElement('div');
+      check.className = 'check' + (item.done ? ' done' : '');
+      check.onclick = () => toggleItem(id, item.done);
+
+      const main = document.createElement('div');
+      main.className = 'item-main';
+
+      const top = document.createElement('div');
+      top.className = 'item-top';
+
+      const text = document.createElement('div');
+      text.className = 'item-text' + (item.done ? ' done' : '');
+      text.textContent = item.name;
+      top.appendChild(text);
+
+      if (item.qty) {
+        const qty = document.createElement('div');
+        qty.className = 'item-qty' + (item.done ? ' done' : '');
+        qty.textContent = item.qty;
+        top.appendChild(qty);
+      }
+
+      main.appendChild(top);
+
+      if (item.by) {
+        const by = document.createElement('div');
+        by.className = 'item-by' + (item.done ? ' done' : '');
+        by.textContent = 'הוסיף/ה: ' + item.by;
+        main.appendChild(by);
+      }
+
+      const del = document.createElement('button');
+      del.className = 'del';
+      del.textContent = '✕';
+      del.onclick = () => deleteItem(id);
+
+      li.appendChild(check);
+      li.appendChild(main);
+      li.appendChild(del);
+      listEl.appendChild(li);
+    });
   }
-}
 
-function saveName(){
-  localStorage.setItem(NAME_KEY, myNameInput.value.trim());
-}
-
-myNameInput.addEventListener('change', saveName);
-
-const SEED_NAMES = [
-  'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
-  'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
-  'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
-  'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
-];
-
-function buildSeedItems(){
-  return SEED_NAMES.map(name => ({
-    id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
-    name: name,
-    qty: '',
-    by: myNameInput.value.trim() || 'מערכת',
-    done: false
-  }));
-}
-
-function load(){
-  try{
-    const raw = localStorage.getItem(KEY);
-    items = raw ? JSON.parse(raw) : [];
-  }catch(e){
-    items = [];
-  }
-  render();
-}
-
-function seedList(){
-  items = buildSeedItems();
-  render();
-  save();
-}
-
-document.getElementById('seedBtn').addEventListener('click', seedList);
-
-function save(){
-  try{
-    localStorage.setItem(KEY, JSON.stringify(items));
-  }catch(e){
-    console.error('שגיאה בשמירה', e);
-  }
-}
-
-function addItem(name, qty, by){
-  const trimmedName = name.trim();
-  if(!trimmedName) return;
-  items.push({
-    id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
-    name: trimmedName,
-    qty: qty.trim(),
-    by: by.trim(),
-    done: false
-  });
-  render();
-  save();
-}
-
-function toggleItem(id){
-  const item = items.find(i => i.id === id);
-  if(item){
-    item.done = !item.done;
+  onValue(listRef, (snapshot) => {
+    itemsMap = snapshot.val() || {};
     render();
-    save();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = productInput.value.trim();
+    if (!name) return;
+
+    const newItemRef = push(listRef);
+    set(newItemRef, {
+      name: name,
+      qty: qtyInput.value.trim(),
+      by: myNameInput.value.trim(),
+      done: false
+    });
+
+    productInput.value = '';
+    qtyInput.value = '';
+    productInput.focus();
+  });
+
+  function toggleItem(id, currentStatus) {
+    const itemRef = ref(db, `shoppingList/${id}`);
+    update(itemRef, { done: !currentStatus });
   }
-}
 
-function deleteItem(id){
-  items = items.filter(i => i.id !== id);
-  render();
-  save();
-}
+  function deleteItem(id) {
+    const itemRef = ref(db, `shoppingList/${id}`);
+    remove(itemRef);
+  }
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  addItem(productInput.value, qtyInput.value, myNameInput.value);
-  productInput.value = '';
-  qtyInput.value = '';
-  productInput.focus();
-});
+  const SEED_NAMES = [
+    'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
+    'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
+    'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
+    'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
+  ];
 
-loadName();
-load();
+  document.getElementById('seedBtn').addEventListener('click', () => {
+    SEED_NAMES.forEach(name => {
+      const newItemRef = push(listRef);
+      set(newItemRef, {
+        name: name,
+        qty: '',
+        by: myNameInput.value.trim() || 'מערכת',
+        done: false
+      });
+    });
+  });
 </script>
 </body>
 </html>
