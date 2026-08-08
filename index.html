@@ -200,7 +200,6 @@
     transition: all 0.3s ease;
   }
 
-  /* עיצוב לפריט חדש - טקסט וגבול כחול */
   li.is-new {
     border: 2px solid var(--new-blue) !important;
     background: #f0f6ff;
@@ -349,14 +348,13 @@
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
 
-  // מילון זיהוי אוטומטי של קטגוריות לפי מילות מפתח
+  // מילון מורחב לזיהוי אוטומטי של קטגוריות לפי שמות ומוצרים
   const CATEGORY_DICTIONARY = {
-    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר', 'פרו'],
-    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה', 'תאי', 'אנרגיה'],
-    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'קוטג', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה'],
+    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
+    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
+    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'קוטג', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו'],
     'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים'],
     'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות'],
-    'בשר ודגים 🥩': ['בשר', 'עוף', 'חזה עוף', 'נקניקיות', 'ההמבורגר', 'טונה', 'דג', 'נקניק', 'ג'ון', 'חמון', 'בייקון'],
     'פארם וניקיון 🧼': ['סבון', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ספוג', 'ניקוי', 'דאודורנט']
   };
 
@@ -367,7 +365,18 @@
         return catName;
       }
     }
-    return 'מוצרים נוספים 🛒'; // קטגוריית ברירת מחדל
+    return 'מוצרים נוספים 🛒';
+  }
+
+  // מיון מחדש של מוצרים קיימים ב-Firebase
+  function migrateExistingItems(items) {
+    Object.keys(items).forEach(id => {
+      const item = items[id];
+      const correctCat = detectCategory(item.name);
+      if (!item.category || item.category !== correctCat) {
+        update(ref(db, `shoppingList/${id}`), { category: correctCat });
+      }
+    });
   }
 
   const categoriesContainer = document.getElementById('categoriesContainer');
@@ -389,17 +398,14 @@
     const keys = Object.keys(itemsMap);
     emptyMsg.style.display = keys.length === 0 ? 'block' : 'none';
 
-    // מיון וקבץ מוצרים לקטגוריות
     const grouped = {};
     keys.forEach(id => {
       const item = itemsMap[id];
-      // אם למוצר אין קטגוריה (מוצר ישן), נזהה אותה בלייב
       const cat = item.category || detectCategory(item.name);
       if (!grouped[cat]) grouped[cat] = [];
       grouped[cat].push({ id, ...item });
     });
 
-    // רינדור לפי קטגוריות
     Object.keys(grouped).forEach(catName => {
       const catHeader = document.createElement('div');
       catHeader.className = 'category-title';
@@ -439,7 +445,6 @@
 
         top.appendChild(text);
 
-        // כפתורי +/-
         const qtyControls = document.createElement('div');
         qtyControls.className = 'qty-controls';
         
@@ -481,7 +486,6 @@
         itemRow.appendChild(del);
         li.appendChild(itemRow);
 
-        // הערות אישיות
         const notesSection = document.createElement('div');
         notesSection.className = 'item-notes-section';
 
@@ -523,12 +527,16 @@
     });
   }
 
+  let hasMigrated = false;
   onValue(listRef, (snapshot) => {
     itemsMap = snapshot.val() || {};
+    if (!hasMigrated && Object.keys(itemsMap).length > 0) {
+      hasMigrated = true;
+      migrateExistingItems(itemsMap);
+    }
     render();
   });
 
-  // הוספת מוצר - זיהוי קטגוריה אוטומטי לחלוטין
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = productInput.value.trim();
@@ -536,7 +544,6 @@
 
     const detectedCategory = detectCategory(name);
 
-    // בדיקת כפילויות
     const existingKey = Object.keys(itemsMap).find(
       key => itemsMap[key].name.toLowerCase() === name.toLowerCase()
     );
