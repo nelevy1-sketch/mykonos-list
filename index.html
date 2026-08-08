@@ -348,7 +348,6 @@
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
 
-  // מילון מורחב לזיהוי אוטומטי של קטגוריות לפי שמות ומוצרים
   const CATEGORY_DICTIONARY = {
     'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
     'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
@@ -359,6 +358,7 @@
   };
 
   function detectCategory(itemName) {
+    if (!itemName) return 'מוצרים נוספים 🛒';
     const cleanName = itemName.trim().toLowerCase();
     for (const [catName, keywords] of Object.entries(CATEGORY_DICTIONARY)) {
       if (keywords.some(kw => cleanName.includes(kw.toLowerCase()))) {
@@ -368,13 +368,19 @@
     return 'מוצרים נוספים 🛒';
   }
 
-  // מיון מחדש של מוצרים קיימים ב-Firebase
-  function migrateExistingItems(items) {
-    Object.keys(items).forEach(id => {
-      const item = items[id];
-      const correctCat = detectCategory(item.name);
-      if (!item.category || item.category !== correctCat) {
-        update(ref(db, `shoppingList/${id}`), { category: correctCat });
+  // תמיכה לאחור במוצרים שנשמרו בעבר תחת 'text'
+  function fixAndMigrateItems(rawItems) {
+    Object.keys(rawItems).forEach(id => {
+      const item = rawItems[id];
+      const name = item.name || item.text || 'מוצר ללא שם';
+      const category = detectCategory(name);
+      
+      const updates = {};
+      if (!item.name && item.text) updates.name = item.text;
+      if (!item.category || item.category !== category) updates.category = category;
+
+      if (Object.keys(updates).length > 0) {
+        update(ref(db, `shoppingList/${id}`), updates);
       }
     });
   }
@@ -401,9 +407,10 @@
     const grouped = {};
     keys.forEach(id => {
       const item = itemsMap[id];
-      const cat = item.category || detectCategory(item.name);
+      const itemName = item.name || item.text || '';
+      const cat = item.category || detectCategory(itemName);
       if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push({ id, ...item });
+      grouped[cat].push({ id, ...item, name: itemName });
     });
 
     Object.keys(grouped).forEach(catName => {
@@ -527,12 +534,10 @@
     });
   }
 
-  let hasMigrated = false;
   onValue(listRef, (snapshot) => {
     itemsMap = snapshot.val() || {};
-    if (!hasMigrated && Object.keys(itemsMap).length > 0) {
-      hasMigrated = true;
-      migrateExistingItems(itemsMap);
+    if (Object.keys(itemsMap).length > 0) {
+      fixAndMigrateItems(itemsMap);
     }
     render();
   });
@@ -545,7 +550,7 @@
     const detectedCategory = detectCategory(name);
 
     const existingKey = Object.keys(itemsMap).find(
-      key => itemsMap[key].name.toLowerCase() === name.toLowerCase()
+      key => (itemsMap[key].name || itemsMap[key].text || '').toLowerCase() === name.toLowerCase()
     );
 
     if (existingKey) {
