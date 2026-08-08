@@ -16,6 +16,7 @@
     --line: #d8e2e7;
     --name-tag: #6d8f9c;
     --new-blue: #0066ff;
+    --wa-green: #25D366;
   }
 
   *{ box-sizing: border-box; }
@@ -100,7 +101,7 @@
     display:flex;
     flex-direction:column;
     gap:8px;
-    margin-bottom: 22px;
+    margin-bottom: 16px;
     background: var(--white);
     border: 1.5px solid var(--line);
     border-radius: 14px;
@@ -154,17 +155,40 @@
   }
   button.add:active{ transform: scale(0.98); }
 
+  .action-buttons{
+    display:flex;
+    gap:8px;
+    margin-bottom: 20px;
+  }
+
   .sync-btn{
-    width: 100%;
-    margin-bottom: 16px;
+    flex:1;
     background: var(--sea-deep);
     color: white;
-    padding: 8px;
+    padding: 10px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
     font-size: 13px;
+  }
+
+  .wa-share-btn{
+    flex:1;
+    background: var(--wa-green);
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
 
   .category-title{
@@ -311,7 +335,10 @@
     <button type="submit" class="add">הוספה לרשימה</button>
   </form>
 
-  <button class="sync-btn" id="syncBtn">🔄 סנכרן / סמן הכל כנצפה (אפס כחול)</button>
+  <div class="action-buttons">
+    <button class="sync-btn" id="syncBtn">🔄 סמן כנצפה (אפס כחול)</button>
+    <a class="wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף בוואטסאפ</a>
+  </div>
 
   <div id="categoriesContainer"></div>
 
@@ -339,6 +366,11 @@
 
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
+
+  // הגדרת קישור השיתוף לוואטסאפ
+  const shareUrl = window.location.href;
+  const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
+  document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
 
   const CATEGORY_DICTIONARY = {
     'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
@@ -533,7 +565,6 @@
   onValue(listRef, (snapshot) => {
     itemsMap = snapshot.val() || {};
     
-    // אם המסד ריק לחלוטין בטעינה ראשונה - טען אוטומטית את פריטי הפתיחה
     if (isFirstLoad && Object.keys(itemsMap).length === 0) {
       isFirstLoad = false;
       seedInitialData();
