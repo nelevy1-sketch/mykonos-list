@@ -21,6 +21,10 @@
 
   *{ box-sizing: border-box; }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body{
     margin:0;
     min-height:100vh;
@@ -203,6 +207,22 @@
     align-items: center;
   }
 
+  /* כפתור חזרה למעלה ליד כל קטגוריה */
+  .go-top-btn {
+    font-size: 11px;
+    background: var(--whitewash);
+    border: 1px solid var(--line);
+    color: var(--sea);
+    padding: 3px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .go-top-btn:hover {
+    background: var(--line);
+  }
+
   ul{
     list-style:none;
     margin:0;
@@ -245,7 +265,7 @@
   .item-row{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:10px;
   }
 
   .check{
@@ -288,6 +308,23 @@
   .item-qty-val{ font-size: 13px; color: var(--sea-deep); font-weight:700; }
   .item-by{ font-size: 12px; color: var(--name-tag); margin-top: 2px; }
 
+  .item-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .edit-btn {
+    background: none;
+    border: none;
+    color: #8899a6;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+  .edit-btn:hover { color: var(--sea); }
+
   .item-notes-section{
     display:flex;
     flex-direction:column;
@@ -310,7 +347,7 @@
 </head>
 <body>
 <div class="card">
-  <header>
+  <header id="topHeader">
     <div class="wave"></div>
     <h1>רשימת קניות מיקונוס</h1>
     <div class="sub">חלוקה אוטומטית לפי קטגוריות ⚡</div>
@@ -367,7 +404,6 @@
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
 
-  // הגדרת קישור השיתוף לוואטסאפ
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
   document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
@@ -427,6 +463,13 @@
     localStorage.setItem(NAME_KEY, myNameInput.value.trim());
   });
 
+  function scrollToAdd() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      productInput.focus();
+    }, 300);
+  }
+
   function render() {
     categoriesContainer.innerHTML = '';
     const keys = Object.keys(itemsMap);
@@ -443,7 +486,18 @@
     Object.keys(grouped).forEach(catName => {
       const catHeader = document.createElement('div');
       catHeader.className = 'category-title';
-      catHeader.textContent = catName;
+      
+      const catTitleText = document.createElement('span');
+      catTitleText.textContent = catName;
+
+      // כפתור חזרה למעלה להוספת פריט
+      const goTopBtn = document.createElement('button');
+      goTopBtn.className = 'go-top-btn';
+      goTopBtn.textContent = '⬆️ הוסף פריט';
+      goTopBtn.onclick = scrollToAdd;
+
+      catHeader.appendChild(catTitleText);
+      catHeader.appendChild(goTopBtn);
 
       const ul = document.createElement('ul');
 
@@ -510,14 +564,27 @@
           main.appendChild(by);
         }
 
+        // כפתור עריכת שם פריט + כפתור מחיקה
+        const actions = document.createElement('div');
+        actions.className = 'item-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = '✏️';
+        editBtn.title = 'ערוך שם פריט';
+        editBtn.onclick = () => editItemName(item.id, item.name);
+
         const del = document.createElement('button');
         del.className = 'del';
         del.textContent = '✕';
         del.onclick = () => deleteItem(item.id);
 
+        actions.appendChild(editBtn);
+        actions.appendChild(del);
+
         itemRow.appendChild(check);
         itemRow.appendChild(main);
-        itemRow.appendChild(del);
+        itemRow.appendChild(actions);
         li.appendChild(itemRow);
 
         const notesSection = document.createElement('div');
@@ -610,6 +677,20 @@
     qtyInput.value = '';
     productInput.focus();
   });
+
+  // עריכת שם פריט ועדכון קטגוריה אוטומטי
+  function editItemName(id, currentName) {
+    const newName = prompt('ערוך את שם המוצר:', currentName);
+    if (!newName || !newName.trim() || newName.trim() === currentName) return;
+
+    const cleanNewName = newName.trim();
+    const newCategory = detectCategory(cleanNewName);
+
+    update(ref(db, `shoppingList/${id}`), {
+      name: cleanNewName,
+      category: newCategory
+    });
+  }
 
   function clearAllNewFlags() {
     Object.keys(itemsMap).forEach(id => {
