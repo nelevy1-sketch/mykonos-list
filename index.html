@@ -15,6 +15,7 @@
     --sun: #e8b84b;
     --line: #d8e2e7;
     --name-tag: #6d8f9c;
+    --new-blue: #0066ff;
   }
 
   *{ box-sizing: border-box; }
@@ -66,17 +67,6 @@
     opacity:.75;
     font-weight:600;
     letter-spacing: 1px;
-  }
-
-  .sun-dot{
-    position:absolute;
-    top:-6px;
-    left: calc(50% + 60px);
-    width:10px;
-    height:10px;
-    border-radius:50%;
-    background: var(--sun);
-    opacity:.8;
   }
 
   .whoami{
@@ -138,21 +128,17 @@
     padding-inline-start: 2px;
   }
 
-  input[type="text"]{
+  input[type="text"], select{
     padding: 11px 12px;
     border-radius: 10px;
     border: 1.5px solid var(--line);
     background: var(--whitewash);
-    font-size: 15px;
+    font-size: 14px;
     font-family: inherit;
     color: var(--sea-deep);
     outline:none;
     transition: border-color .15s;
     width:100%;
-  }
-  input[type="text"]:focus{
-    border-color: var(--sea);
-    background: var(--white);
   }
 
   button.add{
@@ -167,7 +153,31 @@
     transition: background .15s, transform .1s;
   }
   button.add:active{ transform: scale(0.98); }
-  button.add:hover{ background: var(--sea-deep); }
+
+  .sync-btn{
+    width: 100%;
+    margin-bottom: 16px;
+    background: var(--sea-deep);
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .category-title{
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--sea-deep);
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--sea);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
   ul{
     list-style:none;
@@ -187,11 +197,26 @@
     border-radius: 12px;
     padding: 12px 14px;
     animation: rise .25s ease;
+    transition: all 0.3s ease;
   }
 
-  @keyframes rise{
-    from{ opacity:0; transform: translateY(6px); }
-    to{ opacity:1; transform: translateY(0); }
+  /* עיצוב לפריט חדש - טקסט וגבול כחול */
+  li.is-new {
+    border: 2px solid var(--new-blue) !important;
+    background: #f0f6ff;
+  }
+  li.is-new .item-text {
+    color: var(--new-blue) !important;
+    font-weight: 700;
+  }
+  .new-badge {
+    background: var(--new-blue);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-inline-start: 6px;
   }
 
   .item-row{
@@ -211,7 +236,6 @@
     align-items:center;
     justify-content:center;
     background: transparent;
-    transition: background .15s;
   }
   .check.done{ background: var(--sea); }
   .check.done::after{
@@ -221,27 +245,11 @@
     font-weight:700;
   }
 
-  .item-main{
-    flex:1;
-    min-width:0;
-  }
+  .item-main{ flex:1; min-width:0; }
+  .item-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
-  .item-top{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-
-  .item-text{
-    font-size: 16px;
-    font-weight:600;
-    word-break: break-word;
-  }
-  .item-text.done{
-    text-decoration: line-through;
-    opacity: .45;
-  }
+  .item-text{ font-size: 16px; font-weight:600; word-break: break-word; }
+  .item-text.done{ text-decoration: line-through; opacity: .45; }
 
   .qty-controls{
     display:flex;
@@ -253,28 +261,9 @@
     border: 1px solid var(--line);
   }
 
-  .qty-btn{
-    background:none;
-    border:none;
-    color: var(--sea);
-    font-weight:bold;
-    font-size:14px;
-    cursor:pointer;
-    padding:0 4px;
-  }
-
-  .item-qty-val{
-    font-size: 13px;
-    color: var(--sea-deep);
-    font-weight:700;
-  }
-
-  .item-by{
-    font-size: 12px;
-    color: var(--name-tag);
-    margin-top: 2px;
-  }
-  .item-by.done{ opacity:.4; }
+  .qty-btn{ background:none; border:none; color: var(--sea); font-weight:bold; font-size:14px; cursor:pointer; }
+  .item-qty-val{ font-size: 13px; color: var(--sea-deep); font-weight:700; }
+  .item-by{ font-size: 12px; color: var(--name-tag); margin-top: 2px; }
 
   .item-notes-section{
     display:flex;
@@ -285,70 +274,24 @@
     margin-top: 4px;
   }
 
-  .note-input-row{
-    display:flex;
-    gap:6px;
-  }
+  .note-input-row{ display:flex; gap:6px; }
+  .note-input{ font-size: 12px !important; padding: 6px 8px !important; }
+  .note-add-btn{ font-size: 12px; padding: 6px 10px; background: var(--sea-deep); color: var(--white); border:none; border-radius: 8px; cursor:pointer; }
+  .notes-list{ font-size: 12px; color: var(--sea); display:flex; flex-direction:column; gap:2px; }
 
-  .note-input{
-    font-size: 12px !important;
-    padding: 6px 8px !important;
-  }
-
-  .note-add-btn{
-    font-size: 12px;
-    padding: 6px 10px;
-    background: var(--sea-deep);
-    color: var(--white);
-    border:none;
-    border-radius: 8px;
-    cursor:pointer;
-  }
-
-  .notes-list{
-    font-size: 12px;
-    color: var(--sea);
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-  }
-
-  .del{
-    background:none;
-    border:none;
-    color:#b0bcc3;
-    font-size:20px;
-    cursor:pointer;
-    padding: 4px 6px;
-    line-height:1;
-    flex-shrink:0;
-  }
+  .del{ background:none; border:none; color:#b0bcc3; font-size:20px; cursor:pointer; padding: 4px 6px; }
   .del:hover{ color: #c0533f; }
 
-  .empty{
-    text-align:center;
-    color: var(--sea);
-    opacity:.5;
-    font-size:14px;
-    padding: 40px 0;
-  }
-
-  .footer-note{
-    text-align:center;
-    margin-top: 26px;
-    font-size:12px;
-    color: var(--sea);
-    opacity:.55;
-  }
+  .empty{ text-align:center; color: var(--sea); opacity:.5; font-size:14px; padding: 40px 0; }
+  .footer-note{ text-align:center; margin-top: 26px; font-size:12px; color: var(--sea); opacity:.55; }
 </style>
 </head>
 <body>
 <div class="card">
   <header>
-    <div class="sun-dot"></div>
     <div class="wave"></div>
     <h1>רשימת קניות מיקונוס</h1>
-    <div class="sub">רשימה משותפת לכולם בזמן אמת ⚡</div>
+    <div class="sub">רשימה משותפת לפי קטגוריות ⚡</div>
   </header>
 
   <div class="whoami">
@@ -363,14 +306,36 @@
         <input type="text" id="productInput" placeholder="לדוגמה: עגבניות" autocomplete="off" />
       </div>
       <div class="field small">
-        <span>כמות / יחידות</span>
+        <span>כמות</span>
         <input type="text" id="qtyInput" placeholder="1" autocomplete="off" />
       </div>
     </div>
+
+    <div class="field-row">
+      <div class="field grow">
+        <span>קטגוריה</span>
+        <select id="categorySelect">
+          <option value="פירות וירקות">פירות וירקות</option>
+          <option value="שתייה">שתייה</option>
+          <option value="חלב וביצים">חלב וביצים</option>
+          <option value="חטיפים ומתוקים">חטיפים ומתוקים</option>
+          <option value="טיפוח וניקוי">טיפוח וניקוי</option>
+          <option value="NEW_CAT">+ צור קטגוריה חדשה...</option>
+        </select>
+      </div>
+      <div class="field grow" id="customCatContainer" style="display:none;">
+        <span>שם הקטגוריה החדשה</span>
+        <input type="text" id="customCategoryInput" placeholder="למשל: אלכוהול" autocomplete="off" />
+      </div>
+    </div>
+
     <button type="submit" class="add">הוספה לרשימה</button>
   </form>
 
-  <ul id="list"></ul>
+  <button class="sync-btn" id="syncBtn">🔄 סנכרן / סמן הכל כנצפה (אפס כחול)</button>
+
+  <div id="categoriesContainer"></div>
+
   <div class="empty" id="emptyMsg" style="display:none;">
     הרשימה ריקה כרגע 🌊
     <div style="margin-top:14px;">
@@ -378,7 +343,7 @@
     </div>
   </div>
 
-  <div class="footer-note">כל שינוי מסתנכרן בלייב אצל כולם 🔥</div>
+  <div class="footer-note">כל מוצר חדש מודגש בכחול עד לסנכרון/רענון 🔥</div>
 </div>
 
 <script type="module">
@@ -403,12 +368,16 @@
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
 
-  const listEl = document.getElementById('list');
+  const categoriesContainer = document.getElementById('categoriesContainer');
   const emptyMsg = document.getElementById('emptyMsg');
   const form = document.getElementById('addForm');
   const productInput = document.getElementById('productInput');
   const qtyInput = document.getElementById('qtyInput');
+  const categorySelect = document.getElementById('categorySelect');
+  const customCatContainer = document.getElementById('customCatContainer');
+  const customCategoryInput = document.getElementById('customCategoryInput');
   const myNameInput = document.getElementById('myName');
+  const syncBtn = document.getElementById('syncBtn');
 
   const savedName = localStorage.getItem(NAME_KEY);
   if (savedName) myNameInput.value = savedName;
@@ -416,110 +385,150 @@
     localStorage.setItem(NAME_KEY, myNameInput.value.trim());
   });
 
+  categorySelect.addEventListener('change', () => {
+    if (categorySelect.value === 'NEW_CAT') {
+      customCatContainer.style.display = 'flex';
+      customCategoryInput.focus();
+    } else {
+      customCatContainer.style.display = 'none';
+    }
+  });
+
   function render() {
-    listEl.innerHTML = '';
+    categoriesContainer.innerHTML = '';
     const keys = Object.keys(itemsMap);
     emptyMsg.style.display = keys.length === 0 ? 'block' : 'none';
 
+    // קיבוץ לפי קטגוריות
+    const grouped = {};
     keys.forEach(id => {
       const item = itemsMap[id];
-      const li = document.createElement('li');
+      const cat = item.category || 'כללי';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push({ id, ...item });
+    });
 
-      const itemRow = document.createElement('div');
-      itemRow.className = 'item-row';
+    // רינדור כל קטגוריה והמוצרים שלה
+    Object.keys(grouped).forEach(catName => {
+      const catHeader = document.createElement('div');
+      catHeader.className = 'category-title';
+      catHeader.textContent = catName;
 
-      const check = document.createElement('div');
-      check.className = 'check' + (item.done ? ' done' : '');
-      check.onclick = () => toggleItem(id, item.done);
+      const ul = document.createElement('ul');
 
-      const main = document.createElement('div');
-      main.className = 'item-main';
+      grouped[catName].forEach(item => {
+        const li = document.createElement('li');
+        if (item.isNew) {
+          li.classList.add('is-new');
+        }
 
-      const top = document.createElement('div');
-      top.className = 'item-top';
+        const itemRow = document.createElement('div');
+        itemRow.className = 'item-row';
 
-      const text = document.createElement('div');
-      text.className = 'item-text' + (item.done ? ' done' : '');
-      text.textContent = item.name;
-      top.appendChild(text);
+        const check = document.createElement('div');
+        check.className = 'check' + (item.done ? ' done' : '');
+        check.onclick = () => toggleItem(item.id, item.done);
 
-      // Quantity controls (+ / -)
-      const qtyControls = document.createElement('div');
-      qtyControls.className = 'qty-controls';
-      
-      const minusBtn = document.createElement('button');
-      minusBtn.className = 'qty-btn';
-      minusBtn.textContent = '-';
-      minusBtn.onclick = () => changeQty(id, item.qty, -1);
+        const main = document.createElement('div');
+        main.className = 'item-main';
 
-      const qtyVal = document.createElement('span');
-      qtyVal.className = 'item-qty-val';
-      qtyVal.textContent = item.qty || '1';
+        const top = document.createElement('div');
+        top.className = 'item-top';
 
-      const plusBtn = document.createElement('button');
-      plusBtn.className = 'qty-btn';
-      plusBtn.textContent = '+';
-      plusBtn.onclick = () => changeQty(id, item.qty, 1);
+        const text = document.createElement('div');
+        text.className = 'item-text' + (item.done ? ' done' : '');
+        text.textContent = item.name;
 
-      qtyControls.appendChild(minusBtn);
-      qtyControls.appendChild(qtyVal);
-      qtyControls.appendChild(plusBtn);
-      top.appendChild(qtyControls);
+        if (item.isNew) {
+          const badge = document.createElement('span');
+          badge.className = 'new-badge';
+          badge.textContent = 'חדש!';
+          text.appendChild(badge);
+        }
 
-      main.appendChild(top);
+        top.appendChild(text);
 
-      if (item.by) {
-        const by = document.createElement('div');
-        by.className = 'item-by' + (item.done ? ' done' : '');
-        by.textContent = 'הוסיף/ה: ' + item.by;
-        main.appendChild(by);
-      }
+        // כפתורי +/-
+        const qtyControls = document.createElement('div');
+        qtyControls.className = 'qty-controls';
+        
+        const minusBtn = document.createElement('button');
+        minusBtn.className = 'qty-btn';
+        minusBtn.textContent = '-';
+        minusBtn.onclick = () => changeQty(item.id, item.qty, -1);
 
-      const del = document.createElement('button');
-      del.className = 'del';
-      del.textContent = '✕';
-      del.onclick = () => deleteItem(id);
+        const qtyVal = document.createElement('span');
+        qtyVal.className = 'item-qty-val';
+        qtyVal.textContent = item.qty || '1';
 
-      itemRow.appendChild(check);
-      itemRow.appendChild(main);
-      itemRow.appendChild(del);
-      li.appendChild(itemRow);
+        const plusBtn = document.createElement('button');
+        plusBtn.className = 'qty-btn';
+        plusBtn.textContent = '+';
+        plusBtn.onclick = () => changeQty(item.id, item.qty, 1);
 
-      // Personal Notes / Custom Needs Section
-      const notesSection = document.createElement('div');
-      notesSection.className = 'item-notes-section';
+        qtyControls.appendChild(minusBtn);
+        qtyControls.appendChild(qtyVal);
+        qtyControls.appendChild(plusBtn);
+        top.appendChild(qtyControls);
 
-      const notesList = document.createElement('div');
-      notesList.className = 'notes-list';
-      if(item.notes && Array.isArray(item.notes)) {
-        item.notes.forEach(note => {
-          const noteItem = document.createElement('div');
-          noteItem.textContent = '• ' + note;
-          notesList.appendChild(noteItem);
-        });
-      }
+        main.appendChild(top);
 
-      const noteInputRow = document.createElement('div');
-      noteInputRow.className = 'note-input-row';
+        if (item.by) {
+          const by = document.createElement('div');
+          by.className = 'item-by' + (item.done ? ' done' : '');
+          by.textContent = 'הוסיף/ה: ' + item.by;
+          main.appendChild(by);
+        }
 
-      const noteInput = document.createElement('input');
-      noteInput.type = 'text';
-      noteInput.className = 'note-input';
-      noteInput.placeholder = 'הוסף הערה / כמות אישית (למשל: נתי רוצה 2)';
+        const del = document.createElement('button');
+        del.className = 'del';
+        del.textContent = '✕';
+        del.onclick = () => deleteItem(item.id);
 
-      const noteBtn = document.createElement('button');
-      noteBtn.className = 'note-add-btn';
-      noteBtn.textContent = 'הוסף';
-      noteBtn.onclick = () => addNoteToItem(id, noteInput.value, item.notes || []);
+        itemRow.appendChild(check);
+        itemRow.appendChild(main);
+        itemRow.appendChild(del);
+        li.appendChild(itemRow);
 
-      noteInputRow.appendChild(noteInput);
-      noteInputRow.appendChild(noteBtn);
+        // הערות אישיות
+        const notesSection = document.createElement('div');
+        notesSection.className = 'item-notes-section';
 
-      notesSection.appendChild(notesList);
-      notesSection.appendChild(noteInputRow);
-      li.appendChild(notesSection);
+        const notesList = document.createElement('div');
+        notesList.className = 'notes-list';
+        if (item.notes && Array.isArray(item.notes)) {
+          item.notes.forEach(note => {
+            const noteItem = document.createElement('div');
+            noteItem.textContent = '• ' + note;
+            notesList.appendChild(noteItem);
+          });
+        }
 
-      listEl.appendChild(li);
+        const noteInputRow = document.createElement('div');
+        noteInputRow.className = 'note-input-row';
+
+        const noteInput = document.createElement('input');
+        noteInput.type = 'text';
+        noteInput.className = 'note-input';
+        noteInput.placeholder = 'הוסף הערה / כמות אישית...';
+
+        const noteBtn = document.createElement('button');
+        noteBtn.className = 'note-add-btn';
+        noteBtn.textContent = 'הוסף';
+        noteBtn.onclick = () => addNoteToItem(item.id, noteInput.value, item.notes || []);
+
+        noteInputRow.appendChild(noteInput);
+        noteInputRow.appendChild(noteBtn);
+
+        notesSection.appendChild(notesList);
+        notesSection.appendChild(noteInputRow);
+        li.appendChild(notesSection);
+
+        ul.appendChild(li);
+      });
+
+      categoriesContainer.appendChild(catHeader);
+      categoriesContainer.appendChild(ul);
     });
   }
 
@@ -528,40 +537,60 @@
     render();
   });
 
-  // הוספת פריט עם בדיקת כפילויות במקום כפילות
+  // הוספת פריט עם קטגוריה וסימון כחדש (כחול)
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = productInput.value.trim();
     if (!name) return;
 
-    // בדיקה אם המוצר כבר קיים ברשימה (אינטליגנטי לפי שם)
+    let selectedCat = categorySelect.value;
+    if (selectedCat === 'NEW_CAT') {
+      selectedCat = customCategoryInput.value.trim() || 'כללי';
+    }
+
+    // בדיקת כפילויות
     const existingKey = Object.keys(itemsMap).find(
       key => itemsMap[key].name.toLowerCase() === name.toLowerCase()
     );
 
     if (existingKey) {
-      // אם קיים - נעדכן את הכמות שלו במקום לפתוח כפילות
       const currentQty = parseInt(itemsMap[existingKey].qty) || 1;
       const addQty = parseInt(qtyInput.value.trim()) || 1;
       update(ref(db, `shoppingList/${existingKey}`), {
-        qty: (currentQty + addQty).toString()
+        qty: (currentQty + addQty).toString(),
+        isNew: true // מדגיש מחדש בכחול בעת עדכון
       });
     } else {
-      // מוצר חדש לחלוטין
       const newItemRef = push(listRef);
       set(newItemRef, {
         name: name,
         qty: qtyInput.value.trim() || '1',
+        category: selectedCat,
         by: myNameInput.value.trim(),
         done: false,
+        isNew: true, // מופיע בכחול לכולם
         notes: []
       });
     }
 
     productInput.value = '';
     qtyInput.value = '';
+    customCategoryInput.value = '';
+    customCatContainer.style.display = 'none';
+    categorySelect.value = 'פירות וירקות';
     productInput.focus();
   });
+
+  // איפוס הצבע הכחול (סנכרון/סימון כנצפה)
+  function clearAllNewFlags() {
+    Object.keys(itemsMap).forEach(id => {
+      if (itemsMap[id].isNew) {
+        update(ref(db, `shoppingList/${id}`), { isNew: false });
+      }
+    });
+  }
+
+  syncBtn.addEventListener('click', clearAllNewFlags);
 
   function changeQty(id, currentQtyStr, delta) {
     let currentQty = parseInt(currentQtyStr) || 1;
@@ -573,11 +602,9 @@
   function addNoteToItem(id, newNoteText, existingNotes) {
     const trimmed = newNoteText.trim();
     if (!trimmed) return;
-    
     const userName = myNameInput.value.trim();
     const formattedNote = userName ? `${userName}: ${trimmed}` : trimmed;
     const updatedNotes = [...existingNotes, formattedNote];
-
     update(ref(db, `shoppingList/${id}`), { notes: updatedNotes });
   }
 
@@ -589,21 +616,27 @@
     remove(ref(db, `shoppingList/${id}`));
   }
 
-  const SEED_NAMES = [
-    'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
-    'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
-    'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
-    'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
+  const SEED_DATA = [
+    { name: 'עגבניות', category: 'פירות וירקות' },
+    { name: 'בננות', category: 'פירות וירקות' },
+    { name: 'קולה זירו', category: 'שתייה' },
+    { name: 'מים מינרלים', category: 'שתייה' },
+    { name: 'חלב', category: 'חלב וביצים' },
+    { name: 'גבינה צהובה', category: 'חלב וביצים' },
+    { name: 'חטיפי חלבון', category: 'חטיפים ומתוקים' },
+    { name: 'סבון גוף', category: 'טיפוח וניקוי' }
   ];
 
   document.getElementById('seedBtn').addEventListener('click', () => {
-    SEED_NAMES.forEach(name => {
+    SEED_DATA.forEach(item => {
       const newItemRef = push(listRef);
       set(newItemRef, {
-        name: name,
+        name: item.name,
         qty: '1',
+        category: item.category,
         by: myNameInput.value.trim() || 'מערכת',
         done: false,
+        isNew: false,
         notes: []
       });
     });
