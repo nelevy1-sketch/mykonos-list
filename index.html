@@ -128,12 +128,12 @@
     padding-inline-start: 2px;
   }
 
-  input[type="text"], select{
+  input[type="text"]{
     padding: 11px 12px;
     border-radius: 10px;
     border: 1.5px solid var(--line);
     background: var(--whitewash);
-    font-size: 14px;
+    font-size: 15px;
     font-family: inherit;
     color: var(--sea-deep);
     outline:none;
@@ -171,7 +171,7 @@
     font-size: 18px;
     font-weight: 700;
     color: var(--sea-deep);
-    margin: 18px 0 8px;
+    margin: 22px 0 8px;
     padding-bottom: 4px;
     border-bottom: 2px solid var(--sea);
     display: flex;
@@ -291,7 +291,7 @@
   <header>
     <div class="wave"></div>
     <h1>רשימת קניות מיקונוס</h1>
-    <div class="sub">רשימה משותפת לפי קטגוריות ⚡</div>
+    <div class="sub">חלוקה אוטומטית לפי קטגוריות ⚡</div>
   </header>
 
   <div class="whoami">
@@ -303,32 +303,13 @@
     <div class="field-row">
       <div class="field grow">
         <span>שם המוצר</span>
-        <input type="text" id="productInput" placeholder="לדוגמה: עגבניות" autocomplete="off" />
+        <input type="text" id="productInput" placeholder="לדוגמה: עגבניות, חלב, בירה..." autocomplete="off" />
       </div>
       <div class="field small">
         <span>כמות</span>
         <input type="text" id="qtyInput" placeholder="1" autocomplete="off" />
       </div>
     </div>
-
-    <div class="field-row">
-      <div class="field grow">
-        <span>קטגוריה</span>
-        <select id="categorySelect">
-          <option value="פירות וירקות">פירות וירקות</option>
-          <option value="שתייה">שתייה</option>
-          <option value="חלב וביצים">חלב וביצים</option>
-          <option value="חטיפים ומתוקים">חטיפים ומתוקים</option>
-          <option value="טיפוח וניקוי">טיפוח וניקוי</option>
-          <option value="NEW_CAT">+ צור קטגוריה חדשה...</option>
-        </select>
-      </div>
-      <div class="field grow" id="customCatContainer" style="display:none;">
-        <span>שם הקטגוריה החדשה</span>
-        <input type="text" id="customCategoryInput" placeholder="למשל: אלכוהול" autocomplete="off" />
-      </div>
-    </div>
-
     <button type="submit" class="add">הוספה לרשימה</button>
   </form>
 
@@ -343,7 +324,7 @@
     </div>
   </div>
 
-  <div class="footer-note">כל מוצר חדש מודגש בכחול עד לסנכרון/רענון 🔥</div>
+  <div class="footer-note">מוצרים חדשים מודגשים בכחול עד לסנכרון 🔥</div>
 </div>
 
 <script type="module">
@@ -368,14 +349,32 @@
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
 
+  // מילון זיהוי אוטומטי של קטגוריות לפי מילות מפתח
+  const CATEGORY_DICTIONARY = {
+    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר', 'פרו'],
+    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה', 'תאי', 'אנרגיה'],
+    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'קוטג', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה'],
+    'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים'],
+    'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות'],
+    'בשר ודגים 🥩': ['בשר', 'עוף', 'חזה עוף', 'נקניקיות', 'ההמבורגר', 'טונה', 'דג', 'נקניק', 'ג'ון', 'חמון', 'בייקון'],
+    'פארם וניקיון 🧼': ['סבון', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ספוג', 'ניקוי', 'דאודורנט']
+  };
+
+  function detectCategory(itemName) {
+    const cleanName = itemName.trim().toLowerCase();
+    for (const [catName, keywords] of Object.entries(CATEGORY_DICTIONARY)) {
+      if (keywords.some(kw => cleanName.includes(kw.toLowerCase()))) {
+        return catName;
+      }
+    }
+    return 'מוצרים נוספים 🛒'; // קטגוריית ברירת מחדל
+  }
+
   const categoriesContainer = document.getElementById('categoriesContainer');
   const emptyMsg = document.getElementById('emptyMsg');
   const form = document.getElementById('addForm');
   const productInput = document.getElementById('productInput');
   const qtyInput = document.getElementById('qtyInput');
-  const categorySelect = document.getElementById('categorySelect');
-  const customCatContainer = document.getElementById('customCatContainer');
-  const customCategoryInput = document.getElementById('customCategoryInput');
   const myNameInput = document.getElementById('myName');
   const syncBtn = document.getElementById('syncBtn');
 
@@ -385,30 +384,22 @@
     localStorage.setItem(NAME_KEY, myNameInput.value.trim());
   });
 
-  categorySelect.addEventListener('change', () => {
-    if (categorySelect.value === 'NEW_CAT') {
-      customCatContainer.style.display = 'flex';
-      customCategoryInput.focus();
-    } else {
-      customCatContainer.style.display = 'none';
-    }
-  });
-
   function render() {
     categoriesContainer.innerHTML = '';
     const keys = Object.keys(itemsMap);
     emptyMsg.style.display = keys.length === 0 ? 'block' : 'none';
 
-    // קיבוץ לפי קטגוריות
+    // מיון וקבץ מוצרים לקטגוריות
     const grouped = {};
     keys.forEach(id => {
       const item = itemsMap[id];
-      const cat = item.category || 'כללי';
+      // אם למוצר אין קטגוריה (מוצר ישן), נזהה אותה בלייב
+      const cat = item.category || detectCategory(item.name);
       if (!grouped[cat]) grouped[cat] = [];
       grouped[cat].push({ id, ...item });
     });
 
-    // רינדור כל קטגוריה והמוצרים שלה
+    // רינדור לפי קטגוריות
     Object.keys(grouped).forEach(catName => {
       const catHeader = document.createElement('div');
       catHeader.className = 'category-title';
@@ -537,16 +528,13 @@
     render();
   });
 
-  // הוספת פריט עם קטגוריה וסימון כחדש (כחול)
+  // הוספת מוצר - זיהוי קטגוריה אוטומטי לחלוטין
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = productInput.value.trim();
     if (!name) return;
 
-    let selectedCat = categorySelect.value;
-    if (selectedCat === 'NEW_CAT') {
-      selectedCat = customCategoryInput.value.trim() || 'כללי';
-    }
+    const detectedCategory = detectCategory(name);
 
     // בדיקת כפילויות
     const existingKey = Object.keys(itemsMap).find(
@@ -558,30 +546,26 @@
       const addQty = parseInt(qtyInput.value.trim()) || 1;
       update(ref(db, `shoppingList/${existingKey}`), {
         qty: (currentQty + addQty).toString(),
-        isNew: true // מדגיש מחדש בכחול בעת עדכון
+        isNew: true
       });
     } else {
       const newItemRef = push(listRef);
       set(newItemRef, {
         name: name,
         qty: qtyInput.value.trim() || '1',
-        category: selectedCat,
+        category: detectedCategory,
         by: myNameInput.value.trim(),
         done: false,
-        isNew: true, // מופיע בכחול לכולם
+        isNew: true,
         notes: []
       });
     }
 
     productInput.value = '';
     qtyInput.value = '';
-    customCategoryInput.value = '';
-    customCatContainer.style.display = 'none';
-    categorySelect.value = 'פירות וירקות';
     productInput.focus();
   });
 
-  // איפוס הצבע הכחול (סנכרון/סימון כנצפה)
   function clearAllNewFlags() {
     Object.keys(itemsMap).forEach(id => {
       if (itemsMap[id].isNew) {
@@ -617,23 +601,19 @@
   }
 
   const SEED_DATA = [
-    { name: 'עגבניות', category: 'פירות וירקות' },
-    { name: 'בננות', category: 'פירות וירקות' },
-    { name: 'קולה זירו', category: 'שתייה' },
-    { name: 'מים מינרלים', category: 'שתייה' },
-    { name: 'חלב', category: 'חלב וביצים' },
-    { name: 'גבינה צהובה', category: 'חלב וביצים' },
-    { name: 'חטיפי חלבון', category: 'חטיפים ומתוקים' },
-    { name: 'סבון גוף', category: 'טיפוח וניקוי' }
+    'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
+    'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
+    'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
+    'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
   ];
 
   document.getElementById('seedBtn').addEventListener('click', () => {
-    SEED_DATA.forEach(item => {
+    SEED_DATA.forEach(name => {
       const newItemRef = push(listRef);
       set(newItemRef, {
-        name: item.name,
+        name: name,
         qty: '1',
-        category: item.category,
+        category: detectCategory(name),
         by: myNameInput.value.trim() || 'מערכת',
         done: false,
         isNew: false,
