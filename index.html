@@ -281,7 +281,6 @@
   .del{ background:none; border:none; color:#b0bcc3; font-size:20px; cursor:pointer; padding: 4px 6px; }
   .del:hover{ color: #c0533f; }
 
-  .empty{ text-align:center; color: var(--sea); opacity:.5; font-size:14px; padding: 40px 0; }
   .footer-note{ text-align:center; margin-top: 26px; font-size:12px; color: var(--sea); opacity:.55; }
 </style>
 </head>
@@ -315,13 +314,6 @@
   <button class="sync-btn" id="syncBtn">🔄 סנכרן / סמן הכל כנצפה (אפס כחול)</button>
 
   <div id="categoriesContainer"></div>
-
-  <div class="empty" id="emptyMsg" style="display:none;">
-    הרשימה ריקה כרגע 🌊
-    <div style="margin-top:14px;">
-      <button type="button" id="seedBtn" class="add" style="padding:10px 18px; font-size:14px;">טעינת רשימת הפתיחה</button>
-    </div>
-  </div>
 
   <div class="footer-note">מוצרים חדשים מודגשים בכחול עד לסנכרון 🔥</div>
 </div>
@@ -368,25 +360,29 @@
     return 'מוצרים נוספים 🛒';
   }
 
-  // תמיכה לאחור במוצרים שנשמרו בעבר תחת 'text'
-  function fixAndMigrateItems(rawItems) {
-    Object.keys(rawItems).forEach(id => {
-      const item = rawItems[id];
-      const name = item.name || item.text || 'מוצר ללא שם';
-      const category = detectCategory(name);
-      
-      const updates = {};
-      if (!item.name && item.text) updates.name = item.text;
-      if (!item.category || item.category !== category) updates.category = category;
+  const SEED_DATA = [
+    'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
+    'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
+    'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
+    'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
+  ];
 
-      if (Object.keys(updates).length > 0) {
-        update(ref(db, `shoppingList/${id}`), updates);
-      }
+  function seedInitialData() {
+    SEED_DATA.forEach(name => {
+      const newItemRef = push(listRef);
+      set(newItemRef, {
+        name: name,
+        qty: '1',
+        category: detectCategory(name),
+        by: 'מערכת',
+        done: false,
+        isNew: false,
+        notes: []
+      });
     });
   }
 
   const categoriesContainer = document.getElementById('categoriesContainer');
-  const emptyMsg = document.getElementById('emptyMsg');
   const form = document.getElementById('addForm');
   const productInput = document.getElementById('productInput');
   const qtyInput = document.getElementById('qtyInput');
@@ -402,7 +398,6 @@
   function render() {
     categoriesContainer.innerHTML = '';
     const keys = Object.keys(itemsMap);
-    emptyMsg.style.display = keys.length === 0 ? 'block' : 'none';
 
     const grouped = {};
     keys.forEach(id => {
@@ -534,11 +529,18 @@
     });
   }
 
+  let isFirstLoad = true;
   onValue(listRef, (snapshot) => {
     itemsMap = snapshot.val() || {};
-    if (Object.keys(itemsMap).length > 0) {
-      fixAndMigrateItems(itemsMap);
+    
+    // אם המסד ריק לחלוטין בטעינה ראשונה - טען אוטומטית את פריטי הפתיחה
+    if (isFirstLoad && Object.keys(itemsMap).length === 0) {
+      isFirstLoad = false;
+      seedInitialData();
+      return;
     }
+    
+    isFirstLoad = false;
     render();
   });
 
@@ -611,28 +613,6 @@
   function deleteItem(id) {
     remove(ref(db, `shoppingList/${id}`));
   }
-
-  const SEED_DATA = [
-    'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
-    'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
-    'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
-    'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
-  ];
-
-  document.getElementById('seedBtn').addEventListener('click', () => {
-    SEED_DATA.forEach(name => {
-      const newItemRef = push(listRef);
-      set(newItemRef, {
-        name: name,
-        qty: '1',
-        category: detectCategory(name),
-        by: myNameInput.value.trim() || 'מערכת',
-        done: false,
-        isNew: false,
-        notes: []
-      });
-    });
-  });
 </script>
 </body>
 </html>
