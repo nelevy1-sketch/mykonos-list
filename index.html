@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0VXCEZ117S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0VXCEZ117S');
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>רשימת קניות מיקונוס</title>
@@ -407,11 +417,10 @@
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
   document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
 
-  // מילון שמות נרדפים למניעת כפילויות חכמה
   const SYNONYMS_MAP = {
     'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
     'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
-    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
+    'מים מינרלים': ['מים', 'בקבוק ממים', 'שישיית מים', 'שישית מים'],
     'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
     'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
     'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
@@ -428,10 +437,10 @@
     
     for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
       if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
-        return canonicalName; // מחזיר את השם האחיד והרשמי
+        return canonicalName;
       }
     }
-    return input.trim(); // אם לא נמצאה מילה נרדפת, נשאר השם המקורי
+    return input.trim();
   }
 
   const CATEGORY_DICTIONARY = {
@@ -666,24 +675,20 @@
     render();
   });
 
-  // הוספה עם מניעת כפילויות חכמה לפי מילים נרדפות
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawInputName = productInput.value.trim();
     if (!rawInputName) return;
 
-    // נורמליזציה לשם אחיד
     const normalizedName = normalizeProductName(rawInputName);
     const detectedCategory = detectCategory(normalizedName);
 
-    // בדיקה האם המוצר הקיים שווה לשם המנורמל או לאחת המילים הנרדפות שלו
     const existingKey = Object.keys(itemsMap).find(key => {
       const existingName = (itemsMap[key].name || itemsMap[key].text || '').trim();
       return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase();
     });
 
     if (existingKey) {
-      // אם נמצא מוצר מקביל - מעדכן כמות ומדגיש בכחול
       const currentQty = parseInt(itemsMap[existingKey].qty) || 1;
       const addQty = parseInt(qtyInput.value.trim()) || 1;
       update(ref(db, `shoppingList/${existingKey}`), {
@@ -691,7 +696,6 @@
         isNew: true
       });
     } else {
-      // מוצר חדש לגמרי
       const newItemRef = push(listRef);
       set(newItemRef, {
         name: normalizedName,
