@@ -53,7 +53,7 @@
 
   header{
     text-align:center;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     position:relative;
   }
 
@@ -84,11 +84,43 @@
     letter-spacing: 1px;
   }
 
+  /* פס התקדמות קניות */
+  .progress-section {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--sea-deep);
+  }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sea), var(--wa-green));
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
   .whoami{
     display:flex;
     align-items:center;
     gap:8px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     background: var(--white);
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -115,7 +147,7 @@
     display:flex;
     flex-direction:column;
     gap:8px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     background: var(--white);
     border: 1.5px solid var(--line);
     border-radius: 14px;
@@ -171,39 +203,33 @@
 
   .action-buttons{
     display:flex;
-    gap:8px;
-    margin-bottom: 20px;
+    gap:6px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
   }
 
-  .sync-btn{
-    flex:1;
-    background: var(--sea-deep);
-    color: white;
-    padding: 10px;
+  .action-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 9px;
     border: none;
     border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
-    font-size: 13px;
-  }
-
-  .wa-share-btn{
-    flex:1;
-    background: var(--wa-green);
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     text-decoration: none;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
+    transition: opacity 0.15s;
   }
+  .action-btn:active { opacity: 0.8; }
+
+  .sync-btn { background: var(--sea-deep); color: white; }
+  .filter-btn { background: var(--sea); color: white; }
+  .wa-share-btn { background: var(--wa-green); color: white; }
 
   .category-title{
     font-size: 18px;
@@ -228,9 +254,7 @@
     font-weight: 600;
     transition: background 0.15s;
   }
-  .go-top-btn:hover {
-    background: var(--line);
-  }
+  .go-top-btn:hover { background: var(--line); }
 
   ul{
     list-style:none;
@@ -251,8 +275,10 @@
     padding: 12px 14px;
     animation: rise .25s ease;
     transition: all 0.3s ease;
+    position: relative;
   }
 
+  /* עיצוב פריט חדש - גבול כחול */
   li.is-new {
     border: 2px solid var(--new-blue) !important;
     background: #f0f6ff;
@@ -261,15 +287,22 @@
     color: var(--new-blue) !important;
     font-weight: 700;
   }
-  .new-badge {
-    background: var(--new-blue);
-    color: white;
+
+  /* עיצוב פריט דחוף - גבול זהב */
+  li.is-priority {
+    border: 2px solid var(--sun) !important;
+    background: #fffdf5;
+  }
+
+  .badge {
     font-size: 10px;
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: bold;
     margin-inline-start: 6px;
   }
+  .new-badge { background: var(--new-blue); color: white; }
+  .star-badge { background: var(--sun); color: var(--sea-deep); }
 
   .item-row{
     display:flex;
@@ -315,7 +348,23 @@
 
   .qty-btn{ background:none; border:none; color: var(--sea); font-weight:bold; font-size:14px; cursor:pointer; }
   .item-qty-val{ font-size: 13px; color: var(--sea-deep); font-weight:700; }
-  .item-by{ font-size: 12px; color: var(--name-tag); margin-top: 2px; }
+  
+  .item-sub-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 2px;
+  }
+
+  .item-by{ font-size: 11px; color: var(--name-tag); }
+  .item-buyer {
+    font-size: 11px;
+    color: var(--sea);
+    font-weight: 700;
+    background: #eef5f9;
+    padding: 1px 6px;
+    border-radius: 6px;
+  }
 
   .item-actions {
     display: flex;
@@ -323,7 +372,7 @@
     gap: 4px;
   }
 
-  .edit-btn {
+  .icon-btn {
     background: none;
     border: none;
     color: #8899a6;
@@ -332,7 +381,20 @@
     padding: 4px;
     line-height: 1;
   }
-  .edit-btn:hover { color: var(--sea); }
+  .icon-btn:hover { color: var(--sea); }
+  .icon-btn.star-active { color: var(--sun); }
+
+  .claim-btn {
+    font-size: 11px;
+    background: var(--whitewash);
+    border: 1px solid var(--line);
+    color: var(--sea-deep);
+    padding: 3px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .claim-btn:hover { background: var(--line); }
 
   .item-notes-section{
     display:flex;
@@ -359,8 +421,19 @@
   <header id="topHeader">
     <div class="wave"></div>
     <h1>רשימת קניות מיקונוס</h1>
-    <div class="sub">חלוקה אוטומטית ומניעת כפילויות חכמה ⚡</div>
+    <div class="sub">חלוקה אוטומטית ומניעת כפילויות ⚡</div>
   </header>
+
+  <!-- מדד התקדמות קניות -->
+  <div class="progress-section">
+    <div class="progress-info">
+      <span>התקדמות קניות</span>
+      <span id="progressText">0 מתוך 0 (0%)</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBarFill"></div>
+    </div>
+  </div>
 
   <div class="whoami">
     <label for="myName">אני:</label>
@@ -382,13 +455,14 @@
   </form>
 
   <div class="action-buttons">
-    <button class="sync-btn" id="syncBtn">🔄 סמן כנצפה (אפס כחול)</button>
-    <a class="wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף בוואטסאפ</a>
+    <button class="action-btn sync-btn" id="syncBtn">🔄 אפס כחול</button>
+    <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
+    <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף בוואטסאפ</a>
   </div>
 
   <div id="categoriesContainer"></div>
 
-  <div class="footer-note">מוצרים חדשים מודגשים בכחול עד לסנכרון 🔥</div>
+  <div class="footer-note">מוצרים חדשים מודגשים בכחול | ⭐ דחופים בזהב 🔥</div>
 </div>
 
 <script type="module">
@@ -412,6 +486,7 @@
 
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
+  let hideDoneItems = false;
 
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
@@ -420,7 +495,7 @@
   const SYNONYMS_MAP = {
     'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
     'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
-    'מים מינרלים': ['מים', 'בקבוק ממים', 'שישיית מים', 'שישית מים'],
+    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
     'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
     'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
     'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
@@ -434,7 +509,6 @@
   function normalizeProductName(input) {
     if (!input) return '';
     const clean = input.trim().toLowerCase();
-    
     for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
       if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
         return canonicalName;
@@ -443,13 +517,14 @@
     return input.trim();
   }
 
- const CATEGORY_DICTIONARY = {
+  // מילון קטגוריות מורחב (כולל כדוריות וכביסה)
+  const CATEGORY_DICTIONARY = {
     'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
     'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
     'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'קוטג', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו'],
     'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים'],
     'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות'],
-    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ספוג', 'ניקוי', 'דאודורנט']
+    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ספוג', 'ניקוי', 'דאודורנט', 'אבקה']
   };
 
   function detectCategory(itemName) {
@@ -480,6 +555,8 @@
         by: 'מערכת',
         done: false,
         isNew: false,
+        isPriority: false,
+        buyer: '',
         notes: []
       });
     });
@@ -491,6 +568,9 @@
   const qtyInput = document.getElementById('qtyInput');
   const myNameInput = document.getElementById('myName');
   const syncBtn = document.getElementById('syncBtn');
+  const filterBtn = document.getElementById('filterBtn');
+  const progressBarFill = document.getElementById('progressBarFill');
+  const progressText = document.getElementById('progressText');
 
   const savedName = localStorage.getItem(NAME_KEY);
   if (savedName) myNameInput.value = savedName;
@@ -500,18 +580,36 @@
 
   function scrollToAdd() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      productInput.focus();
-    }, 300);
+    setTimeout(() => { productInput.focus(); }, 300);
+  }
+
+  // עדכון מדד התקדמות הקניות
+  function updateProgressBar(keys) {
+    const total = keys.length;
+    if (total === 0) {
+      progressBarFill.style.width = '0%';
+      progressText.textContent = '0 מתוך 0 (0%)';
+      return;
+    }
+
+    const doneCount = keys.filter(id => itemsMap[id].done).length;
+    const percent = Math.round((doneCount / total) * 100);
+
+    progressBarFill.style.width = percent + '%';
+    progressText.textContent = `${doneCount} מתוך ${total} (${percent}%)`;
   }
 
   function render() {
     categoriesContainer.innerHTML = '';
     const keys = Object.keys(itemsMap);
 
+    updateProgressBar(keys);
+
     const grouped = {};
     keys.forEach(id => {
       const item = itemsMap[id];
+      if (hideDoneItems && item.done) return; // סינון פריטים שנרכשו
+
       const itemName = item.name || item.text || '';
       const cat = item.category || detectCategory(itemName);
       if (!grouped[cat]) grouped[cat] = [];
@@ -535,11 +633,13 @@
 
       const ul = document.createElement('ul');
 
+      // מיון הפריטים כך שפריטים דחופים (Priority) יופיעו ראשונים
+      grouped[catName].sort((a, b) => (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0));
+
       grouped[catName].forEach(item => {
         const li = document.createElement('li');
-        if (item.isNew) {
-          li.classList.add('is-new');
-        }
+        if (item.isNew) li.classList.add('is-new');
+        if (item.isPriority) li.classList.add('is-priority');
 
         const itemRow = document.createElement('div');
         itemRow.className = 'item-row';
@@ -558,15 +658,23 @@
         text.className = 'item-text' + (item.done ? ' done' : '');
         text.textContent = item.name;
 
+        if (item.isPriority) {
+          const starBadge = document.createElement('span');
+          starBadge.className = 'badge star-badge';
+          starBadge.textContent = '⭐ דחוף';
+          text.appendChild(starBadge);
+        }
+
         if (item.isNew) {
           const badge = document.createElement('span');
-          badge.className = 'new-badge';
+          badge.className = 'badge new-badge';
           badge.textContent = 'חדש!';
           text.appendChild(badge);
         }
 
         top.appendChild(text);
 
+        // כפתורי כמות
         const qtyControls = document.createElement('div');
         qtyControls.className = 'qty-controls';
         
@@ -591,27 +699,58 @@
 
         main.appendChild(top);
 
+        // מידע משני (מי הוסיף / מי קונה)
+        const subInfo = document.createElement('div');
+        subInfo.className = 'item-sub-info';
+
         if (item.by) {
-          const by = document.createElement('div');
-          by.className = 'item-by' + (item.done ? ' done' : '');
+          const by = document.createElement('span');
+          by.className = 'item-by';
           by.textContent = 'הוסיף/ה: ' + item.by;
-          main.appendChild(by);
+          subInfo.appendChild(by);
         }
 
+        if (item.buyer) {
+          const buyer = document.createElement('span');
+          buyer.className = 'item-buyer';
+          buyer.textContent = '🛒 אחראי: ' + item.buyer;
+          subInfo.appendChild(buyer);
+        }
+
+        main.appendChild(subInfo);
+
+        // כפתורי עזר
         const actions = document.createElement('div');
         actions.className = 'item-actions';
 
+        // כפתור שיוך "אני קונה"
+        const claimBtn = document.createElement('button');
+        claimBtn.className = 'claim-btn';
+        claimBtn.textContent = item.buyer ? 'שנה' : 'אני קונה';
+        claimBtn.onclick = () => claimItem(item.id, item.buyer);
+
+        // כפתור דחוף (כוכב)
+        const starBtn = document.createElement('button');
+        starBtn.className = 'icon-btn' + (item.isPriority ? ' star-active' : '');
+        starBtn.textContent = item.isPriority ? '⭐' : '☆';
+        starBtn.title = 'סמן כדחוף';
+        starBtn.onclick = () => togglePriority(item.id, item.isPriority);
+
+        // כפתור עריכת שם
         const editBtn = document.createElement('button');
-        editBtn.className = 'edit-btn';
+        editBtn.className = 'icon-btn';
         editBtn.textContent = '✏️';
-        editBtn.title = 'ערוך שם פריט';
+        editBtn.title = 'ערוך שם';
         editBtn.onclick = () => editItemName(item.id, item.name);
 
+        // כפתור מחיקה
         const del = document.createElement('button');
         del.className = 'del';
         del.textContent = '✕';
         del.onclick = () => deleteItem(item.id);
 
+        actions.appendChild(claimBtn);
+        actions.appendChild(starBtn);
         actions.appendChild(editBtn);
         actions.appendChild(del);
 
@@ -620,6 +759,7 @@
         itemRow.appendChild(actions);
         li.appendChild(itemRow);
 
+        // הערות אישיות
         const notesSection = document.createElement('div');
         notesSection.className = 'item-notes-section';
 
@@ -704,6 +844,8 @@
         by: myNameInput.value.trim(),
         done: false,
         isNew: true,
+        isPriority: false,
+        buyer: '',
         notes: []
       });
     }
@@ -711,6 +853,34 @@
     productInput.value = '';
     qtyInput.value = '';
     productInput.focus();
+  });
+
+  // שיוך "אני קונה"
+  function claimItem(id, currentBuyer) {
+    const myName = myNameInput.value.trim();
+    if (!myName) {
+      alert('נא להזין את השם שלך בשדה "אני:" בחלק העליון.');
+      myNameInput.focus();
+      return;
+    }
+
+    if (currentBuyer === myName) {
+      update(ref(db, `shoppingList/${id}`), { buyer: '' }); // ביטול שיוך
+    } else {
+      update(ref(db, `shoppingList/${id}`), { buyer: myName });
+    }
+  }
+
+  // סימון פריט דחוף
+  function togglePriority(id, currentStatus) {
+    update(ref(db, `shoppingList/${id}`), { isPriority: !currentStatus });
+  }
+
+  // סינון פריטים שנרכשו
+  filterBtn.addEventListener('click', () => {
+    hideDoneItems = !hideDoneItems;
+    filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שנרכשו';
+    render();
   });
 
   function editItemName(id, currentName) {
