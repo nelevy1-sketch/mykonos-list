@@ -84,7 +84,6 @@
     letter-spacing: 1px;
   }
 
-  /* פס התקדמות קניות */
   .progress-section {
     background: var(--white);
     border: 1px solid var(--line);
@@ -278,7 +277,6 @@
     position: relative;
   }
 
-  /* עיצוב פריט חדש - גבול כחול */
   li.is-new {
     border: 2px solid var(--new-blue) !important;
     background: #f0f6ff;
@@ -288,7 +286,6 @@
     font-weight: 700;
   }
 
-  /* עיצוב פריט דחוף - גבול זהב */
   li.is-priority {
     border: 2px solid var(--sun) !important;
     background: #fffdf5;
@@ -424,7 +421,6 @@
     <div class="sub">חלוקה אוטומטית ומניעת כפילויות ⚡</div>
   </header>
 
-  <!-- מדד התקדמות קניות -->
   <div class="progress-section">
     <div class="progress-info">
       <span>התקדמות קניות</span>
@@ -444,7 +440,7 @@
     <div class="field-row">
       <div class="field grow">
         <span>שם המוצר</span>
-        <input type="text" id="productInput" placeholder="לדוגמה: עגבניות, זירו, פרו..." autocomplete="off" />
+        <input type="text" id="productInput" placeholder="לדוגמה: עגבניות, חזה עוף, מגבת..." autocomplete="off" />
       </div>
       <div class="field small">
         <span>כמות</span>
@@ -503,7 +499,8 @@
     'מלפפונים': ['מלפפון'],
     'בננות': ['בננה'],
     'לימונים': ['לימון'],
-    'לחמניות': ['לחמניה', 'לחם']
+    'לחמניות': ['לחמניה', 'לחם'],
+    'חזה עוף': ['עוף', 'חזה עוף פרוס', 'שניצל']
   };
 
   function normalizeProductName(input) {
@@ -517,14 +514,16 @@
     return input.trim();
   }
 
-  // מילון קטגוריות מורחב (כולל כדוריות וכביסה)
+  // מילון קטגוריות מעודכן כולל בשר/דגים וכלי בית
   const CATEGORY_DICTIONARY = {
     'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
+    'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'נקניקיות', 'קבב', 'המבורגר', 'פרגית', 'בקר', 'סטייק', 'שניצל'],
     'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
     'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'קוטג', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו'],
     'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים'],
     'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות'],
-    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ספוג', 'ניקוי', 'דאודורנט', 'אבקה']
+    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ניקוי', 'דאודורנט', 'אבקה'],
+    'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'מגבת רחצה', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה', 'סכין', 'מזלג']
   };
 
   function detectCategory(itemName) {
@@ -583,7 +582,6 @@
     setTimeout(() => { productInput.focus(); }, 300);
   }
 
-  // עדכון מדד התקדמות הקניות
   function updateProgressBar(keys) {
     const total = keys.length;
     if (total === 0) {
@@ -608,7 +606,7 @@
     const grouped = {};
     keys.forEach(id => {
       const item = itemsMap[id];
-      if (hideDoneItems && item.done) return; // סינון פריטים שנרכשו
+      if (hideDoneItems && item.done) return;
 
       const itemName = item.name || item.text || '';
       const cat = item.category || detectCategory(itemName);
@@ -633,7 +631,6 @@
 
       const ul = document.createElement('ul');
 
-      // מיון הפריטים כך שפריטים דחופים (Priority) יופיעו ראשונים
       grouped[catName].sort((a, b) => (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0));
 
       grouped[catName].forEach(item => {
@@ -674,7 +671,6 @@
 
         top.appendChild(text);
 
-        // כפתורי כמות
         const qtyControls = document.createElement('div');
         qtyControls.className = 'qty-controls';
         
@@ -699,7 +695,6 @@
 
         main.appendChild(top);
 
-        // מידע משני (מי הוסיף / מי קונה)
         const subInfo = document.createElement('div');
         subInfo.className = 'item-sub-info';
 
@@ -719,31 +714,26 @@
 
         main.appendChild(subInfo);
 
-        // כפתורי עזר
         const actions = document.createElement('div');
         actions.className = 'item-actions';
 
-        // כפתור שיוך "אני קונה"
         const claimBtn = document.createElement('button');
         claimBtn.className = 'claim-btn';
         claimBtn.textContent = item.buyer ? 'שנה' : 'אני קונה';
         claimBtn.onclick = () => claimItem(item.id, item.buyer);
 
-        // כפתור דחוף (כוכב)
         const starBtn = document.createElement('button');
         starBtn.className = 'icon-btn' + (item.isPriority ? ' star-active' : '');
         starBtn.textContent = item.isPriority ? '⭐' : '☆';
         starBtn.title = 'סמן כדחוף';
         starBtn.onclick = () => togglePriority(item.id, item.isPriority);
 
-        // כפתור עריכת שם
         const editBtn = document.createElement('button');
         editBtn.className = 'icon-btn';
         editBtn.textContent = '✏️';
         editBtn.title = 'ערוך שם';
         editBtn.onclick = () => editItemName(item.id, item.name);
 
-        // כפתור מחיקה
         const del = document.createElement('button');
         del.className = 'del';
         del.textContent = '✕';
@@ -759,7 +749,6 @@
         itemRow.appendChild(actions);
         li.appendChild(itemRow);
 
-        // הערות אישיות
         const notesSection = document.createElement('div');
         notesSection.className = 'item-notes-section';
 
@@ -855,7 +844,6 @@
     productInput.focus();
   });
 
-  // שיוך "אני קונה"
   function claimItem(id, currentBuyer) {
     const myName = myNameInput.value.trim();
     if (!myName) {
@@ -865,18 +853,16 @@
     }
 
     if (currentBuyer === myName) {
-      update(ref(db, `shoppingList/${id}`), { buyer: '' }); // ביטול שיוך
+      update(ref(db, `shoppingList/${id}`), { buyer: '' });
     } else {
       update(ref(db, `shoppingList/${id}`), { buyer: myName });
     }
   }
 
-  // סימון פריט דחוף
   function togglePriority(id, currentStatus) {
     update(ref(db, `shoppingList/${id}`), { isPriority: !currentStatus });
   }
 
-  // סינון פריטים שנרכשו
   filterBtn.addEventListener('click', () => {
     hideDoneItems = !hideDoneItems;
     filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שנרכשו';
