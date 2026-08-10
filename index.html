@@ -418,7 +418,7 @@
   <header id="topHeader">
     <div class="wave"></div>
     <h1>רשימת קניות מיקונוס</h1>
-    <div class="sub">חלוקה אוטומטית ומניעת כפילויות ⚡</div>
+    <div class="sub">חלוקה אוטומטית ומיון א'-ב' ⚡</div>
   </header>
 
   <div class="progress-section">
@@ -458,7 +458,7 @@
 
   <div id="categoriesContainer"></div>
 
-  <div class="footer-note">מוצרים חדשים מודגשים בכחול | ⭐ דחופים בזהב 🔥</div>
+  <div class="footer-note">מוצרים ממוינים לפי א'-ב' | ⭐ דחופים בראש הרשימה 🔥</div>
 </div>
 
 <script type="module">
@@ -514,7 +514,6 @@
     return input.trim();
   }
 
-  // מילון קטגוריות מעודכן כולל בשר/דגים וכלי בית
   const CATEGORY_DICTIONARY = {
     'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
     'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'נקניקיות', 'קבב', 'המבורגר', 'פרגית', 'בקר', 'סטייק', 'שניצל'],
@@ -614,7 +613,10 @@
       grouped[cat].push({ id, ...item, name: itemName });
     });
 
-    Object.keys(grouped).forEach(catName => {
+    // 1. מיון הקטגוריות לפי א'-ב' (בעברית)
+    const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
+
+    sortedCategories.forEach(catName => {
       const catHeader = document.createElement('div');
       catHeader.className = 'category-title';
       
@@ -631,7 +633,13 @@
 
       const ul = document.createElement('ul');
 
-      grouped[catName].sort((a, b) => (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0));
+      // 2. מיון המוצרים בתוך הקטגוריה: פריטים דחופים ראשונים, ואז לפי א'-ב'
+      grouped[catName].sort((a, b) => {
+        if (a.isPriority !== b.isPriority) {
+          return b.isPriority ? 1 : -1;
+        }
+        return a.name.localeCompare(b.name, 'he');
+      });
 
       grouped[catName].forEach(item => {
         const li = document.createElement('li');
