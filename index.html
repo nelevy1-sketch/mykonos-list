@@ -348,17 +348,27 @@
   
   .item-sub-info {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    margin-top: 2px;
+    margin-top: 4px;
+    flex-wrap: wrap;
   }
 
   .item-by{ font-size: 11px; color: var(--name-tag); }
   .item-buyer {
     font-size: 11px;
-    color: var(--sea);
+    color: var(--sea-deep);
     font-weight: 700;
     background: #eef5f9;
+    padding: 1px 6px;
+    border-radius: 6px;
+  }
+
+  .item-wanting {
+    font-size: 11px;
+    color: #2b7a4b;
+    font-weight: 600;
+    background: #eafaf1;
     padding: 1px 6px;
     border-radius: 6px;
   }
@@ -381,7 +391,7 @@
   .icon-btn:hover { color: var(--sea); }
   .icon-btn.star-active { color: var(--sun); }
 
-  .claim-btn {
+  .claim-btn, .want-btn {
     font-size: 11px;
     background: var(--whitewash);
     border: 1px solid var(--line);
@@ -391,7 +401,12 @@
     cursor: pointer;
     font-weight: 600;
   }
-  .claim-btn:hover { background: var(--line); }
+  .claim-btn:hover, .want-btn:hover { background: var(--line); }
+  .want-btn.active {
+    background: #25D366;
+    color: white;
+    border-color: #25D366;
+  }
 
   .item-notes-section{
     display:flex;
@@ -555,6 +570,7 @@
         isNew: false,
         isPriority: false,
         buyer: '',
+        wanting: [],
         notes: []
       });
     });
@@ -599,6 +615,7 @@
   function render() {
     categoriesContainer.innerHTML = '';
     const keys = Object.keys(itemsMap);
+    const myName = myNameInput.value.trim();
 
     updateProgressBar(keys);
 
@@ -613,7 +630,6 @@
       grouped[cat].push({ id, ...item, name: itemName });
     });
 
-    // 1. מיון הקטגוריות לפי א'-ב' (בעברית)
     const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
 
     sortedCategories.forEach(catName => {
@@ -633,7 +649,6 @@
 
       const ul = document.createElement('ul');
 
-      // 2. מיון המוצרים בתוך הקטגוריה: פריטים דחופים ראשונים, ואז לפי א'-ב'
       grouped[catName].sort((a, b) => {
         if (a.isPriority !== b.isPriority) {
           return b.isPriority ? 1 : -1;
@@ -720,33 +735,55 @@
           subInfo.appendChild(buyer);
         }
 
+        // רשימת מעוניינים ("גם אני")
+        const wantingArr = Array.isArray(item.wanting) ? item.wanting : [];
+        if (wantingArr.length > 0) {
+          const wantingTag = document.createElement('span');
+          wantingTag.className = 'item-wanting';
+          wantingTag.textContent = '🙋‍♂️ רוצים: ' + wantingArr.join(', ');
+          subInfo.appendChild(wantingTag);
+        }
+
         main.appendChild(subInfo);
 
         const actions = document.createElement('div');
         actions.className = 'item-actions';
 
+        // כפתור "🙋‍♂️ גם אני"
+        const isUserWanting = myName && wantingArr.includes(myName);
+        const wantBtn = document.createElement('button');
+        wantBtn.className = 'want-btn' + (isUserWanting ? ' active' : '');
+        wantBtn.textContent = '🙋‍♂️ גם אני';
+        wantBtn.title = 'לחץ כדי להוסיף/להסיר את עצמך מרשימת הצורכים';
+        wantBtn.onclick = () => toggleWantItem(item.id, item.qty, wantingArr);
+
+        // כפתור "אני קונה"
         const claimBtn = document.createElement('button');
         claimBtn.className = 'claim-btn';
         claimBtn.textContent = item.buyer ? 'שנה' : 'אני קונה';
         claimBtn.onclick = () => claimItem(item.id, item.buyer);
 
+        // כפתור דחוף
         const starBtn = document.createElement('button');
         starBtn.className = 'icon-btn' + (item.isPriority ? ' star-active' : '');
         starBtn.textContent = item.isPriority ? '⭐' : '☆';
         starBtn.title = 'סמן כדחוף';
         starBtn.onclick = () => togglePriority(item.id, item.isPriority);
 
+        // כפתור עריכה
         const editBtn = document.createElement('button');
         editBtn.className = 'icon-btn';
         editBtn.textContent = '✏️';
         editBtn.title = 'ערוך שם';
         editBtn.onclick = () => editItemName(item.id, item.name);
 
+        // כפתור מחיקה
         const del = document.createElement('button');
         del.className = 'del';
         del.textContent = '✕';
         del.onclick = () => deleteItem(item.id);
 
+        actions.appendChild(wantBtn);
         actions.appendChild(claimBtn);
         actions.appendChild(starBtn);
         actions.appendChild(editBtn);
@@ -843,6 +880,7 @@
         isNew: true,
         isPriority: false,
         buyer: '',
+        wanting: [],
         notes: []
       });
     }
@@ -851,6 +889,34 @@
     qtyInput.value = '';
     productInput.focus();
   });
+
+  // פונקציית "🙋‍♂️ גם אני"
+  function toggleWantItem(id, currentQtyStr, currentWanting) {
+    const myName = myNameInput.value.trim();
+    if (!myName) {
+      alert('נא להזין את השם שלך בשדה "אני:" בחלק העליון.');
+      myNameInput.focus();
+      return;
+    }
+
+    let updatedWanting = [...currentWanting];
+    let currentQty = parseInt(currentQtyStr) || 1;
+
+    if (updatedWanting.includes(myName)) {
+      // הסרת המשתמש והפחתת כמות
+      updatedWanting = updatedWanting.filter(name => name !== myName);
+      if (currentQty > 1) currentQty -= 1;
+    } else {
+      // הוספת המשתמש והעלאת כמות
+      updatedWanting.push(myName);
+      currentQty += 1;
+    }
+
+    update(ref(db, `shoppingList/${id}`), {
+      wanting: updatedWanting,
+      qty: currentQty.toString()
+    });
+  }
 
   function claimItem(id, currentBuyer) {
     const myName = myNameInput.value.trim();
