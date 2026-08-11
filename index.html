@@ -334,7 +334,6 @@
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
   document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
 
-  // מילון מילים נרדפות למניעת כפילויות חכמה
   const SYNONYMS_MAP = {
     'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
     'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
@@ -499,14 +498,14 @@
               <span class="item-qty-tag">${item.qty || 1} ${item.unit || "יח'"}</span>
               <div class="item-sub-info">
                 ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
-                ${item.buyer ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
+                ${(currentListType === 'inPerson' && item.buyer) ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
                 ${wantingArr.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingArr.join(', ')}</span>` : ''}
                 ${auditTagHTML}
               </div>
             </div>
             <div class="item-btn-actions">
               <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
-              <button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>
+              ${currentListType === 'inPerson' ? `<button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>` : ''}
             </div>
             <button class="menu-btn" onclick="toggleMenu('menu-${item.id}')">⋮</button>
             <div class="menu-dropdown" id="menu-${item.id}">
@@ -547,7 +546,6 @@
 
   listenToFirebase();
 
-  // הוספת פריט חדש + בדיקת כפילויות חכמה לפי מילים נרדפות
   addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawInputName = document.getElementById('modalNameInput').value.trim();
