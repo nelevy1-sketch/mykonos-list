@@ -63,7 +63,8 @@
     display: flex; justify-content: space-between; align-items: center;
     background: var(--white); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; font-weight: 700;
   }
-  .status-tag { background: #eef5f9; color: var(--sea); padding: 3px 8px; border-radius: 6px; cursor: pointer; }
+  .status-tag { background: #eef5f9; color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+  .status-tag:hover { background: #dceaf2; }
 
   .progress-section {
     background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
@@ -95,7 +96,7 @@
   .audit-btn { background: var(--sea-deep); color: white; }
   .export-btn { background: #5c6b73; color: white; }
   .wa-share-btn { background: var(--wa-green); color: white; }
-  .clear-btn { background: #c0533f; color: white; }
+  .settings-btn { background: #78909c; color: white; }
 
   .category-header {
     font-size: 16px; font-weight: 700; color: var(--sea-deep); margin: 18px 0 8px;
@@ -175,12 +176,14 @@
   .menu-item:hover { background: var(--whitewash); }
   .menu-item.danger { color: #c0533f; }
 
-  .snackbar {
+  /* Toast Notification */
+  .toast {
     visibility: hidden; min-width: 250px; background-color: var(--sea-deep); color: #fff; text-align: center;
     border-radius: 10px; padding: 12px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
     transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   }
-  .snackbar.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
+  .toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
   .undo-btn { background: var(--sun); color: var(--sea-deep); border: none; padding: 4px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
@@ -254,18 +257,20 @@
     <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
     <button class="action-btn audit-btn" id="auditToggleBtn">🔍 מצב בדיקה</button>
     <button class="action-btn export-btn" id="exportBtn">📋 טקסט לסופר</button>
-    <button class="action-btn clear-btn" id="clearListBtn">🗑️ איפוס רשימה</button>
+    <button class="action-btn settings-btn" id="settingsBtn">⚙️ ניהול</button>
     <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
   </div>
 
   <div id="categoriesContainer"></div>
 </div>
 
-<div id="snackbar" class="snackbar">
-  <span id="snackbarText">הפריט נמחק</span>
-  <button class="undo-btn" id="undoBtn">ביטול (Undo)</button>
+<!-- Toast / Notification -->
+<div id="toast" class="toast">
+  <span id="toastText">הודעה</span>
+  <button class="undo-btn" id="undoBtn" style="display:none;">ביטול (Undo)</button>
 </div>
 
+<!-- Modal הוספת פריט -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -280,7 +285,7 @@
 
       <div class="form-row">
         <div class="form-group" style="flex: 1;">
-          <label>כמות</label>
+          <label>כמות בסיס משותפת</label>
           <input type="text" id="modalQtyInput" placeholder="1" autocomplete="off" />
         </div>
         <div class="form-group" style="flex: 1;">
@@ -301,6 +306,19 @@
 
       <button type="submit" class="submit-modal-btn">הוסף לרשימה</button>
     </form>
+  </div>
+</div>
+
+<!-- Modal ניהול / איפוס רשימה -->
+<div class="modal-overlay" id="settingsModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>⚙️ תפריט ניהול רשימה</h3>
+      <button class="close-modal" id="closeSettingsModalBtn">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <button id="clearCurrentListBtn" style="background: #c0533f; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">🗑️ איפוס רשימה זו בלבד</button>
+    </div>
   </div>
 </div>
 
@@ -394,6 +412,30 @@
     return 'מוצרים נוספים 🛒';
   }
 
+  function showToast(message, showUndo = false) {
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    const undoBtn = document.getElementById('undoBtn');
+    
+    toastText.textContent = message;
+    undoBtn.style.display = showUndo ? 'block' : 'none';
+    
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); }, 3500);
+  }
+
+  function requireUserName() {
+    const myName = myNameInput.value.trim();
+    if (!myName) {
+      myNameInput.focus();
+      myNameInput.style.border = "2px solid #c0533f";
+      showToast('נא להזין שם בשדה "שם:" בראש המסך');
+      return null;
+    }
+    myNameInput.style.border = "none";
+    return myName;
+  }
+
   window.switchList = function(listType, evt) {
     currentListType = listType;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -412,11 +454,11 @@
   const filterBtn = document.getElementById('filterBtn');
   const auditToggleBtn = document.getElementById('auditToggleBtn');
   const exportBtn = document.getElementById('exportBtn');
-  const clearListBtn = document.getElementById('clearListBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const clearCurrentListBtn = document.getElementById('clearCurrentListBtn');
   const statusTag = document.getElementById('statusTag');
   const progressBarFill = document.getElementById('progressBarFill');
   const progressText = document.getElementById('progressText');
-  const snackbar = document.getElementById('snackbar');
   const undoBtn = document.getElementById('undoBtn');
 
   const modalOverlay = document.getElementById('modalOverlay');
@@ -424,8 +466,17 @@
   const closeModalBtn = document.getElementById('closeModalBtn');
   const addModalForm = document.getElementById('addModalForm');
 
-  openModalBtn.onclick = () => modalOverlay.classList.add('show');
+  const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+  const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+
+  openModalBtn.onclick = () => {
+    if (!requireUserName()) return;
+    modalOverlay.classList.add('show');
+  };
   closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
+
+  settingsBtn.onclick = () => settingsModalOverlay.classList.add('show');
+  closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
 
   document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
     input.addEventListener('focus', () => {
@@ -451,6 +502,13 @@
     const currentIndex = STATUS_CYCLE.indexOf(listStatus);
     const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
     listStatus = STATUS_CYCLE[nextIndex];
+    
+    // במידה והסטטוס שונה ל"בבדיקה", מופעל אוטומטית מצב בדיקה
+    if (listStatus === '🔍 בבדיקה') {
+      isAuditMode = true;
+      auditToggleBtn.style.background = '#25D366';
+    }
+
     set(listStatusRef, listStatus);
   };
 
@@ -465,6 +523,12 @@
     const percent = Math.round((doneCount / total) * 100);
     progressBarFill.style.width = percent + '%';
     progressText.textContent = `${doneCount} מתוך ${total} (${percent}%)`;
+  }
+
+  function calculateTotalQty(item) {
+    const baseQty = parseInt(item.qty) || 1;
+    const personalRequests = item.personalQtyMap ? Object.values(item.personalQtyMap).reduce((a, b) => a + (parseInt(b) || 0), 0) : 0;
+    return baseQty + personalRequests;
   }
 
   function render() {
@@ -511,9 +575,12 @@
         const li = document.createElement('li');
         if (item.isPriority) li.classList.add('is-priority');
 
-        const wantingArr = Array.isArray(item.wanting) ? item.wanting : [];
-        const isUserWanting = myName && wantingArr.includes(myName);
+        const personalMap = item.personalQtyMap || {};
+        const isUserWanting = myName && personalMap[myName] > 0;
         const isUserBuyer = myName && item.buyer === myName;
+        const totalQty = calculateTotalQty(item);
+
+        const wantingList = Object.keys(personalMap).filter(k => personalMap[k] > 0).map(k => `${k} (+${personalMap[k]})`);
 
         let auditTagHTML = '';
         if (item.auditStatus) {
@@ -526,16 +593,16 @@
             <div class="check ${item.done ? 'done' : ''}" onclick="toggleItem('${item.id}', ${item.done})"></div>
             <div class="item-main">
               <span class="item-text ${item.done ? 'done' : ''}">${item.name}</span>
-              <span class="item-qty-tag">${item.qty || 1} ${item.unit || "יח'"}</span>
+              <span class="item-qty-tag">${totalQty} ${item.unit || "יח'"}</span>
               <div class="item-sub-info">
                 ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
                 ${(currentListType === 'inPerson' && item.buyer) ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
-                ${wantingArr.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingArr.join(', ')}</span>` : ''}
+                ${wantingList.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingList.join(', ')}</span>` : ''}
                 ${auditTagHTML}
               </div>
             </div>
             <div class="item-btn-actions">
-              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
+              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', ${JSON.stringify(personalMap).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
               ${currentListType === 'inPerson' ? `<button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>` : ''}
             </div>
             <button class="menu-btn" onclick="toggleMenu('menu-${item.id}', event)">⋮</button>
@@ -579,6 +646,9 @@
 
   addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    const user = requireUserName();
+    if (!user) return;
+
     const rawInputName = document.getElementById('modalNameInput').value.trim();
     if (!rawInputName) return;
 
@@ -594,11 +664,12 @@
     });
 
     if (existingKey) {
-      const currentQty = parseInt(itemsMap[existingKey].qty) || 1;
+      const currentBaseQty = parseInt(itemsMap[existingKey].qty) || 1;
       const addQty = parseInt(qty) || 1;
       update(ref(db, `lists/${currentListType}/${existingKey}`), {
-        qty: (currentQty + addQty).toString()
+        qty: (currentBaseQty + addQty).toString()
       });
+      showToast(`איחדנו את הכמות עבור "${normalizedName}"`);
     } else {
       const newItemRef = push(listRef);
       set(newItemRef, {
@@ -606,14 +677,15 @@
         qty: qty,
         unit: unit,
         category: detectedCategory,
-        by: myNameInput.value.trim(),
+        by: user,
         buyer: '',
         done: false,
         isPriority: false,
         auditStatus: '',
-        wanting: [],
+        personalQtyMap: {},
         notes: note ? [note] : []
       });
+      showToast(`הוספנו את "${normalizedName}" לרשימה`);
     }
 
     addModalForm.reset();
@@ -633,35 +705,28 @@
   };
 
   window.toggleClaimItem = function(id, currentBuyer) {
-    const myName = myNameInput.value.trim();
-    if (!myName) {
-      alert('נא להזין שם בשדה "שם:"');
-      return;
-    }
-    const newBuyer = (currentBuyer === myName) ? '' : myName;
+    const user = requireUserName();
+    if (!user) return;
+
+    const newBuyer = (currentBuyer === user) ? '' : user;
     update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
   };
 
-  window.toggleWantItem = function(id, currentQtyStr, currentWanting) {
-    const myName = myNameInput.value.trim();
-    if (!myName) {
-      alert('נא להזין שם בשדה "שם:"');
-      return;
-    }
-    let updatedWanting = [...currentWanting];
-    let currentQty = parseInt(currentQtyStr) || 1;
+  window.toggleWantItem = function(id, personalMap) {
+    const user = requireUserName();
+    if (!user) return;
 
-    if (updatedWanting.includes(myName)) {
-      updatedWanting = updatedWanting.filter(n => n !== myName);
-      if (currentQty > 1) currentQty -= 1;
+    let updatedMap = { ...(personalMap || {}) };
+    const currentPersonalQty = updatedMap[user] || 0;
+
+    if (currentPersonalQty > 0) {
+      delete updatedMap[user];
     } else {
-      updatedWanting.push(myName);
-      currentQty += 1;
+      updatedMap[user] = 1;
     }
 
     update(ref(db, `lists/${currentListType}/${id}`), {
-      wanting: updatedWanting,
-      qty: currentQty.toString()
+      personalQtyMap: updatedMap
     });
   };
 
@@ -683,18 +748,17 @@
   window.deleteItem = function(id) {
     lastDeletedItem = { id, data: itemsMap[id] };
     remove(ref(db, `lists/${currentListType}/${id}`));
-
-    snackbar.classList.add('show');
-    setTimeout(() => { snackbar.classList.remove('show'); }, 4000);
+    showToast('הפריט נמחק', true);
   };
 
-  // איפוס ממוקד של הרשימה הפעילה בלבד
-  clearListBtn.addEventListener('click', () => {
+  clearCurrentListBtn.addEventListener('click', () => {
     const currentTabTitle = TAB_NAMES[currentListType] || '';
     const confirmClear = confirm(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`);
     if (confirmClear) {
       remove(listRef);
       set(listStatusRef, '📝 בהכנה');
+      settingsModalOverlay.classList.remove('show');
+      showToast('הרשימה אופסה בהצלחה');
     }
   });
 
@@ -702,7 +766,7 @@
     if (lastDeletedItem) {
       set(ref(db, `lists/${currentListType}/${lastDeletedItem.id}`), lastDeletedItem.data);
       lastDeletedItem = null;
-      snackbar.classList.remove('show');
+      document.getElementById('toast').classList.remove('show');
     }
   };
 
@@ -721,7 +785,7 @@
   exportBtn.addEventListener('click', () => {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
-      alert('הרשימה ריקה!');
+      showToast('הרשימה ריקה!');
       return;
     }
 
@@ -738,13 +802,14 @@
     Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
       text += `*${cat}*\n`;
       grouped[cat].forEach(i => {
-        text += `• ${i.name} - ${i.qty} ${i.unit || "יח'"}${i.buyer ? ` (אחראי: ${i.buyer})` : ''}\n`;
+        const totalQty = calculateTotalQty(i);
+        text += `• ${i.name} - ${totalQty} ${i.unit || "יח'"}${i.buyer ? ` (אחראי: ${i.buyer})` : ''}\n`;
       });
       text += `\n`;
     });
 
     navigator.clipboard.writeText(text).then(() => {
-      alert('רשימת הקניות הועתקה ללוח! אפשר להדביק אותה כעת בוואטסאפ או במייל.');
+      showToast('הרשימה הועתקה ללוח בהצלחה! 📋');
     });
   });
 </script>
