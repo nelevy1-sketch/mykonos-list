@@ -87,7 +87,7 @@
 
   .action-buttons{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
   .action-btn {
-    flex: 1; min-width: 110px; padding: 8px; border: none; border-radius: 8px;
+    flex: 1; min-width: 100px; padding: 8px; border: none; border-radius: 8px;
     font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center;
     display: flex; align-items: center; justify-content: center; gap: 4px;
   }
@@ -95,6 +95,7 @@
   .audit-btn { background: var(--sea-deep); color: white; }
   .export-btn { background: #5c6b73; color: white; }
   .wa-share-btn { background: var(--wa-green); color: white; }
+  .clear-btn { background: #c0533f; color: white; }
 
   .category-header {
     font-size: 16px; font-weight: 700; color: var(--sea-deep); margin: 18px 0 8px;
@@ -253,6 +254,7 @@
     <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
     <button class="action-btn audit-btn" id="auditToggleBtn">🔍 מצב בדיקה</button>
     <button class="action-btn export-btn" id="exportBtn">📋 טקסט לסופר</button>
+    <button class="action-btn clear-btn" id="clearListBtn">🗑️ איפוס רשימה</button>
     <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
   </div>
 
@@ -334,6 +336,12 @@
 
   const STATUS_CYCLE = ['📝 בהכנה', '✅ מוכנה', '🚚 הוזמנה / בקנייה', '🔍 בבדיקה', '🎉 הושלמה'];
 
+  const TAB_NAMES = {
+    'delivery': 'משלוח 📦',
+    'inPerson': 'בקניה עצמית 🛒',
+    'fromIsrael': 'מהארץ ✈️'
+  };
+
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
   document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
@@ -391,7 +399,6 @@
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     if (evt && evt.target) evt.target.classList.add('active');
 
-    // ניקוי מאזינים קודמים למניעת זליגת זיכרון והאטה (תיקון באג 1)
     off(listRef);
     off(listStatusRef);
 
@@ -405,6 +412,7 @@
   const filterBtn = document.getElementById('filterBtn');
   const auditToggleBtn = document.getElementById('auditToggleBtn');
   const exportBtn = document.getElementById('exportBtn');
+  const clearListBtn = document.getElementById('clearListBtn');
   const statusTag = document.getElementById('statusTag');
   const progressBarFill = document.getElementById('progressBarFill');
   const progressText = document.getElementById('progressText');
@@ -419,7 +427,6 @@
   openModalBtn.onclick = () => modalOverlay.classList.add('show');
   closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
 
-  // גלילה אוטומטית בעת מיקוד בשדות המודאל לפתרון מקלדת בנייד (תיקון באג 3)
   document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
     input.addEventListener('focus', () => {
       setTimeout(() => {
@@ -428,7 +435,6 @@
     });
   });
 
-  // סגירת תפריטי 3 הנקודות בלחיצה מחוץ למסך (תיקון באג 2)
   document.addEventListener('click', (e) => {
     if (!e.target.classList.contains('menu-btn')) {
       document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
@@ -681,6 +687,16 @@
     snackbar.classList.add('show');
     setTimeout(() => { snackbar.classList.remove('show'); }, 4000);
   };
+
+  // איפוס ממוקד של הרשימה הפעילה בלבד
+  clearListBtn.addEventListener('click', () => {
+    const currentTabTitle = TAB_NAMES[currentListType] || '';
+    const confirmClear = confirm(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`);
+    if (confirmClear) {
+      remove(listRef);
+      set(listStatusRef, '📝 בהכנה');
+    }
+  });
 
   undoBtn.onclick = () => {
     if (lastDeletedItem) {
