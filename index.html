@@ -185,29 +185,33 @@
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
   @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
+  /* מודאל מותאם אישית למסכים קטנים וניידים */
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 12px;
   }
   .modal-overlay.show { display: flex; }
 
-  .modal-card { background: white; border-radius: 16px; width: 100%; max-width: 400px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .modal-header h3 { margin: 0; font-size: 18px; color: var(--sea-deep); }
+  .modal-card {
+    background: white; border-radius: 16px; width: 100%; max-width: 380px;
+    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .modal-header h3 { margin: 0; font-size: 17px; color: var(--sea-deep); }
   .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
 
-  .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
   .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
   .form-row { display: flex; gap: 8px; }
 
   select, input[type="text"] {
-    padding: 10px; border-radius: 8px; border: 1.5px solid var(--line);
+    padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
     font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash);
   }
 
   .submit-modal-btn {
     width: 100%; background: var(--sea); color: white; border: none;
-    padding: 12px; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px;
+    padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
   }
 </style>
 </head>
@@ -240,8 +244,8 @@
   </div>
 
   <div class="whoami">
-    <label for="myName">אני:</label>
-    <input type="text" id="myName" placeholder="השם שלך…" autocomplete="off" />
+    <label for="myName">שם:</label>
+    <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
   </div>
 
   <button class="open-modal-btn" id="openModalBtn">➕ הוספת פריט לרשימה</button>
@@ -603,7 +607,7 @@
   window.toggleClaimItem = function(id, currentBuyer) {
     const myName = myNameInput.value.trim();
     if (!myName) {
-      alert('נא להזין שם בשדה "אני:"');
+      alert('נא להזין שם בשדה "שם:"');
       return;
     }
     const newBuyer = (currentBuyer === myName) ? '' : myName;
@@ -613,7 +617,7 @@
   window.toggleWantItem = function(id, currentQtyStr, currentWanting) {
     const myName = myNameInput.value.trim();
     if (!myName) {
-      alert('נא להזין שם בשדה "אני:"');
+      alert('נא להזין שם בשדה "שם:"');
       return;
     }
     let updatedWanting = [...currentWanting];
