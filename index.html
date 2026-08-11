@@ -44,219 +44,78 @@
     padding: 20px 14px 80px;
   }
 
-  .card{
-    width:100%;
-    max-width: 480px;
-  }
+  .card{ width:100%; max-width: 480px; }
 
-  header{
-    text-align:center;
-    margin-bottom: 14px;
-  }
+  header{ text-align:center; margin-bottom: 14px; }
+  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 28px; margin: 0; color: var(--sea-deep); }
 
-  h1{
-    font-family:'Frank Ruhl Libre', serif;
-    font-weight:700;
-    font-size: 28px;
-    margin: 0;
-    color: var(--sea-deep);
-  }
-
-  /* טאבים לריבוי רשימות */
   .list-tabs {
-    display: flex;
-    background: #e2ebf0;
-    padding: 4px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    gap: 4px;
+    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 10px; gap: 4px;
   }
 
   .tab-btn {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 8px 4px;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--sea-deep);
-    cursor: pointer;
-    transition: all 0.2s;
+    flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 8px;
+    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--sea-deep); cursor: pointer; transition: all 0.2s;
   }
+  .tab-btn.active { background: var(--white); color: var(--sea); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
 
-  .tab-btn.active {
-    background: var(--white);
-    color: var(--sea);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-  }
-
-  /* סרגל סטטוס רשימה */
   .status-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--white);
-    border: 1px solid var(--line);
-    padding: 8px 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    font-size: 12px;
-    font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--white); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; font-weight: 700;
   }
+  .status-tag { background: #eef5f9; color: var(--sea); padding: 3px 8px; border-radius: 6px; cursor: pointer; }
 
-  .status-tag {
-    background: #eef5f9;
-    color: var(--sea);
-    padding: 3px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  /* סרגל התקדמות */
   .progress-section {
-    background: var(--white);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-bottom: 12px;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
   }
-
-  .progress-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .progress-bar-bg {
-    height: 6px;
-    background: var(--line);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--sea), var(--wa-green));
-    width: 0%;
-    transition: width 0.3s ease;
-  }
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .progress-bar-bg { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sea), var(--wa-green)); width: 0%; transition: width 0.3s ease; }
 
   .whoami{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom: 12px;
-    background: var(--white);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 6px 12px;
+    display:flex; align-items:center; gap:8px; margin-bottom: 12px;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px;
   }
   .whoami label{ font-size:12px; color: var(--sea); opacity:.8; white-space:nowrap; }
-  .whoami input{
-    border:none; outline:none; font-family:inherit; font-size:13px;
-    color: var(--sea-deep); flex:1; background:transparent; font-weight:700;
-  }
+  .whoami input{ border:none; outline:none; font-family:inherit; font-size:13px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; }
 
   .open-modal-btn {
-    width: 100%;
-    background: var(--sea);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-bottom: 10px;
-    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    width: 100%; background: var(--sea); color: white; border: none; border-radius: 12px;
+    padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2); display: flex; align-items: center; justify-content: center; gap: 6px;
   }
 
-  .action-buttons{
-    display:flex;
-    gap:6px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-
+  .action-buttons{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
   .action-btn {
-    flex: 1;
-    min-width: 110px;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 12px;
-    text-decoration: none;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
+    flex: 1; min-width: 110px; padding: 8px; border: none; border-radius: 8px;
+    font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
   }
-
   .filter-btn { background: var(--sea); color: white; }
   .audit-btn { background: var(--sea-deep); color: white; }
   .export-btn { background: #5c6b73; color: white; }
   .wa-share-btn { background: var(--wa-green); color: white; }
 
   .category-header {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--sea-deep);
-    margin: 18px 0 8px;
-    padding-bottom: 4px;
-    border-bottom: 2px solid var(--sea);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
+    font-size: 16px; font-weight: 700; color: var(--sea-deep); margin: 18px 0 8px;
+    padding-bottom: 4px; border-bottom: 2px solid var(--sea); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
   }
+  .cat-count { font-size: 12px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--sea-deep); }
 
-  .cat-count {
-    font-size: 12px;
-    background: var(--line);
-    padding: 2px 8px;
-    border-radius: 10px;
-    color: var(--sea-deep);
-  }
-
-  ul{
-    list-style:none;
-    margin:0; padding:0;
-    display:flex; flex-direction:column; gap:6px;
-  }
-
+  ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
   ul.collapsed { display: none; }
 
   li{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    background: var(--white);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 12px;
-    position: relative;
+    display:flex; flex-direction:column; gap:4px; background: var(--white);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; position: relative;
   }
-
   li.is-priority { border: 2px solid var(--sun) !important; background: #fffdf5; }
 
   .item-row{ display:flex; align-items:center; gap:8px; }
 
   .check{
-    width: 22px; height: 22px; flex-shrink:0; border-radius: 50%;
-    border: 2px solid var(--sea); cursor:pointer; display:flex;
-    align-items:center; justify-content:center; background: transparent;
+    width: 22px; height: 22px; flex-shrink:0; border-radius: 50%; border: 2px solid var(--sea);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; background: transparent;
   }
   .check.done{ background: var(--sea); }
   .check.done::after{ content:"✓"; color:white; font-size:12px; font-weight:700; }
@@ -266,23 +125,12 @@
   .item-text.done{ text-decoration: line-through; opacity: .45; }
 
   .item-qty-tag {
-    font-size: 12px;
-    background: var(--whitewash);
-    border: 1px solid var(--line);
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-weight: 700;
-    color: var(--sea-deep);
-    margin-inline-start: 6px;
+    font-size: 12px; background: var(--whitewash); border: 1px solid var(--line);
+    padding: 2px 6px; border-radius: 6px; font-weight: 700; color: var(--sea-deep); margin-inline-start: 6px;
   }
 
-  .item-sub-info {
-    display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap;
-  }
-
-  .item-by, .item-buyer, .item-wanting, .item-audit-tag {
-    font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
-  }
+  .item-sub-info { display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap; }
+  .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
   .item-by { color: var(--name-tag); }
   .item-buyer { background: #eef5f9; color: var(--sea-deep); }
   .item-wanting { background: #eafaf1; color: #2b7a4b; }
@@ -292,36 +140,25 @@
   .item-audit-tag.replaced { background: #eef5f9; color: #1d5f8a; }
   .item-audit-tag.missing { background: #fdf0ed; color: #c0533f; }
 
-  .want-btn {
-    font-size: 11px; background: var(--whitewash); border: 1px solid var(--line);
+  .item-btn-actions { display: flex; gap: 4px; align-items: center; }
+
+  .claim-btn, .want-btn {
+    font-size: 10px; background: var(--whitewash); border: 1px solid var(--line);
     color: var(--sea-deep); padding: 3px 6px; border-radius: 6px; cursor: pointer; font-weight: 600;
   }
   .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
+  .claim-btn.active { background: var(--sea-deep); color: white; }
 
-  /* כפתורי מצב בדיקה (Audit) */
   .audit-controls {
-    display: flex;
-    gap: 4px;
-    margin-top: 4px;
-    border-top: 1px dashed var(--line);
-    padding-top: 4px;
+    display: flex; gap: 4px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px;
   }
-
   .audit-status-btn {
-    flex: 1;
-    font-size: 10px;
-    padding: 3px;
-    border: 1px solid var(--line);
-    background: var(--whitewash);
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
+    flex: 1; font-size: 10px; padding: 3px; border: 1px solid var(--line);
+    background: var(--whitewash); border-radius: 4px; cursor: pointer; font-weight: 600;
   }
   .audit-status-btn.active { font-weight: 800; border-color: var(--sea-deep); }
 
-  .menu-btn {
-    background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px;
-  }
+  .menu-btn { background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px; }
 
   .menu-dropdown {
     display: none; position: absolute; top: 36px; left: 10px;
@@ -337,17 +174,24 @@
   .menu-item:hover { background: var(--whitewash); }
   .menu-item.danger { color: #c0533f; }
 
+  .snackbar {
+    visibility: hidden; min-width: 250px; background-color: var(--sea-deep); color: #fff; text-align: center;
+    border-radius: 10px; padding: 12px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
+    transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px;
+  }
+  .snackbar.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
+  .undo-btn { background: var(--sun); color: var(--sea-deep); border: none; padding: 4px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+  @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
     background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px;
   }
   .modal-overlay.show { display: flex; }
 
-  .modal-card {
-    background: white; border-radius: 16px; width: 100%; max-width: 400px;
-    padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  }
-
+  .modal-card { background: white; border-radius: 16px; width: 100%; max-width: 400px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
   .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .modal-header h3 { margin: 0; font-size: 18px; color: var(--sea-deep); }
   .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
@@ -410,6 +254,11 @@
   </div>
 
   <div id="categoriesContainer"></div>
+</div>
+
+<div id="snackbar" class="snackbar">
+  <span id="snackbarText">הפריט נמחק</span>
+  <button class="undo-btn" id="undoBtn">ביטול (Undo)</button>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -477,12 +326,40 @@
   let hideDoneItems = false;
   let isAuditMode = false;
   let collapsedCategories = {};
+  let lastDeletedItem = null;
 
   const STATUS_CYCLE = ['📝 בהכנה', '✅ מוכנה', '🚚 הוזמנה / בקנייה', '🔍 בבדיקה', '🎉 הושלמה'];
 
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
   document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
+
+  // מילון מילים נרדפות למניעת כפילויות חכמה
+  const SYNONYMS_MAP = {
+    'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
+    'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
+    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
+    'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
+    'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
+    'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
+    'עגבניות': ['עגבניה', 'עגבניות שרי', 'שרי'],
+    'מלפפונים': ['מלפפון'],
+    'בננות': ['בננה'],
+    'לימונים': ['לימון'],
+    'לחמניות': ['לחמניה', 'לחם'],
+    'חזה עוף': ['עוף', 'חזה עוף פרוס', 'שניצל']
+  };
+
+  function normalizeProductName(input) {
+    if (!input) return '';
+    const clean = input.trim().toLowerCase();
+    for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
+      if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
+        return canonicalName;
+      }
+    }
+    return input.trim();
+  }
 
   const CATEGORY_DICTIONARY = {
     'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'אבוקדו', 'חסה', 'גזר'],
@@ -523,6 +400,8 @@
   const statusTag = document.getElementById('statusTag');
   const progressBarFill = document.getElementById('progressBarFill');
   const progressText = document.getElementById('progressText');
+  const snackbar = document.getElementById('snackbar');
+  const undoBtn = document.getElementById('undoBtn');
 
   const modalOverlay = document.getElementById('modalOverlay');
   const openModalBtn = document.getElementById('openModalBtn');
@@ -604,6 +483,7 @@
 
         const wantingArr = Array.isArray(item.wanting) ? item.wanting : [];
         const isUserWanting = myName && wantingArr.includes(myName);
+        const isUserBuyer = myName && item.buyer === myName;
 
         let auditTagHTML = '';
         if (item.auditStatus) {
@@ -619,11 +499,15 @@
               <span class="item-qty-tag">${item.qty || 1} ${item.unit || "יח'"}</span>
               <div class="item-sub-info">
                 ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
+                ${item.buyer ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
                 ${wantingArr.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingArr.join(', ')}</span>` : ''}
                 ${auditTagHTML}
               </div>
             </div>
-            <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
+            <div class="item-btn-actions">
+              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
+              <button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>
+            </div>
             <button class="menu-btn" onclick="toggleMenu('menu-${item.id}')">⋮</button>
             <div class="menu-dropdown" id="menu-${item.id}">
               <button class="menu-item" onclick="togglePriority('${item.id}', ${item.isPriority})">${item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף'}</button>
@@ -663,28 +547,45 @@
 
   listenToFirebase();
 
+  // הוספת פריט חדש + בדיקת כפילויות חכמה לפי מילים נרדפות
   addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = document.getElementById('modalNameInput').value.trim();
-    if (!name) return;
+    const rawInputName = document.getElementById('modalNameInput').value.trim();
+    if (!rawInputName) return;
 
+    const normalizedName = normalizeProductName(rawInputName);
+    const detectedCategory = detectCategory(normalizedName);
     const qty = document.getElementById('modalQtyInput').value.trim() || '1';
     const unit = document.getElementById('modalUnitInput').value;
     const note = document.getElementById('modalNoteInput').value.trim();
 
-    const newItemRef = push(listRef);
-    set(newItemRef, {
-      name: name,
-      qty: qty,
-      unit: unit,
-      category: detectCategory(name),
-      by: myNameInput.value.trim(),
-      done: false,
-      isPriority: false,
-      auditStatus: '',
-      wanting: [],
-      notes: note ? [note] : []
+    const existingKey = Object.keys(itemsMap).find(key => {
+      const existingName = (itemsMap[key].name || itemsMap[key].text || '').trim();
+      return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase();
     });
+
+    if (existingKey) {
+      const currentQty = parseInt(itemsMap[existingKey].qty) || 1;
+      const addQty = parseInt(qty) || 1;
+      update(ref(db, `lists/${currentListType}/${existingKey}`), {
+        qty: (currentQty + addQty).toString()
+      });
+    } else {
+      const newItemRef = push(listRef);
+      set(newItemRef, {
+        name: normalizedName,
+        qty: qty,
+        unit: unit,
+        category: detectedCategory,
+        by: myNameInput.value.trim(),
+        buyer: '',
+        done: false,
+        isPriority: false,
+        auditStatus: '',
+        wanting: [],
+        notes: note ? [note] : []
+      });
+    }
 
     addModalForm.reset();
     modalOverlay.classList.remove('show');
@@ -699,6 +600,16 @@
 
   window.setAuditStatus = function(id, status) {
     update(ref(db, `lists/${currentListType}/${id}`), { auditStatus: status });
+  };
+
+  window.toggleClaimItem = function(id, currentBuyer) {
+    const myName = myNameInput.value.trim();
+    if (!myName) {
+      alert('נא להזין שם בשדה "אני:"');
+      return;
+    }
+    const newBuyer = (currentBuyer === myName) ? '' : myName;
+    update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
   };
 
   window.toggleWantItem = function(id, currentQtyStr, currentWanting) {
@@ -731,7 +642,8 @@
   window.editItem = function(id, currentName, currentQty) {
     const newName = prompt('שם המוצר:', currentName);
     if (!newName) return;
-    update(ref(db, `lists/${currentListType}/${id}`), { name: newName.trim(), category: detectCategory(newName.trim()) });
+    const normalizedName = normalizeProductName(newName.trim());
+    update(ref(db, `lists/${currentListType}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) });
   };
 
   window.toggleItem = function(id, currentStatus) {
@@ -739,7 +651,19 @@
   };
 
   window.deleteItem = function(id) {
+    lastDeletedItem = { id, data: itemsMap[id] };
     remove(ref(db, `lists/${currentListType}/${id}`));
+
+    snackbar.classList.add('show');
+    setTimeout(() => { snackbar.classList.remove('show'); }, 4000);
+  };
+
+  undoBtn.onclick = () => {
+    if (lastDeletedItem) {
+      set(ref(db, `lists/${currentListType}/${lastDeletedItem.id}`), lastDeletedItem.data);
+      lastDeletedItem = null;
+      snackbar.classList.remove('show');
+    }
   };
 
   filterBtn.addEventListener('click', () => {
@@ -754,7 +678,6 @@
     render();
   });
 
-  // יצוא "שלח לסופר"
   exportBtn.addEventListener('click', () => {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
@@ -775,7 +698,7 @@
     Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
       text += `*${cat}*\n`;
       grouped[cat].forEach(i => {
-        text += `• ${i.name} - ${i.qty} ${i.unit || "יח'"}\n`;
+        text += `• ${i.name} - ${i.qty} ${i.unit || "יח'"}${i.buyer ? ` (אחראי: ${i.buyer})` : ''}\n`;
       });
       text += `\n`;
     });
