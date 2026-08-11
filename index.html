@@ -68,7 +68,7 @@
     background: #e2ebf0;
     padding: 4px;
     border-radius: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     gap: 4px;
   }
 
@@ -90,6 +90,28 @@
     background: var(--white);
     color: var(--sea);
     box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  }
+
+  /* סרגל סטטוס רשימה */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .status-tag {
+    background: #eef5f9;
+    color: var(--sea);
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
   }
 
   /* סרגל התקדמות */
@@ -139,7 +161,6 @@
     color: var(--sea-deep); flex:1; background:transparent; font-weight:700;
   }
 
-  /* כפתור לפתיחת מודאל הוספה */
   .open-modal-btn {
     width: 100%;
     background: var(--sea);
@@ -150,7 +171,7 @@
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2);
     display: flex;
     align-items: center;
@@ -162,10 +183,12 @@
     display:flex;
     gap:6px;
     margin-bottom: 14px;
+    flex-wrap: wrap;
   }
 
   .action-btn {
     flex: 1;
+    min-width: 110px;
     padding: 8px;
     border: none;
     border-radius: 8px;
@@ -180,11 +203,11 @@
     gap: 4px;
   }
 
-  .sync-btn { background: var(--sea-deep); color: white; }
   .filter-btn { background: var(--sea); color: white; }
+  .audit-btn { background: var(--sea-deep); color: white; }
+  .export-btn { background: #5c6b73; color: white; }
   .wa-share-btn { background: var(--wa-green); color: white; }
 
-  /* כותרות קטגוריה מתקפלות */
   .category-header {
     font-size: 16px;
     font-weight: 700;
@@ -257,12 +280,17 @@
     display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap;
   }
 
-  .item-by, .item-buyer, .item-wanting {
+  .item-by, .item-buyer, .item-wanting, .item-audit-tag {
     font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
   }
   .item-by { color: var(--name-tag); }
   .item-buyer { background: #eef5f9; color: var(--sea-deep); }
   .item-wanting { background: #eafaf1; color: #2b7a4b; }
+
+  .item-audit-tag.received { background: #eafaf1; color: #2b7a4b; }
+  .item-audit-tag.partial { background: #fffdf5; color: #b8860b; }
+  .item-audit-tag.replaced { background: #eef5f9; color: #1d5f8a; }
+  .item-audit-tag.missing { background: #fdf0ed; color: #c0533f; }
 
   .want-btn {
     font-size: 11px; background: var(--whitewash); border: 1px solid var(--line);
@@ -270,22 +298,35 @@
   }
   .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
 
-  /* תפריט 3 נקודות */
+  /* כפתורי מצב בדיקה (Audit) */
+  .audit-controls {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    border-top: 1px dashed var(--line);
+    padding-top: 4px;
+  }
+
+  .audit-status-btn {
+    flex: 1;
+    font-size: 10px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    background: var(--whitewash);
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .audit-status-btn.active { font-weight: 800; border-color: var(--sea-deep); }
+
   .menu-btn {
     background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px;
   }
 
   .menu-dropdown {
-    display: none;
-    position: absolute;
-    top: 36px; left: 10px;
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10;
-    flex-direction: column;
-    overflow: hidden;
+    display: none; position: absolute; top: 36px; left: 10px;
+    background: white; border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; flex-direction: column; overflow: hidden;
   }
   .menu-dropdown.show { display: flex; }
 
@@ -296,30 +337,23 @@
   .menu-item:hover { background: var(--whitewash); }
   .menu-item.danger { color: #c0533f; }
 
-  /* מודאל (Popup) להוספת פריט */
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
-    padding: 16px;
+    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px;
   }
   .modal-overlay.show { display: flex; }
 
   .modal-card {
     background: white; border-radius: 16px; width: 100%; max-width: 400px;
-    padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: pop 0.2s ease;
+    padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
-  @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-  .modal-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
-  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .modal-header h3 { margin: 0; font-size: 18px; color: var(--sea-deep); }
   .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
 
   .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
   .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
-  
   .form-row { display: flex; gap: 8px; }
 
   select, input[type="text"] {
@@ -340,11 +374,15 @@
     <h1>רשימת קניות מיקונוס</h1>
   </header>
 
-  <!-- טאבים למעבר בין רשימות -->
   <div class="list-tabs">
     <button class="tab-btn active" onclick="switchList('delivery')">📦 משלוח</button>
     <button class="tab-btn" onclick="switchList('inPerson')">🛒 בקניה עצמית</button>
     <button class="tab-btn" onclick="switchList('fromIsrael')">✈️ מהארץ</button>
+  </div>
+
+  <div class="status-bar">
+    <span>סטטוס רשימה:</span>
+    <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
   </div>
 
   <div class="progress-section">
@@ -362,18 +400,18 @@
     <input type="text" id="myName" placeholder="השם שלך…" autocomplete="off" />
   </div>
 
-  <!-- כפתור לפתיחת חלון הוספה -->
   <button class="open-modal-btn" id="openModalBtn">➕ הוספת פריט לרשימה</button>
 
   <div class="action-buttons">
     <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
-    <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף בוואטסאפ</a>
+    <button class="action-btn audit-btn" id="auditToggleBtn">🔍 מצב בדיקה</button>
+    <button class="action-btn export-btn" id="exportBtn">📋 טקסט לסופר</button>
+    <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
   </div>
 
   <div id="categoriesContainer"></div>
 </div>
 
-<!-- מודאל הוספת פריט -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -430,13 +468,17 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  let currentListType = 'delivery'; // 'delivery' | 'inPerson' | 'fromIsrael'
+  let currentListType = 'delivery';
   let listRef = ref(db, `lists/${currentListType}`);
 
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
+  let listStatus = '📝 בהכנה';
   let hideDoneItems = false;
+  let isAuditMode = false;
   let collapsedCategories = {};
+
+  const STATUS_CYCLE = ['📝 בהכנה', '✅ מוכנה', '🚚 הוזמנה / בקנייה', '🔍 בבדיקה', '🎉 הושלמה'];
 
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
@@ -464,7 +506,6 @@
     return 'מוצרים נוספים 🛒';
   }
 
-  // מעבר בין רשימות
   window.switchList = function(listType) {
     currentListType = listType;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -477,10 +518,12 @@
   const categoriesContainer = document.getElementById('categoriesContainer');
   const myNameInput = document.getElementById('myName');
   const filterBtn = document.getElementById('filterBtn');
+  const auditToggleBtn = document.getElementById('auditToggleBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const statusTag = document.getElementById('statusTag');
   const progressBarFill = document.getElementById('progressBarFill');
   const progressText = document.getElementById('progressText');
 
-  // מודאל
   const modalOverlay = document.getElementById('modalOverlay');
   const openModalBtn = document.getElementById('openModalBtn');
   const closeModalBtn = document.getElementById('closeModalBtn');
@@ -494,6 +537,13 @@
   myNameInput.addEventListener('change', () => {
     localStorage.setItem(NAME_KEY, myNameInput.value.trim());
   });
+
+  window.changeListStatus = function() {
+    const currentIndex = STATUS_CYCLE.indexOf(listStatus);
+    const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
+    listStatus = STATUS_CYCLE[nextIndex];
+    set(ref(db, `lists/${currentListType}_status`), listStatus);
+  };
 
   function updateProgressBar(keys) {
     const total = keys.length;
@@ -510,6 +560,7 @@
 
   function render() {
     categoriesContainer.innerHTML = '';
+    statusTag.textContent = listStatus;
     const keys = Object.keys(itemsMap);
     const myName = myNameInput.value.trim();
 
@@ -554,6 +605,12 @@
         const wantingArr = Array.isArray(item.wanting) ? item.wanting : [];
         const isUserWanting = myName && wantingArr.includes(myName);
 
+        let auditTagHTML = '';
+        if (item.auditStatus) {
+          const statusLabels = { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' };
+          auditTagHTML = `<span class="item-audit-tag ${item.auditStatus}">${statusLabels[item.auditStatus]}</span>`;
+        }
+
         li.innerHTML = `
           <div class="item-row">
             <div class="check ${item.done ? 'done' : ''}" onclick="toggleItem('${item.id}', ${item.done})"></div>
@@ -563,6 +620,7 @@
               <div class="item-sub-info">
                 ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
                 ${wantingArr.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingArr.join(', ')}</span>` : ''}
+                ${auditTagHTML}
               </div>
             </div>
             <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
@@ -573,6 +631,14 @@
               <button class="menu-item danger" onclick="deleteItem('${item.id}')">✕ מחק</button>
             </div>
           </div>
+          ${isAuditMode ? `
+            <div class="audit-controls">
+              <button class="audit-status-btn ${item.auditStatus === 'received' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'received')">✅ התקבל</button>
+              <button class="audit-status-btn ${item.auditStatus === 'partial' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'partial')">⚠️ חלקי</button>
+              <button class="audit-status-btn ${item.auditStatus === 'replaced' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'replaced')">🔄 הוחלף</button>
+              <button class="audit-status-btn ${item.auditStatus === 'missing' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'missing')">❌ חסר</button>
+            </div>
+          ` : ''}
         `;
 
         ul.appendChild(li);
@@ -588,11 +654,15 @@
       itemsMap = snapshot.val() || {};
       render();
     });
+
+    onValue(ref(db, `lists/${currentListType}_status`), (snapshot) => {
+      listStatus = snapshot.val() || '📝 בהכנה';
+      statusTag.textContent = listStatus;
+    });
   }
 
   listenToFirebase();
 
-  // הוספת פריט דרך מודאל
   addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('modalNameInput').value.trim();
@@ -611,6 +681,7 @@
       by: myNameInput.value.trim(),
       done: false,
       isPriority: false,
+      auditStatus: '',
       wanting: [],
       notes: note ? [note] : []
     });
@@ -624,6 +695,10 @@
       if (el.id !== menuId) el.classList.remove('show');
     });
     document.getElementById(menuId).classList.toggle('show');
+  };
+
+  window.setAuditStatus = function(id, status) {
+    update(ref(db, `lists/${currentListType}/${id}`), { auditStatus: status });
   };
 
   window.toggleWantItem = function(id, currentQtyStr, currentWanting) {
@@ -671,6 +746,43 @@
     hideDoneItems = !hideDoneItems;
     filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שנרכשו';
     render();
+  });
+
+  auditToggleBtn.addEventListener('click', () => {
+    isAuditMode = !isAuditMode;
+    auditToggleBtn.style.background = isAuditMode ? '#25D366' : 'var(--sea-deep)';
+    render();
+  });
+
+  // יצוא "שלח לסופר"
+  exportBtn.addEventListener('click', () => {
+    const keys = Object.keys(itemsMap);
+    if (keys.length === 0) {
+      alert('הרשימה ריקה!');
+      return;
+    }
+
+    const grouped = {};
+    keys.forEach(id => {
+      const item = itemsMap[id];
+      const cat = item.category || detectCategory(item.name);
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
+
+    let text = `🛒 *רשימת קניות למיקונוס* (${listStatus})\n\n`;
+
+    Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
+      text += `*${cat}*\n`;
+      grouped[cat].forEach(i => {
+        text += `• ${i.name} - ${i.qty} ${i.unit || "יח'"}\n`;
+      });
+      text += `\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('רשימת הקניות הועתקה ללוח! אפשר להדביק אותה כעת בוואטסאפ או במייל.');
+    });
   });
 </script>
 </body>
