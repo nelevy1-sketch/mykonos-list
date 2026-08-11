@@ -12,7 +12,7 @@
 </script>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>רשימת קניות מיקונוס 2.0</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
@@ -31,7 +31,7 @@
 
   *{ box-sizing: border-box; }
 
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
 
   body{
     margin:0;
@@ -41,13 +41,14 @@
     color: var(--sea-deep);
     display:flex;
     justify-content:center;
-    padding: 20px 14px 80px;
+    padding: 16px 12px 80px;
+    overflow-x: hidden;
   }
 
   .card{ width:100%; max-width: 480px; }
 
   header{ text-align:center; margin-bottom: 14px; }
-  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 28px; margin: 0; color: var(--sea-deep); }
+  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 26px; margin: 0; color: var(--sea-deep); }
 
   .list-tabs {
     display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 10px; gap: 4px;
@@ -75,10 +76,16 @@
 
   .whoami{
     display:flex; align-items:center; gap:8px; margin-bottom: 12px;
-    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
+    width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .whoami label{ font-size:12px; color: var(--sea); opacity:.8; white-space:nowrap; }
-  .whoami input{ border:none; outline:none; font-family:inherit; font-size:13px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; }
+  .whoami.highlight {
+    border: 2px solid #c0533f !important;
+    background: #fffdfd;
+    box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
+  }
+  .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
+  .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; min-width:0; }
 
   .open-modal-btn {
     width: 100%; background: var(--sea); color: white; border: none; border-radius: 12px;
@@ -88,8 +95,8 @@
 
   .action-buttons{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
   .action-btn {
-    flex: 1; min-width: 90px; padding: 8px; border: none; border-radius: 8px;
-    font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center;
+    flex: 1; min-width: 85px; padding: 8px 4px; border: none; border-radius: 8px;
+    font-weight: bold; cursor: pointer; font-size: 11px; text-decoration: none; text-align: center;
     display: flex; align-items: center; justify-content: center; gap: 4px;
   }
   .filter-btn { background: var(--sea); color: white; }
@@ -99,10 +106,10 @@
   .settings-btn { background: #78909c; color: white; }
 
   .category-header {
-    font-size: 16px; font-weight: 700; color: var(--sea-deep); margin: 18px 0 8px;
+    font-size: 15px; font-weight: 700; color: var(--sea-deep); margin: 16px 0 8px;
     padding-bottom: 4px; border-bottom: 2px solid var(--sea); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
   }
-  .cat-count { font-size: 12px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--sea-deep); }
+  .cat-count { font-size: 11px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--sea-deep); }
 
   ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
   ul.collapsed { display: none; }
@@ -123,15 +130,15 @@
   .check.done::after{ content:"✓"; color:white; font-size:12px; font-weight:700; }
 
   .item-main{ flex:1; min-width:0; }
-  .item-text{ font-size: 15px; font-weight:600; word-break: break-word; }
+  .item-text{ font-size: 14px; font-weight:600; word-break: break-word; }
   .item-text.done{ text-decoration: line-through; opacity: .45; }
 
   .item-qty-tag {
-    font-size: 12px; background: var(--whitewash); border: 1px solid var(--line);
-    padding: 2px 6px; border-radius: 6px; font-weight: 700; color: var(--sea-deep); margin-inline-start: 6px;
+    font-size: 11px; background: var(--whitewash); border: 1px solid var(--line);
+    padding: 2px 6px; border-radius: 6px; font-weight: 700; color: var(--sea-deep); margin-inline-start: 4px; display: inline-block;
   }
 
-  .item-sub-info { display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap; }
+  .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
   .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
   .item-by { color: var(--name-tag); }
   .item-buyer { background: #eef5f9; color: var(--sea-deep); }
@@ -146,7 +153,7 @@
 
   .claim-btn, .want-btn {
     font-size: 10px; background: var(--whitewash); border: 1px solid var(--line);
-    color: var(--sea-deep); padding: 3px 6px; border-radius: 6px; cursor: pointer; font-weight: 600;
+    color: var(--sea-deep); padding: 4px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;
   }
   .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
   .claim-btn.active { background: var(--sea-deep); color: white; }
@@ -155,8 +162,8 @@
     display: flex; gap: 4px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px;
   }
   .audit-status-btn {
-    flex: 1; font-size: 10px; padding: 3px; border: 1px solid var(--line);
-    background: var(--whitewash); border-radius: 4px; cursor: pointer; font-weight: 600;
+    flex: 1; font-size: 10px; padding: 4px 2px; border: 1px solid var(--line);
+    background: var(--whitewash); border-radius: 4px; cursor: pointer; font-weight: 600; text-align: center;
   }
   .audit-status-btn.active { font-weight: 800; border-color: var(--sea-deep); }
 
@@ -176,14 +183,15 @@
   .menu-item:hover { background: var(--whitewash); }
   .menu-item.danger { color: #c0533f; }
 
+  /* Toast מותאם למובייל וממורכז */
   .toast {
-    visibility: hidden; min-width: 250px; background-color: var(--sea-deep); color: #fff; text-align: center;
-    border-radius: 10px; padding: 12px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
-    transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    visibility: hidden; width: 90%; max-width: 400px; background-color: var(--sea-deep); color: #fff; text-align: center;
+    border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
+    transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25); box-sizing: border-box;
   }
   .toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
-  .undo-btn { background: var(--sun); color: var(--sea-deep); border: none; padding: 4px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+  .undo-btn { background: var(--sun); color: var(--sea-deep); border: none; padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
   @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
@@ -196,10 +204,10 @@
 
   .modal-card {
     background: white; border-radius: 16px; width: 100%; max-width: 380px;
-    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); box-sizing: border-box;
   }
   .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .modal-header h3 { margin: 0; font-size: 17px; color: var(--sea-deep); }
+  .modal-header h3 { margin: 0; font-size: 16px; color: var(--sea-deep); }
   .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
 
   .form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
@@ -208,7 +216,7 @@
 
   select, input[type="text"] {
     padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
-    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash);
+    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); width: 100%; box-sizing: border-box;
   }
 
   .submit-modal-btn {
@@ -245,7 +253,7 @@
     </div>
   </div>
 
-  <div class="whoami">
+  <div class="whoami" id="whoamiBox">
     <label for="myName">שם:</label>
     <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
   </div>
@@ -374,17 +382,10 @@
     'fromIsrael': 'מהארץ ✈️'
   };
 
-  // התאמת מונחים סמנטית לפי סוג הרשימה
   const AUDIT_LABELS_BY_TAB = {
-    'delivery': {
-      received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌'
-    },
-    'inPerson': {
-      received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌'
-    },
-    'fromIsrael': {
-      received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌'
-    }
+    'delivery': { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' },
+    'inPerson': { received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌' },
+    'fromIsrael': { received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌' }
   };
 
   const shareUrl = window.location.href;
@@ -453,13 +454,15 @@
 
   function requireUserName() {
     const myName = myNameInput.value.trim();
+    const whoamiBox = document.getElementById('whoamiBox');
+
     if (!myName) {
+      whoamiBox.classList.add('highlight');
       myNameInput.focus();
-      myNameInput.style.border = "2px solid #c0533f";
       showToast('נא להזין שם בשדה "שם:" בראש המסך');
       return null;
     }
-    myNameInput.style.border = "none";
+    whoamiBox.classList.remove('highlight');
     return myName;
   }
 
@@ -528,8 +531,10 @@
 
   const savedName = localStorage.getItem(NAME_KEY);
   if (savedName) myNameInput.value = savedName;
-  myNameInput.addEventListener('change', () => {
-    localStorage.setItem(NAME_KEY, myNameInput.value.trim());
+  myNameInput.addEventListener('input', () => {
+    const val = myNameInput.value.trim();
+    localStorage.setItem(NAME_KEY, val);
+    if (val) document.getElementById('whoamiBox').classList.remove('highlight');
   });
 
   window.changeListStatus = function() {
@@ -786,7 +791,6 @@
     showToast('הפריט נמחק', true);
   };
 
-  // הצגת סיכום חוסרים מהבדיקה
   showMissingSummaryBtn.onclick = () => {
     const keys = Object.keys(itemsMap);
     const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
@@ -810,7 +814,6 @@
     missingModalOverlay.classList.add('show');
   };
 
-  // העברת חוסרים בלחיצת כפתור לקנייה עצמית
   transferMissingToInPersonBtn.onclick = () => {
     const user = requireUserName();
     if (!user) return;
@@ -838,7 +841,7 @@
     });
 
     missingModalOverlay.classList.remove('show');
-    showToast(`${missingItems.length} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`);
+    showToast(`${missingItems.length} פריטים הועברו לרשימת "בקנייה עצמית"! 🛒`);
   };
 
   clearCurrentListBtn.addEventListener('click', () => {
