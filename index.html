@@ -185,7 +185,6 @@
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
   @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
-  /* מודאל מותאם אישית למסכים קטנים וניידים */
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
     background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 12px;
@@ -223,9 +222,9 @@
   </header>
 
   <div class="list-tabs">
-    <button class="tab-btn active" onclick="switchList('delivery')">📦 משלוח</button>
-    <button class="tab-btn" onclick="switchList('inPerson')">🛒 בקניה עצמית</button>
-    <button class="tab-btn" onclick="switchList('fromIsrael')">✈️ מהארץ</button>
+    <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
+    <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
+    <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
   </div>
 
   <div class="status-bar">
@@ -305,7 +304,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
@@ -323,6 +322,7 @@
 
   let currentListType = 'delivery';
   let listRef = ref(db, `lists/${currentListType}`);
+  let listStatusRef = ref(db, `lists/${currentListType}_status`);
 
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
@@ -386,12 +386,17 @@
     return 'מוצרים נוספים 🛒';
   }
 
-  window.switchList = function(listType) {
+  window.switchList = function(listType, evt) {
     currentListType = listType;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    if (evt && evt.target) evt.target.classList.add('active');
+
+    // ניקוי מאזינים קודמים למניעת זליגת זיכרון והאטה (תיקון באג 1)
+    off(listRef);
+    off(listStatusRef);
 
     listRef = ref(db, `lists/${currentListType}`);
+    listStatusRef = ref(db, `lists/${currentListType}_status`);
     listenToFirebase();
   };
 
@@ -414,6 +419,22 @@
   openModalBtn.onclick = () => modalOverlay.classList.add('show');
   closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
 
+  // גלילה אוטומטית בעת מיקוד בשדות המודאל לפתרון מקלדת בנייד (תיקון באג 3)
+  document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
+    input.addEventListener('focus', () => {
+      setTimeout(() => {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
+  });
+
+  // סגירת תפריטי 3 הנקודות בלחיצה מחוץ למסך (תיקון באג 2)
+  document.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('menu-btn')) {
+      document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
+    }
+  });
+
   const savedName = localStorage.getItem(NAME_KEY);
   if (savedName) myNameInput.value = savedName;
   myNameInput.addEventListener('change', () => {
@@ -424,7 +445,7 @@
     const currentIndex = STATUS_CYCLE.indexOf(listStatus);
     const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
     listStatus = STATUS_CYCLE[nextIndex];
-    set(ref(db, `lists/${currentListType}_status`), listStatus);
+    set(listStatusRef, listStatus);
   };
 
   function updateProgressBar(keys) {
@@ -511,7 +532,7 @@
               <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
               ${currentListType === 'inPerson' ? `<button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>` : ''}
             </div>
-            <button class="menu-btn" onclick="toggleMenu('menu-${item.id}')">⋮</button>
+            <button class="menu-btn" onclick="toggleMenu('menu-${item.id}', event)">⋮</button>
             <div class="menu-dropdown" id="menu-${item.id}">
               <button class="menu-item" onclick="togglePriority('${item.id}', ${item.isPriority})">${item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף'}</button>
               <button class="menu-item" onclick="editItem('${item.id}', '${item.name}', '${item.qty}')">✏️ ערוך</button>
@@ -542,7 +563,7 @@
       render();
     });
 
-    onValue(ref(db, `lists/${currentListType}_status`), (snapshot) => {
+    onValue(listStatusRef, (snapshot) => {
       listStatus = snapshot.val() || '📝 בהכנה';
       statusTag.textContent = listStatus;
     });
@@ -593,7 +614,8 @@
     modalOverlay.classList.remove('show');
   });
 
-  window.toggleMenu = function(menuId) {
+  window.toggleMenu = function(menuId, evt) {
+    if (evt) evt.stopPropagation();
     document.querySelectorAll('.menu-dropdown').forEach(el => {
       if (el.id !== menuId) el.classList.remove('show');
     });
