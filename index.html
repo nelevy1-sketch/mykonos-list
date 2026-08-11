@@ -88,7 +88,7 @@
 
   .action-buttons{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
   .action-btn {
-    flex: 1; min-width: 100px; padding: 8px; border: none; border-radius: 8px;
+    flex: 1; min-width: 90px; padding: 8px; border: none; border-radius: 8px;
     font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center;
     display: flex; align-items: center; justify-content: center; gap: 4px;
   }
@@ -176,7 +176,6 @@
   .menu-item:hover { background: var(--whitewash); }
   .menu-item.danger { color: #c0533f; }
 
-  /* Toast Notification */
   .toast {
     visibility: hidden; min-width: 250px; background-color: var(--sea-deep); color: #fff; text-align: center;
     border-radius: 10px; padding: 12px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
@@ -261,10 +260,13 @@
     <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
   </div>
 
+  <!-- כפתור סיכום חוסרים למצב בדיקה -->
+  <button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
+
   <div id="categoriesContainer"></div>
 </div>
 
-<!-- Toast / Notification -->
+<!-- Toast -->
 <div id="toast" class="toast">
   <span id="toastText">הודעה</span>
   <button class="undo-btn" id="undoBtn" style="display:none;">ביטול (Undo)</button>
@@ -309,7 +311,19 @@
   </div>
 </div>
 
-<!-- Modal ניהול / איפוס רשימה -->
+<!-- Modal סיכום חוסרים והעברה בין רשימות -->
+<div class="modal-overlay" id="missingModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>📋 סיכום חוסרים מהבדיקה</h3>
+      <button class="close-modal" id="closeMissingModalBtn">✕</button>
+    </div>
+    <div id="missingItemsList" style="margin-bottom: 14px; font-size: 13px; max-height: 200px; overflow-y: auto;"></div>
+    <button id="transferMissingToInPersonBtn" style="width: 100%; background: var(--sea); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">העבר חוסרים אלה לקנייה עצמית 🛒</button>
+  </div>
+</div>
+
+<!-- Modal ניהול -->
 <div class="modal-overlay" id="settingsModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -358,6 +372,19 @@
     'delivery': 'משלוח 📦',
     'inPerson': 'בקניה עצמית 🛒',
     'fromIsrael': 'מהארץ ✈️'
+  };
+
+  // התאמת מונחים סמנטית לפי סוג הרשימה
+  const AUDIT_LABELS_BY_TAB = {
+    'delivery': {
+      received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌'
+    },
+    'inPerson': {
+      received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌'
+    },
+    'fromIsrael': {
+      received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌'
+    }
   };
 
   const shareUrl = window.location.href;
@@ -460,11 +487,17 @@
   const progressBarFill = document.getElementById('progressBarFill');
   const progressText = document.getElementById('progressText');
   const undoBtn = document.getElementById('undoBtn');
+  const showMissingSummaryBtn = document.getElementById('showMissingSummaryBtn');
 
   const modalOverlay = document.getElementById('modalOverlay');
   const openModalBtn = document.getElementById('openModalBtn');
   const closeModalBtn = document.getElementById('closeModalBtn');
   const addModalForm = document.getElementById('addModalForm');
+
+  const missingModalOverlay = document.getElementById('missingModalOverlay');
+  const closeMissingModalBtn = document.getElementById('closeMissingModalBtn');
+  const missingItemsList = document.getElementById('missingItemsList');
+  const transferMissingToInPersonBtn = document.getElementById('transferMissingToInPersonBtn');
 
   const settingsModalOverlay = document.getElementById('settingsModalOverlay');
   const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
@@ -477,6 +510,7 @@
 
   settingsBtn.onclick = () => settingsModalOverlay.classList.add('show');
   closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
+  closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
 
   document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
     input.addEventListener('focus', () => {
@@ -503,10 +537,10 @@
     const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
     listStatus = STATUS_CYCLE[nextIndex];
     
-    // במידה והסטטוס שונה ל"בבדיקה", מופעל אוטומטית מצב בדיקה
     if (listStatus === '🔍 בבדיקה') {
       isAuditMode = true;
       auditToggleBtn.style.background = '#25D366';
+      showMissingSummaryBtn.style.display = 'block';
     }
 
     set(listStatusRef, listStatus);
@@ -538,6 +572,7 @@
     const myName = myNameInput.value.trim();
 
     updateProgressBar(keys);
+    showMissingSummaryBtn.style.display = isAuditMode ? 'block' : 'none';
 
     const grouped = {};
     keys.forEach(id => {
@@ -550,6 +585,7 @@
     });
 
     const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
+    const auditLabels = AUDIT_LABELS_BY_TAB[currentListType] || AUDIT_LABELS_BY_TAB['delivery'];
 
     sortedCategories.forEach(catName => {
       const remainingInCat = grouped[catName].filter(i => !i.done).length;
@@ -584,8 +620,7 @@
 
         let auditTagHTML = '';
         if (item.auditStatus) {
-          const statusLabels = { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' };
-          auditTagHTML = `<span class="item-audit-tag ${item.auditStatus}">${statusLabels[item.auditStatus]}</span>`;
+          auditTagHTML = `<span class="item-audit-tag ${item.auditStatus}">${auditLabels[item.auditStatus]}</span>`;
         }
 
         li.innerHTML = `
@@ -614,10 +649,10 @@
           </div>
           ${isAuditMode ? `
             <div class="audit-controls">
-              <button class="audit-status-btn ${item.auditStatus === 'received' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'received')">✅ התקבל</button>
-              <button class="audit-status-btn ${item.auditStatus === 'partial' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'partial')">⚠️ חלקי</button>
-              <button class="audit-status-btn ${item.auditStatus === 'replaced' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'replaced')">🔄 הוחלף</button>
-              <button class="audit-status-btn ${item.auditStatus === 'missing' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'missing')">❌ חסר</button>
+              <button class="audit-status-btn ${item.auditStatus === 'received' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'received')">${auditLabels.received}</button>
+              <button class="audit-status-btn ${item.auditStatus === 'partial' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'partial')">${auditLabels.partial}</button>
+              <button class="audit-status-btn ${item.auditStatus === 'replaced' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'replaced')">${auditLabels.replaced}</button>
+              <button class="audit-status-btn ${item.auditStatus === 'missing' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'missing')">${auditLabels.missing}</button>
             </div>
           ` : ''}
         `;
@@ -749,6 +784,61 @@
     lastDeletedItem = { id, data: itemsMap[id] };
     remove(ref(db, `lists/${currentListType}/${id}`));
     showToast('הפריט נמחק', true);
+  };
+
+  // הצגת סיכום חוסרים מהבדיקה
+  showMissingSummaryBtn.onclick = () => {
+    const keys = Object.keys(itemsMap);
+    const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
+
+    if (missingItems.length === 0) {
+      showToast('אין פריטים חסרים בבדיקה זו! 🎉');
+      return;
+    }
+
+    missingItemsList.innerHTML = '';
+    missingItems.forEach(id => {
+      const item = itemsMap[id];
+      const totalQty = calculateTotalQty(item);
+      const div = document.createElement('div');
+      div.style.padding = '6px 0';
+      div.style.borderBottom = '1px solid var(--line)';
+      div.innerHTML = `<strong>${item.name}</strong> - ${totalQty} ${item.unit || "יח'"} (${item.auditStatus === 'missing' ? 'חסר לחלוטין ❌' : 'חלקית ⚠️'})`;
+      missingItemsList.appendChild(div);
+    });
+
+    missingModalOverlay.classList.add('show');
+  };
+
+  // העברת חוסרים בלחיצת כפתור לקנייה עצמית
+  transferMissingToInPersonBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user) return;
+
+    const keys = Object.keys(itemsMap);
+    const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
+
+    const inPersonRef = ref(db, `lists/inPerson`);
+
+    missingItems.forEach(id => {
+      const item = itemsMap[id];
+      const newItemRef = push(inPersonRef);
+      set(newItemRef, {
+        name: item.name,
+        qty: item.qty,
+        unit: item.unit || "יח'",
+        category: item.category || detectCategory(item.name),
+        by: `הועבר ממשלוח (${user})`,
+        buyer: '',
+        done: false,
+        isPriority: true,
+        auditStatus: '',
+        personalQtyMap: item.personalQtyMap || {}
+      });
+    });
+
+    missingModalOverlay.classList.remove('show');
+    showToast(`${missingItems.length} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`);
   };
 
   clearCurrentListBtn.addEventListener('click', () => {
