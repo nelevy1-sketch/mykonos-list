@@ -13,7 +13,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>רשימת קניות מיקונוס</title>
+<title>רשימת קניות מיקונוס 2.0</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
 
@@ -31,9 +31,7 @@
 
   *{ box-sizing: border-box; }
 
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body{
     margin:0;
@@ -43,7 +41,7 @@
     color: var(--sea-deep);
     display:flex;
     justify-content:center;
-    padding: 32px 16px 80px;
+    padding: 20px 14px 80px;
   }
 
   .card{
@@ -53,56 +51,66 @@
 
   header{
     text-align:center;
-    margin-bottom: 18px;
-    position:relative;
-  }
-
-  .wave{
-    height: 10px;
-    width: 64px;
-    margin: 0 auto 14px;
-    border-radius: 6px;
-    background: repeating-linear-gradient(90deg, var(--sea) 0 8px, transparent 8px 16px);
-    opacity:.6;
+    margin-bottom: 14px;
   }
 
   h1{
     font-family:'Frank Ruhl Libre', serif;
     font-weight:700;
-    font-size: 30px;
+    font-size: 28px;
     margin: 0;
     color: var(--sea-deep);
-    letter-spacing: 0.5px;
   }
 
-  .sub{
-    margin-top:6px;
-    font-size:13px;
+  /* טאבים לריבוי רשימות */
+  .list-tabs {
+    display: flex;
+    background: #e2ebf0;
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    gap: 4px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px 4px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sea-deep);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--white);
     color: var(--sea);
-    opacity:.75;
-    font-weight:600;
-    letter-spacing: 1px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
   }
 
+  /* סרגל התקדמות */
   .progress-section {
     background: var(--white);
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 10px 14px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .progress-info {
     display: flex;
     justify-content: space-between;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     margin-bottom: 6px;
-    color: var(--sea-deep);
   }
 
   .progress-bar-bg {
-    height: 8px;
+    height: 6px;
     background: var(--line);
     border-radius: 6px;
     overflow: hidden;
@@ -119,100 +127,48 @@
     display:flex;
     align-items:center;
     gap:8px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     background: var(--white);
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 8px 12px;
+    padding: 6px 12px;
   }
-  .whoami label{
-    font-size:13px;
-    color: var(--sea);
-    opacity:.8;
-    white-space:nowrap;
-  }
+  .whoami label{ font-size:12px; color: var(--sea); opacity:.8; white-space:nowrap; }
   .whoami input{
-    border:none;
-    outline:none;
-    font-family:inherit;
-    font-size:14px;
-    color: var(--sea-deep);
-    flex:1;
-    background:transparent;
-    font-weight:600;
+    border:none; outline:none; font-family:inherit; font-size:13px;
+    color: var(--sea-deep); flex:1; background:transparent; font-weight:700;
   }
 
-  form{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    margin-bottom: 14px;
-    background: var(--white);
-    border: 1.5px solid var(--line);
-    border-radius: 14px;
-    padding: 12px;
-  }
-
-  .field-row{
-    display:flex;
-    gap:8px;
-  }
-
-  .field{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
-  .field.grow{ flex: 2; }
-  .field.small{ flex: 1; }
-
-  .field span{
-    font-size: 11px;
-    color: var(--sea);
-    opacity:.65;
-    font-weight:600;
-    padding-inline-start: 2px;
-  }
-
-  input[type="text"]{
-    padding: 11px 12px;
-    border-radius: 10px;
-    border: 1.5px solid var(--line);
-    background: var(--whitewash);
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--sea-deep);
-    outline:none;
-    transition: border-color .15s;
-    width:100%;
-  }
-
-  button.add{
+  /* כפתור לפתיחת מודאל הוספה */
+  .open-modal-btn {
+    width: 100%;
     background: var(--sea);
-    color: var(--white);
-    border:none;
-    border-radius: 10px;
+    color: white;
+    border: none;
+    border-radius: 12px;
     padding: 12px;
     font-size: 15px;
-    font-weight:700;
-    cursor:pointer;
-    transition: background .15s, transform .1s;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
-  button.add:active{ transform: scale(0.98); }
 
   .action-buttons{
     display:flex;
     gap:6px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
+    margin-bottom: 14px;
   }
 
   .action-btn {
     flex: 1;
-    min-width: 120px;
-    padding: 9px;
+    padding: 8px;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
     font-size: 12px;
@@ -222,223 +178,178 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    transition: opacity 0.15s;
   }
-  .action-btn:active { opacity: 0.8; }
 
   .sync-btn { background: var(--sea-deep); color: white; }
   .filter-btn { background: var(--sea); color: white; }
   .wa-share-btn { background: var(--wa-green); color: white; }
 
-  .category-title{
-    font-size: 18px;
+  /* כותרות קטגוריה מתקפלות */
+  .category-header {
+    font-size: 16px;
     font-weight: 700;
     color: var(--sea-deep);
-    margin: 22px 0 8px;
+    margin: 18px 0 8px;
     padding-bottom: 4px;
     border-bottom: 2px solid var(--sea);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: pointer;
+    user-select: none;
   }
 
-  .go-top-btn {
-    font-size: 11px;
-    background: var(--whitewash);
-    border: 1px solid var(--line);
-    color: var(--sea);
-    padding: 3px 8px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.15s;
+  .cat-count {
+    font-size: 12px;
+    background: var(--line);
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: var(--sea-deep);
   }
-  .go-top-btn:hover { background: var(--line); }
 
   ul{
     list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
+    margin:0; padding:0;
+    display:flex; flex-direction:column; gap:6px;
   }
+
+  ul.collapsed { display: none; }
 
   li{
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:4px;
     background: var(--white);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 12px 14px;
-    animation: rise .25s ease;
-    transition: all 0.3s ease;
+    border-radius: 10px;
+    padding: 10px 12px;
     position: relative;
   }
 
-  li.is-new {
-    border: 2px solid var(--new-blue) !important;
-    background: #f0f6ff;
-  }
-  li.is-new .item-text {
-    color: var(--new-blue) !important;
-    font-weight: 700;
-  }
+  li.is-priority { border: 2px solid var(--sun) !important; background: #fffdf5; }
 
-  li.is-priority {
-    border: 2px solid var(--sun) !important;
-    background: #fffdf5;
-  }
-
-  .badge {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    margin-inline-start: 6px;
-  }
-  .new-badge { background: var(--new-blue); color: white; }
-  .star-badge { background: var(--sun); color: var(--sea-deep); }
-
-  .item-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
+  .item-row{ display:flex; align-items:center; gap:8px; }
 
   .check{
-    width: 24px;
-    height: 24px;
-    flex-shrink:0;
-    border-radius: 50%;
-    border: 2px solid var(--sea);
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background: transparent;
+    width: 22px; height: 22px; flex-shrink:0; border-radius: 50%;
+    border: 2px solid var(--sea); cursor:pointer; display:flex;
+    align-items:center; justify-content:center; background: transparent;
   }
   .check.done{ background: var(--sea); }
-  .check.done::after{
-    content:"✓";
-    color:white;
-    font-size:14px;
-    font-weight:700;
-  }
+  .check.done::after{ content:"✓"; color:white; font-size:12px; font-weight:700; }
 
   .item-main{ flex:1; min-width:0; }
-  .item-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-
-  .item-text{ font-size: 16px; font-weight:600; word-break: break-word; }
+  .item-text{ font-size: 15px; font-weight:600; word-break: break-word; }
   .item-text.done{ text-decoration: line-through; opacity: .45; }
 
-  .qty-controls{
-    display:flex;
-    align-items:center;
-    gap:4px;
+  .item-qty-tag {
+    font-size: 12px;
     background: var(--whitewash);
-    border-radius: 8px;
+    border: 1px solid var(--line);
     padding: 2px 6px;
-    border: 1px solid var(--line);
-  }
-
-  .qty-btn{ background:none; border:none; color: var(--sea); font-weight:bold; font-size:14px; cursor:pointer; }
-  .item-qty-val{ font-size: 13px; color: var(--sea-deep); font-weight:700; }
-  
-  .item-sub-info {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-top: 4px;
-    flex-wrap: wrap;
-  }
-
-  .item-by{ font-size: 11px; color: var(--name-tag); }
-  .item-buyer {
-    font-size: 11px;
-    color: var(--sea-deep);
+    border-radius: 6px;
     font-weight: 700;
-    background: #eef5f9;
-    padding: 1px 6px;
-    border-radius: 6px;
-  }
-
-  .item-wanting {
-    font-size: 11px;
-    color: #2b7a4b;
-    font-weight: 600;
-    background: #eafaf1;
-    padding: 1px 6px;
-    border-radius: 6px;
-  }
-
-  .item-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .icon-btn {
-    background: none;
-    border: none;
-    color: #8899a6;
-    font-size: 15px;
-    cursor: pointer;
-    padding: 4px;
-    line-height: 1;
-  }
-  .icon-btn:hover { color: var(--sea); }
-  .icon-btn.star-active { color: var(--sun); }
-
-  .claim-btn, .want-btn {
-    font-size: 11px;
-    background: var(--whitewash);
-    border: 1px solid var(--line);
     color: var(--sea-deep);
-    padding: 3px 6px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .claim-btn:hover, .want-btn:hover { background: var(--line); }
-  .want-btn.active {
-    background: #25D366;
-    color: white;
-    border-color: #25D366;
+    margin-inline-start: 6px;
   }
 
-  .item-notes-section{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    padding-top: 6px;
-    border-top: 1px dashed var(--line);
-    margin-top: 4px;
+  .item-sub-info {
+    display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap;
   }
 
-  .note-input-row{ display:flex; gap:6px; }
-  .note-input{ font-size: 12px !important; padding: 6px 8px !important; }
-  .note-add-btn{ font-size: 12px; padding: 6px 10px; background: var(--sea-deep); color: var(--white); border:none; border-radius: 8px; cursor:pointer; }
-  .notes-list{ font-size: 12px; color: var(--sea); display:flex; flex-direction:column; gap:2px; }
+  .item-by, .item-buyer, .item-wanting {
+    font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600;
+  }
+  .item-by { color: var(--name-tag); }
+  .item-buyer { background: #eef5f9; color: var(--sea-deep); }
+  .item-wanting { background: #eafaf1; color: #2b7a4b; }
 
-  .del{ background:none; border:none; color:#b0bcc3; font-size:20px; cursor:pointer; padding: 4px 6px; }
-  .del:hover{ color: #c0533f; }
+  .want-btn {
+    font-size: 11px; background: var(--whitewash); border: 1px solid var(--line);
+    color: var(--sea-deep); padding: 3px 6px; border-radius: 6px; cursor: pointer; font-weight: 600;
+  }
+  .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
 
-  .footer-note{ text-align:center; margin-top: 26px; font-size:12px; color: var(--sea); opacity:.55; }
+  /* תפריט 3 נקודות */
+  .menu-btn {
+    background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px;
+  }
+
+  .menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 36px; left: 10px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .menu-dropdown.show { display: flex; }
+
+  .menu-item {
+    padding: 8px 12px; font-size: 12px; border: none; background: transparent;
+    text-align: right; cursor: pointer; font-family: inherit; font-weight: 600;
+  }
+  .menu-item:hover { background: var(--whitewash); }
+  .menu-item.danger { color: #c0533f; }
+
+  /* מודאל (Popup) להוספת פריט */
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal-card {
+    background: white; border-radius: 16px; width: 100%; max-width: 400px;
+    padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: pop 0.2s ease;
+  }
+
+  @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  }
+  .modal-header h3 { margin: 0; font-size: 18px; color: var(--sea-deep); }
+  .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
+
+  .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
+  
+  .form-row { display: flex; gap: 8px; }
+
+  select, input[type="text"] {
+    padding: 10px; border-radius: 8px; border: 1.5px solid var(--line);
+    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash);
+  }
+
+  .submit-modal-btn {
+    width: 100%; background: var(--sea); color: white; border: none;
+    padding: 12px; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px;
+  }
 </style>
 </head>
 <body>
+
 <div class="card">
-  <header id="topHeader">
-    <div class="wave"></div>
+  <header>
     <h1>רשימת קניות מיקונוס</h1>
-    <div class="sub">חלוקה אוטומטית ומיון א'-ב' ⚡</div>
   </header>
+
+  <!-- טאבים למעבר בין רשימות -->
+  <div class="list-tabs">
+    <button class="tab-btn active" onclick="switchList('delivery')">📦 משלוח</button>
+    <button class="tab-btn" onclick="switchList('inPerson')">🛒 בקניה עצמית</button>
+    <button class="tab-btn" onclick="switchList('fromIsrael')">✈️ מהארץ</button>
+  </div>
 
   <div class="progress-section">
     <div class="progress-info">
-      <span>התקדמות קניות</span>
+      <span>התקדמות ברשימה זו</span>
       <span id="progressText">0 מתוך 0 (0%)</span>
     </div>
     <div class="progress-bar-bg">
@@ -451,29 +362,54 @@
     <input type="text" id="myName" placeholder="השם שלך…" autocomplete="off" />
   </div>
 
-  <form id="addForm">
-    <div class="field-row">
-      <div class="field grow">
-        <span>שם המוצר</span>
-        <input type="text" id="productInput" placeholder="לדוגמה: עגבניות, חזה עוף, מגבת..." autocomplete="off" />
-      </div>
-      <div class="field small">
-        <span>כמות</span>
-        <input type="text" id="qtyInput" placeholder="1" autocomplete="off" />
-      </div>
-    </div>
-    <button type="submit" class="add">הוספה לרשימה</button>
-  </form>
+  <!-- כפתור לפתיחת חלון הוספה -->
+  <button class="open-modal-btn" id="openModalBtn">➕ הוספת פריט לרשימה</button>
 
   <div class="action-buttons">
-    <button class="action-btn sync-btn" id="syncBtn">🔄 אפס כחול</button>
     <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
     <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף בוואטסאפ</a>
   </div>
 
   <div id="categoriesContainer"></div>
+</div>
 
-  <div class="footer-note">מוצרים ממוינים לפי א'-ב' | ⭐ דחופים בראש הרשימה 🔥</div>
+<!-- מודאל הוספת פריט -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>הוספת פריט חדש</h3>
+      <button class="close-modal" id="closeModalBtn">✕</button>
+    </div>
+    <form id="addModalForm">
+      <div class="form-group">
+        <label>שם המוצר</label>
+        <input type="text" id="modalNameInput" placeholder="לדוגמה: עגבניות, זירו..." required autocomplete="off" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label>כמות</label>
+          <input type="text" id="modalQtyInput" placeholder="1" autocomplete="off" />
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>יחידה</label>
+          <select id="modalUnitInput">
+            <option value="יח'">יח'</option>
+            <option value="מארז">מארז</option>
+            <option value="בקבוק">בקבוק</option>
+            <option value="ק"ג">ק"ג</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>הערה אישית (אופציונלי)</label>
+        <input type="text" id="modalNoteInput" placeholder="לדוגמה: מותג ספציפי או טעם" autocomplete="off" />
+      </div>
+
+      <button type="submit" class="submit-modal-btn">הוסף לרשימה</button>
+    </form>
+  </div>
 </div>
 
 <script type="module">
@@ -493,51 +429,28 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const listRef = ref(db, 'shoppingList');
+
+  let currentListType = 'delivery'; // 'delivery' | 'inPerson' | 'fromIsrael'
+  let listRef = ref(db, `lists/${currentListType}`);
 
   const NAME_KEY = 'mykonos-my-name';
   let itemsMap = {};
   let hideDoneItems = false;
+  let collapsedCategories = {};
 
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
   document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
 
-  const SYNONYMS_MAP = {
-    'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
-    'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
-    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
-    'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
-    'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
-    'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
-    'עגבניות': ['עגבניה', 'עגבניות שרי', 'שרי'],
-    'מלפפונים': ['מלפפון'],
-    'בננות': ['בננה'],
-    'לימונים': ['לימון'],
-    'לחמניות': ['לחמניה', 'לחם'],
-    'חזה עוף': ['עוף', 'חזה עוף פרוס', 'שניצל']
-  };
-
-  function normalizeProductName(input) {
-    if (!input) return '';
-    const clean = input.trim().toLowerCase();
-    for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
-      if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
-        return canonicalName;
-      }
-    }
-    return input.trim();
-  }
-
   const CATEGORY_DICTIONARY = {
-    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'תפוזים', 'אבוקדו', 'חסה', 'פטריות', 'גזר'],
-    'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'נקניקיות', 'קבב', 'המבורגר', 'פרגית', 'בקר', 'סטייק', 'שניצל'],
-    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'משקה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
-    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'קוטג', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו'],
+    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'אבוקדו', 'חסה', 'גזר'],
+    'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'קבב', 'המבורגר', 'פרגית', 'סטייק', 'שניצל'],
+    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
+    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו'],
     'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים'],
     'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות'],
-    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ניקוי', 'דאודורנט', 'אבקה'],
-    'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'מגבת רחצה', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה', 'סכין', 'מזלג']
+    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ניקוי', 'דאודורנט'],
+    'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה']
   };
 
   function detectCategory(itemName) {
@@ -551,51 +464,36 @@
     return 'מוצרים נוספים 🛒';
   }
 
-  const SEED_DATA = [
-    'קולה זירו','מים מינרלים','ביצים','מעדני פרו','שיבולת שועל',
-    'קוטג\'/ גבינה רכה','אורז','חטיפי חלבון','טוניק','סבון גוף','נוזל כביסה',
-    'בננות','ענבים','גבינה צהובה','יין לבן','לחמניות','חמאה','גרנולה',
-    'סודה','מיץ אשכוליות','מיץ תפוזים','לימונים'
-  ];
+  // מעבר בין רשימות
+  window.switchList = function(listType) {
+    currentListType = listType;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
 
-  function seedInitialData() {
-    SEED_DATA.forEach(name => {
-      const newItemRef = push(listRef);
-      set(newItemRef, {
-        name: name,
-        qty: '1',
-        category: detectCategory(name),
-        by: 'מערכת',
-        done: false,
-        isNew: false,
-        isPriority: false,
-        buyer: '',
-        wanting: [],
-        notes: []
-      });
-    });
-  }
+    listRef = ref(db, `lists/${currentListType}`);
+    listenToFirebase();
+  };
 
   const categoriesContainer = document.getElementById('categoriesContainer');
-  const form = document.getElementById('addForm');
-  const productInput = document.getElementById('productInput');
-  const qtyInput = document.getElementById('qtyInput');
   const myNameInput = document.getElementById('myName');
-  const syncBtn = document.getElementById('syncBtn');
   const filterBtn = document.getElementById('filterBtn');
   const progressBarFill = document.getElementById('progressBarFill');
   const progressText = document.getElementById('progressText');
+
+  // מודאל
+  const modalOverlay = document.getElementById('modalOverlay');
+  const openModalBtn = document.getElementById('openModalBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const addModalForm = document.getElementById('addModalForm');
+
+  openModalBtn.onclick = () => modalOverlay.classList.add('show');
+  closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
 
   const savedName = localStorage.getItem(NAME_KEY);
   if (savedName) myNameInput.value = savedName;
   myNameInput.addEventListener('change', () => {
     localStorage.setItem(NAME_KEY, myNameInput.value.trim());
   });
-
-  function scrollToAdd() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => { productInput.focus(); }, 300);
-  }
 
   function updateProgressBar(keys) {
     const total = keys.length;
@@ -604,10 +502,8 @@
       progressText.textContent = '0 מתוך 0 (0%)';
       return;
     }
-
     const doneCount = keys.filter(id => itemsMap[id].done).length;
     const percent = Math.round((doneCount / total) * 100);
-
     progressBarFill.style.width = percent + '%';
     progressText.textContent = `${doneCount} מתוך ${total} (${percent}%)`;
   }
@@ -624,208 +520,60 @@
       const item = itemsMap[id];
       if (hideDoneItems && item.done) return;
 
-      const itemName = item.name || item.text || '';
-      const cat = item.category || detectCategory(itemName);
+      const cat = item.category || detectCategory(item.name);
       if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push({ id, ...item, name: itemName });
+      grouped[cat].push({ id, ...item });
     });
 
     const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
 
     sortedCategories.forEach(catName => {
+      const remainingInCat = grouped[catName].filter(i => !i.done).length;
+
       const catHeader = document.createElement('div');
-      catHeader.className = 'category-title';
+      catHeader.className = 'category-header';
+      catHeader.onclick = () => {
+        collapsedCategories[catName] = !collapsedCategories[catName];
+        render();
+      };
       
-      const catTitleText = document.createElement('span');
-      catTitleText.textContent = catName;
-
-      const goTopBtn = document.createElement('button');
-      goTopBtn.className = 'go-top-btn';
-      goTopBtn.textContent = '⬆️ הוסף פריט';
-      goTopBtn.onclick = scrollToAdd;
-
-      catHeader.appendChild(catTitleText);
-      catHeader.appendChild(goTopBtn);
+      catHeader.innerHTML = `
+        <span>${catName}</span>
+        <span class="cat-count">${remainingInCat} שנשארו</span>
+      `;
 
       const ul = document.createElement('ul');
+      if (collapsedCategories[catName]) ul.classList.add('collapsed');
 
-      grouped[catName].sort((a, b) => {
-        if (a.isPriority !== b.isPriority) {
-          return b.isPriority ? 1 : -1;
-        }
-        return a.name.localeCompare(b.name, 'he');
-      });
+      grouped[catName].sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
       grouped[catName].forEach(item => {
         const li = document.createElement('li');
-        if (item.isNew) li.classList.add('is-new');
         if (item.isPriority) li.classList.add('is-priority');
 
-        const itemRow = document.createElement('div');
-        itemRow.className = 'item-row';
-
-        const check = document.createElement('div');
-        check.className = 'check' + (item.done ? ' done' : '');
-        check.onclick = () => toggleItem(item.id, item.done);
-
-        const main = document.createElement('div');
-        main.className = 'item-main';
-
-        const top = document.createElement('div');
-        top.className = 'item-top';
-
-        const text = document.createElement('div');
-        text.className = 'item-text' + (item.done ? ' done' : '');
-        text.textContent = item.name;
-
-        if (item.isPriority) {
-          const starBadge = document.createElement('span');
-          starBadge.className = 'badge star-badge';
-          starBadge.textContent = '⭐ דחוף';
-          text.appendChild(starBadge);
-        }
-
-        if (item.isNew) {
-          const badge = document.createElement('span');
-          badge.className = 'badge new-badge';
-          badge.textContent = 'חדש!';
-          text.appendChild(badge);
-        }
-
-        top.appendChild(text);
-
-        const qtyControls = document.createElement('div');
-        qtyControls.className = 'qty-controls';
-        
-        const minusBtn = document.createElement('button');
-        minusBtn.className = 'qty-btn';
-        minusBtn.textContent = '-';
-        minusBtn.onclick = () => changeQty(item.id, item.qty, -1);
-
-        const qtyVal = document.createElement('span');
-        qtyVal.className = 'item-qty-val';
-        qtyVal.textContent = item.qty || '1';
-
-        const plusBtn = document.createElement('button');
-        plusBtn.className = 'qty-btn';
-        plusBtn.textContent = '+';
-        plusBtn.onclick = () => changeQty(item.id, item.qty, 1);
-
-        qtyControls.appendChild(minusBtn);
-        qtyControls.appendChild(qtyVal);
-        qtyControls.appendChild(plusBtn);
-        top.appendChild(qtyControls);
-
-        main.appendChild(top);
-
-        const subInfo = document.createElement('div');
-        subInfo.className = 'item-sub-info';
-
-        if (item.by) {
-          const by = document.createElement('span');
-          by.className = 'item-by';
-          by.textContent = 'הוסיף/ה: ' + item.by;
-          subInfo.appendChild(by);
-        }
-
-        if (item.buyer) {
-          const buyer = document.createElement('span');
-          buyer.className = 'item-buyer';
-          buyer.textContent = '🛒 אחראי: ' + item.buyer;
-          subInfo.appendChild(buyer);
-        }
-
-        // רשימת מעוניינים ("גם אני")
         const wantingArr = Array.isArray(item.wanting) ? item.wanting : [];
-        if (wantingArr.length > 0) {
-          const wantingTag = document.createElement('span');
-          wantingTag.className = 'item-wanting';
-          wantingTag.textContent = '🙋‍♂️ רוצים: ' + wantingArr.join(', ');
-          subInfo.appendChild(wantingTag);
-        }
-
-        main.appendChild(subInfo);
-
-        const actions = document.createElement('div');
-        actions.className = 'item-actions';
-
-        // כפתור "🙋‍♂️ גם אני"
         const isUserWanting = myName && wantingArr.includes(myName);
-        const wantBtn = document.createElement('button');
-        wantBtn.className = 'want-btn' + (isUserWanting ? ' active' : '');
-        wantBtn.textContent = '🙋‍♂️ גם אני';
-        wantBtn.title = 'לחץ כדי להוסיף/להסיר את עצמך מרשימת הצורכים';
-        wantBtn.onclick = () => toggleWantItem(item.id, item.qty, wantingArr);
 
-        // כפתור "אני קונה"
-        const claimBtn = document.createElement('button');
-        claimBtn.className = 'claim-btn';
-        claimBtn.textContent = item.buyer ? 'שנה' : 'אני קונה';
-        claimBtn.onclick = () => claimItem(item.id, item.buyer);
-
-        // כפתור דחוף
-        const starBtn = document.createElement('button');
-        starBtn.className = 'icon-btn' + (item.isPriority ? ' star-active' : '');
-        starBtn.textContent = item.isPriority ? '⭐' : '☆';
-        starBtn.title = 'סמן כדחוף';
-        starBtn.onclick = () => togglePriority(item.id, item.isPriority);
-
-        // כפתור עריכה
-        const editBtn = document.createElement('button');
-        editBtn.className = 'icon-btn';
-        editBtn.textContent = '✏️';
-        editBtn.title = 'ערוך שם';
-        editBtn.onclick = () => editItemName(item.id, item.name);
-
-        // כפתור מחיקה
-        const del = document.createElement('button');
-        del.className = 'del';
-        del.textContent = '✕';
-        del.onclick = () => deleteItem(item.id);
-
-        actions.appendChild(wantBtn);
-        actions.appendChild(claimBtn);
-        actions.appendChild(starBtn);
-        actions.appendChild(editBtn);
-        actions.appendChild(del);
-
-        itemRow.appendChild(check);
-        itemRow.appendChild(main);
-        itemRow.appendChild(actions);
-        li.appendChild(itemRow);
-
-        const notesSection = document.createElement('div');
-        notesSection.className = 'item-notes-section';
-
-        const notesList = document.createElement('div');
-        notesList.className = 'notes-list';
-        if (item.notes && Array.isArray(item.notes)) {
-          item.notes.forEach(note => {
-            const noteItem = document.createElement('div');
-            noteItem.textContent = '• ' + note;
-            notesList.appendChild(noteItem);
-          });
-        }
-
-        const noteInputRow = document.createElement('div');
-        noteInputRow.className = 'note-input-row';
-
-        const noteInput = document.createElement('input');
-        noteInput.type = 'text';
-        noteInput.className = 'note-input';
-        noteInput.placeholder = 'הוסף הערה / כמות אישית...';
-
-        const noteBtn = document.createElement('button');
-        noteBtn.className = 'note-add-btn';
-        noteBtn.textContent = 'הוסף';
-        noteBtn.onclick = () => addNoteToItem(item.id, noteInput.value, item.notes || []);
-
-        noteInputRow.appendChild(noteInput);
-        noteInputRow.appendChild(noteBtn);
-
-        notesSection.appendChild(notesList);
-        notesSection.appendChild(noteInputRow);
-        li.appendChild(notesSection);
+        li.innerHTML = `
+          <div class="item-row">
+            <div class="check ${item.done ? 'done' : ''}" onclick="toggleItem('${item.id}', ${item.done})"></div>
+            <div class="item-main">
+              <span class="item-text ${item.done ? 'done' : ''}">${item.name}</span>
+              <span class="item-qty-tag">${item.qty || 1} ${item.unit || "יח'"}</span>
+              <div class="item-sub-info">
+                ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
+                ${wantingArr.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingArr.join(', ')}</span>` : ''}
+              </div>
+            </div>
+            <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', '${item.qty}', ${JSON.stringify(wantingArr).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
+            <button class="menu-btn" onclick="toggleMenu('menu-${item.id}')">⋮</button>
+            <div class="menu-dropdown" id="menu-${item.id}">
+              <button class="menu-item" onclick="togglePriority('${item.id}', ${item.isPriority})">${item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף'}</button>
+              <button class="menu-item" onclick="editItem('${item.id}', '${item.name}', '${item.qty}')">✏️ ערוך</button>
+              <button class="menu-item danger" onclick="deleteItem('${item.id}')">✕ מחק</button>
+            </div>
+          </div>
+        `;
 
         ul.appendChild(li);
       });
@@ -835,160 +583,95 @@
     });
   }
 
-  let isFirstLoad = true;
-  onValue(listRef, (snapshot) => {
-    itemsMap = snapshot.val() || {};
-    
-    if (isFirstLoad && Object.keys(itemsMap).length === 0) {
-      isFirstLoad = false;
-      seedInitialData();
-      return;
-    }
-    
-    isFirstLoad = false;
-    render();
-  });
+  function listenToFirebase() {
+    onValue(listRef, (snapshot) => {
+      itemsMap = snapshot.val() || {};
+      render();
+    });
+  }
 
-  form.addEventListener('submit', (e) => {
+  listenToFirebase();
+
+  // הוספת פריט דרך מודאל
+  addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const rawInputName = productInput.value.trim();
-    if (!rawInputName) return;
+    const name = document.getElementById('modalNameInput').value.trim();
+    if (!name) return;
 
-    const normalizedName = normalizeProductName(rawInputName);
-    const detectedCategory = detectCategory(normalizedName);
+    const qty = document.getElementById('modalQtyInput').value.trim() || '1';
+    const unit = document.getElementById('modalUnitInput').value;
+    const note = document.getElementById('modalNoteInput').value.trim();
 
-    const existingKey = Object.keys(itemsMap).find(key => {
-      const existingName = (itemsMap[key].name || itemsMap[key].text || '').trim();
-      return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase();
+    const newItemRef = push(listRef);
+    set(newItemRef, {
+      name: name,
+      qty: qty,
+      unit: unit,
+      category: detectCategory(name),
+      by: myNameInput.value.trim(),
+      done: false,
+      isPriority: false,
+      wanting: [],
+      notes: note ? [note] : []
     });
 
-    if (existingKey) {
-      const currentQty = parseInt(itemsMap[existingKey].qty) || 1;
-      const addQty = parseInt(qtyInput.value.trim()) || 1;
-      update(ref(db, `shoppingList/${existingKey}`), {
-        qty: (currentQty + addQty).toString(),
-        isNew: true
-      });
-    } else {
-      const newItemRef = push(listRef);
-      set(newItemRef, {
-        name: normalizedName,
-        qty: qtyInput.value.trim() || '1',
-        category: detectedCategory,
-        by: myNameInput.value.trim(),
-        done: false,
-        isNew: true,
-        isPriority: false,
-        buyer: '',
-        wanting: [],
-        notes: []
-      });
-    }
-
-    productInput.value = '';
-    qtyInput.value = '';
-    productInput.focus();
+    addModalForm.reset();
+    modalOverlay.classList.remove('show');
   });
 
-  // פונקציית "🙋‍♂️ גם אני"
-  function toggleWantItem(id, currentQtyStr, currentWanting) {
+  window.toggleMenu = function(menuId) {
+    document.querySelectorAll('.menu-dropdown').forEach(el => {
+      if (el.id !== menuId) el.classList.remove('show');
+    });
+    document.getElementById(menuId).classList.toggle('show');
+  };
+
+  window.toggleWantItem = function(id, currentQtyStr, currentWanting) {
     const myName = myNameInput.value.trim();
     if (!myName) {
-      alert('נא להזין את השם שלך בשדה "אני:" בחלק העליון.');
-      myNameInput.focus();
+      alert('נא להזין שם בשדה "אני:"');
       return;
     }
-
     let updatedWanting = [...currentWanting];
     let currentQty = parseInt(currentQtyStr) || 1;
 
     if (updatedWanting.includes(myName)) {
-      // הסרת המשתמש והפחתת כמות
-      updatedWanting = updatedWanting.filter(name => name !== myName);
+      updatedWanting = updatedWanting.filter(n => n !== myName);
       if (currentQty > 1) currentQty -= 1;
     } else {
-      // הוספת המשתמש והעלאת כמות
       updatedWanting.push(myName);
       currentQty += 1;
     }
 
-    update(ref(db, `shoppingList/${id}`), {
+    update(ref(db, `lists/${currentListType}/${id}`), {
       wanting: updatedWanting,
       qty: currentQty.toString()
     });
-  }
+  };
 
-  function claimItem(id, currentBuyer) {
-    const myName = myNameInput.value.trim();
-    if (!myName) {
-      alert('נא להזין את השם שלך בשדה "אני:" בחלק העליון.');
-      myNameInput.focus();
-      return;
-    }
+  window.togglePriority = function(id, currentStatus) {
+    update(ref(db, `lists/${currentListType}/${id}`), { isPriority: !currentStatus });
+  };
 
-    if (currentBuyer === myName) {
-      update(ref(db, `shoppingList/${id}`), { buyer: '' });
-    } else {
-      update(ref(db, `shoppingList/${id}`), { buyer: myName });
-    }
-  }
+  window.editItem = function(id, currentName, currentQty) {
+    const newName = prompt('שם המוצר:', currentName);
+    if (!newName) return;
+    update(ref(db, `lists/${currentListType}/${id}`), { name: newName.trim(), category: detectCategory(newName.trim()) });
+  };
 
-  function togglePriority(id, currentStatus) {
-    update(ref(db, `shoppingList/${id}`), { isPriority: !currentStatus });
-  }
+  window.toggleItem = function(id, currentStatus) {
+    update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
+  };
+
+  window.deleteItem = function(id) {
+    remove(ref(db, `lists/${currentListType}/${id}`));
+  };
 
   filterBtn.addEventListener('click', () => {
     hideDoneItems = !hideDoneItems;
     filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שנרכשו';
     render();
   });
-
-  function editItemName(id, currentName) {
-    const newName = prompt('ערוך את שם המוצר:', currentName);
-    if (!newName || !newName.trim()) return;
-
-    const normalizedName = normalizeProductName(newName.trim());
-    const newCategory = detectCategory(normalizedName);
-
-    update(ref(db, `shoppingList/${id}`), {
-      name: normalizedName,
-      category: newCategory
-    });
-  }
-
-  function clearAllNewFlags() {
-    Object.keys(itemsMap).forEach(id => {
-      if (itemsMap[id].isNew) {
-        update(ref(db, `shoppingList/${id}`), { isNew: false });
-      }
-    });
-  }
-
-  syncBtn.addEventListener('click', clearAllNewFlags);
-
-  function changeQty(id, currentQtyStr, delta) {
-    let currentQty = parseInt(currentQtyStr) || 1;
-    currentQty += delta;
-    if (currentQty < 1) currentQty = 1;
-    update(ref(db, `shoppingList/${id}`), { qty: currentQty.toString() });
-  }
-
-  function addNoteToItem(id, newNoteText, existingNotes) {
-    const trimmed = newNoteText.trim();
-    if (!trimmed) return;
-    const userName = myNameInput.value.trim();
-    const formattedNote = userName ? `${userName}: ${trimmed}` : trimmed;
-    const updatedNotes = [...existingNotes, formattedNote];
-    update(ref(db, `shoppingList/${id}`), { notes: updatedNotes });
-  }
-
-  function toggleItem(id, currentStatus) {
-    update(ref(db, `shoppingList/${id}`), { done: !currentStatus });
-  }
-
-  function deleteItem(id) {
-    remove(ref(db, `shoppingList/${id}`));
-  }
 </script>
 </body>
 </html>
