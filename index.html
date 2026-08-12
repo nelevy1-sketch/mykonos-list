@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -133,10 +134,17 @@
   .item-text{ font-size: 14px; font-weight:600; word-break: break-word; }
   .item-text.done{ text-decoration: line-through; opacity: .45; }
 
-  .item-qty-tag {
-    font-size: 11px; background: var(--whitewash); border: 1px solid var(--line);
-    padding: 2px 6px; border-radius: 6px; font-weight: 700; color: var(--sea-deep); margin-inline-start: 4px; display: inline-block;
+  /* בקרת כמות עם + ו- */
+  .qty-control-box {
+    display: inline-flex; align-items: center; gap: 3px; background: var(--whitewash);
+    border: 1px solid var(--line); border-radius: 6px; padding: 1px 4px; margin-inline-start: 4px;
   }
+  .qty-btn {
+    background: transparent; border: none; font-size: 13px; font-weight: 700;
+    color: var(--sea); cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;
+  }
+  .qty-btn:active { color: var(--sea-deep); transform: scale(1.1); }
+  .item-qty-val { font-size: 11px; font-weight: 700; color: var(--sea-deep); }
 
   .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
   .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
@@ -183,7 +191,7 @@
   .menu-item:hover { background: var(--whitewash); }
   .menu-item.danger { color: #c0533f; }
 
-  /* Toast מותאם למובייל וממורכז */
+  /* Toast */
   .toast {
     visibility: hidden; width: 90%; max-width: 400px; background-color: var(--sea-deep); color: #fff; text-align: center;
     border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
@@ -214,7 +222,7 @@
   .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
   .form-row { display: flex; gap: 8px; }
 
-  select, input[type="text"] {
+  select, input[type="text"], input[type="number"] {
     padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
     font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); width: 100%; box-sizing: border-box;
   }
@@ -268,7 +276,6 @@
     <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
   </div>
 
-  <!-- כפתור סיכום חוסרים למצב בדיקה -->
   <button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
 
   <div id="categoriesContainer"></div>
@@ -296,7 +303,7 @@
       <div class="form-row">
         <div class="form-group" style="flex: 1;">
           <label>כמות בסיס משותפת</label>
-          <input type="text" id="modalQtyInput" placeholder="1" autocomplete="off" />
+          <input type="number" id="modalQtyInput" placeholder="1" min="1" autocomplete="off" />
         </div>
         <div class="form-group" style="flex: 1;">
           <label>יחידה</label>
@@ -319,7 +326,25 @@
   </div>
 </div>
 
-<!-- Modal סיכום חוסרים והעברה בין רשימות -->
+<!-- Modal בחירת כמות אישית ("גם אני") -->
+<div class="modal-overlay" id="personalQtyModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="personalModalTitle">🙋‍♂️ כמות אישית שלי</h3>
+      <button class="close-modal" id="closePersonalModalBtn">✕</button>
+    </div>
+    <div style="margin-bottom: 12px; font-size: 13px; color: var(--sea-deep);" id="personalModalDesc">בחר כמה יחידות תרצה להוסיף לעצמך:</div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+      <button id="decPersonalQtyBtn" style="background: var(--whitewash); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">-</button>
+      <span id="personalQtyDisplay" style="font-size: 22px; font-weight: bold; color: var(--sea-deep);">1</span>
+      <button id="incPersonalQtyBtn" style="background: var(--whitewash); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">+</button>
+    </div>
+    <button id="savePersonalQtyBtn" class="submit-modal-btn">שמור כמות אישית</button>
+    <button id="removePersonalQtyBtn" style="width: 100%; background: transparent; color: #c0533f; border: none; padding: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">הסר את הבקשה שלי</button>
+  </div>
+</div>
+
+<!-- Modal סיכום חוסרים -->
 <div class="modal-overlay" id="missingModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -372,7 +397,11 @@
   let hideDoneItems = false;
   let isAuditMode = false;
   let collapsedCategories = {};
-  let lastDeletedItem = null;
+  let lastStateBackup = null;
+
+  let activePersonalItemId = null;
+  let activePersonalMap = {};
+  let tempPersonalQty = 1;
 
   const STATUS_CYCLE = ['📝 בהכנה', '✅ מוכנה', '🚚 הוזמנה / בקנייה', '🔍 בבדיקה', '🎉 הושלמה'];
 
@@ -452,6 +481,12 @@
     setTimeout(() => { toast.classList.remove('show'); }, 3500);
   }
 
+  function saveUndoBackup(itemId) {
+    if (itemId && itemsMap[itemId]) {
+      lastStateBackup = { itemId, data: JSON.parse(JSON.stringify(itemsMap[itemId])) };
+    }
+  }
+
   function requireUserName() {
     const myName = myNameInput.value.trim();
     const whoamiBox = document.getElementById('whoamiBox');
@@ -497,6 +532,14 @@
   const closeModalBtn = document.getElementById('closeModalBtn');
   const addModalForm = document.getElementById('addModalForm');
 
+  const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
+  const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
+  const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
+  const decPersonalQtyBtn = document.getElementById('decPersonalQtyBtn');
+  const personalQtyDisplay = document.getElementById('personalQtyDisplay');
+  const savePersonalQtyBtn = document.getElementById('savePersonalQtyBtn');
+  const removePersonalQtyBtn = document.getElementById('removePersonalQtyBtn');
+
   const missingModalOverlay = document.getElementById('missingModalOverlay');
   const closeMissingModalBtn = document.getElementById('closeMissingModalBtn');
   const missingItemsList = document.getElementById('missingItemsList');
@@ -514,6 +557,7 @@
   settingsBtn.onclick = () => settingsModalOverlay.classList.add('show');
   closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
   closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
+  closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
 
   document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
     input.addEventListener('focus', () => {
@@ -617,7 +661,8 @@
         if (item.isPriority) li.classList.add('is-priority');
 
         const personalMap = item.personalQtyMap || {};
-        const isUserWanting = myName && personalMap[myName] > 0;
+        const myPersonalQty = personalMap[myName] || 0;
+        const isUserWanting = myName && myPersonalQty > 0;
         const isUserBuyer = myName && item.buyer === myName;
         const totalQty = calculateTotalQty(item);
 
@@ -633,7 +678,13 @@
             <div class="check ${item.done ? 'done' : ''}" onclick="toggleItem('${item.id}', ${item.done})"></div>
             <div class="item-main">
               <span class="item-text ${item.done ? 'done' : ''}">${item.name}</span>
-              <span class="item-qty-tag">${totalQty} ${item.unit || "יח'"}</span>
+              
+              <div class="qty-control-box">
+                <button class="qty-btn" onclick="updateBaseQty('${item.id}', -1)">-</button>
+                <span class="item-qty-val">${totalQty} ${item.unit || "יח'"}</span>
+                <button class="qty-btn" onclick="updateBaseQty('${item.id}', 1)">+</button>
+              </div>
+
               <div class="item-sub-info">
                 ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
                 ${(currentListType === 'inPerson' && item.buyer) ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
@@ -642,7 +693,7 @@
               </div>
             </div>
             <div class="item-btn-actions">
-              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="toggleWantItem('${item.id}', ${JSON.stringify(personalMap).replace(/"/g, '&quot;')})">🙋‍♂️ גם אני</button>
+              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="openPersonalQtyModal('${item.id}', ${JSON.stringify(personalMap).replace(/"/g, '&quot;')})">🙋‍♂️ ${isUserWanting ? `גם אני (+${myPersonalQty})` : 'גם אני'}</button>
               ${currentListType === 'inPerson' ? `<button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>` : ''}
             </div>
             <button class="menu-btn" onclick="toggleMenu('menu-${item.id}', event)">⋮</button>
@@ -684,6 +735,24 @@
 
   listenToFirebase();
 
+  // עדכון כמות ישיר עם + ו-
+  window.updateBaseQty = function(id, delta) {
+    if (!itemsMap[id]) return;
+    saveUndoBackup(id);
+    const currentBaseQty = parseInt(itemsMap[id].qty) || 1;
+    const newBaseQty = currentBaseQty + delta;
+
+    if (newBaseQty <= 0) {
+      if (confirm(`האם למחוק את "${itemsMap[id].name}" מהרשימה?`)) {
+        deleteItem(id);
+      }
+      return;
+    }
+
+    update(ref(db, `lists/${currentListType}/${id}`), { qty: newBaseQty.toString() });
+    showToast(`הכמות עודכנה ל-${newBaseQty + (calculateTotalQty(itemsMap[id]) - currentBaseQty)}`, true);
+  };
+
   addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const user = requireUserName();
@@ -694,27 +763,37 @@
 
     const normalizedName = normalizeProductName(rawInputName);
     const detectedCategory = detectCategory(normalizedName);
-    const qty = document.getElementById('modalQtyInput').value.trim() || '1';
+    const inputQty = parseInt(document.getElementById('modalQtyInput').value) || 1;
     const unit = document.getElementById('modalUnitInput').value;
     const note = document.getElementById('modalNoteInput').value.trim();
 
+    // בדיקת כפילות: שם זהה + יחידה שווה בלבד!
     const existingKey = Object.keys(itemsMap).find(key => {
-      const existingName = (itemsMap[key].name || itemsMap[key].text || '').trim();
-      return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase();
+      const existingItem = itemsMap[key];
+      const existingName = (existingItem.name || existingItem.text || '').trim();
+      const existingUnit = existingItem.unit || "יח'";
+      return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase() && existingUnit === unit;
     });
 
     if (existingKey) {
-      const currentBaseQty = parseInt(itemsMap[existingKey].qty) || 1;
-      const addQty = parseInt(qty) || 1;
-      update(ref(db, `lists/${currentListType}/${existingKey}`), {
-        qty: (currentBaseQty + addQty).toString()
-      });
-      showToast(`איחדנו את הכמות עבור "${normalizedName}"`);
+      const existingItem = itemsMap[existingKey];
+      const currentQty = parseInt(existingItem.qty) || 1;
+      const targetQty = currentQty + inputQty;
+
+      const shouldUpdate = confirm(` המוצר "${normalizedName}" כבר קיים ברשימה בכמות ${currentQty} ${unit}.\n\nהאם לעדכן את הכמות ל-${targetQty} ${unit}?`);
+      
+      if (shouldUpdate) {
+        saveUndoBackup(existingKey);
+        update(ref(db, `lists/${currentListType}/${existingKey}`), {
+          qty: targetQty.toString()
+        });
+        showToast(`עודכן ל-${targetQty} ${unit}`, true);
+      }
     } else {
       const newItemRef = push(listRef);
       set(newItemRef, {
         name: normalizedName,
-        qty: qty,
+        qty: inputQty.toString(),
         unit: unit,
         category: detectedCategory,
         by: user,
@@ -731,6 +810,62 @@
     addModalForm.reset();
     modalOverlay.classList.remove('show');
   });
+
+  // מודאל כמות אישית ("גם אני")
+  window.openPersonalQtyModal = function(id, personalMap) {
+    const user = requireUserName();
+    if (!user) return;
+
+    activePersonalItemId = id;
+    activePersonalMap = { ...(personalMap || {}) };
+    tempPersonalQty = activePersonalMap[user] || 1;
+
+    personalQtyDisplay.textContent = tempPersonalQty;
+    document.getElementById('personalModalTitle').textContent = `🙋‍♂️ כמות אישית עבור ${itemsMap[id].name}`;
+    personalQtyModalOverlay.classList.add('show');
+  };
+
+  incPersonalQtyBtn.onclick = () => {
+    tempPersonalQty++;
+    personalQtyDisplay.textContent = tempPersonalQty;
+  };
+
+  decPersonalQtyBtn.onclick = () => {
+    if (tempPersonalQty > 1) {
+      tempPersonalQty--;
+      personalQtyDisplay.textContent = tempPersonalQty;
+    }
+  };
+
+  savePersonalQtyBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user || !activePersonalItemId) return;
+
+    saveUndoBackup(activePersonalItemId);
+    activePersonalMap[user] = tempPersonalQty;
+
+    update(ref(db, `lists/${currentListType}/${activePersonalItemId}`), {
+      personalQtyMap: activePersonalMap
+    });
+
+    personalQtyModalOverlay.classList.remove('show');
+    showToast(`הבקשה האישית שלך עודכנה ל-+${tempPersonalQty}`, true);
+  };
+
+  removePersonalQtyBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user || !activePersonalItemId) return;
+
+    saveUndoBackup(activePersonalItemId);
+    delete activePersonalMap[user];
+
+    update(ref(db, `lists/${currentListType}/${activePersonalItemId}`), {
+      personalQtyMap: activePersonalMap
+    });
+
+    personalQtyModalOverlay.classList.remove('show');
+    showToast('הבקשה האישית הוסרה', true);
+  };
 
   window.toggleMenu = function(menuId, evt) {
     if (evt) evt.stopPropagation();
@@ -752,24 +887,6 @@
     update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
   };
 
-  window.toggleWantItem = function(id, personalMap) {
-    const user = requireUserName();
-    if (!user) return;
-
-    let updatedMap = { ...(personalMap || {}) };
-    const currentPersonalQty = updatedMap[user] || 0;
-
-    if (currentPersonalQty > 0) {
-      delete updatedMap[user];
-    } else {
-      updatedMap[user] = 1;
-    }
-
-    update(ref(db, `lists/${currentListType}/${id}`), {
-      personalQtyMap: updatedMap
-    });
-  };
-
   window.togglePriority = function(id, currentStatus) {
     update(ref(db, `lists/${currentListType}/${id}`), { isPriority: !currentStatus });
   };
@@ -786,7 +903,7 @@
   };
 
   window.deleteItem = function(id) {
-    lastDeletedItem = { id, data: itemsMap[id] };
+    saveUndoBackup(id);
     remove(ref(db, `lists/${currentListType}/${id}`));
     showToast('הפריט נמחק', true);
   };
@@ -856,10 +973,11 @@
   });
 
   undoBtn.onclick = () => {
-    if (lastDeletedItem) {
-      set(ref(db, `lists/${currentListType}/${lastDeletedItem.id}`), lastDeletedItem.data);
-      lastDeletedItem = null;
+    if (lastStateBackup && lastStateBackup.itemId) {
+      set(ref(db, `lists/${currentListType}/${lastStateBackup.itemId}`), lastStateBackup.data);
+      lastStateBackup = null;
       document.getElementById('toast').classList.remove('show');
+      showToast('השינוי בוטל בהצלחה!');
     }
   };
 
