@@ -1,70 +1,1117 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ריכוז הכנות לטיול ✈️</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #f4f6f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      direction: rtl;
-    }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-    h1 { font-size: 1.4rem; margin-bottom: 24px; color: #222; }
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1rem;
-      transition: transform 0.1s;
-    }
-    .btn:active { transform: scale(0.98); }
-    .btn-shopping { background-color: #0076ff; color: white; }
-    .btn-packing { background-color: #6c5ce7; color: white; }
-    .btn-splitwise { background-color: #1cc29f; color: white; }
-  </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0VXCEZ117S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0VXCEZ117S');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>רשימת קניות מיקונוס 2.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
+
+  :root{
+    --sea: #1d5f8a;
+    --sea-deep: #0f3a56;
+    --white: #fdfdfb;
+    --whitewash: #f3f6f8;
+    --sun: #e8b84b;
+    --line: #d8e2e7;
+    --name-tag: #6d8f9c;
+    --new-blue: #0066ff;
+    --wa-green: #25D366;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: linear-gradient(180deg, var(--whitewash) 0%, var(--white) 40%);
+    font-family: 'Assistant', sans-serif;
+    color: var(--sea-deep);
+    display:flex;
+    justify-content:center;
+    padding: 16px 12px 80px;
+    overflow-x: hidden;
+  }
+
+  .card{ width:100%; max-width: 480px; }
+
+  header{ text-align:center; margin-bottom: 14px; }
+  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 26px; margin: 0; color: var(--sea-deep); }
+
+  .list-tabs {
+    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 10px; gap: 4px;
+  }
+
+  .tab-btn {
+    flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 8px;
+    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--sea-deep); cursor: pointer; transition: all 0.2s;
+  }
+  .tab-btn.active { background: var(--white); color: var(--sea); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--white); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; font-weight: 700;
+  }
+  .status-tag { background: #eef5f9; color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+  .status-tag:hover { background: #dceaf2; }
+
+  .progress-section {
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
+  }
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .progress-bar-bg { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sea), var(--wa-green)); width: 0%; transition: width 0.3s ease; }
+
+  .whoami{
+    display:flex; align-items:center; gap:8px; margin-bottom: 12px;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
+    width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .whoami.highlight {
+    border: 2px solid #c0533f !important;
+    background: #fffdfd;
+    box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
+  }
+  .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
+  .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; min-width:0; }
+
+  .open-modal-btn {
+    width: 100%; background: var(--sea); color: white; border: none; border-radius: 12px;
+    padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2); display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  .action-buttons{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .action-btn {
+    flex: 1; min-width: 85px; padding: 8px 4px; border: none; border-radius: 8px;
+    font-weight: bold; cursor: pointer; font-size: 11px; text-decoration: none; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .filter-btn { background: var(--sea); color: white; }
+  .audit-btn { background: var(--sea-deep); color: white; }
+  .export-btn { background: #5c6b73; color: white; }
+  .wa-share-btn { background: var(--wa-green); color: white; }
+  .settings-btn { background: #78909c; color: white; }
+
+  .category-header {
+    font-size: 15px; font-weight: 700; color: var(--sea-deep); margin: 16px 0 8px;
+    padding-bottom: 4px; border-bottom: 2px solid var(--sea); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
+  }
+  .cat-count { font-size: 11px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--sea-deep); }
+
+  ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+  ul.collapsed { display: none; }
+
+  li{
+    display:flex; flex-direction:column; gap:4px; background: var(--white);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; position: relative;
+  }
+  li.is-priority { border: 2px solid var(--sun) !important; background: #fffdf5; }
+
+  .item-row{ display:flex; align-items:center; gap:8px; }
+
+  .check{
+    width: 22px; height: 22px; flex-shrink:0; border-radius: 50%; border: 2px solid var(--sea);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; background: transparent;
+  }
+  .check.done{ background: var(--sea); }
+  .check.done::after{ content:"✓"; color:white; font-size:12px; font-weight:700; }
+
+  .item-main{ flex:1; min-width:0; }
+  .item-text{ font-size: 14px; font-weight:600; word-break: break-word; }
+  .item-text.done{ text-decoration: line-through; opacity: .45; }
+
+  .qty-control-box {
+    display: inline-flex; align-items: center; gap: 3px; background: var(--whitewash);
+    border: 1px solid var(--line); border-radius: 6px; padding: 1px 4px; margin-inline-start: 4px;
+  }
+  .qty-btn {
+    background: transparent; border: none; font-size: 13px; font-weight: 700;
+    color: var(--sea); cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;
+  }
+  .qty-btn:active { color: var(--sea-deep); transform: scale(1.1); }
+  .item-qty-val { font-size: 11px; font-weight: 700; color: var(--sea-deep); }
+
+  .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
+  .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+  .item-by { color: var(--name-tag); }
+  .item-buyer { background: #eef5f9; color: var(--sea-deep); }
+  .item-wanting { background: #eafaf1; color: #2b7a4b; }
+
+  .item-audit-tag.received { background: #eafaf1; color: #2b7a4b; }
+  .item-audit-tag.partial { background: #fffdf5; color: #b8860b; }
+  .item-audit-tag.replaced { background: #eef5f9; color: #1d5f8a; }
+  .item-audit-tag.missing { background: #fdf0ed; color: #c0533f; }
+
+  .item-btn-actions { display: flex; gap: 4px; align-items: center; }
+
+  .claim-btn, .want-btn {
+    font-size: 10px; background: var(--whitewash); border: 1px solid var(--line);
+    color: var(--sea-deep); padding: 4px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;
+  }
+  .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
+  .claim-btn.active { background: var(--sea-deep); color: white; }
+
+  .audit-controls {
+    display: flex; gap: 4px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px;
+  }
+  .audit-status-btn {
+    flex: 1; font-size: 10px; padding: 4px 2px; border: 1px solid var(--line);
+    background: var(--whitewash); border-radius: 4px; cursor: pointer; font-weight: 600; text-align: center;
+  }
+  .audit-status-btn.active { font-weight: 800; border-color: var(--sea-deep); }
+
+  .menu-btn { background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px; }
+
+  .menu-dropdown {
+    display: none; position: absolute; top: 36px; left: 10px;
+    background: white; border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; flex-direction: column; overflow: hidden;
+  }
+  .menu-dropdown.show { display: flex; }
+
+  .menu-item {
+    padding: 8px 12px; font-size: 12px; border: none; background: transparent;
+    text-align: right; cursor: pointer; font-family: inherit; font-weight: 600;
+  }
+  .menu-item:hover { background: var(--whitewash); }
+  .menu-item.danger { color: #c0533f; }
+
+  /* Toast */
+  .toast {
+    visibility: hidden; width: 90%; max-width: 400px; background-color: var(--sea-deep); color: #fff; text-align: center;
+    border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
+    transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25); box-sizing: border-box;
+  }
+  .toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
+  .undo-btn { background: var(--sun); color: var(--sea-deep); border: none; padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+
+  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+  @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 12px;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal-card {
+    background: white; border-radius: 16px; width: 100%; max-width: 380px;
+    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); box-sizing: border-box;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .modal-header h3 { margin: 0; font-size: 16px; color: var(--sea-deep); }
+  .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
+
+  .form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+  .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
+  .form-row { display: flex; gap: 8px; }
+
+  select, input[type="text"], input[type="number"] {
+    padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
+    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); width: 100%; box-sizing: border-box;
+  }
+
+  .submit-modal-btn {
+    width: 100%; background: var(--sea); color: white; border: none;
+    padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
+  }
+
+  .lang-option-btn {
+    width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--sea-deep); transition: background 0.2s;
+  }
+  .lang-option-btn:hover { background: #eef5f9; border-color: var(--sea); }
+</style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>הכנות לטיול ✈️</h1>
+<div class="card">
+  <header>
+    <h1>רשימת קניות מיקונוס</h1>
+  </header>
 
-    <!-- קישור לרשימת הקניות הקיימת שלך -->
-    <a href="shopping.html" class="btn btn-shopping">
-      🛒 רשימת קניות
-    </a>
-
-    <!-- קישור לרשימת הציוד/אריזה -->
-    <a href="packing.html" class="btn btn-packing">
-      🧳 רשימת ציוד ומה לארוז
-    </a>
-
-    <!-- קישור לקבוצה ב-Splitwise -->
-    <a href="https://www.splitwise.com" target="_blank" class="btn btn-splitwise">
-      🔗 הקבוצה שלנו ב-Splitwise
-    </a>
+  <div class="list-tabs">
+    <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
+    <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
+    <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
   </div>
 
+  <div class="status-bar">
+    <span>סטטוס רשימה:</span>
+    <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-info">
+      <span>התקדמות ברשימה זו</span>
+      <span id="progressText">0 מתוך 0 (0%)</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBarFill"></div>
+    </div>
+  </div>
+
+  <div class="whoami" id="whoamiBox">
+    <label for="myName">שם:</label>
+    <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
+  </div>
+
+  <button class="open-modal-btn" id="openModalBtn">➕ הוספת פריט לרשימה</button>
+
+  <div class="action-buttons">
+    <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
+    <button class="action-btn audit-btn" id="auditToggleBtn">🔍 מצב בדיקה</button>
+    <button class="action-btn export-btn" id="exportBtn">📋 טקסט לסופר</button>
+    <button class="action-btn settings-btn" id="settingsBtn">⚙️ ניהול</button>
+    <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
+  </div>
+
+  <button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
+
+  <div id="categoriesContainer"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">
+  <span id="toastText">הודעה</span>
+  <button class="undo-btn" id="undoBtn" style="display:none;">ביטול (Undo)</button>
+</div>
+
+<!-- Modal הוספת פריט -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>הוספת פריט חדש</h3>
+      <button class="close-modal" id="closeModalBtn">✕</button>
+    </div>
+    <form id="addModalForm">
+      <div class="form-group">
+        <label>שם המוצר</label>
+        <input type="text" id="modalNameInput" placeholder="לדוגמה: עגבניות, זירו..." required autocomplete="off" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+          <label>כמות בסיס משותפת</label>
+          <input type="number" id="modalQtyInput" placeholder="1" min="1" autocomplete="off" />
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>יחידה</label>
+          <select id="modalUnitInput">
+            <option value="יח'">יח'</option>
+            <option value="מארז">מארז</option>
+            <option value="בקבוק">בקבוק</option>
+            <option value="ק"ג">ק"ג</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>הערה אישית (אופציונלי)</label>
+        <input type="text" id="modalNoteInput" placeholder="לדוגמה: מותג ספציפי או טעם" autocomplete="off" />
+      </div>
+
+      <button type="submit" class="submit-modal-btn">הוסף לרשימה</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal בחירת שפה לייצוא לסופר -->
+<div class="modal-overlay" id="exportLangModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>🌐 בחר שפה לייצוא לסופר</h3>
+      <button class="close-modal" id="closeLangModalBtn">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <button class="lang-option-btn" onclick="executeExport('he')">🇮🇱 עברית (Hebrew)</button>
+      <button class="lang-option-btn" onclick="executeExport('en')">🇬🇧 אנגלית (English)</button>
+      <button class="lang-option-btn" onclick="executeExport('el')">🇬🇷 יוונית (Greek - Ελληνικά)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal בחירת כמות אישית -->
+<div class="modal-overlay" id="personalQtyModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="personalModalTitle">🙋‍♂️ כמות אישית שלי</h3>
+      <button class="close-modal" id="closePersonalModalBtn">✕</button>
+    </div>
+    <div style="margin-bottom: 12px; font-size: 13px; color: var(--sea-deep);" id="personalModalDesc">בחר כמה יחידות תרצה להוסיף לעצמך:</div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+      <button id="decPersonalQtyBtn" style="background: var(--whitewash); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">-</button>
+      <span id="personalQtyDisplay" style="font-size: 22px; font-weight: bold; color: var(--sea-deep);">1</span>
+      <button id="incPersonalQtyBtn" style="background: var(--whitewash); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">+</button>
+    </div>
+    <button id="savePersonalQtyBtn" class="submit-modal-btn">שמור כמות אישית</button>
+    <button id="removePersonalQtyBtn" style="width: 100%; background: transparent; color: #c0533f; border: none; padding: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">הסר את הבקשה שלי</button>
+  </div>
+</div>
+
+<!-- Modal סיכום חוסרים -->
+<div class="modal-overlay" id="missingModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>📋 סיכום חוסרים מהבדיקה</h3>
+      <button class="close-modal" id="closeMissingModalBtn">✕</button>
+    </div>
+    <div id="missingItemsList" style="margin-bottom: 14px; font-size: 13px; max-height: 200px; overflow-y: auto;"></div>
+    <button id="transferMissingToInPersonBtn" style="width: 100%; background: var(--sea); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">העבר חוסרים אלה לקנייה עצמית 🛒</button>
+  </div>
+</div>
+
+<!-- Modal ניהול -->
+<div class="modal-overlay" id="settingsModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>⚙️ תפריט ניהול רשימה</h3>
+      <button class="close-modal" id="closeSettingsModalBtn">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <button id="clearCurrentListBtn" style="background: #c0533f; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">🗑️ איפוס רשימה זו בלבד</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
+    authDomain: "mykonos-list.firebaseapp.com",
+    databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
+    projectId: "mykonos-list",
+    storageBucket: "mykonos-list.firebasestorage.app",
+    messagingSenderId: "471388041921",
+    appId: "1:471388041921:web:c0100252c6397f67dc1a40",
+    measurementId: "G-0VXCEZ117S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let currentListType = 'delivery';
+  let listRef = ref(db, `lists/${currentListType}`);
+  let listStatusRef = ref(db, `lists/${currentListType}_status`);
+
+  const NAME_KEY = 'mykonos-my-name';
+  let itemsMap = {};
+  let listStatus = '📝 בהכנה';
+  let hideDoneItems = false;
+  let isAuditMode = false;
+  let collapsedCategories = {};
+  let lastStateBackup = null;
+
+  let activePersonalItemId = null;
+  let activePersonalMap = {};
+  let tempPersonalQty = 1;
+
+  const STATUS_CYCLE = ['📝 בהכנה', '✅ מוכנה', '🚚 הוזמנה / בקנייה', '🔍 בבדיקה', '🎉 הושלמה'];
+
+  const TAB_NAMES = {
+    'delivery': 'משלוח 📦',
+    'inPerson': 'בקניה עצמית 🛒',
+    'fromIsrael': 'מהארץ ✈️'
+  };
+
+  const AUDIT_LABELS_BY_TAB = {
+    'delivery': { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' },
+    'inPerson': { received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌' },
+    'fromIsrael': { received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌' }
+  };
+
+  // מילון תרגום מובנה לאנגלית וליוונית
+  const TRANSLATION_DICTIONARY = {
+    categories: {
+      'פירות וירקות 🍅': { en: 'Fruits & Vegetables 🍅', el: 'Φρούτα & Λαχανικά 🍅' },
+      'בשר, דגים ועופות 🥩': { en: 'Meat, Fish & Poultry 🥩', el: 'Κρέας & Ψάρια 🥩' },
+      'שתייה ומשקאות 🥤': { en: 'Drinks & Beverages 🥤', el: 'Ποτά & Αναψυκτικά 🥤' },
+      'חלב וביצים 🧀': { en: 'Dairy & Eggs 🧀', el: 'Γαλακτοκομικά & Αυγά 🧀' },
+      'מאפה ודגנים 🥖': { en: 'Bakery & Grains 🥖', el: 'Ψωμί & Δημητριακά 🥖' },
+      'חטיפים ומתוקים 🍫': { en: 'Snacks & Sweets 🍫', el: 'Σνακ & Γλυκά 🍫' },
+      'פארם וניקיון 🧼': { en: 'Pharmacy & Cleaning 🧼', el: 'Καθαριότητα & Φαρμακείο 🧼' },
+      'כלי בית וציוד 🏠': { en: 'Household & Supplies 🏠', el: 'Είδη Σπιτιού 🏠' },
+      'מוצרים נוספים 🛒': { en: 'Other Items 🛒', el: 'Άλλα Είδη 🛒' }
+    },
+    units: {
+      "יח'": { en: 'pcs', el: 'τεμ' },
+      "מארז": { en: 'pack', el: 'πακέτο' },
+      "בקבוק": { en: 'bottle', el: 'μπουκάλι' },
+      "ק\"ג": { en: 'kg', el: 'κιλό' }
+    },
+    items: {
+      'קולה זירו': { en: 'Coca-Cola Zero', el: 'Coca-Cola Zero' },
+      'מים מינרלים': { en: 'Mineral Water (Pack of 6)', el: 'Εμφιαλωμένο Νερό (Εξάδα)' },
+      'מעדני פרו': { en: 'Protein Yogurt', el: 'Γιαούρτι Πρωτεΐνης' },
+      'גבינה צהובה': { en: 'Sliced Yellow Cheese', el: 'Κίτρινο Τυρί σε Φέτες' },
+      'קוטג\'/ גבינה רכה': { en: 'Cottage Cheese', el: 'Τυρί Κότατζ' },
+      'חטיפי חלבון': { en: 'Protein Bars', el: 'Μπάρες Πρωτεΐνης' },
+      'עגבניות': { en: 'Tomatoes', el: 'Ντομάτες' },
+      'מלפפונים': { en: 'Cucumbers', el: 'Αγγούρια' },
+      'בננות': { en: 'Bananas', el: 'Μπανάνες' },
+      'לימונים': { en: 'Lemons', el: 'Λεμόνια' },
+      'לחמניות': { en: 'Buns / Bread', el: 'Ψωμάκια' },
+      'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
+      'ביצים': { en: 'Eggs', el: 'Αυγά' },
+      'חלב': { en: 'Milk', el: 'Γάλα' },
+      'חמאה': { en: 'Butter', el: 'Βούτυρο' },
+      'סודה': { en: 'Soda Water', el: 'Σόδα' },
+      'יין': { en: 'Wine', el: 'Κρασί' },
+      'בירה': { en: 'Beer', el: 'Μπίρα' }
+    }
+  };
+
+  const shareUrl = window.location.href;
+  const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
+  document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
+
+  const SYNONYMS_MAP = {
+    'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
+    'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
+    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
+    'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
+    'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
+    'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
+    'עגבניות': ['עגבניה', 'עגבניות שרי', 'שרי'],
+    'מלפפונים': ['מלפפון'],
+    'בננות': ['בננה'],
+    'לימונים': ['לימון'],
+    'לחמניות': ['לחמניה', 'לחם'],
+    'חזה עוף': ['עוף', 'חזה עוף פרוס', 'שניצל']
+  };
+
+  function normalizeProductName(input) {
+    if (!input) return '';
+    const clean = input.trim().toLowerCase();
+    for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
+      if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
+        return canonicalName;
+      }
+    }
+    return input.trim();
+  }
+
+  const CATEGORY_DICTIONARY = {
+    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'אבוקדו', 'חסה', 'גזר'],
+    'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'קבב', 'המבורגר', 'פרגית', 'סטייק', 'שניצל'],
+    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'טוניק', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה'],
+    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו'],
+    'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים'],
+    'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות'],
+    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ניקוי', 'דאודורנט'],
+    'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה']
+  };
+
+  function detectCategory(itemName) {
+    if (!itemName) return 'מוצרים נוספים 🛒';
+    const cleanName = itemName.trim().toLowerCase();
+    for (const [catName, keywords] of Object.entries(CATEGORY_DICTIONARY)) {
+      if (keywords.some(kw => cleanName.includes(kw.toLowerCase()))) {
+        return catName;
+      }
+    }
+    return 'מוצרים נוספים 🛒';
+  }
+
+  function showToast(message, showUndo = false) {
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    const undoBtn = document.getElementById('undoBtn');
+    
+    toastText.textContent = message;
+    undoBtn.style.display = showUndo ? 'block' : 'none';
+    
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); }, 3500);
+  }
+
+  function saveUndoBackup(itemId) {
+    if (itemId && itemsMap[itemId]) {
+      lastStateBackup = { itemId, data: JSON.parse(JSON.stringify(itemsMap[itemId])) };
+    }
+  }
+
+  function requireUserName() {
+    const myName = myNameInput.value.trim();
+    const whoamiBox = document.getElementById('whoamiBox');
+
+    if (!myName) {
+      whoamiBox.classList.add('highlight');
+      myNameInput.focus();
+      showToast('נא להזין שם בשדה "שם:" בראש המסך');
+      return null;
+    }
+    whoamiBox.classList.remove('highlight');
+    return myName;
+  }
+
+  window.switchList = function(listType, evt) {
+    currentListType = listType;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (evt && evt.target) evt.target.classList.add('active');
+
+    off(listRef);
+    off(listStatusRef);
+
+    listRef = ref(db, `lists/${currentListType}`);
+    listStatusRef = ref(db, `lists/${currentListType}_status`);
+    listenToFirebase();
+  };
+
+  const categoriesContainer = document.getElementById('categoriesContainer');
+  const myNameInput = document.getElementById('myName');
+  const filterBtn = document.getElementById('filterBtn');
+  const auditToggleBtn = document.getElementById('auditToggleBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const clearCurrentListBtn = document.getElementById('clearCurrentListBtn');
+  const statusTag = document.getElementById('statusTag');
+  const progressBarFill = document.getElementById('progressBarFill');
+  const progressText = document.getElementById('progressText');
+  const undoBtn = document.getElementById('undoBtn');
+  const showMissingSummaryBtn = document.getElementById('showMissingSummaryBtn');
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const openModalBtn = document.getElementById('openModalBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const addModalForm = document.getElementById('addModalForm');
+
+  const exportLangModalOverlay = document.getElementById('exportLangModalOverlay');
+  const closeLangModalBtn = document.getElementById('closeLangModalBtn');
+
+  const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
+  const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
+  const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
+  const decPersonalQtyBtn = document.getElementById('decPersonalQtyBtn');
+  const personalQtyDisplay = document.getElementById('personalQtyDisplay');
+  const savePersonalQtyBtn = document.getElementById('savePersonalQtyBtn');
+  const removePersonalQtyBtn = document.getElementById('removePersonalQtyBtn');
+
+  const missingModalOverlay = document.getElementById('missingModalOverlay');
+  const closeMissingModalBtn = document.getElementById('closeMissingModalBtn');
+  const missingItemsList = document.getElementById('missingItemsList');
+  const transferMissingToInPersonBtn = document.getElementById('transferMissingToInPersonBtn');
+
+  const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+  const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+
+  openModalBtn.onclick = () => {
+    if (!requireUserName()) return;
+    modalOverlay.classList.add('show');
+  };
+  closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
+
+  settingsBtn.onclick = () => settingsModalOverlay.classList.add('show');
+  closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
+  closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
+  closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
+
+  exportBtn.onclick = () => exportLangModalOverlay.classList.add('show');
+  closeLangModalBtn.onclick = () => exportLangModalOverlay.classList.remove('show');
+
+  document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
+    input.addEventListener('focus', () => {
+      setTimeout(() => {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('menu-btn')) {
+      document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
+    }
+  });
+
+  const savedName = localStorage.getItem(NAME_KEY);
+  if (savedName) myNameInput.value = savedName;
+  myNameInput.addEventListener('input', () => {
+    const val = myNameInput.value.trim();
+    localStorage.setItem(NAME_KEY, val);
+    if (val) document.getElementById('whoamiBox').classList.remove('highlight');
+  });
+
+  window.changeListStatus = function() {
+    const currentIndex = STATUS_CYCLE.indexOf(listStatus);
+    const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
+    listStatus = STATUS_CYCLE[nextIndex];
+    
+    if (listStatus === '🔍 בבדיקה') {
+      isAuditMode = true;
+      auditToggleBtn.style.background = '#25D366';
+      showMissingSummaryBtn.style.display = 'block';
+    }
+
+    set(listStatusRef, listStatus);
+  };
+
+  function updateProgressBar(keys) {
+    const total = keys.length;
+    if (total === 0) {
+      progressBarFill.style.width = '0%';
+      progressText.textContent = '0 מתוך 0 (0%)';
+      return;
+    }
+    const doneCount = keys.filter(id => itemsMap[id].done).length;
+    const percent = Math.round((doneCount / total) * 100);
+    progressBarFill.style.width = percent + '%';
+    progressText.textContent = `${doneCount} מתוך ${total} (${percent}%)`;
+  }
+
+  function calculateTotalQty(item) {
+    const baseQty = parseInt(item.qty) || 1;
+    const personalRequests = item.personalQtyMap ? Object.values(item.personalQtyMap).reduce((a, b) => a + (parseInt(b) || 0), 0) : 0;
+    return baseQty + personalRequests;
+  }
+
+  function render() {
+    categoriesContainer.innerHTML = '';
+    statusTag.textContent = listStatus;
+    const keys = Object.keys(itemsMap);
+    const myName = myNameInput.value.trim();
+
+    updateProgressBar(keys);
+    showMissingSummaryBtn.style.display = isAuditMode ? 'block' : 'none';
+
+    const grouped = {};
+    keys.forEach(id => {
+      const item = itemsMap[id];
+      if (hideDoneItems && item.done) return;
+
+      const cat = item.category || detectCategory(item.name);
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push({ id, ...item });
+    });
+
+    const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
+    const auditLabels = AUDIT_LABELS_BY_TAB[currentListType] || AUDIT_LABELS_BY_TAB['delivery'];
+
+    sortedCategories.forEach(catName => {
+      const remainingInCat = grouped[catName].filter(i => !i.done).length;
+
+      const catHeader = document.createElement('div');
+      catHeader.className = 'category-header';
+      catHeader.onclick = () => {
+        collapsedCategories[catName] = !collapsedCategories[catName];
+        render();
+      };
+      
+      catHeader.innerHTML = `
+        <span>${catName}</span>
+        <span class="cat-count">${remainingInCat} שנשארו</span>
+      `;
+
+      const ul = document.createElement('ul');
+      if (collapsedCategories[catName]) ul.classList.add('collapsed');
+
+      grouped[catName].sort((a, b) => a.name.localeCompare(b.name, 'he'));
+
+      grouped[catName].forEach(item => {
+        const li = document.createElement('li');
+        if (item.isPriority) li.classList.add('is-priority');
+
+        const personalMap = item.personalQtyMap || {};
+        const myPersonalQty = personalMap[myName] || 0;
+        const isUserWanting = myName && myPersonalQty > 0;
+        const isUserBuyer = myName && item.buyer === myName;
+        const totalQty = calculateTotalQty(item);
+
+        const wantingList = Object.keys(personalMap).filter(k => personalMap[k] > 0).map(k => `${k} (+${personalMap[k]})`);
+
+        let auditTagHTML = '';
+        if (item.auditStatus) {
+          auditTagHTML = `<span class="item-audit-tag ${item.auditStatus}">${auditLabels[item.auditStatus]}</span>`;
+        }
+
+        li.innerHTML = `
+          <div class="item-row">
+            <div class="check ${item.done ? 'done' : ''}" onclick="toggleItem('${item.id}', ${item.done})"></div>
+            <div class="item-main">
+              <span class="item-text ${item.done ? 'done' : ''}">${item.name}</span>
+              
+              <div class="qty-control-box">
+                <button class="qty-btn" onclick="updateBaseQty('${item.id}', -1)">-</button>
+                <span class="item-qty-val">${totalQty} ${item.unit || "יח'"}</span>
+                <button class="qty-btn" onclick="updateBaseQty('${item.id}', 1)">+</button>
+              </div>
+
+              <div class="item-sub-info">
+                ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
+                ${(currentListType === 'inPerson' && item.buyer) ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
+                ${wantingList.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingList.join(', ')}</span>` : ''}
+                ${auditTagHTML}
+              </div>
+            </div>
+            <div class="item-btn-actions">
+              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="openPersonalQtyModal('${item.id}', ${JSON.stringify(personalMap).replace(/"/g, '&quot;')})">🙋‍♂️ ${isUserWanting ? `גם אני (+${myPersonalQty})` : 'גם אני'}</button>
+              ${currentListType === 'inPerson' ? `<button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>` : ''}
+            </div>
+            <button class="menu-btn" onclick="toggleMenu('menu-${item.id}', event)">⋮</button>
+            <div class="menu-dropdown" id="menu-${item.id}">
+              <button class="menu-item" onclick="togglePriority('${item.id}', ${item.isPriority})">${item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף'}</button>
+              <button class="menu-item" onclick="editItem('${item.id}', '${item.name}', '${item.qty}')">✏️ ערוך</button>
+              <button class="menu-item danger" onclick="deleteItem('${item.id}')">✕ מחק</button>
+            </div>
+          </div>
+          ${isAuditMode ? `
+            <div class="audit-controls">
+              <button class="audit-status-btn ${item.auditStatus === 'received' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'received')">${auditLabels.received}</button>
+              <button class="audit-status-btn ${item.auditStatus === 'partial' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'partial')">${auditLabels.partial}</button>
+              <button class="audit-status-btn ${item.auditStatus === 'replaced' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'replaced')">${auditLabels.replaced}</button>
+              <button class="audit-status-btn ${item.auditStatus === 'missing' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'missing')">${auditLabels.missing}</button>
+            </div>
+          ` : ''}
+        `;
+
+        ul.appendChild(li);
+      });
+
+      categoriesContainer.appendChild(catHeader);
+      categoriesContainer.appendChild(ul);
+    });
+  }
+
+  function listenToFirebase() {
+    onValue(listRef, (snapshot) => {
+      itemsMap = snapshot.val() || {};
+      render();
+    });
+
+    onValue(listStatusRef, (snapshot) => {
+      listStatus = snapshot.val() || '📝 בהכנה';
+      statusTag.textContent = listStatus;
+    });
+  }
+
+  listenToFirebase();
+
+  window.updateBaseQty = function(id, delta) {
+    if (!itemsMap[id]) return;
+    saveUndoBackup(id);
+    const currentBaseQty = parseInt(itemsMap[id].qty) || 1;
+    const newBaseQty = currentBaseQty + delta;
+
+    if (newBaseQty <= 0) {
+      if (confirm(`האם למחוק את "${itemsMap[id].name}" מהרשימה?`)) {
+        deleteItem(id);
+      }
+      return;
+    }
+
+    update(ref(db, `lists/${currentListType}/${id}`), { qty: newBaseQty.toString() });
+    showToast(`הכמות עודכנה ל-${newBaseQty + (calculateTotalQty(itemsMap[id]) - currentBaseQty)}`, true);
+  };
+
+  addModalForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const user = requireUserName();
+    if (!user) return;
+
+    const rawInputName = document.getElementById('modalNameInput').value.trim();
+    if (!rawInputName) return;
+
+    const normalizedName = normalizeProductName(rawInputName);
+    const detectedCategory = detectCategory(normalizedName);
+    const inputQty = parseInt(document.getElementById('modalQtyInput').value) || 1;
+    const unit = document.getElementById('modalUnitInput').value;
+    const note = document.getElementById('modalNoteInput').value.trim();
+
+    const existingKey = Object.keys(itemsMap).find(key => {
+      const existingItem = itemsMap[key];
+      const existingName = (existingItem.name || existingItem.text || '').trim();
+      const existingUnit = existingItem.unit || "יח'";
+      return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase() && existingUnit === unit;
+    });
+
+    if (existingKey) {
+      const existingItem = itemsMap[existingKey];
+      const currentQty = parseInt(existingItem.qty) || 1;
+      const targetQty = currentQty + inputQty;
+
+      const shouldUpdate = confirm(` המוצר "${normalizedName}" כבר קיים ברשימה בכמות ${currentQty} ${unit}.\n\nהאם לעדכן את הכמות ל-${targetQty} ${unit}?`);
+      
+      if (shouldUpdate) {
+        saveUndoBackup(existingKey);
+        update(ref(db, `lists/${currentListType}/${existingKey}`), {
+          qty: targetQty.toString()
+        });
+        showToast(`עודכן ל-${targetQty} ${unit}`, true);
+      }
+    } else {
+      const newItemRef = push(listRef);
+      set(newItemRef, {
+        name: normalizedName,
+        qty: inputQty.toString(),
+        unit: unit,
+        category: detectedCategory,
+        by: user,
+        buyer: '',
+        done: false,
+        isPriority: false,
+        auditStatus: '',
+        personalQtyMap: {},
+        notes: note ? [note] : []
+      });
+      showToast(`הוספנו את "${normalizedName}" לרשימה`);
+    }
+
+    addModalForm.reset();
+    modalOverlay.classList.remove('show');
+  });
+
+  window.openPersonalQtyModal = function(id, personalMap) {
+    const user = requireUserName();
+    if (!user) return;
+
+    activePersonalItemId = id;
+    activePersonalMap = { ...(personalMap || {}) };
+    tempPersonalQty = activePersonalMap[user] || 1;
+
+    personalQtyDisplay.textContent = tempPersonalQty;
+    document.getElementById('personalModalTitle').textContent = `🙋‍♂️ כמות אישית עבור ${itemsMap[id].name}`;
+    personalQtyModalOverlay.classList.add('show');
+  };
+
+  incPersonalQtyBtn.onclick = () => {
+    tempPersonalQty++;
+    personalQtyDisplay.textContent = tempPersonalQty;
+  };
+
+  decPersonalQtyBtn.onclick = () => {
+    if (tempPersonalQty > 1) {
+      tempPersonalQty--;
+      personalQtyDisplay.textContent = tempPersonalQty;
+    }
+  };
+
+  savePersonalQtyBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user || !activePersonalItemId) return;
+
+    saveUndoBackup(activePersonalItemId);
+    activePersonalMap[user] = tempPersonalQty;
+
+    update(ref(db, `lists/${currentListType}/${activePersonalItemId}`), {
+      personalQtyMap: activePersonalMap
+    });
+
+    personalQtyModalOverlay.classList.remove('show');
+    showToast(`הבקשה האישית שלך עודכנה ל-+${tempPersonalQty}`, true);
+  };
+
+  removePersonalQtyBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user || !activePersonalItemId) return;
+
+    saveUndoBackup(activePersonalItemId);
+    delete activePersonalMap[user];
+
+    update(ref(db, `lists/${currentListType}/${activePersonalItemId}`), {
+      personalQtyMap: activePersonalMap
+    });
+
+    personalQtyModalOverlay.classList.remove('show');
+    showToast('הבקשה האישית הוסרה', true);
+  };
+
+  window.toggleMenu = function(menuId, evt) {
+    if (evt) evt.stopPropagation();
+    document.querySelectorAll('.menu-dropdown').forEach(el => {
+      if (el.id !== menuId) el.classList.remove('show');
+    });
+    document.getElementById(menuId).classList.toggle('show');
+  };
+
+  window.setAuditStatus = function(id, status) {
+    update(ref(db, `lists/${currentListType}/${id}`), { auditStatus: status });
+  };
+
+  window.toggleClaimItem = function(id, currentBuyer) {
+    const user = requireUserName();
+    if (!user) return;
+
+    const newBuyer = (currentBuyer === user) ? '' : user;
+    update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
+  };
+
+  window.togglePriority = function(id, currentStatus) {
+    update(ref(db, `lists/${currentListType}/${id}`), { isPriority: !currentStatus });
+  };
+
+  window.editItem = function(id, currentName, currentQty) {
+    const newName = prompt('שם המוצר:', currentName);
+    if (!newName) return;
+    const normalizedName = normalizeProductName(newName.trim());
+    update(ref(db, `lists/${currentListType}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) });
+  };
+
+  window.toggleItem = function(id, currentStatus) {
+    update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
+  };
+
+  window.deleteItem = function(id) {
+    saveUndoBackup(id);
+    remove(ref(db, `lists/${currentListType}/${id}`));
+    showToast('הפריט נמחק', true);
+  };
+
+  showMissingSummaryBtn.onclick = () => {
+    const keys = Object.keys(itemsMap);
+    const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
+
+    if (missingItems.length === 0) {
+      showToast('אין פריטים חסרים בבדיקה זו! 🎉');
+      return;
+    }
+
+    missingItemsList.innerHTML = '';
+    missingItems.forEach(id => {
+      const item = itemsMap[id];
+      const totalQty = calculateTotalQty(item);
+      const div = document.createElement('div');
+      div.style.padding = '6px 0';
+      div.style.borderBottom = '1px solid var(--line)';
+      div.innerHTML = `<strong>${item.name}</strong> - ${totalQty} ${item.unit || "יח'"} (${item.auditStatus === 'missing' ? 'חסר לחלוטין ❌' : 'חלקית ⚠️'})`;
+      missingItemsList.appendChild(div);
+    });
+
+    missingModalOverlay.classList.add('show');
+  };
+
+  transferMissingToInPersonBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user) return;
+
+    const keys = Object.keys(itemsMap);
+    const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
+
+    const inPersonRef = ref(db, `lists/inPerson`);
+
+    missingItems.forEach(id => {
+      const item = itemsMap[id];
+      const newItemRef = push(inPersonRef);
+      set(newItemRef, {
+        name: item.name,
+        qty: item.qty,
+        unit: item.unit || "יח'",
+        category: item.category || detectCategory(item.name),
+        by: `הועבר ממשלוח (${user})`,
+        buyer: '',
+        done: false,
+        isPriority: true,
+        auditStatus: '',
+        personalQtyMap: item.personalQtyMap || {}
+      });
+    });
+
+    missingModalOverlay.classList.remove('show');
+    showToast(`${missingItems.length} פריטים הועברו לרשימת "בקנייה עצמית"! 🛒`);
+  };
+
+  clearCurrentListBtn.addEventListener('click', () => {
+    const currentTabTitle = TAB_NAMES[currentListType] || '';
+    const confirmClear = confirm(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`);
+    if (confirmClear) {
+      remove(listRef);
+      set(listStatusRef, '📝 בהכנה');
+      settingsModalOverlay.classList.remove('show');
+      showToast('הרשימה אופסה בהצלחה');
+    }
+  });
+
+  undoBtn.onclick = () => {
+    if (lastStateBackup && lastStateBackup.itemId) {
+      set(ref(db, `lists/${currentListType}/${lastStateBackup.itemId}`), lastStateBackup.data);
+      lastStateBackup = null;
+      document.getElementById('toast').classList.remove('show');
+      showToast('השינוי בוטל בהצלחה!');
+    }
+  };
+
+  filterBtn.addEventListener('click', () => {
+    hideDoneItems = !hideDoneItems;
+    filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שנרכשו';
+    render();
+  });
+
+  auditToggleBtn.addEventListener('click', () => {
+    isAuditMode = !isAuditMode;
+    auditToggleBtn.style.background = isAuditMode ? '#25D366' : 'var(--sea-deep)';
+    render();
+  });
+
+  // ביצוע הייצוא לפי השפה שנבחרה
+  window.executeExport = function(lang) {
+    const keys = Object.keys(itemsMap);
+    if (keys.length === 0) {
+      showToast('הרשימה ריקה!');
+      exportLangModalOverlay.classList.remove('show');
+      return;
+    }
+
+    const grouped = {};
+    keys.forEach(id => {
+      const item = itemsMap[id];
+      const cat = item.category || detectCategory(item.name);
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
+
+    let headerTitle = '🛒 *רשימת קניות למיקונוס*';
+    if (lang === 'en') headerTitle = '🛒 *Mykonos Shopping List*';
+    if (lang === 'el') headerTitle = '🛒 *Λίστα Ψωνίων Μύκονος*';
+
+    let text = `${headerTitle} (${listStatus})\n\n`;
+
+    Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
+      let catTitle = cat;
+      if (lang !== 'he' && TRANSLATION_DICTIONARY.categories[cat]) {
+        catTitle = TRANSLATION_DICTIONARY.categories[cat][lang] || cat;
+      }
+
+      text += `*${catTitle}*\n`;
+      grouped[cat].forEach(i => {
+        const totalQty = calculateTotalQty(i);
+        let itemName = i.name;
+        let unitName = i.unit || "יח'";
+
+        if (lang !== 'he') {
+          if (TRANSLATION_DICTIONARY.items[i.name]) {
+            itemName = TRANSLATION_DICTIONARY.items[i.name][lang] || i.name;
+          }
+          if (TRANSLATION_DICTIONARY.units[unitName]) {
+            unitName = TRANSLATION_DICTIONARY.units[unitName][lang] || unitName;
+          }
+        }
+
+        const buyerInfo = (i.buyer && lang === 'he') ? ` (אחראי: ${i.buyer})` : '';
+        text += `• ${itemName} - ${totalQty} ${unitName}${buyerInfo}\n`;
+      });
+      text += `\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      exportLangModalOverlay.classList.remove('show');
+      showToast(lang === 'he' ? 'הרשימה הועתקה ללוח בעברית! 📋' : (lang === 'en' ? 'List copied in English! 🇬🇧' : 'Η λίστα αντιγράφηκε στα Ελληνικά! 🇬🇷'));
+    });
+  };
+</script>
 </body>
 </html>
