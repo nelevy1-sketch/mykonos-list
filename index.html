@@ -207,7 +207,7 @@
 
     <!-- רכיב השעון -->
     <div class="timer-box">
-      <div class="timer-title" id="timerTitle">זמן נותר לתחילת החופשה ✈️</div>
+      <div class="timer-title" id="timerTitle">זמן נותר להמראה ✈️</div>
       <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
     </div>
 
@@ -235,7 +235,8 @@
   </div>
 
   <script>
-    const targetDate = new Date("2026-08-20T00:00:00");
+    // זמן היעד: 20 באוגוסט 2026 בשעה 08:15 בבוקר
+    const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
 
@@ -244,16 +245,16 @@
       const diff = targetDate - now;
 
       if (diff > 0) {
-        // עדיין לפני הטיסה - מציגים ספירה לאחור
+        // עדיין לפני ההמראה - ספירה לאחור
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((diff / 1000 / 60) % 60);
         const seconds = Math.floor((diff / 1000) % 60);
 
-        timerTitle.textContent = "זמן נותר לתחילת החופשה ✈️";
+        timerTitle.textContent = "זמן נותר להמראה ✈️";
         timerDisplay.textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       } else {
-        // הטיול התחיל! - מציגים תאריך ושעה לפי שעון יוון (Europe/Athens)
+        // הטיסה כבר המריאה / אנחנו במיקונוס!
         timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
         
         const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Athens' };
@@ -266,7 +267,6 @@
       }
     }
 
-    // הפעלה מיידית + עדכון כל שנייה
     updateClock();
     setInterval(updateClock, 1000);
   </script>
