@@ -49,9 +49,33 @@
 
     .flags-container {
       display: flex;
-      gap: 12px;
-      font-size: 2.5rem;
+      gap: 16px;
+      font-size: 2.8rem;
       margin-bottom: 12px;
+    }
+
+    /* אנימציית התנופפות לדגלים */
+    .flag {
+      display: inline-block;
+      transform-origin: bottom center;
+      animation: wave-flag 2.8s ease-in-out infinite alternate;
+    }
+
+    /* הדגל השני ינוע בהסחה קלה ליצירת מראה טבעי */
+    .flag-pride {
+      animation-delay: -1.4s;
+    }
+
+    @keyframes wave-flag {
+      0% {
+        transform: rotate(-6deg) translateY(0px) skewX(-2deg);
+      }
+      50% {
+        transform: rotate(4deg) translateY(-3px) skewX(2deg);
+      }
+      100% {
+        transform: rotate(-4deg) translateY(2px) skewX(-1deg);
+      }
     }
 
     h1 {
@@ -159,8 +183,8 @@
 
   <div class="card">
     <div class="flags-container">
-      <span>🇬🇷</span>
-      <span>🏳️‍🌈</span>
+      <span class="flag flag-greece">🇬🇷</span>
+      <span class="flag flag-pride">🏳️‍🌈</span>
     </div>
     <h1>הכנות לטיול למיקונוס</h1>
     <p class="subtitle">ריכוז כל הרשימות וההוצאות במקום אחד</p>
