@@ -54,267 +54,6 @@
       margin-bottom: 12px;
     }
 
-    .flag {
-      display: inline-block;
-      transform-origin: bottom center;
-      animation: wave-flag 2.8s ease-in-out infinite alternate;
-    }
-
-    .flag-pride {
-      animation-delay: -1.4s;
-    }
-
-    @keyframes wave-flag {
-      0% {
-        transform: rotate(-6deg) translateY(0px) skewX(-2deg);
-      }
-      50% {
-        transform: rotate(4deg) translateY(-3px) skewX(2deg);
-      }
-      100% {
-        transform: rotate(-4deg) translateY(2px) skewX(-1deg);
-      }
-    }
-
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--greek-blue);
-      margin-bottom: 4px;
-      letter-spacing: -0.5px;
-    }
-
-    p.subtitle {
-      font-size: 0.95rem;
-      color: #64748b;
-      margin-bottom: 20px;
-    }
-
-    /* עיצוב רכיב השעון / ספירה לאחור */
-    .countdown-box {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      border-radius: 16px;
-      padding: 12px 16px;
-      margin-bottom: 24px;
-      width: 100%;
-    }
-
-    .countdown-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .countdown-timer {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--greek-blue);
-      letter-spacing: 0.5px;
-      direction: ltr; /* מציג את המספרים משמאל לימין בצורה נקיות */
-    }
-
-    .buttons-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 16px 20px;
-      border-radius: 16px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1.05rem;
-      position: relative;
-      transition: all 0.15s ease;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .btn svg {
-      width: 22px;
-      height: 22px;
-      fill: currentColor;
-    }
-
-    .btn-shopping {
-      background-color: var(--greek-blue);
-      color: #ffffff;
-      box-shadow: 0 3px 0 var(--greek-blue-dark), 0 6px 12px rgba(0, 91, 174, 0.15);
-    }
-    .btn-shopping:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--greek-blue-dark), 0 8px 15px rgba(0, 91, 174, 0.2);
-    }
-    .btn-shopping:active {
-      transform: translateY(3px);
-      box-shadow: 0 0 0 var(--greek-blue-dark), 0 2px 4px rgba(0, 91, 174, 0.1);
-    }
-
-    .btn-packing {
-      background-color: #ffffff;
-      color: var(--greek-blue);
-      border: 2px solid var(--greek-blue);
-      box-shadow: 0 3px 0 var(--greek-blue), 0 6px 12px rgba(0, 0, 0, 0.04);
-    }
-    .btn-packing:hover {
-      background-color: #f8fafc;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--greek-blue), 0 8px 15px rgba(0, 0, 0, 0.06);
-    }
-    .btn-packing:active {
-      transform: translateY(3px);
-      box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
-    }
-
-    .btn-splitwise {
-      background-color: var(--splitwise-green);
-      color: #ffffff;
-      box-shadow: 0 3px 0 var(--splitwise-dark), 0 6px 12px rgba(28, 194, 159, 0.15);
-    }
-    .btn-splitwise:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.2);
-    }
-    .btn-splitwise:active {
-      transform: translateY(3px);
-      box-shadow: 0 0 0 var(--splitwise-dark), 0 2px 4px rgba(28, 194, 159, 0.1);
-    }
-
-    .footer-text {
-      margin-top: 32px;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="card">
-    <div class="flags-container">
-      <span class="flag flag-greece">🇬🇷</span>
-      <span class="flag flag-pride">🏳️‍🌈</span>
-    </div>
-    <h1>הכנות לטיול למיקונוס</h1>
-    <p class="subtitle">ריכוז כל הרשימות וההוצאות במקום אחד</p>
-
-    <!-- רכיב השעון -->
-    <div class="countdown-box">
-      <div class="countdown-title" id="timerTitle">ספירה לאחור להמראה ✈️</div>
-      <div class="countdown-timer" id="timerDisplay">מחשב זמן...</div>
-    </div>
-
-    <div class="buttons-container">
-      <!-- קניות -->
-      <a href="shopping.html" class="btn btn-shopping">
-        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-        <span>רשימת קניות</span>
-      </a>
-
-      <!-- ציוד -->
-      <a href="packing.html" class="btn btn-packing">
-        <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
-        <span>רשימת ציוד ומה לארוז</span>
-      </a>
-
-      <!-- Splitwise -->
-      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise">
-        <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
-        <span>הקבוצה שלנו ב-Splitwise</span>
-      </a>
-    </div>
-
-    <div class="footer-text">Mykonos 2026 ☀️</div>
-  </div>
-
-  <script>
-    const targetDate = new Date("2026-08-20T00:00:00").getTime();
-    const timerTitle = document.getElementById("timerTitle");
-    const timerDisplay = document.getElementById("timerDisplay");
-
-    function updateClock() {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
-
-      if (distance > 0) {
-        // עדיין לפני הטיול – מציג ספירה לאחור
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        רעיון מעולה! שעון ספירה לאחור מוסיף המון ציפייה ואווירה של טיול, והמעבר האוטומטי לשעון בזמן אמת ברגע שהתאריך מגיע הופך אותו לשימושי גם במהלך החופשה עצמה.
-
-הנה קוד מעודכן עבור **`index.html`** שכולל את השעון החכם בראש הכרטיסייה:
-
-```html
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הכנות לטיול למיקונוס 🇬🇷 🏳️‍🌈</title>
-  <style>
-    :root {
-      --greek-blue: #005bae;
-      --greek-blue-dark: #004585;
-      --splitwise-green: #1cc29f;
-      --splitwise-dark: #149c7f;
-      --bg-color: #eef2f6;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: radial-gradient(circle at top, #e2eaf4 0%, var(--bg-color) 100%);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-      direction: rtl;
-    }
-
-    .card {
-      background: var(--card-bg);
-      padding: 38px 28px;
-      border-radius: 28px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .flags-container {
-      display: flex;
-      gap: 16px;
-      font-size: 2.8rem;
-      margin-bottom: 12px;
-    }
-
     /* אנימציית התנופפות לדגלים */
     .flag {
       display: inline-block;
@@ -473,17 +212,20 @@
     </div>
 
     <div class="buttons-container">
+      <!-- קניות -->
       <a href="shopping.html" class="btn btn-shopping">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
         <span>רשימת קניות</span>
       </a>
 
+      <!-- ציוד -->
       <a href="packing.html" class="btn btn-packing">
         <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
         <span>רשימת ציוד ומה לארוז</span>
       </a>
 
-      <a href="[https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s](https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s)" target="_blank" class="btn btn-splitwise">
+      <!-- Splitwise -->
+      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise">
         <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
         <span>הקבוצה שלנו ב-Splitwise</span>
       </a>
@@ -511,11 +253,11 @@
         timerTitle.textContent = "זמן נותר לתחילת החופשה ✈️";
         timerDisplay.textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       } else {
-        // הטיול התחיל! - מציגים תאריך ושעה בזמן אמת
-        timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן מקומי";
+        // הטיול התחיל! - מציגים תאריך ושעה לפי שעון יוון (Europe/Athens)
+        timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
         
-        const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Athens' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Athens' };
         
         const dateStr = now.toLocaleDateString('he-IL', dateOptions);
         const timeStr = now.toLocaleTimeString('he-IL', timeOptions);
@@ -524,6 +266,7 @@
       }
     }
 
+    // הפעלה מיידית + עדכון כל שנייה
     updateClock();
     setInterval(updateClock, 1000);
   </script>
