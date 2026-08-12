@@ -31,8 +31,6 @@
 
   *{ box-sizing: border-box; }
 
-  html { scroll-behavior: smooth; overflow-x: hidden; }
-
   body{
     margin:0;
     min-height:100vh;
@@ -40,31 +38,34 @@
     font-family: 'Assistant', sans-serif;
     color: var(--sea-deep);
     display:flex;
-    justify-content:center;
+    flex-direction: column;
+    align-items: center;
     padding: 0 12px 80px;
-    overflow-x: hidden;
   }
 
   .card{ width:100%; max-width: 480px; }
 
-  /* Sticky Header Wrapper */
+  /* Sticky Header קבוע בראש המסך בכל גלילה */
   .sticky-header-container {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
-    z-index: 90;
-    background: rgba(243, 246, 248, 0.96);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 16px 0 6px;
+    z-index: 100;
+    background: rgba(243, 246, 248, 0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 12px 0 8px;
     border-bottom: 1px solid var(--line);
     margin-bottom: 10px;
+    width: 100%;
+    max-width: 480px;
   }
 
-  header{ text-align:center; margin-bottom: 10px; }
+  header{ text-align:center; margin-bottom: 8px; }
   h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 24px; margin: 0; color: var(--sea-deep); }
 
   .list-tabs {
-    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 8px; gap: 4px;
+    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 6px; gap: 4px;
   }
 
   .tab-btn {
@@ -217,7 +218,7 @@
 
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 12px;
+    background: rgba(0,0,0,0.5); z-index: 150; align-items: center; justify-content: center; padding: 12px;
   }
   .modal-overlay.show { display: flex; }
 
@@ -253,25 +254,25 @@
 </head>
 <body>
 
-<div class="card">
-  <!-- אזור עליון קבוע בגלילה -->
-  <div class="sticky-header-container">
-    <header>
-      <h1>רשימת קניות מיקונוס</h1>
-    </header>
+<!-- אזור עליון קבוע בגלילה -->
+<div class="sticky-header-container">
+  <header>
+    <h1>רשימת קניות מיקונוס</h1>
+  </header>
 
-    <div class="list-tabs">
-      <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
-      <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
-      <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
-    </div>
-
-    <div class="status-bar">
-      <span>סטטוס רשימה:</span>
-      <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
-    </div>
+  <div class="list-tabs">
+    <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
+    <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
+    <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
   </div>
 
+  <div class="status-bar">
+    <span>סטטוס רשימה:</span>
+    <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
+  </div>
+</div>
+
+<div class="card">
   <div class="progress-section">
     <div class="progress-info">
       <span>התקדמות ברשימה זו</span>
