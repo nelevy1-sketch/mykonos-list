@@ -3,68 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ריכוז הכנות לטיול ✈️</title>
+  <title>הכנות לטיול למיקונוס 🇬🇷</title>
   <style>
+    :root {
+      --greek-blue: #005bae; /* כחול דגל יוון */
+      --greek-blue-hover: #004585;
+      --splitwise-green: #1cc29f;
+      --splitwise-hover: #17a083;
+      --bg-color: #f0f4f8;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #f4f6f8;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at top, #e2eaf4 0%, var(--bg-color) 100%);
+      color: var(--text-main);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      margin: 0;
+      padding: 20px;
       direction: rtl;
     }
+
     .card {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      width: 90%;
-      max-width: 400px;
+      background: var(--card-bg);
+      padding: 36px 28px;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 91, 174, 0.1);
+      border: 2px solid #e2e8f0;
+      width: 100%;
+      max-width: 420px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    h1 { font-size: 1.4rem; margin-bottom: 24px; color: #222; }
+
+    .flag-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--greek-blue);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      font-size: 0.95rem;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+
+    .buttons-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
     .btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       width: 100%;
-      padding: 14px;
-      margin-bottom: 12px;
-      border-radius: 12px;
+      padding: 16px 20px;
+      border-radius: 14px;
       text-decoration: none;
-      font-weight: bold;
-      font-size: 1rem;
-      transition: transform 0.1s;
-      box-sizing: border-box;
+      font-weight: 700;
+      font-size: 1.05rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-    .btn:active { transform: scale(0.98); }
-    .btn-shopping { background-color: #0076ff; color: white; }
-    .btn-packing { background-color: #6c5ce7; color: white; }
-    .btn-splitwise { background-color: #1cc29f; color: white; }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    /* כפתור כחול יווני - קניות */
+    .btn-shopping {
+      background-color: var(--greek-blue);
+      color: #ffffff;
+    }
+    .btn-shopping:hover {
+      background-color: var(--greek-blue-hover);
+    }
+
+    /* כפתור מסגרת כחולה - ציוד */
+    .btn-packing {
+      background-color: #ffffff;
+      color: var(--greek-blue);
+      border: 2px solid var(--greek-blue);
+    }
+    .btn-packing:hover {
+      background-color: #f0f7ff;
+    }
+
+    /* כפתור ספליטוויז */
+    .btn-splitwise {
+      background-color: var(--splitwise-green);
+      color: #ffffff;
+    }
+    .btn-splitwise:hover {
+      background-color: var(--splitwise-hover);
+    }
+
+    .footer-text {
+      margin-top: 28px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h1>הכנות לטיול ✈️</h1>
+    <div class="flag-icon">🇬🇷</div>
+    <h1>הכנות לטיול למיקונוס</h1>
+    <p class="subtitle">ריכוז כל הרשימות וההוצאות במקום אחד</p>
 
-    <!-- קישור לרשימת הקניות -->
-    <a href="shopping.html" class="btn btn-shopping">
-      🛒 רשימת קניות
-    </a>
+    <div class="buttons-container">
+      <!-- קישור לרשימת הקניות -->
+      <a href="shopping.html" class="btn btn-shopping">
+        🛒 רשימת קניות
+      </a>
 
-    <!-- קישור לרשימת הציוד -->
-    <a href="packing.html" class="btn btn-packing">
-      🧳 רשימת ציוד ומה לארוז
-    </a>
+      <!-- קישור לרשימת הציוד -->
+      <a href="packing.html" class="btn btn-packing">
+        🧳 רשימת ציוד ומה לארוז
+      </a>
 
-    <!-- קישור ישיר לקבוצת ה-Splitwise -->
-    <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise">
-      🔗 הקבוצה שלנו ב-Splitwise
-    </a>
+      <!-- קישור לקבוצת ה-Splitwise -->
+      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise">
+        🔗 הקבוצה שלנו ב-Splitwise
+      </a>
+    </div>
+
+    <div class="footer-text">Mykonos 2026 ☀️</div>
   </div>
 
 </body>
