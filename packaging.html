@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>רשימת ציוד לטיול</title>
+
+  <!-- Google Analytics (GA4) Tag -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0C5EZCY25"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-M0C5EZCY25');
+  </script>
+
+  <!-- ספריית קונפטי -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+      --gray: #64748b;
+      --gray-light: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
+    h1 { text-align: center; margin-bottom: 16px; font-size: 1.5rem; color: var(--primary); }
+    
+    .card { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-top: 6px; font-size: 0.95rem; transition: border-color 0.2s; }
+    input.error { border-color: var(--danger) !important; background-color: #fef2f2; animation: shake 0.3s; }
+    button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:active { opacity: 0.9; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .remember-me { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.85rem; color: var(--gray); }
+    .remember-me input { width: auto; margin: 0; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; background: #e2e8f0; color: var(--text); padding: 10px; border-radius: 8px; border: none; font-weight: bold; }
+    .tab-btn.active { background: var(--primary); color: white; }
+
+    .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+    .friends-tabs::-webkit-scrollbar { display: none; }
+    .friend-tab-chip { width: auto; white-space: nowrap; padding: 6px 14px; border-radius: 20px; background: #e2e8f0; color: var(--text); font-size: 0.85rem; border: none; font-weight: 500; margin: 0; }
+    .friend-tab-chip.active { background: var(--primary); color: white; }
+
+    .existing-names-container { margin-top: 12px; }
+    .existing-names-title { font-size: 0.8rem; color: var(--gray); margin-bottom: 6px; }
+    .name-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .name-chip { width: auto; padding: 5px 12px; border-radius: 16px; background: #dbeafe; color: #1e40af; font-size: 0.85rem; border: none; margin: 0; font-weight: 500; }
+
+    .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .item:last-child { border-bottom: none; }
+    .item-title { flex: 1; word-break: break-word; font-size: 0.95rem; }
+    .item.done { opacity: 0.55; background-color: #f8fafc; }
+    .item.done .item-title { text-decoration: line-through; color: var(--gray); }
+    
+    .item-actions { display: flex; align-items: center; gap: 12px; }
+
+    .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; }
+    .badge.public { background: #dbeafe; color: #1e40af; }
+
+    /* אייקונים מעודנים עם שטח נגיעה מוגדל (Touch Target) */
+    .icon-btn {
+      background: none;
+      border: none;
+      padding: 8px;
+      width: 36px;
+      height: 36px;
+      margin: 0;
+      color: var(--gray-light);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: color 0.2s, background-color 0.2s;
+    }
+    .icon-btn:hover, .icon-btn:active { color: var(--text); background-color: #f1f5f9; }
+    .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); background-color: #fef2f2; }
+    .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+
+    .btn-sm { width: auto; padding: 6px 10px; font-size: 0.8rem; margin: 0; }
+    .btn-danger { background: var(--danger); }
+    .btn-import { background: var(--success); }
+
+    .hidden { display: none !important; }
+    .friend-section { margin-bottom: 20px; }
+    .friend-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #334155; border-bottom: 2px solid var(--primary); padding-bottom: 4px; }
+    
+    .progress-bar { font-size: 0.85rem; color: var(--gray); margin-bottom: 10px; text-align: center; font-weight: 500; }
+
+    .finish-banner {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      text-align: center;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      animation: popIn 0.4s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      text-align: center;
+      max-width: 90%;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-5px);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎒 רשימת ציוד לטיול</h1>
+
+  <div id="toast"></div>
+
+  <!-- מסך התחברות -->
+  <div id="loginCard" class="card">
+    <label>מי מתחבר/ת?</label>
+    <input type="text" id="userNameInput" placeholder="הכנס שם או כינוי (למשל: נתנאל)">
+    
+    <label style="margin-top:10px; display:block;">קוד PIN אישי (4 ספרות):</label>
+    <input type="password" id="userPinInput" placeholder="••••" maxlength="4" inputmode="numeric">
+
+    <div class="remember-me">
+      <input type="checkbox" id="rememberMeCheckbox" checked>
+      <label for="rememberMeCheckbox">זכור אותי במכשיר זה (ל-30 יום)</label>
+    </div>
+
+    <div id="existingNamesBox" class="existing-names-container hidden">
+      <div class="existing-names-title">או בחר מתוך רשימות קיימות:</div>
+      <div id="existingNamesChips" class="name-chips"></div>
+    </div>
+
+    <button id="loginBtn">התחבר לרשימה</button>
+  </div>
+
+  <!-- מסך ראשי -->
+  <div id="appContent" class="hidden">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <span><span id="greetingText"></span>, <strong id="displayName"></strong>!</span>
+      <button id="logoutBtn" class="btn-sm btn-danger" style="width: auto;">החלף שם</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="myTabBtn">הציוד שלי</button>
+      <button class="tab-btn" id="friendsTabBtn">רשימות חברים 🌐</button>
+    </div>
+
+    <!-- לשונית רשימה אישית -->
+    <div id="myListTab">
+      <div class="card">
+        <h3>הוספת פריט לרשימה</h3>
+        <input type="text" id="newItemName" list="presetItems" placeholder="הקלד פריט לחץ Enter להוספה...">
+        <datalist id="presetItems">
+          <option value="דרכון ואישורי טיסה">
+          <option value="רישיון נהיגה בינלאומי">
+          <option value="כרטיסי אשראי ומזומן">
+          <option value="קרם הגנה משמש">
+          <option value="ספריי הגנה">
+          <option value="ערכת תרופות ועזרה ראשונה">
+          <option value="מטען נייד (Power Bank)">
+          <option value="מטען לטלפון">
+          <option value="משקפי שמש">
+          <option value="בגד ים">
+          <option value="מגבת חוף">
+          <option value="כלי רחצה וגילוח">
+          <option value="מברשת ומשחת שיניים">
+          <option value="אוזניות">
+          <option value="כפכפים">
+        </datalist>
+
+        <select id="newItemVisibility">
+          <option value="private">🔒 פרטי (רק אני רואה)</option>
+          <option value="public">🌐 ציבורי (גלוי לחברים)</option>
+        </select>
+        <button id="addItemBtn">הוסף לרשימה</button>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3>הציוד שלי</h3>
+          <button id="clearAllBtn" class="btn-sm btn-danger" style="display:none;">מחק את כל הרשימה</button>
+        </div>
+
+        <div id="finishBanner" class="finish-banner hidden">
+          🥳 סיימת לארוז! חופשה נעימה גוש! ✈️🎉
+        </div>
+
+        <div id="progressText" class="progress-bar"></div>
+        <div id="myItemsList">טוען...</div>
+      </div>
+    </div>
+
+    <!-- לשונית רשימות חברים -->
+    <div id="friendsListTab" class="hidden">
+      <div class="card">
+        <h3>רשימות ציבוריות של חברים</h3>
+        <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 12px;">בחר חבר לצפייה ברשימה שלו וייבוא פריטים:</p>
+        <div id="friendsTabsContainer" class="friends-tabs"></div>
+        <div id="friendsItemsList">טוען רשימות חברים...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
+      authDomain: "trip-packing-list-d4319.firebaseapp.com",
+      projectId: "trip-packing-list-d4319",
+      storageBucket: "trip-packing-list-d4319.firebasestorage.app",
+      messagingSenderId: "916037561222",
+      appId: "1:916037561222:web:fbcbe319438aeb8af59a07",
+      measurementId: "G-M0C5EZCY25"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const itemsRef = collection(db, "packing_items");
+    const usersRef = collection(db, "users_auth");
+
+    let currentUser = (localStorage.getItem("packing_app_user") || "").trim();
+    let loginExpiry = localStorage.getItem("packing_app_expiry");
+    let selectedFriend = "all";
+    let wasAllDoneBefore = false;
+
+    const loginCard = document.getElementById("loginCard");
+    const appContent = document.getElementById("appContent");
+    const userNameInput = document.getElementById("userNameInput");
+    const userPinInput = document.getElementById("userPinInput");
+    const rememberMeCheckbox = document.getElementById("rememberMeCheckbox");
+    const existingNamesBox = document.getElementById("existingNamesBox");
+    const existingNamesChips = document.getElementById("existingNamesChips");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const displayName = document.getElementById("displayName");
+    const greetingText = document.getElementById("greetingText");
+
+    const myTabBtn = document.getElementById("myTabBtn");
+    const friendsTabBtn = document.getElementById("friendsTabBtn");
+    const myListTab = document.getElementById("myListTab");
+    const friendsListTab = document.getElementById("friendsListTab");
+
+    const newItemName = document.getElementById("newItemName");
+    const newItemVisibility = document.getElementById("newItemVisibility");
+    const addItemBtn = document.getElementById("addItemBtn");
+    const myItemsList = document.getElementById("myItemsList");
+    const friendsTabsContainer = document.getElementById("friendsTabsContainer");
+    const friendsItemsList = document.getElementById("friendsItemsList");
+    const progressText = document.getElementById("progressText");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const finishBanner = document.getElementById("finishBanner");
+    const toast = document.getElementById("toast");
+
+    let myItems = [];
+
+    function trackAnalyticsLogin(userName) {
+      if (typeof window.gtag === 'function') {
+        window.gtag('set', 'user_properties', { 'user_name': userName });
+        window.gtag('event', 'login_success', { 'user_name': userName });
+      }
+    }
+
+    function checkSessionValid() {
+      if (!currentUser || !loginExpiry) return false;
+      const now = Date.now();
+      if (now > parseInt(loginExpiry, 10)) {
+        localStorage.removeItem("packing_app_user");
+        localStorage.removeItem("packing_app_expiry");
+        return false;
+      }
+      return true;
+    }
+
+    async function fetchExistingUsers() {
+      try {
+        const snapshot = await getDocs(itemsRef);
+        const names = new Set();
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.owner) names.add(data.owner.trim());
+        });
+
+        if (names.size > 0) {
+          existingNamesChips.innerHTML = "";
+          names.forEach(name => {
+            const btn = document.createElement("button");
+            btn.className = "name-chip";
+            btn.textContent = name;
+            btn.onclick = () => {
+              userNameInput.value = name;
+              userPinInput.focus();
+            };
+            existingNamesChips.appendChild(btn);
+          });
+          existingNamesBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        console.log("Error fetching names", err);
+      }
+    }
+
+    fetchExistingUsers();
+
+    function triggerConfetti() {
+      if (typeof confetti === "function") {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function normalizeText(text) {
+      return text.trim().toLowerCase()
+        .replace(/['’׳"״`\-_.,\s]/g, '');
+    }
+
+    function getGreeting() {
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 12) return "בוקר טוב";
+      if (hour >= 12 && hour < 16) return "צהריים טובים";
+      if (hour >= 16 && hour < 19) return "אחר הצהריים טובים";
+      if (hour >= 19 && hour < 23) return "ערב טוב";
+      return "לילה טוב";
+    }
+
+    if (checkSessionValid()) {
+      showApp();
+      trackAnalyticsLogin(currentUser);
+    }
+
+    loginBtn.addEventListener("click", async () => {
+      const name = userNameInput.value.trim();
+      const pin = userPinInput.value.trim();
+
+      if (!name) {
+        userNameInput.classList.add("error");
+        return;
+      }
+      if (!pin || pin.length !== 4) {
+        userPinInput.classList.add("error");
+        showToast("נא להזין קוד PIN בן 4 ספרות");
+        return;
+      }
+
+      const userDocRef = doc(db, "users_auth", name.toLowerCase());
+      const userSnap = await getDocs(query(usersRef, where("__name__", "==", name.toLowerCase())));
+
+      let isAuthSuccess = false;
+
+      if (!userSnap.empty) {
+        const userData = userSnap.docs[0].data();
+        if (userData.pin === pin) {
+          isAuthSuccess = true;
+        } else {
+          userPinInput.classList.add("error");
+          showToast("🔒 קוד PIN שגוי!");
+          return;
+        }
+      } else {
+        await setDoc(userDocRef, { name: name, pin: pin });
+        isAuthSuccess = true;
+        showToast("🔒 קוד ה-PIN שלך הוגדר בהצלחה!");
+      }
+
+      if (isAuthSuccess) {
+        currentUser = name;
+        const daysToKeep = rememberMeCheckbox.checked ? 30 : 1;
+        const expiryTimestamp = Date.now() + (daysToKeep * 24 * 60 * 60 * 1000);
+
+        localStorage.setItem("packing_app_user", currentUser);
+        localStorage.setItem("packing_app_expiry", expiryTimestamp.toString());
+        
+        trackAnalyticsLogin(currentUser);
+        showApp();
+      }
+    });
+
+    userNameInput.addEventListener("input", () => userNameInput.classList.remove("error"));
+    userPinInput.addEventListener("input", () => userPinInput.classList.remove("error"));
+
+    userPinInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") loginBtn.click();
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("packing_app_user");
+      localStorage.removeItem("packing_app_expiry");
+      location.reload();
+    });
+
+    function showApp() {
+      loginCard.classList.add("hidden");
+      appContent.classList.remove("hidden");
+      displayName.textContent = currentUser;
+      greetingText.textContent = getGreeting();
+      loadMyItems();
+      loadFriendsItems();
+    }
+
+    myTabBtn.addEventListener("click", () => {
+      myTabBtn.classList.add("active");
+      friendsTabBtn.classList.remove("active");
+      myListTab.classList.remove("hidden");
+      friendsListTab.classList.add("hidden");
+    });
+
+    friendsTabBtn.addEventListener("click", () => {
+      friendsTabBtn.classList.add("active");
+      myTabBtn.classList.remove("active");
+      friendsListTab.classList.remove("hidden");
+      myListTab.classList.add("hidden");
+    });
+
+    newItemName.addEventListener("input", () => newItemName.classList.remove("error"));
+
+    newItemName.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addItemBtn.click();
+      }
+    });
+
+    addItemBtn.addEventListener("click", async () => {
+      const name = newItemName.value.trim();
+      
+      if (!name) {
+        newItemName.classList.add("error");
+        newItemName.focus();
+        return;
+      }
+
+      const normalizedInput = normalizeText(name);
+
+      const existingItem = myItems.find(i => normalizeText(i.name) === normalizedInput);
+      if (existingItem) {
+        newItemName.classList.add("error");
+        showToast(`⚠️ הפריט "${existingItem.name}" כבר קיים ברשימה שלך!`);
+        newItemName.focus();
+        return;
+      }
+
+      await addDoc(itemsRef, {
+        name: name,
+        owner: currentUser,
+        isPublic: newItemVisibility.value === "public",
+        isDone: false,
+        createdAt: Date.now()
+      });
+
+      showToast(`✨ "${name}" נוסף בהצלחה!`);
+      newItemName.value = "";
+      newItemName.focus();
+    });
+
+    function loadMyItems() {
+      const q = query(itemsRef, where("owner", "==", currentUser));
+      onSnapshot(q, (snapshot) => {
+        myItemsList.innerHTML = "";
+        myItems = [];
+        if (snapshot.empty) {
+          myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center;'>הרשימה שלך ריקה עדיין.</p>";
+          progressText.textContent = "";
+          clearAllBtn.style.display = "none";
+          finishBanner.classList.add("hidden");
+          wasAllDoneBefore = false;
+          return;
+        }
+
+        snapshot.forEach((docSnap) => {
+          myItems.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        myItems.sort((a, b) => (a.isDone === b.isDone ? b.createdAt - a.createdAt : a.isDone ? 1 : -1));
+
+        const doneCount = myItems.filter(i => i.isDone).length;
+        const isAllDone = myItems.length > 0 && doneCount === myItems.length;
+
+        progressText.textContent = `נארזו ${doneCount} מתוך ${myItems.length} פריטים (${Math.round((doneCount/myItems.length)*100)}%)`;
+        clearAllBtn.style.display = "inline-block";
+
+        if (isAllDone) {
+          finishBanner.classList.remove("hidden");
+          if (!wasAllDoneBefore) {
+            triggerConfetti();
+            wasAllDoneBefore = true;
+          }
+        } else {
+          finishBanner.classList.add("hidden");
+          wasAllDoneBefore = false;
+        }
+
+        myItems.forEach(renderMyItem);
+      });
+    }
+
+    function renderMyItem(item) {
+      const div = document.createElement("div");
+      div.className = `item ${item.isDone ? 'done' : ''}`;
+      div.innerHTML = `
+        <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
+        <span class="item-title">${item.name}</span>
+        <div class="item-actions">
+          <button class="badge ${item.isPublic ? 'public' : ''}" onclick="toggleVisibility('${item.id}', ${!item.isPublic})">
+            ${item.isPublic ? '🌐 ציבורי' : '🔒 פרטי'}
+          </button>
+          <button class="icon-btn" title="ערוך פריט" onclick="editItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+          <button class="icon-btn danger" title="מחק פריט" onclick="deleteItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      `;
+      myItemsList.appendChild(div);
+    }
+
+    function loadFriendsItems() {
+      const q = query(itemsRef, where("isPublic", "==", true));
+      onSnapshot(q, (snapshot) => {
+        friendsItemsList.innerHTML = "";
+        friendsTabsContainer.innerHTML = "";
+        const grouped = {};
+
+        snapshot.forEach((docSnap) => {
+          const item = { id: docSnap.id, ...docSnap.data() };
+          if (item.owner !== currentUser) {
+            if (!grouped[item.owner]) grouped[item.owner] = [];
+            grouped[item.owner].push(item);
+          }
+        });
+
+        const friendNames = Object.keys(grouped);
+
+        if (friendNames.length === 0) {
+          friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center;'>אין פריטים ציבוריים מחברים כרגע.</p>";
+          return;
+        }
+
+        const allBtn = document.createElement("button");
+        allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
+        allBtn.textContent = "הכל";
+        allBtn.onclick = () => { selectedFriend = 'all'; loadFriendsItems(); };
+        friendsTabsContainer.appendChild(allBtn);
+
+        friendNames.forEach(friend => {
+          const btn = document.createElement("button");
+          btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
+          btn.textContent = friend;
+          btn.onclick = () => { selectedFriend = friend; loadFriendsItems(); };
+          friendsTabsContainer.appendChild(btn);
+        });
+
+        const displayGrouped = selectedFriend === "all" ? grouped : { [selectedFriend]: grouped[selectedFriend] || [] };
+
+        for (const [friend, items] of Object.entries(displayGrouped)) {
+          if (!items || items.length === 0) continue;
+
+          const sec = document.createElement("div");
+          sec.className = "friend-section";
+          sec.innerHTML = `
+            <div class="friend-title">הרשימה של ${friend}</div>
+            <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
+          `;
+
+          items.forEach(item => {
+            const normalizedFriendItem = normalizeText(item.name);
+            const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
+
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "item";
+            
+            let statusMarkup = `<button class="btn-sm btn-import" onclick="importSingle('${item.name.replace(/'/g, "\\'")}', this)">+ ייבא</button>`;
+            if (exactExists) {
+              statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
+            }
+
+            itemDiv.innerHTML = `
+              <span class="item-title">${item.name}</span>
+              ${statusMarkup}
+            `;
+            sec.appendChild(itemDiv);
+          });
+
+          friendsItemsList.appendChild(sec);
+        }
+      });
+    }
+
+    window.toggleDone = async (id, isDone) => {
+      await updateDoc(doc(db, "packing_items", id), { isDone });
+    };
+
+    window.toggleVisibility = async (id, isPublic) => {
+      await updateDoc(doc(db, "packing_items", id), { isPublic });
+    };
+
+    window.editItem = async (id, oldName) => {
+      const newName = prompt("ערוך את שם הפריט:", oldName);
+      if (newName !== null && newName.trim() !== "" && newName.trim() !== oldName) {
+        const trimmedName = newName.trim();
+        const normalizedNew = normalizeText(trimmedName);
+        const exists = myItems.some(i => i.id !== id && normalizeText(i.name) === normalizedNew);
+        if (exists) {
+          showToast(`⚠️ כבר קיים פריט בשם "${trimmedName}" ברשימה שלך`);
+          return;
+        }
+        await updateDoc(doc(db, "packing_items", id), { name: trimmedName });
+        showToast(`✏️ הפריט עודכן ל-"${trimmedName}"`);
+      }
+    };
+
+    window.deleteItem = async (id, name) => {
+      if (confirm(`למחוק את "${name}" מהרשימה?`)) {
+        await deleteDoc(doc(db, "packing_items", id));
+        showToast(`"${name}" נמחק`);
+      }
+    };
+
+    clearAllBtn.addEventListener("click", async () => {
+      if (confirm("האם אתה בטוח שברצונך למחוק את כל הרשימה שלך?")) {
+        const q = query(itemsRef, where("owner", "==", currentUser));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(async (docSnap) => {
+          await deleteDoc(doc(db, "packing_items", docSnap.id));
+        });
+        showToast("כל הרשימה נמחקה");
+      }
+    });
+
+    window.importSingle = async (itemName, btnElement) => {
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.textContent = "...מייבא";
+        btnElement.style.background = "var(--gray)";
+      }
+
+      await addDoc(itemsRef, {
+        name: itemName,
+        owner: currentUser,
+        isPublic: false,
+        isDone: false,
+        createdAt: Date.now()
+      });
+      showToast(`הפריט "${itemName}" יובא בהצלחה!`);
+    };
+
+    window.importAll = async (friendName, btnElement) => {
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.textContent = `...מייבא רשימה`;
+        btnElement.style.background = "var(--gray)";
+      }
+
+      const q = query(itemsRef, where("owner", "==", friendName), where("isPublic", "==", true));
+      const snapshot = await getDocs(q);
+      let count = 0;
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        const exists = myItems.some(i => normalizeText(i.name) === normalizeText(data.name));
+        if (!exists) {
+          await addDoc(itemsRef, {
+            name: data.name,
+            owner: currentUser,
+            isPublic: false,
+            isDone: false,
+            createdAt: Date.now()
+          });
+          count++;
+        }
+      }
+      showToast(`יובאו ${count} פריטים מהרשימה של ${friendName}`);
+    };
+  </script>
+</body>
+</html>
