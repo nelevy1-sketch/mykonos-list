@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הכנות לטיול למיקונוס 🇬🇷</title>
+  <title>הכנות לטיול למיקונוס 🇬🇷 🏳️‍🌈</title>
   <style>
     :root {
       --greek-blue: #005bae;
-      --greek-blue-hover: #004585;
+      --greek-blue-dark: #003e78;
       --splitwise-green: #1cc29f;
-      --splitwise-hover: #17a083;
-      --bg-color: #f0f4f8;
+      --splitwise-dark: #12826a;
+      --bg-color: #eef2f6;
       --card-bg: #ffffff;
       --text-main: #1e293b;
     }
@@ -35,9 +35,9 @@
 
     .card {
       background: var(--card-bg);
-      padding: 36px 28px;
-      border-radius: 24px;
-      box-shadow: 0 10px 30px rgba(0, 91, 174, 0.08);
+      padding: 38px 28px;
+      border-radius: 28px;
+      box-shadow: 0 20px 40px rgba(0, 91, 174, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
       border: 1px solid #e2e8f0;
       width: 100%;
       max-width: 420px;
@@ -47,7 +47,9 @@
       align-items: center;
     }
 
-    .flag-icon {
+    .flags-container {
+      display: flex;
+      gap: 12px;
       font-size: 2.5rem;
       margin-bottom: 12px;
     }
@@ -63,7 +65,7 @@
     p.subtitle {
       font-size: 0.95rem;
       color: #64748b;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
 
     .buttons-container {
@@ -71,9 +73,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 18px;
     }
 
+    /* בסיס כפתורי 3D */
     .btn {
       display: flex;
       align-items: center;
@@ -81,21 +84,14 @@
       gap: 12px;
       width: 100%;
       padding: 16px 20px;
-      border-radius: 14px;
+      border-radius: 16px;
       text-decoration: none;
       font-weight: 700;
       font-size: 1.05rem;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    }
-
-    .btn:active {
-      transform: translateY(0);
+      position: relative;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      user-select: none;
     }
 
     .btn svg {
@@ -104,45 +100,68 @@
       fill: currentColor;
     }
 
-    /* כפתור קניות - כחול חלק עם אייקון לבן */
+    /* כפתור תלת-ממד כחול (קניות) */
     .btn-shopping {
       background-color: var(--greek-blue);
       color: #ffffff;
+      box-shadow: 0 6px 0 var(--greek-blue-dark), 0 12px 20px rgba(0, 91, 174, 0.25);
     }
     .btn-shopping:hover {
-      background-color: var(--greek-blue-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 var(--greek-blue-dark), 0 15px 22px rgba(0, 91, 174, 0.3);
+    }
+    .btn-shopping:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--greek-blue-dark), 0 5px 10px rgba(0, 91, 174, 0.2);
     }
 
-    /* כפתור ציוד - מסגרת כחולה */
+    /* כפתור תלת-ממד לבן/מסגרת (ציוד) */
     .btn-packing {
       background-color: #ffffff;
       color: var(--greek-blue);
       border: 2px solid var(--greek-blue);
+      box-shadow: 0 6px 0 var(--greek-blue), 0 10px 18px rgba(0, 0, 0, 0.06);
     }
     .btn-packing:hover {
-      background-color: #f0f7ff;
+      background-color: #f8fafc;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 var(--greek-blue), 0 14px 22px rgba(0, 0, 0, 0.08);
+    }
+    .btn-packing:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--greek-blue), 0 4px 8px rgba(0, 0, 0, 0.05);
     }
 
-    /* כפתור ספליטוויז */
+    /* כפתור תלת-ממד ירוק (Splitwise) */
     .btn-splitwise {
       background-color: var(--splitwise-green);
       color: #ffffff;
+      box-shadow: 0 6px 0 var(--splitwise-dark), 0 12px 20px rgba(28, 194, 159, 0.25);
     }
     .btn-splitwise:hover {
-      background-color: var(--splitwise-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 var(--splitwise-dark), 0 15px 22px rgba(28, 194, 159, 0.3);
+    }
+    .btn-splitwise:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--splitwise-dark), 0 5px 10px rgba(28, 194, 159, 0.2);
     }
 
     .footer-text {
-      margin-top: 28px;
-      font-size: 0.8rem;
+      margin-top: 32px;
+      font-size: 0.85rem;
       color: #94a3b8;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <div class="flag-icon">🇬🇷</div>
+    <div class="flags-container">
+      <span>🇬🇷</span>
+      <span>🏳️‍🌈</span>
+    </div>
     <h1>הכנות לטיול למיקונוס</h1>
     <p class="subtitle">ריכוז כל הרשימות וההוצאות במקום אחד</p>
 
