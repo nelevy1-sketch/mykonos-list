@@ -41,17 +41,30 @@
     color: var(--sea-deep);
     display:flex;
     justify-content:center;
-    padding: 16px 12px 80px;
+    padding: 0 12px 80px;
     overflow-x: hidden;
   }
 
   .card{ width:100%; max-width: 480px; }
 
-  header{ text-align:center; margin-bottom: 14px; }
-  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 26px; margin: 0; color: var(--sea-deep); }
+  /* Sticky Header Wrapper */
+  .sticky-header-container {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    background: rgba(243, 246, 248, 0.96);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 16px 0 6px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 10px;
+  }
+
+  header{ text-align:center; margin-bottom: 10px; }
+  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 24px; margin: 0; color: var(--sea-deep); }
 
   .list-tabs {
-    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 10px; gap: 4px;
+    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 8px; gap: 4px;
   }
 
   .tab-btn {
@@ -62,7 +75,7 @@
 
   .status-bar {
     display: flex; justify-content: space-between; align-items: center;
-    background: var(--white); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; font-weight: 700;
+    background: var(--white); border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
   }
   .status-tag { background: #eef5f9; color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
   .status-tag:hover { background: #dceaf2; }
@@ -241,19 +254,22 @@
 <body>
 
 <div class="card">
-  <header>
-    <h1>רשימת קניות מיקונוס</h1>
-  </header>
+  <!-- אזור עליון קבוע בגלילה -->
+  <div class="sticky-header-container">
+    <header>
+      <h1>רשימת קניות מיקונוס</h1>
+    </header>
 
-  <div class="list-tabs">
-    <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
-    <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
-    <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
-  </div>
+    <div class="list-tabs">
+      <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
+      <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
+      <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
+    </div>
 
-  <div class="status-bar">
-    <span>סטטוס רשימה:</span>
-    <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
+    <div class="status-bar">
+      <span>סטטוס רשימה:</span>
+      <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
+    </div>
   </div>
 
   <div class="progress-section">
@@ -437,7 +453,6 @@
     'fromIsrael': { received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌' }
   };
 
-  // מילון תרגום מובנה לאנגלית וליוונית
   const TRANSLATION_DICTIONARY = {
     categories: {
       'פירות וירקות 🍅': { en: 'Fruits & Vegetables 🍅', el: 'Φρούτα & Λαχανικά 🍅' },
@@ -572,6 +587,12 @@
 
     listRef = ref(db, `lists/${currentListType}`);
     listStatusRef = ref(db, `lists/${currentListType}_status`);
+
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+      exportBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
+    }
+
     listenToFirebase();
   };
 
@@ -1057,7 +1078,6 @@
     render();
   });
 
-  // ביצוע הייצוא לפי השפה שנבחרה
   window.executeExport = function(lang) {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
