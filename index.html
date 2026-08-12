@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -134,7 +133,6 @@
   .item-text{ font-size: 14px; font-weight:600; word-break: break-word; }
   .item-text.done{ text-decoration: line-through; opacity: .45; }
 
-  /* בקרת כמות עם + ו- */
   .qty-control-box {
     display: inline-flex; align-items: center; gap: 3px; background: var(--whitewash);
     border: 1px solid var(--line); border-radius: 6px; padding: 1px 4px; margin-inline-start: 4px;
@@ -231,6 +229,13 @@
     width: 100%; background: var(--sea); color: white; border: none;
     padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
   }
+
+  .lang-option-btn {
+    width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--sea-deep); transition: background 0.2s;
+  }
+  .lang-option-btn:hover { background: #eef5f9; border-color: var(--sea); }
 </style>
 </head>
 <body>
@@ -326,7 +331,22 @@
   </div>
 </div>
 
-<!-- Modal בחירת כמות אישית ("גם אני") -->
+<!-- Modal בחירת שפה לייצוא לסופר -->
+<div class="modal-overlay" id="exportLangModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>🌐 בחר שפה לייצוא לסופר</h3>
+      <button class="close-modal" id="closeLangModalBtn">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <button class="lang-option-btn" onclick="executeExport('he')">🇮🇱 עברית (Hebrew)</button>
+      <button class="lang-option-btn" onclick="executeExport('en')">🇬🇧 אנגלית (English)</button>
+      <button class="lang-option-btn" onclick="executeExport('el')">🇬🇷 יוונית (Greek - Ελληνικά)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal בחירת כמות אישית -->
 <div class="modal-overlay" id="personalQtyModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -415,6 +435,47 @@
     'delivery': { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' },
     'inPerson': { received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌' },
     'fromIsrael': { received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌' }
+  };
+
+  // מילון תרגום מובנה לאנגלית וליוונית
+  const TRANSLATION_DICTIONARY = {
+    categories: {
+      'פירות וירקות 🍅': { en: 'Fruits & Vegetables 🍅', el: 'Φρούτα & Λαχανικά 🍅' },
+      'בשר, דגים ועופות 🥩': { en: 'Meat, Fish & Poultry 🥩', el: 'Κρέας & Ψάρια 🥩' },
+      'שתייה ומשקאות 🥤': { en: 'Drinks & Beverages 🥤', el: 'Ποτά & Αναψυκτικά 🥤' },
+      'חלב וביצים 🧀': { en: 'Dairy & Eggs 🧀', el: 'Γαλακτοκομικά & Αυγά 🧀' },
+      'מאפה ודגנים 🥖': { en: 'Bakery & Grains 🥖', el: 'Ψωμί & Δημητριακά 🥖' },
+      'חטיפים ומתוקים 🍫': { en: 'Snacks & Sweets 🍫', el: 'Σνακ & Γλυκά 🍫' },
+      'פארם וניקיון 🧼': { en: 'Pharmacy & Cleaning 🧼', el: 'Καθαριότητα & Φαρμακείο 🧼' },
+      'כלי בית וציוד 🏠': { en: 'Household & Supplies 🏠', el: 'Είδη Σπιτιού 🏠' },
+      'מוצרים נוספים 🛒': { en: 'Other Items 🛒', el: 'Άλλα Είδη 🛒' }
+    },
+    units: {
+      "יח'": { en: 'pcs', el: 'τεμ' },
+      "מארז": { en: 'pack', el: 'πακέτο' },
+      "בקבוק": { en: 'bottle', el: 'μπουκάλι' },
+      "ק\"ג": { en: 'kg', el: 'κιλό' }
+    },
+    items: {
+      'קולה זירו': { en: 'Coca-Cola Zero', el: 'Coca-Cola Zero' },
+      'מים מינרלים': { en: 'Mineral Water (Pack of 6)', el: 'Εμφιαλωμένο Νερό (Εξάδα)' },
+      'מעדני פרו': { en: 'Protein Yogurt', el: 'Γιαούρτι Πρωτεΐνης' },
+      'גבינה צהובה': { en: 'Sliced Yellow Cheese', el: 'Κίτρινο Τυρί σε Φέτες' },
+      'קוטג\'/ גבינה רכה': { en: 'Cottage Cheese', el: 'Τυρί Κότατζ' },
+      'חטיפי חלבון': { en: 'Protein Bars', el: 'Μπάρες Πρωτεΐνης' },
+      'עגבניות': { en: 'Tomatoes', el: 'Ντομάτες' },
+      'מלפפונים': { en: 'Cucumbers', el: 'Αγγούρια' },
+      'בננות': { en: 'Bananas', el: 'Μπανάνες' },
+      'לימונים': { en: 'Lemons', el: 'Λεμόνια' },
+      'לחמניות': { en: 'Buns / Bread', el: 'Ψωμάκια' },
+      'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
+      'ביצים': { en: 'Eggs', el: 'Αυγά' },
+      'חלב': { en: 'Milk', el: 'Γάλα' },
+      'חמאה': { en: 'Butter', el: 'Βούτυρο' },
+      'סודה': { en: 'Soda Water', el: 'Σόδα' },
+      'יין': { en: 'Wine', el: 'Κρασί' },
+      'בירה': { en: 'Beer', el: 'Μπίρα' }
+    }
   };
 
   const shareUrl = window.location.href;
@@ -532,6 +593,9 @@
   const closeModalBtn = document.getElementById('closeModalBtn');
   const addModalForm = document.getElementById('addModalForm');
 
+  const exportLangModalOverlay = document.getElementById('exportLangModalOverlay');
+  const closeLangModalBtn = document.getElementById('closeLangModalBtn');
+
   const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
   const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
   const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
@@ -558,6 +622,9 @@
   closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
   closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
   closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
+
+  exportBtn.onclick = () => exportLangModalOverlay.classList.add('show');
+  closeLangModalBtn.onclick = () => exportLangModalOverlay.classList.remove('show');
 
   document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
     input.addEventListener('focus', () => {
@@ -735,7 +802,6 @@
 
   listenToFirebase();
 
-  // עדכון כמות ישיר עם + ו-
   window.updateBaseQty = function(id, delta) {
     if (!itemsMap[id]) return;
     saveUndoBackup(id);
@@ -767,7 +833,6 @@
     const unit = document.getElementById('modalUnitInput').value;
     const note = document.getElementById('modalNoteInput').value.trim();
 
-    // בדיקת כפילות: שם זהה + יחידה שווה בלבד!
     const existingKey = Object.keys(itemsMap).find(key => {
       const existingItem = itemsMap[key];
       const existingName = (existingItem.name || existingItem.text || '').trim();
@@ -811,7 +876,6 @@
     modalOverlay.classList.remove('show');
   });
 
-  // מודאל כמות אישית ("גם אני")
   window.openPersonalQtyModal = function(id, personalMap) {
     const user = requireUserName();
     if (!user) return;
@@ -993,10 +1057,12 @@
     render();
   });
 
-  exportBtn.addEventListener('click', () => {
+  // ביצוע הייצוא לפי השפה שנבחרה
+  window.executeExport = function(lang) {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
       showToast('הרשימה ריקה!');
+      exportLangModalOverlay.classList.remove('show');
       return;
     }
 
@@ -1008,21 +1074,44 @@
       grouped[cat].push(item);
     });
 
-    let text = `🛒 *רשימת קניות למיקונוס* (${listStatus})\n\n`;
+    let headerTitle = '🛒 *רשימת קניות למיקונוס*';
+    if (lang === 'en') headerTitle = '🛒 *Mykonos Shopping List*';
+    if (lang === 'el') headerTitle = '🛒 *Λίστα Ψωνίων Μύκονος*';
+
+    let text = `${headerTitle} (${listStatus})\n\n`;
 
     Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
-      text += `*${cat}*\n`;
+      let catTitle = cat;
+      if (lang !== 'he' && TRANSLATION_DICTIONARY.categories[cat]) {
+        catTitle = TRANSLATION_DICTIONARY.categories[cat][lang] || cat;
+      }
+
+      text += `*${catTitle}*\n`;
       grouped[cat].forEach(i => {
         const totalQty = calculateTotalQty(i);
-        text += `• ${i.name} - ${totalQty} ${i.unit || "יח'"}${i.buyer ? ` (אחראי: ${i.buyer})` : ''}\n`;
+        let itemName = i.name;
+        let unitName = i.unit || "יח'";
+
+        if (lang !== 'he') {
+          if (TRANSLATION_DICTIONARY.items[i.name]) {
+            itemName = TRANSLATION_DICTIONARY.items[i.name][lang] || i.name;
+          }
+          if (TRANSLATION_DICTIONARY.units[unitName]) {
+            unitName = TRANSLATION_DICTIONARY.units[unitName][lang] || unitName;
+          }
+        }
+
+        const buyerInfo = (i.buyer && lang === 'he') ? ` (אחראי: ${i.buyer})` : '';
+        text += `• ${itemName} - ${totalQty} ${unitName}${buyerInfo}\n`;
       });
       text += `\n`;
     });
 
     navigator.clipboard.writeText(text).then(() => {
-      showToast('הרשימה הועתקה ללוח בהצלחה! 📋');
+      exportLangModalOverlay.classList.remove('show');
+      showToast(lang === 'he' ? 'הרשימה הועתקה ללוח בעברית! 📋' : (lang === 'en' ? 'List copied in English! 🇬🇧' : 'Η λίστα αντιγράφηκε στα Ελληνικά! 🇬🇷'));
     });
-  });
+  };
 </script>
 </body>
 </html>
