@@ -74,7 +74,6 @@
     .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; }
     .badge.public { background: #dbeafe; color: #1e40af; }
 
-    /* אייקונים מעודנים עם שטח נגיעה מוגדל (Touch Target) */
     .icon-btn {
       background: none;
       border: none;
@@ -155,10 +154,10 @@
   <!-- מסך התחברות -->
   <div id="loginCard" class="card">
     <label>מי מתחבר/ת?</label>
-    <input type="text" id="userNameInput" placeholder="הכנס שם או כינוי (למשל: נתנאל)">
+    <input type="text" id="userNameInput" placeholder="הכנס שם או כינוי (למשל: נתנאל)" autocomplete="username">
     
     <label style="margin-top:10px; display:block;">קוד PIN אישי (4 ספרות):</label>
-    <input type="password" id="userPinInput" placeholder="••••" maxlength="4" inputmode="numeric">
+    <input type="password" id="userPinInput" placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="current-password">
 
     <div class="remember-me">
       <input type="checkbox" id="rememberMeCheckbox" checked>
@@ -265,6 +264,7 @@
     let loginExpiry = localStorage.getItem("packing_app_expiry");
     let selectedFriend = "all";
     let wasAllDoneBefore = false;
+    let isSubmitting = false;
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -375,7 +375,10 @@
       trackAnalyticsLogin(currentUser);
     }
 
-    loginBtn.addEventListener("click", async () => {
+    // פונקציית התחברות
+    async function handleLogin() {
+      if (isSubmitting) return;
+
       const name = userNameInput.value.trim();
       const pin = userPinInput.value.trim();
 
@@ -389,44 +392,82 @@
         return;
       }
 
-      const userDocRef = doc(db, "users_auth", name.toLowerCase());
-      const userSnap = await getDocs(query(usersRef, where("__name__", "==", name.toLowerCase())));
+      isSubmitting = true;
+      loginBtn.disabled = true;
 
-      let isAuthSuccess = false;
+      try {
+        const userDocRef = doc(db, "users_auth", name.toLowerCase());
+        const userSnap = await getDocs(query(usersRef, where("__name__", "==", name.toLowerCase())));
 
-      if (!userSnap.empty) {
-        const userData = userSnap.docs[0].data();
-        if (userData.pin === pin) {
-          isAuthSuccess = true;
+        let isAuthSuccess = false;
+
+        if (!userSnap.empty) {
+          const userData = userSnap.docs[0].data();
+          if (userData.pin === pin) {
+            isAuthSuccess = true;
+          } else {
+            userPinInput.classList.add("error");
+            showToast("🔒 קוד PIN שגוי!");
+            isSubmitting = false;
+            loginBtn.disabled = false;
+            return;
+          }
         } else {
-          userPinInput.classList.add("error");
-          showToast("🔒 קוד PIN שגוי!");
-          return;
+          await setDoc(userDocRef, { name: name, pin: pin });
+          isAuthSuccess = true;
+          showToast("🔒 קוד ה-PIN שלך הוגדר בהצלחה!");
         }
-      } else {
-        await setDoc(userDocRef, { name: name, pin: pin });
-        isAuthSuccess = true;
-        showToast("🔒 קוד ה-PIN שלך הוגדר בהצלחה!");
-      }
 
-      if (isAuthSuccess) {
-        currentUser = name;
-        const daysToKeep = rememberMeCheckbox.checked ? 30 : 1;
-        const expiryTimestamp = Date.now() + (daysToKeep * 24 * 60 * 60 * 1000);
+        if (isAuthSuccess) {
+          currentUser = name;
+          const daysToKeep = rememberMeCheckbox.checked ? 30 : 1;
+          const expiryTimestamp = Date.now() + (daysToKeep * 24 * 60 * 60 * 1000);
 
-        localStorage.setItem("packing_app_user", currentUser);
-        localStorage.setItem("packing_app_expiry", expiryTimestamp.toString());
-        
-        trackAnalyticsLogin(currentUser);
-        showApp();
+          localStorage.setItem("packing_app_user", currentUser);
+          localStorage.setItem("packing_app_expiry", expiryTimestamp.toString());
+          
+          trackAnalyticsLogin(currentUser);
+          showApp();
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        showToast("שגיאה בהתחברות, נסה שנית");
+      } finally {
+        isSubmitting = false;
+        loginBtn.disabled = false;
       }
+    }
+
+    loginBtn.addEventListener("click", handleLogin);
+
+    // בדיקת Autofill / זיהוי פנים אוטומטי
+    function checkAutoSubmit() {
+      const name = userNameInput.value.trim();
+      const pin = userPinInput.value.trim();
+      if (name && pin.length === 4 && !isSubmitting) {
+        handleLogin();
+      }
+    }
+
+    // האזנה למילוי אוטומטי ולשינויים בשדות
+    userNameInput.addEventListener("input", () => {
+      userNameInput.classList.remove("error");
+      checkAutoSubmit();
+    });
+    userPinInput.addEventListener("input", () => {
+      userPinInput.classList.remove("error");
+      checkAutoSubmit();
     });
 
-    userNameInput.addEventListener("input", () => userNameInput.classList.remove("error"));
-    userPinInput.addEventListener("input", () => userPinInput.classList.remove("error"));
+    userNameInput.addEventListener("change", checkAutoSubmit);
+    userPinInput.addEventListener("change", checkAutoSubmit);
+
+    // תמיכה ב-Autofill שמופעל מאוחר יותר על ידי הדפדפן (Face ID delay)
+    setTimeout(checkAutoSubmit, 500);
+    setTimeout(checkAutoSubmit, 1200);
 
     userPinInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") loginBtn.click();
+      if (e.key === "Enter") handleLogin();
     });
 
     logoutBtn.addEventListener("click", () => {
