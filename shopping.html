@@ -101,7 +101,7 @@
   .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
   .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; min-width:0; }
 
-  /* סרגל פעולות ממוקד ונקי */
+  /* סרגל פעולות */
   .main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .open-modal-btn {
     flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
@@ -246,8 +246,16 @@
     width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
     background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
     display: flex; align-items: center; justify-content: flex-start; gap: 8px; color: var(--sea-deep); text-decoration: none; box-sizing: border-box;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
   .more-menu-item:hover { background: #eef5f9; border-color: var(--sea); }
+  .more-menu-item.active-mode {
+    background: #eafaf1 !important; border-color: #25D366 !important; color: #1e6b37 !important;
+  }
+
+  .back-btn {
+    background: transparent; border: none; font-size: 13px; font-weight: 700; color: var(--sea); cursor: pointer; padding: 4px 8px;
+  }
 </style>
 </head>
 <body>
@@ -376,11 +384,12 @@
   </div>
 </div>
 
-<!-- Modal בחירת שפה לייצוא לסופר -->
+<!-- Modal בחירת שפה לייצוא לסופר (כולל כפתור חזור) -->
 <div class="modal-overlay" id="exportLangModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
-      <h3>🌐 בחר שפה לייצוא לסופר</h3>
+      <button class="back-btn" id="backToMoreFromLangBtn">← חזור</button>
+      <h3 style="margin:0;">🌐 בחר שפה לייצוא</h3>
       <button class="close-modal" id="closeLangModalBtn">✕</button>
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
@@ -421,11 +430,12 @@
   </div>
 </div>
 
-<!-- Modal ניהול -->
+<!-- Modal ניהול (כולל כפתור חזור) -->
 <div class="modal-overlay" id="settingsModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
-      <h3>⚙️ תפריט ניהול רשימה</h3>
+      <button class="back-btn" id="backToMoreFromSettingsBtn">← חזור</button>
+      <h3 style="margin:0;">⚙️ תפריט ניהול</h3>
       <button class="close-modal" id="closeSettingsModalBtn">✕</button>
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
@@ -657,6 +667,7 @@
 
   const exportLangModalOverlay = document.getElementById('exportLangModalOverlay');
   const closeLangModalBtn = document.getElementById('closeLangModalBtn');
+  const backToMoreFromLangBtn = document.getElementById('backToMoreFromLangBtn');
 
   const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
   const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
@@ -673,6 +684,7 @@
 
   const settingsModalOverlay = document.getElementById('settingsModalOverlay');
   const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+  const backToMoreFromSettingsBtn = document.getElementById('backToMoreFromSettingsBtn');
 
   openModalBtn.onclick = () => {
     if (!requireUserName()) return;
@@ -680,7 +692,10 @@
   };
   closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
 
-  openMoreMenuBtn.onclick = () => moreMenuModalOverlay.classList.add('show');
+  openMoreMenuBtn.onclick = () => {
+    updateAuditMenuBtnUI();
+    moreMenuModalOverlay.classList.add('show');
+  };
   closeMoreMenuModalBtn.onclick = () => moreMenuModalOverlay.classList.remove('show');
 
   statusTag.onclick = () => statusModalOverlay.classList.add('show');
@@ -691,6 +706,12 @@
     settingsModalOverlay.classList.add('show');
   };
   closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
+
+  backToMoreFromSettingsBtn.onclick = () => {
+    settingsModalOverlay.classList.remove('show');
+    moreMenuModalOverlay.classList.add('show');
+  };
+
   closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
   closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
 
@@ -700,12 +721,25 @@
   };
   closeLangModalBtn.onclick = () => exportLangModalOverlay.classList.remove('show');
 
-  // בחירת סטטוס נוחה מתוך Modal
+  backToMoreFromLangBtn.onclick = () => {
+    exportLangModalOverlay.classList.remove('show');
+    moreMenuModalOverlay.classList.add('show');
+  };
+
+  function updateAuditMenuBtnUI() {
+    if (isAuditMode) {
+      auditToggleBtn.classList.add('active-mode');
+      auditToggleBtn.textContent = '✓ בדיקת המשלוח (פעיל - לחץ לכיבוי)';
+    } else {
+      auditToggleBtn.classList.remove('active-mode');
+      auditToggleBtn.textContent = '🔍 בדיקת המשלוח (מצב בדיקה)';
+    }
+  }
+
   function setStatusAndSave(newStatus) {
     listStatus = newStatus;
     if (listStatus === '🔍 בדיקת המשלוח') {
       isAuditMode = true;
-      auditToggleBtn.style.background = '#25D366';
       showMissingSummaryBtn.style.display = 'block';
     }
     set(listStatusRef, listStatus);
@@ -1114,7 +1148,6 @@
   }
 
   function setAuditStatus(id, status) {
-    // אם מסמנים "חלקי", מבקשים מהמשתמש את הכמות שהתקבלה בפועל
     if (status === 'partial') {
       const item = itemsMap[id];
       const totalOrdered = calculateTotalQty(item);
@@ -1193,7 +1226,6 @@
     missingModalOverlay.classList.add('show');
   };
 
-  // העברת חוסרים חכמה ללא כפילויות!
   transferMissingToInPersonBtn.onclick = () => {
     const user = requireUserName();
     if (!user) return;
@@ -1203,7 +1235,6 @@
 
     const inPersonRef = ref(db, `lists/inPerson`);
 
-    // קריאה ראשונית של הרשימה בקנייה עצמית למניעת כפילויות
     onValue(inPersonRef, (snapshot) => {
       const inPersonItems = snapshot.val() || {};
       let transferredCount = 0;
@@ -1217,7 +1248,6 @@
 
         if (missingQty <= 0) return;
 
-        // בדיקה מראש אם המוצר כבר קיים בקנייה עצמית
         const existingKey = Object.keys(inPersonItems).find(k => {
           return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
         });
@@ -1276,10 +1306,16 @@
     render();
   });
 
+  // הפעלה וכיבוי חכם של מצב בדיקה (Toggle)
   auditToggleBtn.addEventListener('click', () => {
-    moreMenuModalOverlay.classList.remove('show');
     isAuditMode = !isAuditMode;
-    auditToggleBtn.style.background = isAuditMode ? '#25D366' : 'var(--sea-deep)';
+    moreMenuModalOverlay.classList.remove('show');
+
+    if (isAuditMode) {
+      showToast('מצב בדיקת משלוח הופעל');
+    } else {
+      showToast('מצב בדיקת משלוח כובה');
+    }
     render();
   });
 
