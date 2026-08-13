@@ -180,7 +180,7 @@
     }
     .btn-splitwise:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.2);
+      box-shadow: 0 8px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.2);
     }
     .btn-splitwise:active {
       transform: translateY(3px);
@@ -212,10 +212,10 @@
     </div>
 
     <div class="buttons-container">
-      <!-- קניות -->
+      <!-- קניות משותפת -->
       <a href="shopping.html" class="btn btn-shopping">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-        <span>רשימת קניות</span>
+        <span>רשימת קניות משותפת</span>
       </a>
 
       <!-- ציוד -->
@@ -235,7 +235,6 @@
   </div>
 
   <script>
-    // זמן היעד: 20 באוגוסט 2026 בשעה 08:15 בבוקר
     const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
@@ -245,7 +244,6 @@
       const diff = targetDate - now;
 
       if (diff > 0) {
-        // עדיין לפני ההמראה - ספירה לאחור
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((diff / 1000 / 60) % 60);
@@ -254,7 +252,6 @@
         timerTitle.textContent = "זמן נותר להמראה ✈️";
         timerDisplay.textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       } else {
-        // הטיסה כבר המריאה / אנחנו במיקונוס!
         timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
         
         const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Athens' };
