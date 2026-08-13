@@ -45,7 +45,7 @@
 
   .card{ width:100%; max-width: 480px; }
 
-  /* Sticky Header קבוע בראש המסך בכל גלילה */
+  /* Sticky Header */
   .sticky-header-container {
     position: -webkit-sticky;
     position: sticky;
@@ -101,23 +101,21 @@
   .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
   .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; min-width:0; }
 
+  /* סרגל פעולות ממוקד ונקי */
+  .main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .open-modal-btn {
-    width: 100%; background: var(--sea); color: white; border: none; border-radius: 12px;
-    padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+    flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
+    padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
     box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2); display: flex; align-items: center; justify-content: center; gap: 6px;
   }
-
-  .action-buttons{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
-  .action-btn {
-    flex: 1; min-width: 85px; padding: 8px 4px; border: none; border-radius: 8px;
-    font-weight: bold; cursor: pointer; font-size: 11px; text-decoration: none; text-align: center;
-    display: flex; align-items: center; justify-content: center; gap: 4px;
+  .filter-btn {
+    flex: 1.2; background: var(--white); border: 1.5px solid var(--line); color: var(--sea-deep);
+    border-radius: 12px; padding: 12px 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
   }
-  .filter-btn { background: var(--sea); color: white; }
-  .audit-btn { background: var(--sea-deep); color: white; }
-  .export-btn { background: #5c6b73; color: white; }
-  .wa-share-btn { background: var(--wa-green); color: white; }
-  .settings-btn { background: #78909c; color: white; }
+  .more-menu-btn {
+    background: var(--whitewash); border: 1.5px solid var(--line); color: var(--sea-deep);
+    border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
 
   .category-header {
     font-size: 15px; font-weight: 700; color: var(--sea-deep); margin: 16px 0 8px;
@@ -244,31 +242,31 @@
     padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
   }
 
-  .lang-option-btn {
+  .more-menu-item {
     width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
     background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--sea-deep); transition: background 0.2s;
+    display: flex; align-items: center; justify-content: flex-start; gap: 8px; color: var(--sea-deep); text-decoration: none; box-sizing: border-box;
   }
-  .lang-option-btn:hover { background: #eef5f9; border-color: var(--sea); }
+  .more-menu-item:hover { background: #eef5f9; border-color: var(--sea); }
 </style>
 </head>
 <body>
 
-<!-- אזור עליון קבוע בגלילה -->
+<!-- Sticky Header -->
 <div class="sticky-header-container">
   <header>
     <h1>רשימת קניות מיקונוס</h1>
   </header>
 
   <div class="list-tabs">
-    <button class="tab-btn active" onclick="switchList('delivery', event)">📦 משלוח</button>
-    <button class="tab-btn" onclick="switchList('inPerson', event)">🛒 בקניה עצמית</button>
-    <button class="tab-btn" onclick="switchList('fromIsrael', event)">✈️ מהארץ</button>
+    <button class="tab-btn active" id="tabDeliveryBtn">📦 משלוח</button>
+    <button class="tab-btn" id="tabInPersonBtn">🛒 בקניה עצמית</button>
+    <button class="tab-btn" id="tabFromIsraelBtn">✈️ מהארץ</button>
   </div>
 
   <div class="status-bar">
     <span>סטטוס רשימה:</span>
-    <span class="status-tag" id="statusTag" onclick="changeListStatus()">📝 בהכנה</span>
+    <span class="status-tag" id="statusTag">📝 בהכנה</span>
   </div>
 </div>
 
@@ -288,14 +286,11 @@
     <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
   </div>
 
-  <button class="open-modal-btn" id="openModalBtn">➕ הוספת פריט לרשימה</button>
-
-  <div class="action-buttons">
-    <button class="action-btn filter-btn" id="filterBtn">👁️ הסתר שנרכשו</button>
-    <button class="action-btn audit-btn" id="auditToggleBtn">🔍 מצב בדיקה</button>
-    <button class="action-btn export-btn" id="exportBtn">📋 טקסט לסופר</button>
-    <button class="action-btn settings-btn" id="settingsBtn">⚙️ ניהול</button>
-    <a class="action-btn wa-share-btn" id="waBtn" target="_blank" href="#">💬 שתף קישור</a>
+  <!-- סרגל פעולות נקי -->
+  <div class="main-actions-row">
+    <button class="open-modal-btn" id="openModalBtn">➕ הוסף פריט</button>
+    <button class="filter-btn" id="filterBtn">👁️ הסתר שהושלמו</button>
+    <button class="more-menu-btn" id="openMoreMenuBtn">⋮ עוד</button>
   </div>
 
   <button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
@@ -348,6 +343,39 @@
   </div>
 </div>
 
+<!-- Modal בחירת סטטוס רשימה -->
+<div class="modal-overlay" id="statusModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>📌 עדכון סטטוס רשימה</h3>
+      <button class="close-modal" id="closeStatusModalBtn">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+      <button class="more-menu-item" id="statusSelectPrep">📝 בהכנה</button>
+      <button class="more-menu-item" id="statusSelectReady">✅ מוכנה</button>
+      <button class="more-menu-item" id="statusSelectOrdered">🚚 הוזמנה / בקנייה</button>
+      <button class="more-menu-item" id="statusSelectAudit">🔍 בדיקת המשלוח</button>
+      <button class="more-menu-item" id="statusSelectDone">🎉 הושלמה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal תפריט "⋮ עוד" -->
+<div class="modal-overlay" id="moreMenuModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>⚙️ אפשרויות נוספות</h3>
+      <button class="close-modal" id="closeMoreMenuModalBtn">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <button class="more-menu-item" id="auditToggleBtn">🔍 בדיקת המשלוח (מצב בדיקה)</button>
+      <button class="more-menu-item" id="exportBtn">📋 טקסט לסופר (ייצוא)</button>
+      <a class="more-menu-item" id="waBtn" target="_blank" href="#">💬 שתף קישור לרשימה</a>
+      <button class="more-menu-item" id="settingsBtn" style="color: #c0533f;">⚙️ ניהול ואיפוס רשימה</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal בחירת שפה לייצוא לסופר -->
 <div class="modal-overlay" id="exportLangModalOverlay">
   <div class="modal-card">
@@ -356,9 +384,9 @@
       <button class="close-modal" id="closeLangModalBtn">✕</button>
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-      <button class="lang-option-btn" onclick="executeExport('he')">🇮🇱 עברית (Hebrew)</button>
-      <button class="lang-option-btn" onclick="executeExport('en')">🇬🇧 אנגלית (English)</button>
-      <button class="lang-option-btn" onclick="executeExport('el')">🇬🇷 יוונית (Greek - Ελληνικά)</button>
+      <button class="more-menu-item" id="exportHebrewBtn">🇮🇱 עברית (Hebrew)</button>
+      <button class="more-menu-item" id="exportEnglishBtn">🇬🇧 אנגלית (English)</button>
+      <button class="more-menu-item" id="exportGreekBtn">🇬🇷 יוונית (Greek - Ελληνικά)</button>
     </div>
   </div>
 </div>
@@ -439,8 +467,6 @@
   let activePersonalItemId = null;
   let activePersonalMap = {};
   let tempPersonalQty = 1;
-
-  const STATUS_CYCLE = ['📝 בהכנה', '✅ מוכנה', '🚚 הוזמנה / בקנייה', '🔍 בבדיקה', '🎉 הושלמה'];
 
   const TAB_NAMES = {
     'delivery': 'משלוח 📦',
@@ -578,10 +604,13 @@
     return myName;
   }
 
-  window.switchList = function(listType, evt) {
+  function switchListTab(listType) {
     currentListType = listType;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (evt && evt.target) evt.target.classList.add('active');
+    
+    if (listType === 'delivery') document.getElementById('tabDeliveryBtn').classList.add('active');
+    if (listType === 'inPerson') document.getElementById('tabInPersonBtn').classList.add('active');
+    if (listType === 'fromIsrael') document.getElementById('tabFromIsraelBtn').classList.add('active');
 
     off(listRef);
     off(listStatusRef);
@@ -595,7 +624,11 @@
     }
 
     listenToFirebase();
-  };
+  }
+
+  document.getElementById('tabDeliveryBtn').addEventListener('click', () => switchListTab('delivery'));
+  document.getElementById('tabInPersonBtn').addEventListener('click', () => switchListTab('inPerson'));
+  document.getElementById('tabFromIsraelBtn').addEventListener('click', () => switchListTab('fromIsrael'));
 
   const categoriesContainer = document.getElementById('categoriesContainer');
   const myNameInput = document.getElementById('myName');
@@ -614,6 +647,13 @@
   const openModalBtn = document.getElementById('openModalBtn');
   const closeModalBtn = document.getElementById('closeModalBtn');
   const addModalForm = document.getElementById('addModalForm');
+
+  const openMoreMenuBtn = document.getElementById('openMoreMenuBtn');
+  const moreMenuModalOverlay = document.getElementById('moreMenuModalOverlay');
+  const closeMoreMenuModalBtn = document.getElementById('closeMoreMenuModalBtn');
+
+  const statusModalOverlay = document.getElementById('statusModalOverlay');
+  const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
 
   const exportLangModalOverlay = document.getElementById('exportLangModalOverlay');
   const closeLangModalBtn = document.getElementById('closeLangModalBtn');
@@ -640,13 +680,44 @@
   };
   closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
 
-  settingsBtn.onclick = () => settingsModalOverlay.classList.add('show');
+  openMoreMenuBtn.onclick = () => moreMenuModalOverlay.classList.add('show');
+  closeMoreMenuModalBtn.onclick = () => moreMenuModalOverlay.classList.remove('show');
+
+  statusTag.onclick = () => statusModalOverlay.classList.add('show');
+  closeStatusModalBtn.onclick = () => statusModalOverlay.classList.remove('show');
+
+  settingsBtn.onclick = () => {
+    moreMenuModalOverlay.classList.remove('show');
+    settingsModalOverlay.classList.add('show');
+  };
   closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
   closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
   closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
 
-  exportBtn.onclick = () => exportLangModalOverlay.classList.add('show');
+  exportBtn.onclick = () => {
+    moreMenuModalOverlay.classList.remove('show');
+    exportLangModalOverlay.classList.add('show');
+  };
   closeLangModalBtn.onclick = () => exportLangModalOverlay.classList.remove('show');
+
+  // בחירת סטטוס נוחה מתוך Modal
+  function setStatusAndSave(newStatus) {
+    listStatus = newStatus;
+    if (listStatus === '🔍 בדיקת המשלוח') {
+      isAuditMode = true;
+      auditToggleBtn.style.background = '#25D366';
+      showMissingSummaryBtn.style.display = 'block';
+    }
+    set(listStatusRef, listStatus);
+    statusModalOverlay.classList.remove('show');
+    showToast(`הסטטוס עודכן ל-${listStatus}`);
+  }
+
+  document.getElementById('statusSelectPrep').onclick = () => setStatusAndSave('📝 בהכנה');
+  document.getElementById('statusSelectReady').onclick = () => setStatusAndSave('✅ מוכנה');
+  document.getElementById('statusSelectOrdered').onclick = () => setStatusAndSave('🚚 הוזמנה / בקנייה');
+  document.getElementById('statusSelectAudit').onclick = () => setStatusAndSave('🔍 בדיקת המשלוח');
+  document.getElementById('statusSelectDone').onclick = () => setStatusAndSave('🎉 הושלמה');
 
   document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
     input.addEventListener('focus', () => {
@@ -669,20 +740,6 @@
     localStorage.setItem(NAME_KEY, val);
     if (val) document.getElementById('whoamiBox').classList.remove('highlight');
   });
-
-  window.changeListStatus = function() {
-    const currentIndex = STATUS_CYCLE.indexOf(listStatus);
-    const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
-    listStatus = STATUS_CYCLE[nextIndex];
-    
-    if (listStatus === '🔍 בבדיקה') {
-      isAuditMode = true;
-      auditToggleBtn.style.background = '#25D366';
-      showMissingSummaryBtn.style.display = 'block';
-    }
-
-    set(listStatusRef, listStatus);
-  };
 
   function updateProgressBar(keys) {
     const total = keys.length;
@@ -730,15 +787,20 @@
 
       const catHeader = document.createElement('div');
       catHeader.className = 'category-header';
-      catHeader.onclick = () => {
+      catHeader.addEventListener('click', () => {
         collapsedCategories[catName] = !collapsedCategories[catName];
         render();
-      };
-      
-      catHeader.innerHTML = `
-        <span>${catName}</span>
-        <span class="cat-count">${remainingInCat} שנשארו</span>
-      `;
+      });
+
+      const catTitleSpan = document.createElement('span');
+      catTitleSpan.textContent = catName;
+
+      const catCountSpan = document.createElement('span');
+      catCountSpan.className = 'cat-count';
+      catCountSpan.textContent = `${remainingInCat} שנשארו`;
+
+      catHeader.appendChild(catTitleSpan);
+      catHeader.appendChild(catCountSpan);
 
       const ul = document.createElement('ul');
       if (collapsedCategories[catName]) ul.classList.add('collapsed');
@@ -753,54 +815,143 @@
         const myPersonalQty = personalMap[myName] || 0;
         const isUserWanting = myName && myPersonalQty > 0;
         const isUserBuyer = myName && item.buyer === myName;
+
+        const baseQty = parseInt(item.qty) || 1;
         const totalQty = calculateTotalQty(item);
 
-        const wantingList = Object.keys(personalMap).filter(k => personalMap[k] > 0).map(k => `${k} (+${personalMap[k]})`);
+        const wantingCount = Object.keys(personalMap).filter(k => personalMap[k] > 0).length;
 
-        let auditTagHTML = '';
-        if (item.auditStatus) {
-          auditTagHTML = `<span class="item-audit-tag ${item.auditStatus}">${auditLabels[item.auditStatus]}</span>`;
+        const itemRow = document.createElement('div');
+        itemRow.className = 'item-row';
+
+        const checkDiv = document.createElement('div');
+        checkDiv.className = `check ${item.done ? 'done' : ''}`;
+        checkDiv.addEventListener('click', () => toggleItem(item.id, item.done));
+
+        const itemMain = document.createElement('div');
+        itemMain.className = 'item-main';
+
+        const itemText = document.createElement('span');
+        itemText.className = `item-text ${item.done ? 'done' : ''}`;
+        itemText.textContent = item.name;
+
+        const qtyBox = document.createElement('div');
+        qtyBox.className = 'qty-control-box';
+
+        const decBtn = document.createElement('button');
+        decBtn.className = 'qty-btn';
+        decBtn.textContent = '-';
+        decBtn.addEventListener('click', () => updateBaseQty(item.id, -1));
+
+        const qtyVal = document.createElement('span');
+        qtyVal.className = 'item-qty-val';
+        qtyVal.textContent = `${totalQty} ${item.unit || "יח'"}`;
+        qtyVal.title = `בסיס: ${baseQty}`;
+
+        const incBtn = document.createElement('button');
+        incBtn.className = 'qty-btn';
+        incBtn.textContent = '+';
+        incBtn.addEventListener('click', () => updateBaseQty(item.id, 1));
+
+        qtyBox.appendChild(decBtn);
+        qtyBox.appendChild(qtyVal);
+        qtyBox.appendChild(incBtn);
+
+        const subInfo = document.createElement('div');
+        subInfo.className = 'item-sub-info';
+
+        if (item.by) {
+          const bySpan = document.createElement('span');
+          bySpan.className = 'item-by';
+          bySpan.textContent = `הוסיף: ${item.by}`;
+          subInfo.appendChild(bySpan);
         }
 
-        li.innerHTML = `
-          <div class="item-row">
-            <div class="check ${item.done ? 'done' : ''}" onclick="toggleItem('${item.id}', ${item.done})"></div>
-            <div class="item-main">
-              <span class="item-text ${item.done ? 'done' : ''}">${item.name}</span>
-              
-              <div class="qty-control-box">
-                <button class="qty-btn" onclick="updateBaseQty('${item.id}', -1)">-</button>
-                <span class="item-qty-val">${totalQty} ${item.unit || "יח'"}</span>
-                <button class="qty-btn" onclick="updateBaseQty('${item.id}', 1)">+</button>
-              </div>
+        if (currentListType === 'inPerson' && item.buyer) {
+          const buyerSpan = document.createElement('span');
+          buyerSpan.className = 'item-buyer';
+          buyerSpan.textContent = `🛒 אחראי: ${item.buyer}`;
+          subInfo.appendChild(buyerSpan);
+        }
 
-              <div class="item-sub-info">
-                ${item.by ? `<span class="item-by">הוסיף: ${item.by}</span>` : ''}
-                ${(currentListType === 'inPerson' && item.buyer) ? `<span class="item-buyer">🛒 אחראי: ${item.buyer}</span>` : ''}
-                ${wantingList.length > 0 ? `<span class="item-wanting">🙋‍♂️ רוצים: ${wantingList.join(', ')}</span>` : ''}
-                ${auditTagHTML}
-              </div>
-            </div>
-            <div class="item-btn-actions">
-              <button class="want-btn ${isUserWanting ? 'active' : ''}" onclick="openPersonalQtyModal('${item.id}', ${JSON.stringify(personalMap).replace(/"/g, '&quot;')})">🙋‍♂️ ${isUserWanting ? `גם אני (+${myPersonalQty})` : 'גם אני'}</button>
-              ${currentListType === 'inPerson' ? `<button class="claim-btn ${isUserBuyer ? 'active' : ''}" onclick="toggleClaimItem('${item.id}', '${item.buyer}')">🛒 אני קונה</button>` : ''}
-            </div>
-            <button class="menu-btn" onclick="toggleMenu('menu-${item.id}', event)">⋮</button>
-            <div class="menu-dropdown" id="menu-${item.id}">
-              <button class="menu-item" onclick="togglePriority('${item.id}', ${item.isPriority})">${item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף'}</button>
-              <button class="menu-item" onclick="editItem('${item.id}', '${item.name}', '${item.qty}')">✏️ ערוך</button>
-              <button class="menu-item danger" onclick="deleteItem('${item.id}')">✕ מחק</button>
-            </div>
-          </div>
-          ${isAuditMode ? `
-            <div class="audit-controls">
-              <button class="audit-status-btn ${item.auditStatus === 'received' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'received')">${auditLabels.received}</button>
-              <button class="audit-status-btn ${item.auditStatus === 'partial' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'partial')">${auditLabels.partial}</button>
-              <button class="audit-status-btn ${item.auditStatus === 'replaced' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'replaced')">${auditLabels.replaced}</button>
-              <button class="audit-status-btn ${item.auditStatus === 'missing' ? 'active' : ''}" onclick="setAuditStatus('${item.id}', 'missing')">${auditLabels.missing}</button>
-            </div>
-          ` : ''}
-        `;
+        if (item.auditStatus) {
+          const auditSpan = document.createElement('span');
+          auditSpan.className = `item-audit-tag ${item.auditStatus}`;
+          auditSpan.textContent = auditLabels[item.auditStatus];
+          subInfo.appendChild(auditSpan);
+        }
+
+        itemMain.appendChild(itemText);
+        itemMain.appendChild(qtyBox);
+        itemMain.appendChild(subInfo);
+
+        const btnActions = document.createElement('div');
+        btnActions.className = 'item-btn-actions';
+
+        const wantBtn = document.createElement('button');
+        wantBtn.className = `want-btn ${isUserWanting ? 'active' : ''}`;
+        wantBtn.textContent = wantingCount > 0 ? `🙋‍♂️ ${wantingCount} רוצים` : '🙋‍♂️ גם אני';
+        wantBtn.addEventListener('click', () => openPersonalQtyModal(item.id, personalMap));
+        btnActions.appendChild(wantBtn);
+
+        if (currentListType === 'inPerson') {
+          const claimBtn = document.createElement('button');
+          claimBtn.className = `claim-btn ${isUserBuyer ? 'active' : ''}`;
+          claimBtn.textContent = '🛒 אני קונה';
+          claimBtn.addEventListener('click', () => toggleClaimItem(item.id, item.buyer));
+          btnActions.appendChild(claimBtn);
+        }
+
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'menu-btn';
+        menuBtn.textContent = '⋮';
+        menuBtn.addEventListener('click', (e) => toggleMenu(`menu-${item.id}`, e));
+
+        const menuDropdown = document.createElement('div');
+        menuDropdown.className = 'menu-dropdown';
+        menuDropdown.id = `menu-${item.id}`;
+
+        const priorityBtn = document.createElement('button');
+        priorityBtn.className = 'menu-item';
+        priorityBtn.textContent = item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף';
+        priorityBtn.addEventListener('click', () => togglePriority(item.id, item.isPriority));
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'menu-item';
+        editBtn.textContent = '✏️ ערוך';
+        editBtn.addEventListener('click', () => editItem(item.id, item.name, item.qty));
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'menu-item danger';
+        delBtn.textContent = '✕ מחק';
+        delBtn.addEventListener('click', () => deleteItem(item.id));
+
+        menuDropdown.appendChild(priorityBtn);
+        menuDropdown.appendChild(editBtn);
+        menuDropdown.appendChild(delBtn);
+
+        itemRow.appendChild(checkDiv);
+        itemRow.appendChild(itemMain);
+        itemRow.appendChild(btnActions);
+        itemRow.appendChild(menuBtn);
+        itemRow.appendChild(menuDropdown);
+
+        li.appendChild(itemRow);
+
+        if (isAuditMode) {
+          const auditDiv = document.createElement('div');
+          auditDiv.className = 'audit-controls';
+
+          ['received', 'partial', 'replaced', 'missing'].forEach(st => {
+            const btn = document.createElement('button');
+            btn.className = `audit-status-btn ${item.auditStatus === st ? 'active' : ''}`;
+            btn.textContent = auditLabels[st];
+            btn.addEventListener('click', () => setAuditStatus(item.id, st));
+            auditDiv.appendChild(btn);
+          });
+
+          li.appendChild(auditDiv);
+        }
 
         ul.appendChild(li);
       });
@@ -824,7 +975,7 @@
 
   listenToFirebase();
 
-  window.updateBaseQty = function(id, delta) {
+  function updateBaseQty(id, delta) {
     if (!itemsMap[id]) return;
     saveUndoBackup(id);
     const currentBaseQty = parseInt(itemsMap[id].qty) || 1;
@@ -838,8 +989,8 @@
     }
 
     update(ref(db, `lists/${currentListType}/${id}`), { qty: newBaseQty.toString() });
-    showToast(`הכמות עודכנה ל-${newBaseQty + (calculateTotalQty(itemsMap[id]) - currentBaseQty)}`, true);
-  };
+    showToast('הכמות עודכנה בהצלחה', true);
+  }
 
   addModalForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -898,7 +1049,7 @@
     modalOverlay.classList.remove('show');
   });
 
-  window.openPersonalQtyModal = function(id, personalMap) {
+  function openPersonalQtyModal(id, personalMap) {
     const user = requireUserName();
     if (!user) return;
 
@@ -909,7 +1060,7 @@
     personalQtyDisplay.textContent = tempPersonalQty;
     document.getElementById('personalModalTitle').textContent = `🙋‍♂️ כמות אישית עבור ${itemsMap[id].name}`;
     personalQtyModalOverlay.classList.add('show');
-  };
+  }
 
   incPersonalQtyBtn.onclick = () => {
     tempPersonalQty++;
@@ -953,46 +1104,67 @@
     showToast('הבקשה האישית הוסרה', true);
   };
 
-  window.toggleMenu = function(menuId, evt) {
+  function toggleMenu(menuId, evt) {
     if (evt) evt.stopPropagation();
     document.querySelectorAll('.menu-dropdown').forEach(el => {
       if (el.id !== menuId) el.classList.remove('show');
     });
-    document.getElementById(menuId).classList.toggle('show');
-  };
+    const menuEl = document.getElementById(menuId);
+    if (menuEl) menuEl.classList.toggle('show');
+  }
 
-  window.setAuditStatus = function(id, status) {
+  function setAuditStatus(id, status) {
+    // אם מסמנים "חלקי", מבקשים מהמשתמש את הכמות שהתקבלה בפועל
+    if (status === 'partial') {
+      const item = itemsMap[id];
+      const totalOrdered = calculateTotalQty(item);
+      const rec = prompt(`הוזמנו סך הכל ${totalOrdered} ${item.unit || "יח'"}.\n\nכמה יחידות התקבלו בפועל?`, "1");
+      
+      if (rec !== null) {
+        const receivedQty = parseInt(rec) || 0;
+        const missingQty = Math.max(0, totalOrdered - receivedQty);
+        
+        update(ref(db, `lists/${currentListType}/${id}`), {
+          auditStatus: 'partial',
+          partialReceivedQty: receivedQty,
+          partialMissingQty: missingQty
+        });
+        showToast(`עודכן: התקבלו ${receivedQty}, חסרים ${missingQty}`);
+      }
+      return;
+    }
+
     update(ref(db, `lists/${currentListType}/${id}`), { auditStatus: status });
-  };
+  }
 
-  window.toggleClaimItem = function(id, currentBuyer) {
+  function toggleClaimItem(id, currentBuyer) {
     const user = requireUserName();
     if (!user) return;
 
     const newBuyer = (currentBuyer === user) ? '' : user;
     update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
-  };
+  }
 
-  window.togglePriority = function(id, currentStatus) {
+  function togglePriority(id, currentStatus) {
     update(ref(db, `lists/${currentListType}/${id}`), { isPriority: !currentStatus });
-  };
+  }
 
-  window.editItem = function(id, currentName, currentQty) {
+  function editItem(id, currentName, currentQty) {
     const newName = prompt('שם המוצר:', currentName);
     if (!newName) return;
     const normalizedName = normalizeProductName(newName.trim());
     update(ref(db, `lists/${currentListType}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) });
-  };
+  }
 
-  window.toggleItem = function(id, currentStatus) {
+  function toggleItem(id, currentStatus) {
     update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
-  };
+  }
 
-  window.deleteItem = function(id) {
+  function deleteItem(id) {
     saveUndoBackup(id);
     remove(ref(db, `lists/${currentListType}/${id}`));
     showToast('הפריט נמחק', true);
-  };
+  }
 
   showMissingSummaryBtn.onclick = () => {
     const keys = Object.keys(itemsMap);
@@ -1006,17 +1178,22 @@
     missingItemsList.innerHTML = '';
     missingItems.forEach(id => {
       const item = itemsMap[id];
-      const totalQty = calculateTotalQty(item);
+      let missingQty = calculateTotalQty(item);
+      if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
+        missingQty = item.partialMissingQty;
+      }
+
       const div = document.createElement('div');
       div.style.padding = '6px 0';
       div.style.borderBottom = '1px solid var(--line)';
-      div.innerHTML = `<strong>${item.name}</strong> - ${totalQty} ${item.unit || "יח'"} (${item.auditStatus === 'missing' ? 'חסר לחלוטין ❌' : 'חלקית ⚠️'})`;
+      div.textContent = `${item.name} - ${missingQty} ${item.unit || "יח'"} (${item.auditStatus === 'missing' ? 'חסר לחלוטין ❌' : 'חלקית ⚠️'})`;
       missingItemsList.appendChild(div);
     });
 
     missingModalOverlay.classList.add('show');
   };
 
+  // העברת חוסרים חכמה ללא כפילויות!
   transferMissingToInPersonBtn.onclick = () => {
     const user = requireUserName();
     if (!user) return;
@@ -1026,25 +1203,51 @@
 
     const inPersonRef = ref(db, `lists/inPerson`);
 
-    missingItems.forEach(id => {
-      const item = itemsMap[id];
-      const newItemRef = push(inPersonRef);
-      set(newItemRef, {
-        name: item.name,
-        qty: item.qty,
-        unit: item.unit || "יח'",
-        category: item.category || detectCategory(item.name),
-        by: `הועבר ממשלוח (${user})`,
-        buyer: '',
-        done: false,
-        isPriority: true,
-        auditStatus: '',
-        personalQtyMap: item.personalQtyMap || {}
-      });
-    });
+    // קריאה ראשונית של הרשימה בקנייה עצמית למניעת כפילויות
+    onValue(inPersonRef, (snapshot) => {
+      const inPersonItems = snapshot.val() || {};
+      let transferredCount = 0;
 
-    missingModalOverlay.classList.remove('show');
-    showToast(`${missingItems.length} פריטים הועברו לרשימת "בקנייה עצמית"! 🛒`);
+      missingItems.forEach(id => {
+        const item = itemsMap[id];
+        let missingQty = calculateTotalQty(item);
+        if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
+          missingQty = item.partialMissingQty;
+        }
+
+        if (missingQty <= 0) return;
+
+        // בדיקה מראש אם המוצר כבר קיים בקנייה עצמית
+        const existingKey = Object.keys(inPersonItems).find(k => {
+          return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
+        });
+
+        if (existingKey) {
+          const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
+          update(ref(db, `lists/inPerson/${existingKey}`), {
+            qty: (currentQty + missingQty).toString()
+          });
+        } else {
+          const newItemRef = push(inPersonRef);
+          set(newItemRef, {
+            name: item.name,
+            qty: missingQty.toString(),
+            unit: item.unit || "יח'",
+            category: item.category || detectCategory(item.name),
+            by: `הועבר ממשלוח (${user})`,
+            buyer: '',
+            done: false,
+            isPriority: true,
+            auditStatus: '',
+            personalQtyMap: {}
+          });
+        }
+        transferredCount++;
+      });
+
+      missingModalOverlay.classList.remove('show');
+      showToast(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`);
+    }, { onlyOnce: true });
   };
 
   clearCurrentListBtn.addEventListener('click', () => {
@@ -1069,17 +1272,22 @@
 
   filterBtn.addEventListener('click', () => {
     hideDoneItems = !hideDoneItems;
-    filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שנרכשו';
+    filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שהושלמו';
     render();
   });
 
   auditToggleBtn.addEventListener('click', () => {
+    moreMenuModalOverlay.classList.remove('show');
     isAuditMode = !isAuditMode;
     auditToggleBtn.style.background = isAuditMode ? '#25D366' : 'var(--sea-deep)';
     render();
   });
 
-  window.executeExport = function(lang) {
+  document.getElementById('exportHebrewBtn').onclick = () => executeExport('he');
+  document.getElementById('exportEnglishBtn').onclick = () => executeExport('en');
+  document.getElementById('exportGreekBtn').onclick = () => executeExport('el');
+
+  function executeExport(lang) {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
       showToast('הרשימה ריקה!');
@@ -1132,7 +1340,7 @@
       exportLangModalOverlay.classList.remove('show');
       showToast(lang === 'he' ? 'הרשימה הועתקה ללוח בעברית! 📋' : (lang === 'en' ? 'List copied in English! 🇬🇧' : 'Η λίστα αντιγράφηκε στα Ελληνικά! 🇬🇷'));
     });
-  };
+  }
 </script>
 </body>
 </html>
