@@ -408,7 +408,7 @@
   </div>
 </div>
 
-<!-- Modal תצוגה מקדימה ואישור העתקה לסופר (כולל כפתור חזור לבחירת שפה נוספת) -->
+<!-- Modal תצוגה מקדימה ואישור העתקה לסופר -->
 <div class="modal-overlay" id="exportPreviewModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -499,6 +499,17 @@
   let activePersonalItemId = null;
   let activePersonalMap = {};
   let tempPersonalQty = 1;
+
+  // פונקציית רטט קצרה (Haptic Feedback) לניידים
+  function triggerHapticFeedback(duration = 18) {
+    if (navigator.vibrate) {
+      try {
+        navigator.vibrate(duration);
+      } catch (e) {
+        // מתעלם במידה והדפדפן חוסם
+      }
+    }
+  }
 
   const TAB_NAMES = {
     'delivery': 'משלוח 📦',
@@ -637,6 +648,7 @@
   }
 
   function switchListTab(listType) {
+    triggerHapticFeedback(12);
     currentListType = listType;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
@@ -756,8 +768,6 @@
   };
 
   closeExportPreviewModalBtn.onclick = () => exportPreviewModalOverlay.classList.remove('show');
-  
-  // חזרה נוחה מחלונית התצוגה המקדימה לבחירת שפה אחרת
   backToLangFromPreviewBtn.onclick = () => {
     exportPreviewModalOverlay.classList.remove('show');
     exportLangModalOverlay.classList.add('show');
@@ -1048,6 +1058,7 @@
 
   function updateBaseQty(id, delta) {
     if (!itemsMap[id]) return;
+    triggerHapticFeedback(15);
     saveUndoBackup(id);
     const currentBaseQty = parseInt(itemsMap[id].qty) || 1;
     const newBaseQty = currentBaseQty + delta;
@@ -1124,6 +1135,7 @@
     const user = requireUserName();
     if (!user) return;
 
+    triggerHapticFeedback(15);
     activePersonalItemId = id;
     activePersonalMap = { ...(personalMap || {}) };
     tempPersonalQty = activePersonalMap[user] || 1;
@@ -1134,12 +1146,14 @@
   }
 
   incPersonalQtyBtn.onclick = () => {
+    triggerHapticFeedback(10);
     tempPersonalQty++;
     personalQtyDisplay.textContent = tempPersonalQty;
   };
 
   decPersonalQtyBtn.onclick = () => {
     if (tempPersonalQty > 1) {
+      triggerHapticFeedback(10);
       tempPersonalQty--;
       personalQtyDisplay.textContent = tempPersonalQty;
     }
@@ -1149,6 +1163,7 @@
     const user = requireUserName();
     if (!user || !activePersonalItemId) return;
 
+    triggerHapticFeedback(20);
     saveUndoBackup(activePersonalItemId);
     activePersonalMap[user] = tempPersonalQty;
 
@@ -1185,6 +1200,7 @@
   }
 
   function setAuditStatus(id, status) {
+    triggerHapticFeedback(15);
     if (status === 'partial') {
       const item = itemsMap[id];
       const totalOrdered = calculateTotalQty(item);
@@ -1211,6 +1227,7 @@
     const user = requireUserName();
     if (!user) return;
 
+    triggerHapticFeedback(15);
     const newBuyer = (currentBuyer === user) ? '' : user;
     update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
   }
@@ -1227,6 +1244,7 @@
   }
 
   function toggleItem(id, currentStatus) {
+    triggerHapticFeedback(25); // רטט קל בסימון V
     update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
   }
 
@@ -1427,6 +1445,7 @@
   }
 
   confirmCopyExportBtn.onclick = () => {
+    triggerHapticFeedback(20);
     const textToCopy = exportPreviewTextarea.value;
     navigator.clipboard.writeText(textToCopy).then(() => {
       exportPreviewModalOverlay.classList.remove('show');
