@@ -135,6 +135,7 @@
       transition: all 0.15s ease;
       cursor: pointer;
       user-select: none;
+      -webkit-tap-highlight-color: transparent; /* מעלים את ההבהוב האפור בלחיצה בנייד */
     }
 
     .btn svg {
@@ -180,7 +181,7 @@
     }
     .btn-splitwise:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.2);
+      box-shadow: 0 4px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.2);
     }
     .btn-splitwise:active {
       transform: translateY(3px);
@@ -235,6 +236,7 @@
   </div>
 
   <script>
+    // --- 1. מנגנון השעון / הספירה לאחור ---
     const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
@@ -266,6 +268,15 @@
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    // --- 2. מנגנון רטט (Haptic Feedback) בלחיצה ---
+    document.querySelectorAll('.btn').forEach(button => {
+      button.addEventListener('click', () => {
+        if ('vibrate' in navigator) {
+          navigator.vibrate(15); // רטט עדין של 15 מילי-שניות
+        }
+      });
+    });
   </script>
 
 </body>
