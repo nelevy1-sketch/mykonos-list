@@ -408,11 +408,11 @@
   </div>
 </div>
 
-<!-- Modal תצוגה מקדימה ואישור העתקה לסופר -->
+<!-- Modal תצוגה מקדימה ואישור העתקה לסופר (כולל כפתור חזור לבחירת שפה נוספת) -->
 <div class="modal-overlay" id="exportPreviewModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
-      <button class="back-btn" id="backToLangFromPreviewBtn">← חזור</button>
+      <button class="back-btn" id="backToLangFromPreviewBtn">← חזור לשפות</button>
       <h3 style="margin:0;">📋 תצוגה מקדימה לסופר</h3>
       <button class="close-modal" id="closeExportPreviewModalBtn">✕</button>
     </div>
@@ -559,7 +559,7 @@
   const SYNONYMS_MAP = {
     'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
     'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
-    'מים מינרלים': ['מים', 'בקבוק ממים', 'שישיית ממים', 'שישית מים'],
+    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
     'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
     'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
     'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
@@ -756,6 +756,8 @@
   };
 
   closeExportPreviewModalBtn.onclick = () => exportPreviewModalOverlay.classList.remove('show');
+  
+  // חזרה נוחה מחלונית התצוגה המקדימה לבחירת שפה אחרת
   backToLangFromPreviewBtn.onclick = () => {
     exportPreviewModalOverlay.classList.remove('show');
     exportLangModalOverlay.classList.add('show');
@@ -1357,7 +1359,6 @@
   document.getElementById('exportEnglishBtn').onclick = () => generateExportText('en');
   document.getElementById('exportGreekBtn').onclick = () => generateExportText('el');
 
-  // ייצוא עם תצוגה מקדימה ודיווח על מוצרים שלא תורגמו
   function generateExportText(lang) {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
