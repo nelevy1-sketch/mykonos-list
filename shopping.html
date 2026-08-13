@@ -101,7 +101,6 @@
   .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
   .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; min-width:0; }
 
-  /* סרגל פעולות */
   .main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .open-modal-btn {
     flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
@@ -232,7 +231,7 @@
   .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
   .form-row { display: flex; gap: 8px; }
 
-  select, input[type="text"], input[type="number"] {
+  select, input[type="text"], input[type="number"], textarea {
     padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
     font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); width: 100%; box-sizing: border-box;
   }
@@ -255,6 +254,15 @@
 
   .back-btn {
     background: transparent; border: none; font-size: 13px; font-weight: 700; color: var(--sea); cursor: pointer; padding: 4px 8px;
+  }
+
+  .preview-textarea {
+    width: 100%; height: 160px; font-family: inherit; font-size: 13px; line-height: 1.4;
+    border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; resize: none; background: var(--whitewash); margin-bottom: 8px;
+  }
+
+  .untranslated-warning {
+    background: #fffdf5; border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #8a6200; margin-bottom: 10px;
   }
 </style>
 </head>
@@ -294,7 +302,7 @@
     <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
   </div>
 
-  <!-- סרגל פעולות נקי -->
+  <!-- סרגל פעולות -->
   <div class="main-actions-row">
     <button class="open-modal-btn" id="openModalBtn">➕ הוסף פריט</button>
     <button class="filter-btn" id="filterBtn">👁️ הסתר שהושלמו</button>
@@ -384,7 +392,7 @@
   </div>
 </div>
 
-<!-- Modal בחירת שפה לייצוא לסופר (כולל כפתור חזור) -->
+<!-- Modal בחירת שפה לייצוא לסופר -->
 <div class="modal-overlay" id="exportLangModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -397,6 +405,20 @@
       <button class="more-menu-item" id="exportEnglishBtn">🇬🇧 אנגלית (English)</button>
       <button class="more-menu-item" id="exportGreekBtn">🇬🇷 יוונית (Greek - Ελληνικά)</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal תצוגה מקדימה ואישור העתקה לסופר -->
+<div class="modal-overlay" id="exportPreviewModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <button class="back-btn" id="backToLangFromPreviewBtn">← חזור</button>
+      <h3 style="margin:0;">📋 תצוגה מקדימה לסופר</h3>
+      <button class="close-modal" id="closeExportPreviewModalBtn">✕</button>
+    </div>
+    <div id="untranslatedWarning" class="untranslated-warning" style="display:none;"></div>
+    <textarea id="exportPreviewTextarea" class="preview-textarea" readonly></textarea>
+    <button id="confirmCopyExportBtn" class="submit-modal-btn" style="background: var(--wa-green);">📋 העתק טקסט לוואטסאפ / ללוח</button>
   </div>
 </div>
 
@@ -430,7 +452,7 @@
   </div>
 </div>
 
-<!-- Modal ניהול (כולל כפתור חזור) -->
+<!-- Modal ניהול -->
 <div class="modal-overlay" id="settingsModalOverlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -537,7 +559,7 @@
   const SYNONYMS_MAP = {
     'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
     'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
-    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
+    'מים מינרלים': ['מים', 'בקבוק ממים', 'שישיית ממים', 'שישית מים'],
     'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
     'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
     'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
@@ -669,6 +691,13 @@
   const closeLangModalBtn = document.getElementById('closeLangModalBtn');
   const backToMoreFromLangBtn = document.getElementById('backToMoreFromLangBtn');
 
+  const exportPreviewModalOverlay = document.getElementById('exportPreviewModalOverlay');
+  const closeExportPreviewModalBtn = document.getElementById('closeExportPreviewModalBtn');
+  const backToLangFromPreviewBtn = document.getElementById('backToLangFromPreviewBtn');
+  const exportPreviewTextarea = document.getElementById('exportPreviewTextarea');
+  const confirmCopyExportBtn = document.getElementById('confirmCopyExportBtn');
+  const untranslatedWarning = document.getElementById('untranslatedWarning');
+
   const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
   const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
   const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
@@ -724,6 +753,12 @@
   backToMoreFromLangBtn.onclick = () => {
     exportLangModalOverlay.classList.remove('show');
     moreMenuModalOverlay.classList.add('show');
+  };
+
+  closeExportPreviewModalBtn.onclick = () => exportPreviewModalOverlay.classList.remove('show');
+  backToLangFromPreviewBtn.onclick = () => {
+    exportPreviewModalOverlay.classList.remove('show');
+    exportLangModalOverlay.classList.add('show');
   };
 
   function updateAuditMenuBtnUI() {
@@ -1306,7 +1341,6 @@
     render();
   });
 
-  // הפעלה וכיבוי חכם של מצב בדיקה (Toggle)
   auditToggleBtn.addEventListener('click', () => {
     isAuditMode = !isAuditMode;
     moreMenuModalOverlay.classList.remove('show');
@@ -1319,11 +1353,12 @@
     render();
   });
 
-  document.getElementById('exportHebrewBtn').onclick = () => executeExport('he');
-  document.getElementById('exportEnglishBtn').onclick = () => executeExport('en');
-  document.getElementById('exportGreekBtn').onclick = () => executeExport('el');
+  document.getElementById('exportHebrewBtn').onclick = () => generateExportText('he');
+  document.getElementById('exportEnglishBtn').onclick = () => generateExportText('en');
+  document.getElementById('exportGreekBtn').onclick = () => generateExportText('el');
 
-  function executeExport(lang) {
+  // ייצוא עם תצוגה מקדימה ודיווח על מוצרים שלא תורגמו
+  function generateExportText(lang) {
     const keys = Object.keys(itemsMap);
     if (keys.length === 0) {
       showToast('הרשימה ריקה!');
@@ -1332,6 +1367,8 @@
     }
 
     const grouped = {};
+    const untranslatedItems = [];
+
     keys.forEach(id => {
       const item = itemsMap[id];
       const cat = item.category || detectCategory(item.name);
@@ -1339,11 +1376,11 @@
       grouped[cat].push(item);
     });
 
-    let headerTitle = '🛒 *רשימת קניות למיקונוס*';
-    if (lang === 'en') headerTitle = '🛒 *Mykonos Shopping List*';
-    if (lang === 'el') headerTitle = '🛒 *Λίστα Ψωνίων Μύκονος*';
+    let greetingMsg = 'שלום, אנו מעוניינים להזמין את המוצרים הבאים:';
+    if (lang === 'en') greetingMsg = 'Hello, we would like to order the following items:';
+    if (lang === 'el') greetingMsg = 'Γεια σας, θα θέλαμε να παραγγείλουμε τα ακόλουθα προϊόντα:';
 
-    let text = `${headerTitle} (${listStatus})\n\n`;
+    let text = `${greetingMsg}\n\n`;
 
     Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
       let catTitle = cat;
@@ -1360,7 +1397,10 @@
         if (lang !== 'he') {
           if (TRANSLATION_DICTIONARY.items[i.name]) {
             itemName = TRANSLATION_DICTIONARY.items[i.name][lang] || i.name;
+          } else {
+            untranslatedItems.push(i.name);
           }
+
           if (TRANSLATION_DICTIONARY.units[unitName]) {
             unitName = TRANSLATION_DICTIONARY.units[unitName][lang] || unitName;
           }
@@ -1372,11 +1412,26 @@
       text += `\n`;
     });
 
-    navigator.clipboard.writeText(text).then(() => {
-      exportLangModalOverlay.classList.remove('show');
-      showToast(lang === 'he' ? 'הרשימה הועתקה ללוח בעברית! 📋' : (lang === 'en' ? 'List copied in English! 🇬🇧' : 'Η λίστα αντιγράφηκε στα Ελληνικά! 🇬🇷'));
-    });
+    exportPreviewTextarea.value = text.trim();
+
+    if (lang !== 'he' && untranslatedItems.length > 0) {
+      untranslatedWarning.style.display = 'block';
+      untranslatedWarning.textContent = `⚠️ ${untranslatedItems.length} מוצרים לא תורגמו ונשארו בשמם המקורי: ${untranslatedItems.join(', ')}`;
+    } else {
+      untranslatedWarning.style.display = 'none';
+    }
+
+    exportLangModalOverlay.classList.remove('show');
+    exportPreviewModalOverlay.classList.add('show');
   }
+
+  confirmCopyExportBtn.onclick = () => {
+    const textToCopy = exportPreviewTextarea.value;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      exportPreviewModalOverlay.classList.remove('show');
+      showToast('הטקסט הועתק בהצלחה! תוכל להדביק אותו בוואטסאפ 📋');
+    });
+  };
 </script>
 </body>
 </html>
