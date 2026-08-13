@@ -237,7 +237,6 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0; flex-wrap: wrap; gap: 4px;">
           <h3 style="font-size: 1rem;">הציוד שלי</h3>
           
-          <!-- כפתורי שיתוף/הסתרה גורפת -->
           <div style="display: flex; gap: 4px;">
             <button id="bulkPublicBtn" class="btn-sm btn-secondary" title="הפוך את כל הפריטים לציבוריים">🌐 שתף הכל</button>
             <button id="bulkPrivateBtn" class="btn-sm btn-secondary" title="הפוך את כל הפריטים לפרטיים">🔒 הסתר הכל</button>
@@ -295,6 +294,9 @@
     let selectedFriend = "all";
     let wasAllDoneBefore = false;
     let isSubmitting = false;
+    let autoSubmitTimeout = null;
+    let unsubscribeMyItems = null;
+    let unsubscribeFriendsItems = null;
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -519,34 +521,39 @@
 
     loginBtn.addEventListener("click", handleLogin);
 
-    function checkAutoSubmit() {
-      const name = userNameInput.value.trim();
-      const pin = userPinInput.value.trim();
-      if (name && pin.length === 4 && !isSubmitting) {
-        handleLogin();
-      }
+    // מנגנון השהייה (Debounce) למניעת Race Conditions במילוי אוטומטי
+    function triggerAutoSubmitWithDelay() {
+      if (autoSubmitTimeout) clearTimeout(autoSubmitTimeout);
+      autoSubmitTimeout = setTimeout(() => {
+        const name = userNameInput.value.trim();
+        const pin = userPinInput.value.trim();
+        if (name && pin.length === 4 && !isSubmitting) {
+          handleLogin();
+        }
+      }, 300);
     }
 
     userNameInput.addEventListener("input", () => {
       userNameInput.classList.remove("error");
-      checkAutoSubmit();
+      triggerAutoSubmitWithDelay();
     });
     userPinInput.addEventListener("input", () => {
       userPinInput.classList.remove("error");
-      checkAutoSubmit();
+      triggerAutoSubmitWithDelay();
     });
 
-    userNameInput.addEventListener("change", checkAutoSubmit);
-    userPinInput.addEventListener("change", checkAutoSubmit);
+    userNameInput.addEventListener("change", triggerAutoSubmitWithDelay);
+    userPinInput.addEventListener("change", triggerAutoSubmitWithDelay);
 
-    setTimeout(checkAutoSubmit, 500);
-    setTimeout(checkAutoSubmit, 1200);
+    setTimeout(triggerAutoSubmitWithDelay, 600);
 
     userPinInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") handleLogin();
     });
 
     logoutBtn.addEventListener("click", () => {
+      if (unsubscribeMyItems) unsubscribeMyItems();
+      if (unsubscribeFriendsItems) unsubscribeFriendsItems();
       localStorage.removeItem("packing_app_user");
       localStorage.removeItem("packing_app_expiry");
       location.reload();
@@ -618,10 +625,14 @@
     });
 
     function loadMyItems() {
+      if (unsubscribeMyItems) unsubscribeMyItems();
+
       const q = query(itemsRef, where("owner", "==", currentUser));
-      onSnapshot(q, (snapshot) => {
+      
+      unsubscribeMyItems = onSnapshot(q, (snapshot) => {
         myItemsList.innerHTML = "";
         myItems = [];
+        
         if (snapshot.empty) {
           myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>הרשימה שלך ריקה עדיין.</p>";
           progressText.textContent = "";
@@ -659,6 +670,10 @@
         }
 
         myItems.forEach(renderMyItem);
+      }, (err) => {
+        console.error("Firestore myItems snapshot error:", err);
+        // טעינה חוזרת בעת תקלה ברשת
+        setTimeout(loadMyItems, 2000);
       });
     }
 
@@ -684,7 +699,9 @@
     }
 
     function loadFriendsItems() {
-      onSnapshot(itemsRef, (snapshot) => {
+      if (unsubscribeFriendsItems) unsubscribeFriendsItems();
+
+      unsubscribeFriendsItems = onSnapshot(itemsRef, (snapshot) => {
         friendsItemsList.innerHTML = "";
         friendsTabsContainer.innerHTML = "";
         
@@ -771,10 +788,12 @@
 
           friendsItemsList.appendChild(sec);
         });
+      }, (err) => {
+        console.error("Firestore friendsItems snapshot error:", err);
+        setTimeout(loadFriendsItems, 2000);
       });
     }
 
-    // הפיכת כל הפריטים לציבוריים
     bulkPublicBtn.addEventListener("click", async () => {
       if (myItems.length === 0) return;
       if (confirm("האם להפוך את כל הפריטים ברשימה שלך לציבוריים? (חברים יוכלו לראות ולייבא אותם)")) {
@@ -787,7 +806,6 @@
       }
     });
 
-    // הפיכת כל הפריטים לפרטיים
     bulkPrivateBtn.addEventListener("click", async () => {
       if (myItems.length === 0) return;
       if (confirm("האם להפוך את כל הפריטים ברשימה שלך לפרטיים? (חברים לא יוכלו לראות אותם)")) {
