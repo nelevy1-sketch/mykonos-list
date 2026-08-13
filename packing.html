@@ -40,10 +40,9 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden; /* מונע גלילה של כל הדף */
+      overflow: hidden;
     }
 
-    /* כותרת ראשית קבועה */
     .app-header {
       flex-shrink: 0;
       text-align: center;
@@ -85,7 +84,6 @@
     .name-chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .name-chip { width: auto; padding: 5px 12px; border-radius: 16px; background: #dbeafe; color: #1e40af; font-size: 0.85rem; border: none; margin: 0; font-weight: 500; }
 
-    /* מבנה ראשי קבוע מבוסס Flexbox */
     #appContent {
       display: flex;
       flex-direction: column;
@@ -100,18 +98,17 @@
       overflow: hidden;
     }
 
-    /* חלקים קבועים עליונים */
     .sticky-top-section {
       flex-shrink: 0;
     }
 
-    /* אזור נגלל של הרשימה */
     .scrollable-list-card {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       margin-bottom: 0;
+      position: relative;
     }
 
     .scrollable-items-container {
@@ -120,6 +117,7 @@
       padding-left: 4px;
       padding-right: 4px;
       -webkit-overflow-scrolling: touch;
+      position: relative;
     }
 
     .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 12px; }
@@ -157,8 +155,23 @@
     .btn-import { background: var(--success); }
 
     .hidden { display: none !important; }
-    .friend-section { margin-bottom: 20px; }
-    .friend-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; color: #334155; border-bottom: 2px solid var(--primary); padding-bottom: 4px; }
+    .friend-section { margin-bottom: 24px; position: relative; }
+    
+    /* כותרת נצמדת בגלילה עבור רשימות חברים */
+    .friend-title {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      font-weight: bold;
+      font-size: 1.05rem;
+      color: var(--primary);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(4px);
+      padding: 8px 4px;
+      margin-bottom: 8px;
+      border-bottom: 2px solid var(--primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
     
     .progress-bar { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; text-align: center; font-weight: 500; }
 
@@ -236,7 +249,7 @@
   <!-- מסך ראשי -->
   <div id="appContent" class="hidden">
     
-    <!-- חלק עליון קבוע: ברכה + בלשוניות מעבר -->
+    <!-- חלק עליון קבוע -->
     <div class="sticky-top-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span style="font-size:0.9rem;"><span id="greetingText"></span>, <strong id="displayName"></strong>!</span>
@@ -252,7 +265,6 @@
     <!-- לשונית רשימה אישית -->
     <div id="myListTab" class="tab-content">
       
-      <!-- טופס הוספה קבוע בראש המסך -->
       <div class="card sticky-top-section" style="padding: 10px 14px; margin-bottom: 8px;">
         <div style="display:flex; gap:8px; align-items:center;">
           <input type="text" id="newItemName" list="presetItems" placeholder="הקלד פריט להוספה..." style="margin-top:0; flex:1;">
@@ -282,7 +294,6 @@
         <button id="addItemBtn" style="margin-top: 6px; padding: 8px;">הוסף לרשימה שלי</button>
       </div>
 
-      <!-- כרטיסיית הרשימה - רק התוכן שלה נגלל -->
       <div class="card scrollable-list-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
           <h3 style="font-size: 1rem;">הציוד שלי</h3>
@@ -295,7 +306,6 @@
 
         <div id="progressText" class="progress-bar flex-shrink-0"></div>
         
-        <!-- אזור גלילת הפריטים -->
         <div id="myItemsList" class="scrollable-items-container">טוען...</div>
       </div>
     </div>
@@ -309,7 +319,7 @@
           <div id="friendsTabsContainer" class="friends-tabs"></div>
         </div>
         
-        <!-- אזור גלילת רשימת החברים -->
+        <!-- אזור גלילה נפרד לכל כותרות החברים -->
         <div id="friendsItemsList" class="scrollable-items-container">טוען רשימות חברים...</div>
       </div>
     </div>
@@ -718,7 +728,9 @@
           const sec = document.createElement("div");
           sec.className = "friend-section";
           sec.innerHTML = `
-            <div class="friend-title">הרשימה של ${friend}</div>
+            <div class="friend-title">
+              <span>הרשימה של ${friend}</span>
+            </div>
             <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
           `;
 
