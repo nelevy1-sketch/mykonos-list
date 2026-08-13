@@ -100,9 +100,10 @@
     .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); background-color: #fef2f2; }
     .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
 
-    .btn-sm { width: auto; padding: 6px 10px; font-size: 0.8rem; margin: 0; }
+    .btn-sm { width: auto; padding: 5px 10px; font-size: 0.8rem; margin: 0; }
     .btn-danger { background: var(--danger); }
     .btn-import { background: var(--success); }
+    .btn-secondary { background: #e2e8f0; color: var(--text); }
 
     .hidden { display: none !important; }
     .friend-section { margin-bottom: 24px; position: relative; }
@@ -126,7 +127,6 @@
     }
     .private-notice p { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; }
 
-    /* Modal / חלונית קופצת לבקשת שיתוף */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6);
       display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 16px;
@@ -234,9 +234,15 @@
       </div>
 
       <div class="card scrollable-list-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0; flex-wrap: wrap; gap: 4px;">
           <h3 style="font-size: 1rem;">הציוד שלי</h3>
-          <button id="clearAllBtn" class="btn-sm btn-danger" style="display:none; padding: 2px 6px; font-size: 0.75rem;">מחק רשימה</button>
+          
+          <!-- כפתורי שיתוף/הסתרה גורפת -->
+          <div style="display: flex; gap: 4px;">
+            <button id="bulkPublicBtn" class="btn-sm btn-secondary" title="הפוך את כל הפריטים לציבוריים">🌐 שתף הכל</button>
+            <button id="bulkPrivateBtn" class="btn-sm btn-secondary" title="הפוך את כל הפריטים לפרטיים">🔒 הסתר הכל</button>
+            <button id="clearAllBtn" class="btn-sm btn-danger" style="display:none; padding: 2px 6px; font-size: 0.75rem;">מחק רשימה</button>
+          </div>
         </div>
 
         <div id="finishBanner" class="finish-banner hidden flex-shrink-0">
@@ -315,6 +321,8 @@
     const friendsItemsList = document.getElementById("friendsItemsList");
     const progressText = document.getElementById("progressText");
     const clearAllBtn = document.getElementById("clearAllBtn");
+    const bulkPublicBtn = document.getElementById("bulkPublicBtn");
+    const bulkPrivateBtn = document.getElementById("bulkPrivateBtn");
     const finishBanner = document.getElementById("finishBanner");
     const toast = document.getElementById("toast");
 
@@ -399,7 +407,6 @@
       return "לילה טוב";
     }
 
-    // בדיקת בקשות שיתוף שנשלחו אל המשתמש הנוכחי
     async function checkForShareRequests() {
       try {
         const q = query(requestsRef, where("targetUser", "==", currentUser), where("status", "==", "pending"));
@@ -413,19 +420,16 @@
           requestModalDesc.textContent = `החבר/ה (${requesterNames}) ביקשו שתשתף את הפריטים ברשימה שלך כדי שיוכלו לראות ולייבא אותם.`;
           requestModal.classList.remove("hidden");
 
-          // בלחיצה על "שתף הכל"
           shareAllBtn.onclick = async () => {
             shareAllBtn.disabled = true;
             shareAllBtn.textContent = "...מעדכן פריטים";
 
-            // 1. עדכון כל הפריטים האישיים ל-Public
             const myItemsQuery = query(itemsRef, where("owner", "==", currentUser));
             const myItemsSnap = await getDocs(myItemsQuery);
             for (const docSnap of myItemsSnap.docs) {
               await updateDoc(doc(db, "packing_items", docSnap.id), { isPublic: true });
             }
 
-            // 2. לסגור את הבקשות
             for (const docSnap of snapshot.docs) {
               await updateDoc(doc(db, "share_requests", docSnap.id), { status: "approved" });
             }
@@ -622,6 +626,8 @@
           myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>הרשימה שלך ריקה עדיין.</p>";
           progressText.textContent = "";
           clearAllBtn.style.display = "none";
+          bulkPublicBtn.style.display = "none";
+          bulkPrivateBtn.style.display = "none";
           finishBanner.classList.add("hidden");
           wasAllDoneBefore = false;
           return;
@@ -638,6 +644,8 @@
 
         progressText.textContent = `נארזו ${doneCount} מתוך ${myItems.length} פריטים (${Math.round((doneCount/myItems.length)*100)}%)`;
         clearAllBtn.style.display = "inline-block";
+        bulkPublicBtn.style.display = "inline-block";
+        bulkPrivateBtn.style.display = "inline-block";
 
         if (isAllDone) {
           finishBanner.classList.remove("hidden");
@@ -676,7 +684,6 @@
     }
 
     function loadFriendsItems() {
-      // 1. משוך את כל הפריטים (כדי לדעת איזה משתמשים קיימים ואיזה ציבוריים)
       onSnapshot(itemsRef, (snapshot) => {
         friendsItemsList.innerHTML = "";
         friendsTabsContainer.innerHTML = "";
@@ -751,7 +758,6 @@
               sec.appendChild(itemDiv);
             });
           } else {
-            // אם כל הפריטים של החבר פרטיים
             sec.innerHTML = `
               <div class="friend-title">
                 <span>הרשימה של ${friend}</span>
@@ -767,6 +773,32 @@
         });
       });
     }
+
+    // הפיכת כל הפריטים לציבוריים
+    bulkPublicBtn.addEventListener("click", async () => {
+      if (myItems.length === 0) return;
+      if (confirm("האם להפוך את כל הפריטים ברשימה שלך לציבוריים? (חברים יוכלו לראות ולייבא אותם)")) {
+        const q = query(itemsRef, where("owner", "==", currentUser));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(async (docSnap) => {
+          await updateDoc(doc(db, "packing_items", docSnap.id), { isPublic: true });
+        });
+        showToast("🌐 כל הפריטים שלך הפכו לציבוריים!");
+      }
+    });
+
+    // הפיכת כל הפריטים לפרטיים
+    bulkPrivateBtn.addEventListener("click", async () => {
+      if (myItems.length === 0) return;
+      if (confirm("האם להפוך את כל הפריטים ברשימה שלך לפרטיים? (חברים לא יוכלו לראות אותם)")) {
+        const q = query(itemsRef, where("owner", "==", currentUser));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(async (docSnap) => {
+          await updateDoc(doc(db, "packing_items", docSnap.id), { isPublic: false });
+        });
+        showToast("🔒 כל הפריטים שלך הפכו לפרטיים!");
+      }
+    });
 
     window.sendShareRequest = async (targetUser, btnElement) => {
       if (btnElement) {
