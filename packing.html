@@ -351,6 +351,7 @@
 
     let unsubscribeMyItems = null;
     let unsubscribeFriendsItems = null;
+    let cachedFriendsGrouped = {}; // זיכרון מטמון למניעת השהייה במעבר בין טאבים
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -382,7 +383,6 @@
 
     let myItems = [];
 
-    // דיווח אנונימי בלבד ל-Google Analytics (ללא שמות משתמש)
     function trackAnalyticsEvent(eventName) {
       if (typeof window.gtag === 'function') {
         window.gtag('event', eventName);
@@ -461,7 +461,6 @@
       trackAnalyticsEvent('login_auto');
     }
 
-    // סינון להכנסת ספרות בלבד ל-PIN בזמן אמת
     userPinInput.addEventListener("input", () => {
       userPinInput.value = userPinInput.value.replace(/\D/g, "").slice(0, 4);
       userPinInput.classList.remove("error");
@@ -484,7 +483,6 @@
         return;
       }
       
-      // ולידציית PIN קשיחה - 4 ספרות בלבד
       if (!/^\d{4}$/.test(pin)) {
         userPinInput.classList.add("error");
         showToast("נא להזין קוד PIN של 4 ספרות בלבד");
@@ -572,7 +570,7 @@
       displayName.textContent = currentUser;
       greetingText.textContent = getGreeting();
       loadMyItems();
-      loadFriendsItems();
+      initFriendsItemsListener();
     }
 
     myTabBtn.addEventListener("click", () => {
@@ -677,10 +675,10 @@
         }
 
         myItems.forEach(renderMyItem);
+        renderFriendsUI(); // רענון חיווי "קיים אצלך" בלשונית החברים
       });
     }
 
-    // יצירת DOM בטוח לחלוטין ללא innerHTML (מניעת XSS)
     function renderMyItem(item) {
       const div = document.createElement("div");
       div.className = `item ${item.isDone ? 'done' : ''}`;
@@ -726,100 +724,107 @@
       myItemsList.appendChild(div);
     }
 
-    function loadFriendsItems() {
-      if (unsubscribeFriendsItems) unsubscribeFriendsItems();
+    // מאזין קבוע אחד בלבד ל-Firestore ללא טעינות מחדש במעבר בין טאבים
+    function initFriendsItemsListener() {
+      if (unsubscribeFriendsItems) return;
 
       const q = query(itemsRef, where("isPublic", "==", true));
       unsubscribeFriendsItems = onSnapshot(q, (snapshot) => {
-        friendsItemsList.textContent = "";
-        friendsTabsContainer.textContent = "";
-        const grouped = {};
+        cachedFriendsGrouped = {};
 
         snapshot.forEach((docSnap) => {
           const item = { id: docSnap.id, ...docSnap.data() };
           if (item.owner !== currentUser) {
-            if (!grouped[item.owner]) grouped[item.owner] = [];
-            grouped[item.owner].push(item);
+            if (!cachedFriendsGrouped[item.owner]) cachedFriendsGrouped[item.owner] = [];
+            cachedFriendsGrouped[item.owner].push(item);
           }
         });
 
-        const friendNames = Object.keys(grouped);
+        renderFriendsUI();
+      });
+    }
 
-        if (friendNames.length === 0) {
-          const emptyP = document.createElement("p");
-          emptyP.style.cssText = "color:var(--gray); text-align:center; padding:20px 0;";
-          emptyP.textContent = "אין פריטים ציבוריים מחברים כרגע.";
-          friendsItemsList.appendChild(emptyP);
-          return;
-        }
+    // רינדור מהיר בזמן אמת מהזיכרון המקומי
+    function renderFriendsUI() {
+      friendsItemsList.textContent = "";
+      friendsTabsContainer.textContent = "";
 
-        const allBtn = document.createElement("button");
-        allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
-        allBtn.textContent = "הכל";
-        allBtn.onclick = () => { selectedFriend = 'all'; loadFriendsItems(); };
-        friendsTabsContainer.appendChild(allBtn);
+      const friendNames = Object.keys(cachedFriendsGrouped);
 
-        friendNames.forEach(friend => {
-          const btn = document.createElement("button");
-          btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
-          btn.textContent = friend;
-          btn.onclick = () => { selectedFriend = friend; loadFriendsItems(); };
-          friendsTabsContainer.appendChild(btn);
+      if (friendNames.length === 0) {
+        const emptyP = document.createElement("p");
+        emptyP.style.cssText = "color:var(--gray); text-align:center; padding:20px 0;";
+        emptyP.textContent = "אין פריטים ציבוריים מחברים כרגע.";
+        friendsItemsList.appendChild(emptyP);
+        return;
+      }
+
+      const allBtn = document.createElement("button");
+      allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
+      allBtn.textContent = "הכל";
+      allBtn.onclick = () => { selectedFriend = 'all'; renderFriendsUI(); };
+      friendsTabsContainer.appendChild(allBtn);
+
+      friendNames.forEach(friend => {
+        const btn = document.createElement("button");
+        btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
+        btn.textContent = friend;
+        btn.onclick = () => { selectedFriend = friend; renderFriendsUI(); };
+        friendsTabsContainer.appendChild(btn);
+      });
+
+      const displayGrouped = selectedFriend === "all" ? cachedFriendsGrouped : { [selectedFriend]: cachedFriendsGrouped[selectedFriend] || [] };
+
+      for (const [friend, items] of Object.entries(displayGrouped)) {
+        if (!items || items.length === 0) continue;
+
+        const sec = document.createElement("div");
+        sec.className = "friend-section";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "friend-title";
+        titleDiv.textContent = `הרשימה של ${friend}`;
+
+        const importAllBtn = document.createElement("button");
+        importAllBtn.className = "btn-sm btn-import";
+        importAllBtn.style.cssText = "margin-bottom:10px; width:100%;";
+        importAllBtn.textContent = `ייבא את כל הרשימה של ${friend}`;
+        importAllBtn.onclick = () => importAll(friend, importAllBtn);
+
+        sec.appendChild(titleDiv);
+        sec.appendChild(importAllBtn);
+
+        items.forEach(item => {
+          const normalizedFriendItem = normalizeText(item.name);
+          const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
+
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "item";
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "item-title";
+          nameSpan.textContent = item.name;
+
+          itemDiv.appendChild(nameSpan);
+
+          if (exactExists) {
+            const statusSpan = document.createElement("span");
+            statusSpan.style.cssText = "font-size:0.8rem; color:var(--gray);";
+            statusSpan.textContent = "קיים אצלך";
+            itemDiv.appendChild(statusSpan);
+          } else {
+            const importBtn = document.createElement("button");
+            importBtn.className = "btn-sm btn-import";
+            importBtn.textContent = "+ ייבא";
+            importBtn.onclick = () => importSingle(item.name, importBtn);
+            itemDiv.appendChild(importBtn);
+          }
+
+          sec.appendChild(itemDiv);
         });
 
-        const displayGrouped = selectedFriend === "all" ? grouped : { [selectedFriend]: grouped[selectedFriend] || [] };
-
-        for (const [friend, items] of Object.entries(displayGrouped)) {
-          if (!items || items.length === 0) continue;
-
-          const sec = document.createElement("div");
-          sec.className = "friend-section";
-
-          const titleDiv = document.createElement("div");
-          titleDiv.className = "friend-title";
-          titleDiv.textContent = `הרשימה של ${friend}`;
-
-          const importAllBtn = document.createElement("button");
-          importAllBtn.className = "btn-sm btn-import";
-          importAllBtn.style.cssText = "margin-bottom:10px; width:100%;";
-          importAllBtn.textContent = `ייבא את כל הרשימה של ${friend}`;
-          importAllBtn.onclick = () => importAll(friend, importAllBtn);
-
-          sec.appendChild(titleDiv);
-          sec.appendChild(importAllBtn);
-
-          items.forEach(item => {
-            const normalizedFriendItem = normalizeText(item.name);
-            const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
-
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "item";
-
-            const nameSpan = document.createElement("span");
-            nameSpan.className = "item-title";
-            nameSpan.textContent = item.name;
-
-            itemDiv.appendChild(nameSpan);
-
-            if (exactExists) {
-              const statusSpan = document.createElement("span");
-              statusSpan.style.cssText = "font-size:0.8rem; color:var(--gray);";
-              statusSpan.textContent = "קיים אצלך";
-              itemDiv.appendChild(statusSpan);
-            } else {
-              const importBtn = document.createElement("button");
-              importBtn.className = "btn-sm btn-import";
-              importBtn.textContent = "+ ייבא";
-              importBtn.onclick = () => importSingle(item.name, importBtn);
-              itemDiv.appendChild(importBtn);
-            }
-
-            sec.appendChild(itemDiv);
-          });
-
-          friendsItemsList.appendChild(sec);
-        }
-      });
+        friendsItemsList.appendChild(sec);
+      }
     }
 
     window.toggleDone = async (id, isDone) => {
@@ -852,7 +857,6 @@
       }
     };
 
-    // מחיקת כל הרשימה ב-writeBatch אחד ויחיד
     clearAllBtn.addEventListener("click", async () => {
       if (confirm("האם אתה בטוח שברצונך למחוק את כל הרשימה שלך?")) {
         const q = query(itemsRef, where("owner", "==", currentUser));
@@ -869,7 +873,6 @@
       }
     });
 
-    // ייבוא פריט בודד כולל בדיקה כפולה בזמן אמת
     window.importSingle = async (itemName, btnElement) => {
       const normalizedInput = normalizeText(itemName);
       const exists = myItems.some(i => normalizeText(i.name) === normalizedInput);
@@ -897,7 +900,6 @@
       showToast(`הפריט "${itemName}" יובא בהצלחה!`);
     };
 
-    // ייבוא רשימה שלמה באמצעות Firestore writeBatch בביצועים אופטימליים
     window.importAll = async (friendName, btnElement) => {
       if (btnElement) {
         btnElement.disabled = true;
