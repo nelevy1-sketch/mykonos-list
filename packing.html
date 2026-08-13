@@ -67,9 +67,9 @@
     .tab-btn { flex: 1; background: #e2e8f0; color: var(--text); padding: 10px; border-radius: 8px; border: none; font-weight: bold; margin: 0; }
     .tab-btn.active { background: var(--primary); color: white; }
 
-    .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; scrollbar-width: none; }
+    .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; scrollbar-width: none; scroll-behavior: smooth; }
     .friends-tabs::-webkit-scrollbar { display: none; }
-    .friend-tab-chip { width: auto; white-space: nowrap; padding: 6px 14px; border-radius: 20px; background: #e2e8f0; color: var(--text); font-size: 0.85rem; border: none; font-weight: 500; margin: 0; }
+    .friend-tab-chip { width: auto; white-space: nowrap; padding: 6px 14px; border-radius: 20px; background: #e2e8f0; color: var(--text); font-size: 0.85rem; border: none; font-weight: 500; margin: 0; flex-shrink: 0; transition: background-color 0.2s, color 0.2s; }
     .friend-tab-chip.active { background: var(--primary); color: white; }
 
     .existing-names-container { margin-top: 12px; }
@@ -298,6 +298,12 @@
     let unsubscribeMyItems = null;
     let unsubscribeFriendsItems = null;
     let pendingRequestsUsers = new Set();
+
+    // זיכרון מטמון מקומי למניעת הבהובים בגלילה
+    let cachedFriendsData = {
+      allUsers: [],
+      publicGrouped: {}
+    };
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -715,10 +721,105 @@
       myItemsList.appendChild(div);
     }
 
+    function renderFriendsUI() {
+      const { allUsers, publicGrouped } = cachedFriendsData;
+
+      if (allUsers.length === 0) {
+        friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>אין חברים רשומים במערכת עדיין.</p>";
+        friendsTabsContainer.innerHTML = "";
+        return;
+      }
+
+      // 1. רנדור סרגל השמות
+      friendsTabsContainer.innerHTML = "";
+      
+      const allBtn = document.createElement("button");
+      allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
+      allBtn.textContent = "הכל";
+      allBtn.onclick = (e) => {
+        triggerHaptic("light");
+        selectedFriend = 'all';
+        e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        renderFriendsUI();
+      };
+      friendsTabsContainer.appendChild(allBtn);
+
+      allUsers.forEach(friend => {
+        const btn = document.createElement("button");
+        btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
+        btn.textContent = friend;
+        btn.onclick = (e) => {
+          triggerHaptic("light");
+          selectedFriend = friend;
+          // גלילה אוטומטית של הלחצן שנבחר לראש הסרגל
+          e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+          renderFriendsUI();
+        };
+        friendsTabsContainer.appendChild(btn);
+      });
+
+      // 2. רנדור הפריטים ללא הבהוב
+      friendsItemsList.innerHTML = "";
+      const displayFriends = selectedFriend === "all" ? allUsers : [selectedFriend];
+
+      displayFriends.forEach(friend => {
+        const publicItems = publicGrouped[friend] || [];
+
+        const sec = document.createElement("div");
+        sec.className = "friend-section";
+
+        if (publicItems.length > 0) {
+          sec.innerHTML = `
+            <div class="friend-title">
+              <span>הרשימה של ${friend}</span>
+            </div>
+            <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
+          `;
+
+          publicItems.forEach(item => {
+            const normalizedFriendItem = normalizeText(item.name);
+            const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
+
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "item";
+            
+            let statusMarkup = `<button class="btn-sm btn-import" onclick="importSingle('${item.name.replace(/'/g, "\\'")}', this)">+ ייבא</button>`;
+            if (exactExists) {
+              statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
+            }
+
+            itemDiv.innerHTML = `
+              <span class="item-title">${item.name}</span>
+              ${statusMarkup}
+            `;
+            sec.appendChild(itemDiv);
+          });
+        } else {
+          const isRequestPending = pendingRequestsUsers.has(friend);
+
+          sec.innerHTML = `
+            <div class="friend-title">
+              <span>הרשימה של ${friend}</span>
+            </div>
+            <div class="private-notice">
+              <p>🔒 הרשימה של ${friend} פרטית כרגע</p>
+              <button class="btn-sm" 
+                      style="background: ${isRequestPending ? '#94a3b8' : '#3b82f6'}; cursor: ${isRequestPending ? 'not-allowed' : 'pointer'};" 
+                      ${isRequestPending ? 'disabled' : ''} 
+                      onclick="sendShareRequest('${friend}', this)">
+                ${isRequestPending ? 'נשלחה כבר בקשת שיתוף' : '📩 שלח לבקשת שיתוף הרשימה'}
+              </button>
+            </div>
+          `;
+        }
+
+        friendsItemsList.appendChild(sec);
+      });
+    }
+
     function loadFriendsItems() {
       if (unsubscribeFriendsItems) unsubscribeFriendsItems();
 
-      // האזנה גם לבקשות שיתוף ממתינות בזמן אמת
       onSnapshot(query(requestsRef, where("status", "==", "pending")), (requestsSnap) => {
         pendingRequestsUsers.clear();
         requestsSnap.forEach(docSnap => {
@@ -726,16 +827,13 @@
         });
 
         unsubscribeFriendsItems = onSnapshot(itemsRef, (snapshot) => {
-          friendsItemsList.innerHTML = "";
-          friendsTabsContainer.innerHTML = "";
-          
           const publicGrouped = {};
-          const allUsers = new Set();
+          const allUsersSet = new Set();
 
           snapshot.forEach((docSnap) => {
             const item = { id: docSnap.id, ...docSnap.data() };
             if (item.owner && item.owner !== currentUser) {
-              allUsers.add(item.owner);
+              allUsersSet.add(item.owner);
               if (item.isPublic) {
                 if (!publicGrouped[item.owner]) publicGrouped[item.owner] = [];
                 publicGrouped[item.owner].push(item);
@@ -743,82 +841,10 @@
             }
           });
 
-          const friendNames = Array.from(allUsers);
+          cachedFriendsData.allUsers = Array.from(allUsersSet);
+          cachedFriendsData.publicGrouped = publicGrouped;
 
-          if (friendNames.length === 0) {
-            friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>אין חברים רשומים במערכת עדיין.</p>";
-            return;
-          }
-
-          const allBtn = document.createElement("button");
-          allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
-          allBtn.textContent = "הכל";
-          allBtn.onclick = () => { triggerHaptic("light"); selectedFriend = 'all'; loadFriendsItems(); };
-          friendsTabsContainer.appendChild(allBtn);
-
-          friendNames.forEach(friend => {
-            const btn = document.createElement("button");
-            btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
-            btn.textContent = friend;
-            btn.onclick = () => { triggerHaptic("light"); selectedFriend = friend; loadFriendsItems(); };
-            friendsTabsContainer.appendChild(btn);
-          });
-
-          const displayFriends = selectedFriend === "all" ? friendNames : [selectedFriend];
-
-          displayFriends.forEach(friend => {
-            const publicItems = publicGrouped[friend] || [];
-
-            const sec = document.createElement("div");
-            sec.className = "friend-section";
-
-            if (publicItems.length > 0) {
-              sec.innerHTML = `
-                <div class="friend-title">
-                  <span>הרשימה של ${friend}</span>
-                </div>
-                <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
-              `;
-
-              publicItems.forEach(item => {
-                const normalizedFriendItem = normalizeText(item.name);
-                const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
-
-                const itemDiv = document.createElement("div");
-                itemDiv.className = "item";
-                
-                let statusMarkup = `<button class="btn-sm btn-import" onclick="importSingle('${item.name.replace(/'/g, "\\'")}', this)">+ ייבא</button>`;
-                if (exactExists) {
-                  statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
-                }
-
-                itemDiv.innerHTML = `
-                  <span class="item-title">${item.name}</span>
-                  ${statusMarkup}
-                `;
-                sec.appendChild(itemDiv);
-              });
-            } else {
-              const isRequestPending = pendingRequestsUsers.has(friend);
-
-              sec.innerHTML = `
-                <div class="friend-title">
-                  <span>הרשימה של ${friend}</span>
-                </div>
-                <div class="private-notice">
-                  <p>🔒 הרשימה של ${friend} פרטית כרגע</p>
-                  <button class="btn-sm" 
-                          style="background: ${isRequestPending ? '#94a3b8' : '#3b82f6'}; cursor: ${isRequestPending ? 'not-allowed' : 'pointer'};" 
-                          ${isRequestPending ? 'disabled' : ''} 
-                          onclick="sendShareRequest('${friend}', this)">
-                    ${isRequestPending ? 'נשלחה כבר בקשת שיתוף' : '📩 שלח לבקשת שיתוף הרשימה'}
-                  </button>
-                </div>
-              `;
-            }
-
-            friendsItemsList.appendChild(sec);
-          });
+          renderFriendsUI();
         }, (err) => {
           console.error("Firestore friendsItems snapshot error:", err);
           setTimeout(loadFriendsItems, 2000);
