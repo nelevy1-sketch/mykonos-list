@@ -336,6 +336,17 @@
     let myItems = [];
     let allUsersWithItems = new Set();
 
+    // פונקציית משוב רטט (Haptic Feedback)
+    function triggerHaptic(type = "light") {
+      if ("vibrate" in navigator) {
+        if (type === "light") {
+          navigator.vibrate(12); // רטט עדין למעבר בין שמות
+        } else if (type === "medium") {
+          navigator.vibrate(30); // רטט לסימון פריט שנארז
+        }
+      }
+    }
+
     function trackAnalyticsLogin(userName) {
       if (typeof window.gtag === 'function') {
         window.gtag('set', 'user_properties', { 'user_name': userName });
@@ -370,6 +381,7 @@
             btn.className = "name-chip";
             btn.textContent = name;
             btn.onclick = () => {
+              triggerHaptic("light");
               userNameInput.value = name;
               userPinInput.focus();
             };
@@ -423,6 +435,7 @@
           requestModal.classList.remove("hidden");
 
           shareAllBtn.onclick = async () => {
+            triggerHaptic("medium");
             shareAllBtn.disabled = true;
             shareAllBtn.textContent = "...מעדכן פריטים";
 
@@ -441,6 +454,7 @@
           };
 
           dismissModalBtn.onclick = async () => {
+            triggerHaptic("light");
             for (const docSnap of snapshot.docs) {
               await updateDoc(doc(db, "share_requests", docSnap.id), { status: "dismissed" });
             }
@@ -507,6 +521,7 @@
           localStorage.setItem("packing_app_user", currentUser);
           localStorage.setItem("packing_app_expiry", expiryTimestamp.toString());
           
+          triggerHaptic("medium");
           trackAnalyticsLogin(currentUser);
           showApp();
         }
@@ -521,7 +536,6 @@
 
     loginBtn.addEventListener("click", handleLogin);
 
-    // מנגנון השהייה (Debounce) למניעת Race Conditions במילוי אוטומטי
     function triggerAutoSubmitWithDelay() {
       if (autoSubmitTimeout) clearTimeout(autoSubmitTimeout);
       autoSubmitTimeout = setTimeout(() => {
@@ -552,6 +566,7 @@
     });
 
     logoutBtn.addEventListener("click", () => {
+      triggerHaptic("light");
       if (unsubscribeMyItems) unsubscribeMyItems();
       if (unsubscribeFriendsItems) unsubscribeFriendsItems();
       localStorage.removeItem("packing_app_user");
@@ -570,6 +585,7 @@
     }
 
     myTabBtn.addEventListener("click", () => {
+      triggerHaptic("light");
       myTabBtn.classList.add("active");
       friendsTabBtn.classList.remove("active");
       myListTab.classList.remove("hidden");
@@ -577,6 +593,7 @@
     });
 
     friendsTabBtn.addEventListener("click", () => {
+      triggerHaptic("light");
       friendsTabBtn.classList.add("active");
       myTabBtn.classList.remove("active");
       friendsListTab.classList.remove("hidden");
@@ -619,6 +636,7 @@
         createdAt: Date.now()
       });
 
+      triggerHaptic("light");
       showToast(`✨ "${name}" נוסף בהצלחה!`);
       newItemName.value = "";
       newItemName.focus();
@@ -672,7 +690,6 @@
         myItems.forEach(renderMyItem);
       }, (err) => {
         console.error("Firestore myItems snapshot error:", err);
-        // טעינה חוזרת בעת תקלה ברשת
         setTimeout(loadMyItems, 2000);
       });
     }
@@ -729,14 +746,14 @@
         const allBtn = document.createElement("button");
         allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
         allBtn.textContent = "הכל";
-        allBtn.onclick = () => { selectedFriend = 'all'; loadFriendsItems(); };
+        allBtn.onclick = () => { triggerHaptic("light"); selectedFriend = 'all'; loadFriendsItems(); };
         friendsTabsContainer.appendChild(allBtn);
 
         friendNames.forEach(friend => {
           const btn = document.createElement("button");
           btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
           btn.textContent = friend;
-          btn.onclick = () => { selectedFriend = friend; loadFriendsItems(); };
+          btn.onclick = () => { triggerHaptic("light"); selectedFriend = friend; loadFriendsItems(); };
           friendsTabsContainer.appendChild(btn);
         });
 
@@ -795,6 +812,7 @@
     }
 
     bulkPublicBtn.addEventListener("click", async () => {
+      triggerHaptic("light");
       if (myItems.length === 0) return;
       if (confirm("האם להפוך את כל הפריטים ברשימה שלך לציבוריים? (חברים יוכלו לראות ולייבא אותם)")) {
         const q = query(itemsRef, where("owner", "==", currentUser));
@@ -807,6 +825,7 @@
     });
 
     bulkPrivateBtn.addEventListener("click", async () => {
+      triggerHaptic("light");
       if (myItems.length === 0) return;
       if (confirm("האם להפוך את כל הפריטים ברשימה שלך לפרטיים? (חברים לא יוכלו לראות אותם)")) {
         const q = query(itemsRef, where("owner", "==", currentUser));
@@ -819,6 +838,7 @@
     });
 
     window.sendShareRequest = async (targetUser, btnElement) => {
+      triggerHaptic("light");
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.textContent = "...שולח בקשה";
@@ -838,15 +858,19 @@
       }
     };
 
+    // רטט בינוני בעת סינון/אריזת פריט
     window.toggleDone = async (id, isDone) => {
+      triggerHaptic("medium");
       await updateDoc(doc(db, "packing_items", id), { isDone });
     };
 
     window.toggleVisibility = async (id, isPublic) => {
+      triggerHaptic("light");
       await updateDoc(doc(db, "packing_items", id), { isPublic });
     };
 
     window.editItem = async (id, oldName) => {
+      triggerHaptic("light");
       const newName = prompt("ערוך את שם הפריט:", oldName);
       if (newName !== null && newName.trim() !== "" && newName.trim() !== oldName) {
         const trimmedName = newName.trim();
@@ -862,6 +886,7 @@
     };
 
     window.deleteItem = async (id, name) => {
+      triggerHaptic("light");
       if (confirm(`למחוק את "${name}" מהרשימה?`)) {
         await deleteDoc(doc(db, "packing_items", id));
         showToast(`"${name}" נמחק`);
@@ -869,6 +894,7 @@
     };
 
     clearAllBtn.addEventListener("click", async () => {
+      triggerHaptic("light");
       if (confirm("האם אתה בטוח שברצונך למחוק את כל הרשימה שלך?")) {
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
@@ -880,6 +906,7 @@
     });
 
     window.importSingle = async (itemName, btnElement) => {
+      triggerHaptic("light");
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.textContent = "...מייבא";
@@ -897,6 +924,7 @@
     };
 
     window.importAll = async (friendName, btnElement) => {
+      triggerHaptic("light");
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.textContent = `...מייבא רשימה`;
