@@ -157,7 +157,6 @@
     .hidden { display: none !important; }
     .friend-section { margin-bottom: 24px; position: relative; }
     
-    /* כותרת נצמדת בגלילה עבור רשימות חברים */
     .friend-title {
       position: sticky;
       top: 0;
@@ -230,7 +229,7 @@
     <label>מי מתחבר/ת?</label>
     <input type="text" id="userNameInput" placeholder="הכנס שם או כינוי (למשל: נתנאל)" autocomplete="username">
     
-    <label style="margin-top:10px; display:block;">קוד PIN אישי (4 ספרות):</label>
+    <label style="margin-top:10px; display:block;">קוד PIN אישי (4 ספרות בלבד):</label>
     <input type="password" id="userPinInput" placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="current-password">
 
     <div class="remember-me">
@@ -249,7 +248,6 @@
   <!-- מסך ראשי -->
   <div id="appContent" class="hidden">
     
-    <!-- חלק עליון קבוע -->
     <div class="sticky-top-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span style="font-size:0.9rem;"><span id="greetingText"></span>, <strong id="displayName"></strong>!</span>
@@ -319,7 +317,6 @@
           <div id="friendsTabsContainer" class="friends-tabs"></div>
         </div>
         
-        <!-- אזור גלילה נפרד לכל כותרות החברים -->
         <div id="friendsItemsList" class="scrollable-items-container">טוען רשימות חברים...</div>
       </div>
     </div>
@@ -329,7 +326,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where, getDocs, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
@@ -351,6 +348,9 @@
     let selectedFriend = "all";
     let wasAllDoneBefore = false;
     let isSubmitting = false;
+
+    let unsubscribeMyItems = null;
+    let unsubscribeFriendsItems = null;
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -382,10 +382,10 @@
 
     let myItems = [];
 
-    function trackAnalyticsLogin(userName) {
+    // דיווח אנונימי בלבד ל-Google Analytics (ללא שמות משתמש)
+    function trackAnalyticsEvent(eventName) {
       if (typeof window.gtag === 'function') {
-        window.gtag('set', 'user_properties', { 'user_name': userName });
-        window.gtag('event', 'login_success', { 'user_name': userName });
+        window.gtag('event', eventName);
       }
     }
 
@@ -410,7 +410,7 @@
         });
 
         if (names.size > 0) {
-          existingNamesChips.innerHTML = "";
+          existingNamesChips.textContent = "";
           names.forEach(name => {
             const btn = document.createElement("button");
             btn.className = "name-chip";
@@ -458,8 +458,20 @@
 
     if (checkSessionValid()) {
       showApp();
-      trackAnalyticsLogin(currentUser);
+      trackAnalyticsEvent('login_auto');
     }
+
+    // סינון להכנסת ספרות בלבד ל-PIN בזמן אמת
+    userPinInput.addEventListener("input", () => {
+      userPinInput.value = userPinInput.value.replace(/\D/g, "").slice(0, 4);
+      userPinInput.classList.remove("error");
+      checkAutoSubmit();
+    });
+
+    userNameInput.addEventListener("input", () => {
+      userNameInput.classList.remove("error");
+      checkAutoSubmit();
+    });
 
     async function handleLogin() {
       if (isSubmitting) return;
@@ -471,9 +483,11 @@
         userNameInput.classList.add("error");
         return;
       }
-      if (!pin || pin.length !== 4) {
+      
+      // ולידציית PIN קשיחה - 4 ספרות בלבד
+      if (!/^\d{4}$/.test(pin)) {
         userPinInput.classList.add("error");
-        showToast("נא להזין קוד PIN בן 4 ספרות");
+        showToast("נא להזין קוד PIN של 4 ספרות בלבד");
         return;
       }
 
@@ -481,8 +495,9 @@
       loginBtn.disabled = true;
 
       try {
-        const userDocRef = doc(db, "users_auth", name.toLowerCase());
-        const userSnap = await getDocs(query(usersRef, where("__name__", "==", name.toLowerCase())));
+        const userId = name.toLowerCase();
+        const userDocRef = doc(db, "users_auth", userId);
+        const userSnap = await getDocs(query(usersRef, where("__name__", "==", userId)));
 
         let isAuthSuccess = false;
 
@@ -511,7 +526,7 @@
           localStorage.setItem("packing_app_user", currentUser);
           localStorage.setItem("packing_app_expiry", expiryTimestamp.toString());
           
-          trackAnalyticsLogin(currentUser);
+          trackAnalyticsEvent('login_success');
           showApp();
         }
       } catch (err) {
@@ -528,19 +543,10 @@
     function checkAutoSubmit() {
       const name = userNameInput.value.trim();
       const pin = userPinInput.value.trim();
-      if (name && pin.length === 4 && !isSubmitting) {
+      if (name && /^\d{4}$/.test(pin) && !isSubmitting) {
         handleLogin();
       }
     }
-
-    userNameInput.addEventListener("input", () => {
-      userNameInput.classList.remove("error");
-      checkAutoSubmit();
-    });
-    userPinInput.addEventListener("input", () => {
-      userPinInput.classList.remove("error");
-      checkAutoSubmit();
-    });
 
     userNameInput.addEventListener("change", checkAutoSubmit);
     userPinInput.addEventListener("change", checkAutoSubmit);
@@ -553,6 +559,8 @@
     });
 
     logoutBtn.addEventListener("click", () => {
+      if (unsubscribeMyItems) unsubscribeMyItems();
+      if (unsubscribeFriendsItems) unsubscribeFriendsItems();
       localStorage.removeItem("packing_app_user");
       localStorage.removeItem("packing_app_expiry");
       location.reload();
@@ -617,18 +625,26 @@
         createdAt: Date.now()
       });
 
+      trackAnalyticsEvent('item_added');
       showToast(`✨ "${name}" נוסף בהצלחה!`);
       newItemName.value = "";
       newItemName.focus();
     });
 
     function loadMyItems() {
+      if (unsubscribeMyItems) unsubscribeMyItems();
+
       const q = query(itemsRef, where("owner", "==", currentUser));
-      onSnapshot(q, (snapshot) => {
-        myItemsList.innerHTML = "";
+      unsubscribeMyItems = onSnapshot(q, (snapshot) => {
+        myItemsList.textContent = "";
         myItems = [];
+
         if (snapshot.empty) {
-          myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>הרשימה שלך ריקה עדיין.</p>";
+          const emptyP = document.createElement("p");
+          emptyP.style.cssText = "color:var(--gray); text-align:center; padding:20px 0;";
+          emptyP.textContent = "הרשימה שלך ריקה עדיין.";
+          myItemsList.appendChild(emptyP);
+
           progressText.textContent = "";
           clearAllBtn.style.display = "none";
           finishBanner.classList.add("hidden");
@@ -652,6 +668,7 @@
           finishBanner.classList.remove("hidden");
           if (!wasAllDoneBefore) {
             triggerConfetti();
+            trackAnalyticsEvent('packing_completed');
             wasAllDoneBefore = true;
           }
         } else {
@@ -663,32 +680,59 @@
       });
     }
 
+    // יצירת DOM בטוח לחלוטין ללא innerHTML (מניעת XSS)
     function renderMyItem(item) {
       const div = document.createElement("div");
       div.className = `item ${item.isDone ? 'done' : ''}`;
-      div.innerHTML = `
-        <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
-        <span class="item-title">${item.name}</span>
-        <div class="item-actions">
-          <button class="badge ${item.isPublic ? 'public' : ''}" onclick="toggleVisibility('${item.id}', ${!item.isPublic})">
-            ${item.isPublic ? '🌐 ציבורי' : '🔒 פרטי'}
-          </button>
-          <button class="icon-btn" title="ערוך פריט" onclick="editItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-          <button class="icon-btn danger" title="מחק פריט" onclick="deleteItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-          </button>
-        </div>
-      `;
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = item.isDone;
+      checkbox.style.cssText = "width:auto; margin:0;";
+      checkbox.onchange = () => toggleDone(item.id, !item.isDone);
+
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "item-title";
+      titleSpan.textContent = item.name;
+
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "item-actions";
+
+      const badgeBtn = document.createElement("button");
+      badgeBtn.className = `badge ${item.isPublic ? 'public' : ''}`;
+      badgeBtn.textContent = item.isPublic ? "🌐 ציבורי" : "🔒 פרטי";
+      badgeBtn.onclick = () => toggleVisibility(item.id, !item.isPublic);
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "icon-btn";
+      editBtn.title = "ערוך פריט";
+      editBtn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+      editBtn.onclick = () => editItem(item.id, item.name);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "icon-btn danger";
+      deleteBtn.title = "מחק פריט";
+      deleteBtn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+      deleteBtn.onclick = () => deleteItem(item.id, item.name);
+
+      actionsDiv.appendChild(badgeBtn);
+      actionsDiv.appendChild(editBtn);
+      actionsDiv.appendChild(deleteBtn);
+
+      div.appendChild(checkbox);
+      div.appendChild(titleSpan);
+      div.appendChild(actionsDiv);
+
       myItemsList.appendChild(div);
     }
 
     function loadFriendsItems() {
+      if (unsubscribeFriendsItems) unsubscribeFriendsItems();
+
       const q = query(itemsRef, where("isPublic", "==", true));
-      onSnapshot(q, (snapshot) => {
-        friendsItemsList.innerHTML = "";
-        friendsTabsContainer.innerHTML = "";
+      unsubscribeFriendsItems = onSnapshot(q, (snapshot) => {
+        friendsItemsList.textContent = "";
+        friendsTabsContainer.textContent = "";
         const grouped = {};
 
         snapshot.forEach((docSnap) => {
@@ -702,7 +746,10 @@
         const friendNames = Object.keys(grouped);
 
         if (friendNames.length === 0) {
-          friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>אין פריטים ציבוריים מחברים כרגע.</p>";
+          const emptyP = document.createElement("p");
+          emptyP.style.cssText = "color:var(--gray); text-align:center; padding:20px 0;";
+          emptyP.textContent = "אין פריטים ציבוריים מחברים כרגע.";
+          friendsItemsList.appendChild(emptyP);
           return;
         }
 
@@ -727,12 +774,19 @@
 
           const sec = document.createElement("div");
           sec.className = "friend-section";
-          sec.innerHTML = `
-            <div class="friend-title">
-              <span>הרשימה של ${friend}</span>
-            </div>
-            <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
-          `;
+
+          const titleDiv = document.createElement("div");
+          titleDiv.className = "friend-title";
+          titleDiv.textContent = `הרשימה של ${friend}`;
+
+          const importAllBtn = document.createElement("button");
+          importAllBtn.className = "btn-sm btn-import";
+          importAllBtn.style.cssText = "margin-bottom:10px; width:100%;";
+          importAllBtn.textContent = `ייבא את כל הרשימה של ${friend}`;
+          importAllBtn.onclick = () => importAll(friend, importAllBtn);
+
+          sec.appendChild(titleDiv);
+          sec.appendChild(importAllBtn);
 
           items.forEach(item => {
             const normalizedFriendItem = normalizeText(item.name);
@@ -740,16 +794,26 @@
 
             const itemDiv = document.createElement("div");
             itemDiv.className = "item";
-            
-            let statusMarkup = `<button class="btn-sm btn-import" onclick="importSingle('${item.name.replace(/'/g, "\\'")}', this)">+ ייבא</button>`;
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "item-title";
+            nameSpan.textContent = item.name;
+
+            itemDiv.appendChild(nameSpan);
+
             if (exactExists) {
-              statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
+              const statusSpan = document.createElement("span");
+              statusSpan.style.cssText = "font-size:0.8rem; color:var(--gray);";
+              statusSpan.textContent = "קיים אצלך";
+              itemDiv.appendChild(statusSpan);
+            } else {
+              const importBtn = document.createElement("button");
+              importBtn.className = "btn-sm btn-import";
+              importBtn.textContent = "+ ייבא";
+              importBtn.onclick = () => importSingle(item.name, importBtn);
+              itemDiv.appendChild(importBtn);
             }
 
-            itemDiv.innerHTML = `
-              <span class="item-title">${item.name}</span>
-              ${statusMarkup}
-            `;
             sec.appendChild(itemDiv);
           });
 
@@ -788,18 +852,33 @@
       }
     };
 
+    // מחיקת כל הרשימה ב-writeBatch אחד ויחיד
     clearAllBtn.addEventListener("click", async () => {
       if (confirm("האם אתה בטוח שברצונך למחוק את כל הרשימה שלך?")) {
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
-        snapshot.forEach(async (docSnap) => {
-          await deleteDoc(doc(db, "packing_items", docSnap.id));
-        });
-        showToast("כל הרשימה נמחקה");
+        
+        if (!snapshot.empty) {
+          const batch = writeBatch(db);
+          snapshot.forEach((docSnap) => {
+            batch.delete(docSnap.ref);
+          });
+          await batch.commit();
+          showToast("כל הרשימה נמחקה");
+        }
       }
     });
 
+    // ייבוא פריט בודד כולל בדיקה כפולה בזמן אמת
     window.importSingle = async (itemName, btnElement) => {
+      const normalizedInput = normalizeText(itemName);
+      const exists = myItems.some(i => normalizeText(i.name) === normalizedInput);
+      
+      if (exists) {
+        showToast(`⚠️ הפריט "${itemName}" כבר קיים ברשימה שלך`);
+        return;
+      }
+
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.textContent = "...מייבא";
@@ -813,9 +892,12 @@
         isDone: false,
         createdAt: Date.now()
       });
+
+      trackAnalyticsEvent('item_imported');
       showToast(`הפריט "${itemName}" יובא בהצלחה!`);
     };
 
+    // ייבוא רשימה שלמה באמצעות Firestore writeBatch בביצועים אופטימליים
     window.importAll = async (friendName, btnElement) => {
       if (btnElement) {
         btnElement.disabled = true;
@@ -825,12 +907,21 @@
 
       const q = query(itemsRef, where("owner", "==", friendName), where("isPublic", "==", true));
       const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        showToast(`אין פריטים לייבוא מהרשימה של ${friendName}`);
+        return;
+      }
+
+      const batch = writeBatch(db);
       let count = 0;
+
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
         const exists = myItems.some(i => normalizeText(i.name) === normalizeText(data.name));
         if (!exists) {
-          await addDoc(itemsRef, {
+          const newDocRef = doc(itemsRef);
+          batch.set(newDocRef, {
             name: data.name,
             owner: currentUser,
             isPublic: false,
@@ -840,7 +931,19 @@
           count++;
         }
       }
-      showToast(`יובאו ${count} פריטים מהרשימה של ${friendName}`);
+
+      if (count > 0) {
+        await batch.commit();
+        trackAnalyticsEvent('list_imported_all');
+        showToast(`יובאו ${count} פריטים מהרשימה של ${friendName}`);
+      } else {
+        showToast(`כל הפריטים של ${friendName} כבר קיימים אצלך!`);
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.textContent = `ייבא את כל הרשימה של ${friendName}`;
+          btnElement.style.background = "var(--success)";
+        }
+      }
     };
   </script>
 </body>
