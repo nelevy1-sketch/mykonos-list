@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>רשימת ציוד לטיול</title>
 
   <!-- Google Analytics (GA4) Tag -->
@@ -30,10 +30,32 @@
       --success: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
-    h1 { text-align: center; margin-bottom: 16px; font-size: 1.5rem; color: var(--primary); }
     
-    .card { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* מונע גלילה של כל הדף */
+    }
+
+    /* כותרת ראשית קבועה */
+    .app-header {
+      flex-shrink: 0;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .app-header h1 {
+      font-size: 1.4rem;
+      color: var(--primary);
+    }
+
+    .card { background: var(--card); padding: 14px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    
     input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-top: 6px; font-size: 0.95rem; transition: border-color 0.2s; }
     input.error { border-color: var(--danger) !important; background-color: #fef2f2; animation: shake 0.3s; }
     button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
@@ -49,11 +71,11 @@
     .remember-me { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.85rem; color: var(--gray); }
     .remember-me input { width: auto; margin: 0; }
 
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab-btn { flex: 1; background: #e2e8f0; color: var(--text); padding: 10px; border-radius: 8px; border: none; font-weight: bold; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
+    .tab-btn { flex: 1; background: #e2e8f0; color: var(--text); padding: 10px; border-radius: 8px; border: none; font-weight: bold; margin: 0; }
     .tab-btn.active { background: var(--primary); color: white; }
 
-    .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+    .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; scrollbar-width: none; }
     .friends-tabs::-webkit-scrollbar { display: none; }
     .friend-tab-chip { width: auto; white-space: nowrap; padding: 6px 14px; border-radius: 20px; background: #e2e8f0; color: var(--text); font-size: 0.85rem; border: none; font-weight: 500; margin: 0; }
     .friend-tab-chip.active { background: var(--primary); color: white; }
@@ -63,13 +85,50 @@
     .name-chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .name-chip { width: auto; padding: 5px 12px; border-radius: 16px; background: #dbeafe; color: #1e40af; font-size: 0.85rem; border: none; margin: 0; font-weight: 500; }
 
+    /* מבנה ראשי קבוע מבוסס Flexbox */
+    #appContent {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .tab-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* חלקים קבועים עליונים */
+    .sticky-top-section {
+      flex-shrink: 0;
+    }
+
+    /* אזור נגלל של הרשימה */
+    .scrollable-list-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+
+    .scrollable-items-container {
+      flex: 1;
+      overflow-y: auto;
+      padding-left: 4px;
+      padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 12px; }
     .item:last-child { border-bottom: none; }
     .item-title { flex: 1; word-break: break-word; font-size: 0.95rem; }
     .item.done { opacity: 0.55; background-color: #f8fafc; }
     .item.done .item-title { text-decoration: line-through; color: var(--gray); }
     
-    .item-actions { display: flex; align-items: center; gap: 12px; }
+    .item-actions { display: flex; align-items: center; gap: 10px; }
 
     .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; }
     .badge.public { background: #dbeafe; color: #1e40af; }
@@ -77,9 +136,9 @@
     .icon-btn {
       background: none;
       border: none;
-      padding: 8px;
-      width: 36px;
-      height: 36px;
+      padding: 6px;
+      width: 34px;
+      height: 34px;
       margin: 0;
       color: var(--gray-light);
       cursor: pointer;
@@ -99,19 +158,19 @@
 
     .hidden { display: none !important; }
     .friend-section { margin-bottom: 20px; }
-    .friend-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #334155; border-bottom: 2px solid var(--primary); padding-bottom: 4px; }
+    .friend-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; color: #334155; border-bottom: 2px solid var(--primary); padding-bottom: 4px; }
     
-    .progress-bar { font-size: 0.85rem; color: var(--gray); margin-bottom: 10px; text-align: center; font-weight: 500; }
+    .progress-bar { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; text-align: center; font-weight: 500; }
 
     .finish-banner {
       background: linear-gradient(135deg, #10b981, #059669);
       color: white;
       text-align: center;
-      padding: 14px;
-      border-radius: 12px;
+      padding: 10px;
+      border-radius: 10px;
       font-weight: bold;
-      font-size: 1.1rem;
-      margin-bottom: 12px;
+      font-size: 1rem;
+      margin-bottom: 8px;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
       animation: popIn 0.4s ease-out;
     }
@@ -147,12 +206,14 @@
 </head>
 <body>
 
-  <h1>🎒 רשימת ציוד לטיול</h1>
+  <div class="app-header">
+    <h1>🎒 רשימת ציוד לטיול</h1>
+  </div>
 
   <div id="toast"></div>
 
   <!-- מסך התחברות -->
-  <div id="loginCard" class="card">
+  <div id="loginCard" class="card" style="margin-top: 20px;">
     <label>מי מתחבר/ת?</label>
     <input type="text" id="userNameInput" placeholder="הכנס שם או כינוי (למשל: נתנאל)" autocomplete="username">
     
@@ -174,21 +235,32 @@
 
   <!-- מסך ראשי -->
   <div id="appContent" class="hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <span><span id="greetingText"></span>, <strong id="displayName"></strong>!</span>
-      <button id="logoutBtn" class="btn-sm btn-danger" style="width: auto;">החלף שם</button>
-    </div>
+    
+    <!-- חלק עליון קבוע: ברכה + בלשוניות מעבר -->
+    <div class="sticky-top-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size:0.9rem;"><span id="greetingText"></span>, <strong id="displayName"></strong>!</span>
+        <button id="logoutBtn" class="btn-sm btn-danger" style="width: auto; padding: 4px 8px;">החלף שם</button>
+      </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" id="myTabBtn">הציוד שלי</button>
-      <button class="tab-btn" id="friendsTabBtn">רשימות חברים 🌐</button>
+      <div class="tabs">
+        <button class="tab-btn active" id="myTabBtn">הציוד שלי</button>
+        <button class="tab-btn" id="friendsTabBtn">רשימות חברים 🌐</button>
+      </div>
     </div>
 
     <!-- לשונית רשימה אישית -->
-    <div id="myListTab">
-      <div class="card">
-        <h3>הוספת פריט לרשימה</h3>
-        <input type="text" id="newItemName" list="presetItems" placeholder="הקלד פריט לחץ Enter להוספה...">
+    <div id="myListTab" class="tab-content">
+      
+      <!-- טופס הוספה קבוע בראש המסך -->
+      <div class="card sticky-top-section" style="padding: 10px 14px; margin-bottom: 8px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="newItemName" list="presetItems" placeholder="הקלד פריט להוספה..." style="margin-top:0; flex:1;">
+          <select id="newItemVisibility" style="margin-top:0; width: auto; font-size:0.85rem; padding:8px;">
+            <option value="private">🔒 פרטי</option>
+            <option value="public">🌐 ציבורי</option>
+          </select>
+        </div>
         <datalist id="presetItems">
           <option value="דרכון ואישורי טיסה">
           <option value="רישיון נהיגה בינלאומי">
@@ -207,37 +279,41 @@
           <option value="כפכפים">
         </datalist>
 
-        <select id="newItemVisibility">
-          <option value="private">🔒 פרטי (רק אני רואה)</option>
-          <option value="public">🌐 ציבורי (גלוי לחברים)</option>
-        </select>
-        <button id="addItemBtn">הוסף לרשימה</button>
+        <button id="addItemBtn" style="margin-top: 6px; padding: 8px;">הוסף לרשימה שלי</button>
       </div>
 
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h3>הציוד שלי</h3>
-          <button id="clearAllBtn" class="btn-sm btn-danger" style="display:none;">מחק את כל הרשימה</button>
+      <!-- כרטיסיית הרשימה - רק התוכן שלה נגלל -->
+      <div class="card scrollable-list-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
+          <h3 style="font-size: 1rem;">הציוד שלי</h3>
+          <button id="clearAllBtn" class="btn-sm btn-danger" style="display:none; padding: 2px 6px; font-size: 0.75rem;">מחק רשימה</button>
         </div>
 
-        <div id="finishBanner" class="finish-banner hidden">
+        <div id="finishBanner" class="finish-banner hidden flex-shrink-0">
           🥳 סיימת לארוז! חופשה נעימה גוש! ✈️🎉
         </div>
 
-        <div id="progressText" class="progress-bar"></div>
-        <div id="myItemsList">טוען...</div>
+        <div id="progressText" class="progress-bar flex-shrink-0"></div>
+        
+        <!-- אזור גלילת הפריטים -->
+        <div id="myItemsList" class="scrollable-items-container">טוען...</div>
       </div>
     </div>
 
     <!-- לשונית רשימות חברים -->
-    <div id="friendsListTab" class="hidden">
-      <div class="card">
-        <h3>רשימות ציבוריות של חברים</h3>
-        <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 12px;">בחר חבר לצפייה ברשימה שלו וייבוא פריטים:</p>
-        <div id="friendsTabsContainer" class="friends-tabs"></div>
-        <div id="friendsItemsList">טוען רשימות חברים...</div>
+    <div id="friendsListTab" class="tab-content hidden">
+      <div class="card scrollable-list-card">
+        <div class="sticky-top-section">
+          <h3 style="font-size: 1rem;">רשימות ציבוריות של חברים</h3>
+          <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 8px;">בחר חבר לצפייה ברשימה שלו וייבוא פריטים:</p>
+          <div id="friendsTabsContainer" class="friends-tabs"></div>
+        </div>
+        
+        <!-- אזור גלילת רשימת החברים -->
+        <div id="friendsItemsList" class="scrollable-items-container">טוען רשימות חברים...</div>
       </div>
     </div>
+
   </div>
 
   <!-- Firebase SDKs -->
@@ -375,7 +451,6 @@
       trackAnalyticsLogin(currentUser);
     }
 
-    // פונקציית התחברות
     async function handleLogin() {
       if (isSubmitting) return;
 
@@ -440,7 +515,6 @@
 
     loginBtn.addEventListener("click", handleLogin);
 
-    // בדיקת Autofill / זיהוי פנים אוטומטי
     function checkAutoSubmit() {
       const name = userNameInput.value.trim();
       const pin = userPinInput.value.trim();
@@ -449,7 +523,6 @@
       }
     }
 
-    // האזנה למילוי אוטומטי ולשינויים בשדות
     userNameInput.addEventListener("input", () => {
       userNameInput.classList.remove("error");
       checkAutoSubmit();
@@ -462,7 +535,6 @@
     userNameInput.addEventListener("change", checkAutoSubmit);
     userPinInput.addEventListener("change", checkAutoSubmit);
 
-    // תמיכה ב-Autofill שמופעל מאוחר יותר על ידי הדפדפן (Face ID delay)
     setTimeout(checkAutoSubmit, 500);
     setTimeout(checkAutoSubmit, 1200);
 
@@ -546,7 +618,7 @@
         myItemsList.innerHTML = "";
         myItems = [];
         if (snapshot.empty) {
-          myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center;'>הרשימה שלך ריקה עדיין.</p>";
+          myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>הרשימה שלך ריקה עדיין.</p>";
           progressText.textContent = "";
           clearAllBtn.style.display = "none";
           finishBanner.classList.add("hidden");
@@ -620,7 +692,7 @@
         const friendNames = Object.keys(grouped);
 
         if (friendNames.length === 0) {
-          friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center;'>אין פריטים ציבוריים מחברים כרגע.</p>";
+          friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>אין פריטים ציבוריים מחברים כרגע.</p>";
           return;
         }
 
