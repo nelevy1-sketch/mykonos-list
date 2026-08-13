@@ -43,15 +43,8 @@
       overflow: hidden;
     }
 
-    .app-header {
-      flex-shrink: 0;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .app-header h1 {
-      font-size: 1.4rem;
-      color: var(--primary);
-    }
+    .app-header { flex-shrink: 0; text-align: center; margin-bottom: 10px; }
+    .app-header h1 { font-size: 1.4rem; color: var(--primary); }
 
     .card { background: var(--card); padding: 14px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     
@@ -84,41 +77,12 @@
     .name-chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .name-chip { width: auto; padding: 5px 12px; border-radius: 16px; background: #dbeafe; color: #1e40af; font-size: 0.85rem; border: none; margin: 0; font-weight: 500; }
 
-    #appContent {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      overflow: hidden;
-    }
+    #appContent { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .tab-content { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .sticky-top-section { flex-shrink: 0; }
 
-    .tab-content {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    .sticky-top-section {
-      flex-shrink: 0;
-    }
-
-    .scrollable-list-card {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      margin-bottom: 0;
-      position: relative;
-    }
-
-    .scrollable-items-container {
-      flex: 1;
-      overflow-y: auto;
-      padding-left: 4px;
-      padding-right: 4px;
-      -webkit-overflow-scrolling: touch;
-      position: relative;
-    }
+    .scrollable-list-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0; position: relative; }
+    .scrollable-items-container { flex: 1; overflow-y: auto; padding-left: 4px; padding-right: 4px; -webkit-overflow-scrolling: touch; position: relative; }
 
     .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 12px; }
     .item:last-child { border-bottom: none; }
@@ -131,21 +95,7 @@
     .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; }
     .badge.public { background: #dbeafe; color: #1e40af; }
 
-    .icon-btn {
-      background: none;
-      border: none;
-      padding: 6px;
-      width: 34px;
-      height: 34px;
-      margin: 0;
-      color: var(--gray-light);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      transition: color 0.2s, background-color 0.2s;
-    }
+    .icon-btn { background: none; border: none; padding: 6px; width: 34px; height: 34px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: color 0.2s, background-color 0.2s; }
     .icon-btn:hover, .icon-btn:active { color: var(--text); background-color: #f1f5f9; }
     .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); background-color: #fef2f2; }
     .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
@@ -158,62 +108,44 @@
     .friend-section { margin-bottom: 24px; position: relative; }
     
     .friend-title {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      font-weight: bold;
-      font-size: 1.05rem;
-      color: var(--primary);
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(4px);
-      padding: 8px 4px;
-      margin-bottom: 8px;
-      border-bottom: 2px solid var(--primary);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      position: sticky; top: 0; z-index: 10; font-weight: bold; font-size: 1.05rem; color: var(--primary);
+      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); padding: 8px 4px; margin-bottom: 8px;
+      border-bottom: 2px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     
     .progress-bar { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; text-align: center; font-weight: 500; }
 
     .finish-banner {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      text-align: center;
-      padding: 10px;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 1rem;
-      margin-bottom: 8px;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      background: linear-gradient(135deg, #10b981, #059669); color: white; text-align: center; padding: 10px;
+      border-radius: 10px; font-weight: bold; font-size: 1rem; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
       animation: popIn 0.4s ease-out;
     }
 
-    @keyframes popIn {
-      0% { transform: scale(0.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+    .private-notice {
+      background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 14px; text-align: center; margin-top: 6px;
     }
+    .private-notice p { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; }
+
+    /* Modal / חלונית קופצת לבקשת שיתוף */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6);
+      display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 16px;
+    }
+    .modal-box {
+      background: white; border-radius: 16px; padding: 20px; max-width: 420px; width: 100%; text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;
+    }
+    .modal-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
+    .modal-desc { font-size: 0.9rem; color: var(--gray); margin-bottom: 16px; line-height: 1.4; }
+
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
     #toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0f172a;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      pointer-events: none;
-      text-align: center;
-      max-width: 90%;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: white;
+      padding: 12px 24px; border-radius: 20px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 3000;
+      opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; text-align: center; max-width: 90%;
     }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(-5px);
-    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(-5px); }
   </style>
 </head>
 <body>
@@ -224,12 +156,22 @@
 
   <div id="toast"></div>
 
+  <!-- חלונית מודאל לבקשת שיתוף רשימה -->
+  <div id="requestModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">📩 חבר ביקש לראות את הרשימה שלך!</div>
+      <div class="modal-desc" id="requestModalDesc">חבר מהקבוצה ביקש שתשתף את הפריטים ברשימה שלך כדי שיוכל לראות ולייבא אותם.</div>
+      <button id="shareAllBtn" style="background: var(--success); margin-bottom: 8px;">🌐 שתף את כל הפריטים שלי כציבוריים</button>
+      <button id="dismissModalBtn" style="background: #e2e8f0; color: var(--text);">🔒 השאר את הרשימה שלי פרטית</button>
+    </div>
+  </div>
+
   <!-- מסך התחברות -->
   <div id="loginCard" class="card" style="margin-top: 20px;">
     <label>מי מתחבר/ת?</label>
     <input type="text" id="userNameInput" placeholder="הכנס שם או כינוי (למשל: נתנאל)" autocomplete="username">
     
-    <label style="margin-top:10px; display:block;">קוד PIN אישי (4 ספרות בלבד):</label>
+    <label style="margin-top:10px; display:block;">קוד PIN אישי (4 ספרות):</label>
     <input type="password" id="userPinInput" placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="current-password">
 
     <div class="remember-me">
@@ -262,7 +204,6 @@
 
     <!-- לשונית רשימה אישית -->
     <div id="myListTab" class="tab-content">
-      
       <div class="card sticky-top-section" style="padding: 10px 14px; margin-bottom: 8px;">
         <div style="display:flex; gap:8px; align-items:center;">
           <input type="text" id="newItemName" list="presetItems" placeholder="הקלד פריט להוספה..." style="margin-top:0; flex:1;">
@@ -303,7 +244,6 @@
         </div>
 
         <div id="progressText" class="progress-bar flex-shrink-0"></div>
-        
         <div id="myItemsList" class="scrollable-items-container">טוען...</div>
       </div>
     </div>
@@ -326,7 +266,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where, getDocs, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
@@ -342,16 +282,13 @@
     const db = getFirestore(app);
     const itemsRef = collection(db, "packing_items");
     const usersRef = collection(db, "users_auth");
+    const requestsRef = collection(db, "share_requests");
 
     let currentUser = (localStorage.getItem("packing_app_user") || "").trim();
     let loginExpiry = localStorage.getItem("packing_app_expiry");
     let selectedFriend = "all";
     let wasAllDoneBefore = false;
     let isSubmitting = false;
-
-    let unsubscribeMyItems = null;
-    let unsubscribeFriendsItems = null;
-    let cachedFriendsGrouped = {}; // זיכרון מטמון למניעת השהייה במעבר בין טאבים
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -381,11 +318,18 @@
     const finishBanner = document.getElementById("finishBanner");
     const toast = document.getElementById("toast");
 
-    let myItems = [];
+    const requestModal = document.getElementById("requestModal");
+    const requestModalDesc = document.getElementById("requestModalDesc");
+    const shareAllBtn = document.getElementById("shareAllBtn");
+    const dismissModalBtn = document.getElementById("dismissModalBtn");
 
-    function trackAnalyticsEvent(eventName) {
+    let myItems = [];
+    let allUsersWithItems = new Set();
+
+    function trackAnalyticsLogin(userName) {
       if (typeof window.gtag === 'function') {
-        window.gtag('event', eventName);
+        window.gtag('set', 'user_properties', { 'user_name': userName });
+        window.gtag('event', 'login_success', { 'user_name': userName });
       }
     }
 
@@ -403,15 +347,15 @@
     async function fetchExistingUsers() {
       try {
         const snapshot = await getDocs(itemsRef);
-        const names = new Set();
+        allUsersWithItems.clear();
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
-          if (data.owner) names.add(data.owner.trim());
+          if (data.owner) allUsersWithItems.add(data.owner.trim());
         });
 
-        if (names.size > 0) {
-          existingNamesChips.textContent = "";
-          names.forEach(name => {
+        if (allUsersWithItems.size > 0) {
+          existingNamesChips.innerHTML = "";
+          allUsersWithItems.forEach(name => {
             const btn = document.createElement("button");
             btn.className = "name-chip";
             btn.textContent = name;
@@ -443,8 +387,7 @@
     }
 
     function normalizeText(text) {
-      return text.trim().toLowerCase()
-        .replace(/['’׳"״`\-_.,\s]/g, '');
+      return text.trim().toLowerCase().replace(/['’׳"״`\-_.,\s]/g, '');
     }
 
     function getGreeting() {
@@ -456,21 +399,57 @@
       return "לילה טוב";
     }
 
-    if (checkSessionValid()) {
-      showApp();
-      trackAnalyticsEvent('login_auto');
+    // בדיקת בקשות שיתוף שנשלחו אל המשתמש הנוכחי
+    async function checkForShareRequests() {
+      try {
+        const q = query(requestsRef, where("targetUser", "==", currentUser), where("status", "==", "pending"));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          const requesters = new Set();
+          snapshot.forEach(d => requesters.add(d.data().requestedBy));
+          const requesterNames = Array.from(requesters).join(", ");
+
+          requestModalDesc.textContent = `החבר/ה (${requesterNames}) ביקשו שתשתף את הפריטים ברשימה שלך כדי שיוכלו לראות ולייבא אותם.`;
+          requestModal.classList.remove("hidden");
+
+          // בלחיצה על "שתף הכל"
+          shareAllBtn.onclick = async () => {
+            shareAllBtn.disabled = true;
+            shareAllBtn.textContent = "...מעדכן פריטים";
+
+            // 1. עדכון כל הפריטים האישיים ל-Public
+            const myItemsQuery = query(itemsRef, where("owner", "==", currentUser));
+            const myItemsSnap = await getDocs(myItemsQuery);
+            for (const docSnap of myItemsSnap.docs) {
+              await updateDoc(doc(db, "packing_items", docSnap.id), { isPublic: true });
+            }
+
+            // 2. לסגור את הבקשות
+            for (const docSnap of snapshot.docs) {
+              await updateDoc(doc(db, "share_requests", docSnap.id), { status: "approved" });
+            }
+
+            requestModal.classList.add("hidden");
+            showToast("🌐 כל הפריטים שלך שותפו כציבוריים בהצלחה!");
+          };
+
+          dismissModalBtn.onclick = async () => {
+            for (const docSnap of snapshot.docs) {
+              await updateDoc(doc(db, "share_requests", docSnap.id), { status: "dismissed" });
+            }
+            requestModal.classList.add("hidden");
+          };
+        }
+      } catch (err) {
+        console.error("Error checking share requests", err);
+      }
     }
 
-    userPinInput.addEventListener("input", () => {
-      userPinInput.value = userPinInput.value.replace(/\D/g, "").slice(0, 4);
-      userPinInput.classList.remove("error");
-      checkAutoSubmit();
-    });
-
-    userNameInput.addEventListener("input", () => {
-      userNameInput.classList.remove("error");
-      checkAutoSubmit();
-    });
+    if (checkSessionValid()) {
+      showApp();
+      trackAnalyticsLogin(currentUser);
+    }
 
     async function handleLogin() {
       if (isSubmitting) return;
@@ -482,10 +461,9 @@
         userNameInput.classList.add("error");
         return;
       }
-      
-      if (!/^\d{4}$/.test(pin)) {
+      if (!pin || pin.length !== 4) {
         userPinInput.classList.add("error");
-        showToast("נא להזין קוד PIN של 4 ספרות בלבד");
+        showToast("נא להזין קוד PIN בן 4 ספרות");
         return;
       }
 
@@ -493,9 +471,8 @@
       loginBtn.disabled = true;
 
       try {
-        const userId = name.toLowerCase();
-        const userDocRef = doc(db, "users_auth", userId);
-        const userSnap = await getDocs(query(usersRef, where("__name__", "==", userId)));
+        const userDocRef = doc(db, "users_auth", name.toLowerCase());
+        const userSnap = await getDocs(query(usersRef, where("__name__", "==", name.toLowerCase())));
 
         let isAuthSuccess = false;
 
@@ -524,7 +501,7 @@
           localStorage.setItem("packing_app_user", currentUser);
           localStorage.setItem("packing_app_expiry", expiryTimestamp.toString());
           
-          trackAnalyticsEvent('login_success');
+          trackAnalyticsLogin(currentUser);
           showApp();
         }
       } catch (err) {
@@ -541,10 +518,19 @@
     function checkAutoSubmit() {
       const name = userNameInput.value.trim();
       const pin = userPinInput.value.trim();
-      if (name && /^\d{4}$/.test(pin) && !isSubmitting) {
+      if (name && pin.length === 4 && !isSubmitting) {
         handleLogin();
       }
     }
+
+    userNameInput.addEventListener("input", () => {
+      userNameInput.classList.remove("error");
+      checkAutoSubmit();
+    });
+    userPinInput.addEventListener("input", () => {
+      userPinInput.classList.remove("error");
+      checkAutoSubmit();
+    });
 
     userNameInput.addEventListener("change", checkAutoSubmit);
     userPinInput.addEventListener("change", checkAutoSubmit);
@@ -557,8 +543,6 @@
     });
 
     logoutBtn.addEventListener("click", () => {
-      if (unsubscribeMyItems) unsubscribeMyItems();
-      if (unsubscribeFriendsItems) unsubscribeFriendsItems();
       localStorage.removeItem("packing_app_user");
       localStorage.removeItem("packing_app_expiry");
       location.reload();
@@ -570,7 +554,8 @@
       displayName.textContent = currentUser;
       greetingText.textContent = getGreeting();
       loadMyItems();
-      initFriendsItemsListener();
+      loadFriendsItems();
+      checkForShareRequests();
     }
 
     myTabBtn.addEventListener("click", () => {
@@ -623,26 +608,18 @@
         createdAt: Date.now()
       });
 
-      trackAnalyticsEvent('item_added');
       showToast(`✨ "${name}" נוסף בהצלחה!`);
       newItemName.value = "";
       newItemName.focus();
     });
 
     function loadMyItems() {
-      if (unsubscribeMyItems) unsubscribeMyItems();
-
       const q = query(itemsRef, where("owner", "==", currentUser));
-      unsubscribeMyItems = onSnapshot(q, (snapshot) => {
-        myItemsList.textContent = "";
+      onSnapshot(q, (snapshot) => {
+        myItemsList.innerHTML = "";
         myItems = [];
-
         if (snapshot.empty) {
-          const emptyP = document.createElement("p");
-          emptyP.style.cssText = "color:var(--gray); text-align:center; padding:20px 0;";
-          emptyP.textContent = "הרשימה שלך ריקה עדיין.";
-          myItemsList.appendChild(emptyP);
-
+          myItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>הרשימה שלך ריקה עדיין.</p>";
           progressText.textContent = "";
           clearAllBtn.style.display = "none";
           finishBanner.classList.add("hidden");
@@ -666,7 +643,6 @@
           finishBanner.classList.remove("hidden");
           if (!wasAllDoneBefore) {
             triggerConfetti();
-            trackAnalyticsEvent('packing_completed');
             wasAllDoneBefore = true;
           }
         } else {
@@ -675,157 +651,142 @@
         }
 
         myItems.forEach(renderMyItem);
-        renderFriendsUI(); // רענון חיווי "קיים אצלך" בלשונית החברים
       });
     }
 
     function renderMyItem(item) {
       const div = document.createElement("div");
       div.className = `item ${item.isDone ? 'done' : ''}`;
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = item.isDone;
-      checkbox.style.cssText = "width:auto; margin:0;";
-      checkbox.onchange = () => toggleDone(item.id, !item.isDone);
-
-      const titleSpan = document.createElement("span");
-      titleSpan.className = "item-title";
-      titleSpan.textContent = item.name;
-
-      const actionsDiv = document.createElement("div");
-      actionsDiv.className = "item-actions";
-
-      const badgeBtn = document.createElement("button");
-      badgeBtn.className = `badge ${item.isPublic ? 'public' : ''}`;
-      badgeBtn.textContent = item.isPublic ? "🌐 ציבורי" : "🔒 פרטי";
-      badgeBtn.onclick = () => toggleVisibility(item.id, !item.isPublic);
-
-      const editBtn = document.createElement("button");
-      editBtn.className = "icon-btn";
-      editBtn.title = "ערוך פריט";
-      editBtn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-      editBtn.onclick = () => editItem(item.id, item.name);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "icon-btn danger";
-      deleteBtn.title = "מחק פריט";
-      deleteBtn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
-      deleteBtn.onclick = () => deleteItem(item.id, item.name);
-
-      actionsDiv.appendChild(badgeBtn);
-      actionsDiv.appendChild(editBtn);
-      actionsDiv.appendChild(deleteBtn);
-
-      div.appendChild(checkbox);
-      div.appendChild(titleSpan);
-      div.appendChild(actionsDiv);
-
+      div.innerHTML = `
+        <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
+        <span class="item-title">${item.name}</span>
+        <div class="item-actions">
+          <button class="badge ${item.isPublic ? 'public' : ''}" onclick="toggleVisibility('${item.id}', ${!item.isPublic})">
+            ${item.isPublic ? '🌐 ציבורי' : '🔒 פרטי'}
+          </button>
+          <button class="icon-btn" title="ערוך פריט" onclick="editItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+          <button class="icon-btn danger" title="מחק פריט" onclick="deleteItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      `;
       myItemsList.appendChild(div);
     }
 
-    // מאזין קבוע אחד בלבד ל-Firestore ללא טעינות מחדש במעבר בין טאבים
-    function initFriendsItemsListener() {
-      if (unsubscribeFriendsItems) return;
-
-      const q = query(itemsRef, where("isPublic", "==", true));
-      unsubscribeFriendsItems = onSnapshot(q, (snapshot) => {
-        cachedFriendsGrouped = {};
+    function loadFriendsItems() {
+      // 1. משוך את כל הפריטים (כדי לדעת איזה משתמשים קיימים ואיזה ציבוריים)
+      onSnapshot(itemsRef, (snapshot) => {
+        friendsItemsList.innerHTML = "";
+        friendsTabsContainer.innerHTML = "";
+        
+        const publicGrouped = {};
+        const allUsers = new Set();
 
         snapshot.forEach((docSnap) => {
           const item = { id: docSnap.id, ...docSnap.data() };
-          if (item.owner !== currentUser) {
-            if (!cachedFriendsGrouped[item.owner]) cachedFriendsGrouped[item.owner] = [];
-            cachedFriendsGrouped[item.owner].push(item);
+          if (item.owner && item.owner !== currentUser) {
+            allUsers.add(item.owner);
+            if (item.isPublic) {
+              if (!publicGrouped[item.owner]) publicGrouped[item.owner] = [];
+              publicGrouped[item.owner].push(item);
+            }
           }
         });
 
-        renderFriendsUI();
-      });
-    }
+        const friendNames = Array.from(allUsers);
 
-    // רינדור מהיר בזמן אמת מהזיכרון המקומי
-    function renderFriendsUI() {
-      friendsItemsList.textContent = "";
-      friendsTabsContainer.textContent = "";
+        if (friendNames.length === 0) {
+          friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>אין חברים רשומים במערכת עדיין.</p>";
+          return;
+        }
 
-      const friendNames = Object.keys(cachedFriendsGrouped);
+        const allBtn = document.createElement("button");
+        allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
+        allBtn.textContent = "הכל";
+        allBtn.onclick = () => { selectedFriend = 'all'; loadFriendsItems(); };
+        friendsTabsContainer.appendChild(allBtn);
 
-      if (friendNames.length === 0) {
-        const emptyP = document.createElement("p");
-        emptyP.style.cssText = "color:var(--gray); text-align:center; padding:20px 0;";
-        emptyP.textContent = "אין פריטים ציבוריים מחברים כרגע.";
-        friendsItemsList.appendChild(emptyP);
-        return;
-      }
+        friendNames.forEach(friend => {
+          const btn = document.createElement("button");
+          btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
+          btn.textContent = friend;
+          btn.onclick = () => { selectedFriend = friend; loadFriendsItems(); };
+          friendsTabsContainer.appendChild(btn);
+        });
 
-      const allBtn = document.createElement("button");
-      allBtn.className = `friend-tab-chip ${selectedFriend === 'all' ? 'active' : ''}`;
-      allBtn.textContent = "הכל";
-      allBtn.onclick = () => { selectedFriend = 'all'; renderFriendsUI(); };
-      friendsTabsContainer.appendChild(allBtn);
+        const displayFriends = selectedFriend === "all" ? friendNames : [selectedFriend];
 
-      friendNames.forEach(friend => {
-        const btn = document.createElement("button");
-        btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
-        btn.textContent = friend;
-        btn.onclick = () => { selectedFriend = friend; renderFriendsUI(); };
-        friendsTabsContainer.appendChild(btn);
-      });
+        displayFriends.forEach(friend => {
+          const publicItems = publicGrouped[friend] || [];
 
-      const displayGrouped = selectedFriend === "all" ? cachedFriendsGrouped : { [selectedFriend]: cachedFriendsGrouped[selectedFriend] || [] };
+          const sec = document.createElement("div");
+          sec.className = "friend-section";
 
-      for (const [friend, items] of Object.entries(displayGrouped)) {
-        if (!items || items.length === 0) continue;
+          if (publicItems.length > 0) {
+            sec.innerHTML = `
+              <div class="friend-title">
+                <span>הרשימה של ${friend}</span>
+              </div>
+              <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
+            `;
 
-        const sec = document.createElement("div");
-        sec.className = "friend-section";
+            publicItems.forEach(item => {
+              const normalizedFriendItem = normalizeText(item.name);
+              const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
 
-        const titleDiv = document.createElement("div");
-        titleDiv.className = "friend-title";
-        titleDiv.textContent = `הרשימה של ${friend}`;
+              const itemDiv = document.createElement("div");
+              itemDiv.className = "item";
+              
+              let statusMarkup = `<button class="btn-sm btn-import" onclick="importSingle('${item.name.replace(/'/g, "\\'")}', this)">+ ייבא</button>`;
+              if (exactExists) {
+                statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
+              }
 
-        const importAllBtn = document.createElement("button");
-        importAllBtn.className = "btn-sm btn-import";
-        importAllBtn.style.cssText = "margin-bottom:10px; width:100%;";
-        importAllBtn.textContent = `ייבא את כל הרשימה של ${friend}`;
-        importAllBtn.onclick = () => importAll(friend, importAllBtn);
-
-        sec.appendChild(titleDiv);
-        sec.appendChild(importAllBtn);
-
-        items.forEach(item => {
-          const normalizedFriendItem = normalizeText(item.name);
-          const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
-
-          const itemDiv = document.createElement("div");
-          itemDiv.className = "item";
-
-          const nameSpan = document.createElement("span");
-          nameSpan.className = "item-title";
-          nameSpan.textContent = item.name;
-
-          itemDiv.appendChild(nameSpan);
-
-          if (exactExists) {
-            const statusSpan = document.createElement("span");
-            statusSpan.style.cssText = "font-size:0.8rem; color:var(--gray);";
-            statusSpan.textContent = "קיים אצלך";
-            itemDiv.appendChild(statusSpan);
+              itemDiv.innerHTML = `
+                <span class="item-title">${item.name}</span>
+                ${statusMarkup}
+              `;
+              sec.appendChild(itemDiv);
+            });
           } else {
-            const importBtn = document.createElement("button");
-            importBtn.className = "btn-sm btn-import";
-            importBtn.textContent = "+ ייבא";
-            importBtn.onclick = () => importSingle(item.name, importBtn);
-            itemDiv.appendChild(importBtn);
+            // אם כל הפריטים של החבר פרטיים
+            sec.innerHTML = `
+              <div class="friend-title">
+                <span>הרשימה של ${friend}</span>
+              </div>
+              <div class="private-notice">
+                <p>🔒 הרשימה של ${friend} פרטית כרגע</p>
+                <button class="btn-sm" style="background:#3b82f6;" onclick="sendShareRequest('${friend}', this)">📩 שלח לבקשת שיתוף הרשימה</button>
+              </div>
+            `;
           }
 
-          sec.appendChild(itemDiv);
+          friendsItemsList.appendChild(sec);
         });
-
-        friendsItemsList.appendChild(sec);
-      }
+      });
     }
+
+    window.sendShareRequest = async (targetUser, btnElement) => {
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.textContent = "...שולח בקשה";
+      }
+
+      await addDoc(requestsRef, {
+        targetUser: targetUser,
+        requestedBy: currentUser,
+        status: "pending",
+        createdAt: Date.now()
+      });
+
+      showToast(`📩 בקשת שיתוף נשלחה בהצלחה ל-${targetUser}!`);
+      if (btnElement) {
+        btnElement.textContent = "✓ בקשת שיתוף נשלחה";
+        btnElement.style.background = "var(--gray)";
+      }
+    };
 
     window.toggleDone = async (id, isDone) => {
       await updateDoc(doc(db, "packing_items", id), { isDone });
@@ -861,27 +822,14 @@
       if (confirm("האם אתה בטוח שברצונך למחוק את כל הרשימה שלך?")) {
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
-        
-        if (!snapshot.empty) {
-          const batch = writeBatch(db);
-          snapshot.forEach((docSnap) => {
-            batch.delete(docSnap.ref);
-          });
-          await batch.commit();
-          showToast("כל הרשימה נמחקה");
-        }
+        snapshot.forEach(async (docSnap) => {
+          await deleteDoc(doc(db, "packing_items", docSnap.id));
+        });
+        showToast("כל הרשימה נמחקה");
       }
     });
 
     window.importSingle = async (itemName, btnElement) => {
-      const normalizedInput = normalizeText(itemName);
-      const exists = myItems.some(i => normalizeText(i.name) === normalizedInput);
-      
-      if (exists) {
-        showToast(`⚠️ הפריט "${itemName}" כבר קיים ברשימה שלך`);
-        return;
-      }
-
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.textContent = "...מייבא";
@@ -895,8 +843,6 @@
         isDone: false,
         createdAt: Date.now()
       });
-
-      trackAnalyticsEvent('item_imported');
       showToast(`הפריט "${itemName}" יובא בהצלחה!`);
     };
 
@@ -909,21 +855,12 @@
 
       const q = query(itemsRef, where("owner", "==", friendName), where("isPublic", "==", true));
       const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        showToast(`אין פריטים לייבוא מהרשימה של ${friendName}`);
-        return;
-      }
-
-      const batch = writeBatch(db);
       let count = 0;
-
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
         const exists = myItems.some(i => normalizeText(i.name) === normalizeText(data.name));
         if (!exists) {
-          const newDocRef = doc(itemsRef);
-          batch.set(newDocRef, {
+          await addDoc(itemsRef, {
             name: data.name,
             owner: currentUser,
             isPublic: false,
@@ -933,19 +870,7 @@
           count++;
         }
       }
-
-      if (count > 0) {
-        await batch.commit();
-        trackAnalyticsEvent('list_imported_all');
-        showToast(`יובאו ${count} פריטים מהרשימה של ${friendName}`);
-      } else {
-        showToast(`כל הפריטים של ${friendName} כבר קיימים אצלך!`);
-        if (btnElement) {
-          btnElement.disabled = false;
-          btnElement.textContent = `ייבא את כל הרשימה של ${friendName}`;
-          btnElement.style.background = "var(--success)";
-        }
-      }
+      showToast(`יובאו ${count} פריטים מהרשימה של ${friendName}`);
     };
   </script>
 </body>
