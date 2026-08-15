@@ -116,12 +116,36 @@
       flex: 1;
     }
 
+    .item-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .item-title {
       font-size: 0.95rem;
       color: var(--text);
       word-break: break-word;
       line-height: 1.25;
     }
+
+    .subitems-btn {
+      background: #f1f5f9;
+      color: var(--primary);
+      border: 1px solid #cbd5e1;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      width: auto;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+    .subitems-btn.done { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
 
     .item.done { opacity: 0.55; background-color: #f8fafc; }
     .item.done .item-title { text-decoration: line-through; color: var(--gray); }
@@ -146,7 +170,6 @@
     }
     .badge.public { background: #dbeafe; color: #1e40af; }
     
-    /* תגית ייבוא מינימליסטית עם נקודה עדינה */
     .item-imported-sub {
       font-size: 0.75rem;
       color: var(--gray);
@@ -203,10 +226,29 @@
     }
     .modal-box {
       background: white; border-radius: 16px; padding: 20px; max-width: 420px; width: 100%; text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column;
     }
     .modal-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
     .modal-desc { font-size: 0.9rem; color: var(--gray); margin-bottom: 16px; line-height: 1.4; }
+
+    .subitems-list {
+      text-align: right;
+      overflow-y: auto;
+      max-height: 250px;
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .subitem-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 4px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .subitem-row:last-child { border-bottom: none; }
+    .subitem-row.done span { text-decoration: line-through; color: var(--gray); }
 
     @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -233,6 +275,38 @@
       <div class="modal-desc" id="requestModalDesc">חבר מהקבוצה ביקש שתשתף את הפריטים ברשימה שלך כדי שיוכל לראות ולייבא אותם.</div>
       <button id="shareAllBtn" style="background: var(--success); margin-bottom: 8px;">🌐 שתף את כל הפריטים שלי כציבוריים</button>
       <button id="dismissModalBtn" style="background: #e2e8f0; color: var(--text);">🔒 השאר את הרשימה שלי פרטית</button>
+    </div>
+  </div>
+
+  <!-- חלונית מודאל לניהול תרופות אישי / צפייה -->
+  <div id="subitemsModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="subitemsModalTitle">💊 רשימת תרופות וכדורים</div>
+      <div class="modal-desc" id="subitemsModalDesc">סמן את התרופות שנארזו. הפריט יסומן כנארז רק לאחר סימון כולן.</div>
+      
+      <div id="addSubitemForm" style="display:flex; gap:6px; margin-bottom: 8px;">
+        <input type="text" id="newSubitemName" placeholder="הקלד שם תרופה (למשל: אקמול)..." style="margin-top:0;">
+        <button id="addSubitemBtn" class="btn-sm" style="width:auto; flex-shrink:0;">+ הוסף</button>
+      </div>
+
+      <div id="subitemsListContainer" class="subitems-list"></div>
+
+      <button id="closeSubitemsModalBtn" style="margin-top: 10px;">סגור</button>
+    </div>
+  </div>
+
+  <!-- חלונית מודאל לבחירת תרופות לייבוא מחבר -->
+  <div id="importPickerModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="importPickerTitle">💊 בחירת תרופות לייבוא</div>
+      <div class="modal-desc">בחר אילו תרופות ברצונך לייבא לרשימה האישית שלך:</div>
+      
+      <div id="importPickerList" class="subitems-list"></div>
+
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button id="confirmImportPickerBtn" style="background: var(--success); flex:1;">ייבא פריטים נבחרים</button>
+        <button id="cancelImportPickerBtn" style="background: #e2e8f0; color: var(--text); flex:1;">ביטול</button>
+      </div>
     </div>
   </div>
 
@@ -289,6 +363,7 @@
           <option value="קרם הגנה משמש">
           <option value="ספריי הגנה">
           <option value="ערכת תרופות ועזרה ראשונה">
+          <option value="תרופות וכדורים">
           <option value="מטען נייד (Power Bank)">
           <option value="מטען לטלפון">
           <option value="משקפי שמש">
@@ -376,6 +451,9 @@
       publicGrouped: {}
     };
 
+    let currentActiveSubitemDoc = null;
+    let pendingImportContext = null;
+
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
     const userNameInput = document.getElementById("userNameInput");
@@ -411,6 +489,20 @@
     const requestModalDesc = document.getElementById("requestModalDesc");
     const shareAllBtn = document.getElementById("shareAllBtn");
     const dismissModalBtn = document.getElementById("dismissModalBtn");
+
+    const subitemsModal = document.getElementById("subitemsModal");
+    const subitemsModalTitle = document.getElementById("subitemsModalTitle");
+    const subitemsListContainer = document.getElementById("subitemsListContainer");
+    const addSubitemForm = document.getElementById("addSubitemForm");
+    const newSubitemName = document.getElementById("newSubitemName");
+    const addSubitemBtn = document.getElementById("addSubitemBtn");
+    const closeSubitemsModalBtn = document.getElementById("closeSubitemsModalBtn");
+
+    const importPickerModal = document.getElementById("importPickerModal");
+    const importPickerTitle = document.getElementById("importPickerTitle");
+    const importPickerList = document.getElementById("importPickerList");
+    const confirmImportPickerBtn = document.getElementById("confirmImportPickerBtn");
+    const cancelImportPickerBtn = document.getElementById("cancelImportPickerBtn");
 
     let myItems = [];
     let allUsersWithItems = new Set();
@@ -488,6 +580,11 @@
 
     function normalizeText(text) {
       return text.trim().toLowerCase().replace(/['’׳"״`\-_.,\s]/g, '');
+    }
+
+    function isMedicineItem(name) {
+      const norm = normalizeText(name);
+      return norm.includes("תרופ") || norm.includes("כדור") || norm.includes("עזרהראשונ");
     }
 
     function getGreeting() {
@@ -706,11 +803,19 @@
         return;
       }
 
-      await addDoc(itemsRef, {
+      const isMed = isMedicineItem(name);
+
+      const newDoc = await addDoc(itemsRef, {
         name: name,
         owner: currentUser,
         isPublic: newItemVisibility.value === "public",
         isDone: false,
+        hasSubitems: isMed,
+        subitems: isMed ? [
+          { name: "אקמול / אדוויל", isDone: false },
+          { name: "פלסטרים ותחבושת", isDone: false },
+          { name: "כדורים נגד בחילות", isDone: false }
+        ] : [],
         createdAt: Date.now()
       });
 
@@ -718,6 +823,14 @@
       showToast(`✨ "${name}" נוסף בהצלחה!`);
       newItemName.value = "";
       newItemName.focus();
+
+      if (isMed) {
+        openSubitemsModal(newDoc.id, name, [
+          { name: "אקמול / אדוויל", isDone: false },
+          { name: "פלסטרים ותחבושת", isDone: false },
+          { name: "כדורים נגד בחילות", isDone: false }
+        ], true);
+      }
     });
 
     function loadMyItems() {
@@ -794,11 +907,25 @@
         ? `<span class="item-imported-sub">• יובא מ-${item.importedFrom}</span>` 
         : '';
 
+      let subitemsBtnMarkup = '';
+      if (item.hasSubitems && item.subitems && item.subitems.length > 0) {
+        const doneSubs = item.subitems.filter(s => s.isDone).length;
+        const allSubsDone = doneSubs === item.subitems.length;
+        subitemsBtnMarkup = `
+          <button class="subitems-btn ${allSubsDone ? 'done' : ''}" onclick="openMySubitems('${item.id}')">
+            💊 ${doneSubs}/${item.subitems.length} •••
+          </button>
+        `;
+      }
+
       div.innerHTML = `
         <div class="item-main">
-          <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
+          <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="handleItemCheck('${item.id}', ${!item.isDone}, ${item.hasSubitems ? 'true' : 'false'})">
           <div class="item-text-box">
-            <span class="item-title">${item.name}</span>
+            <div class="item-title-row">
+              <span class="item-title">${item.name}</span>
+              ${subitemsBtnMarkup}
+            </div>
             ${importSubtitleMarkup}
           </div>
         </div>
@@ -817,6 +944,202 @@
       `;
       myItemsList.appendChild(div);
     }
+
+    window.handleItemCheck = async (id, newDoneState, hasSubitems) => {
+      const item = myItems.find(i => i.id === id);
+      if (!item) return;
+
+      if (hasSubitems && item.subitems && item.subitems.length > 0 && newDoneState === true) {
+        const allSubsDone = item.subitems.every(s => s.isDone);
+        if (!allSubsDone) {
+          triggerHaptic("light");
+          showToast("💊 יש לסמן וי על כל התרופות ברשימה הפנימית תחילה!");
+          loadMyItems();
+          openMySubitems(id);
+          return;
+        }
+      }
+
+      await toggleDone(id, newDoneState);
+    };
+
+    window.openMySubitems = (id) => {
+      const item = myItems.find(i => i.id === id);
+      if (!item) return;
+      openSubitemsModal(id, item.name, item.subitems || [], true);
+    };
+
+    window.openFriendSubitems = (friendName, itemName, subitemsJson) => {
+      try {
+        const subitems = JSON.parse(decodeURIComponent(subitemsJson));
+        openSubitemsModal(null, `${itemName} של ${friendName}`, subitems, false);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    function openSubitemsModal(docId, title, subitems, isOwner) {
+      currentActiveSubitemDoc = isOwner ? docId : null;
+      subitemsModalTitle.textContent = `💊 ${title}`;
+      addSubitemForm.style.display = isOwner ? "flex" : "none";
+      renderSubitemsModalList(subitems, isOwner);
+      subitemsModal.classList.remove("hidden");
+    }
+
+    function renderSubitemsModalList(subitems, isOwner) {
+      subitemsListContainer.innerHTML = "";
+      if (!subitems || subitems.length === 0) {
+        subitemsListContainer.innerHTML = "<p style='color:var(--gray); text-align:center; font-size:0.85rem; padding:10px;'>אין תרופות מוגדרות ברשימה.</p>";
+        return;
+      }
+
+      subitems.forEach((sub, idx) => {
+        const row = document.createElement("div");
+        row.className = `subitem-row ${sub.isDone ? 'done' : ''}`;
+        
+        let checkboxMarkup = isOwner 
+          ? `<input type="checkbox" ${sub.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleSubitemDone(${idx})">`
+          : `<span style="color:var(--gray); font-size:0.8rem;">•</span>`;
+
+        let deleteMarkup = isOwner 
+          ? `<button class="icon-btn danger" style="width:24px; height:24px; padding:2px;" onclick="deleteSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>`
+          : '';
+
+        row.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${checkboxMarkup}
+            <span style="font-size:0.9rem;">${sub.name}</span>
+          </div>
+          ${deleteMarkup}
+        `;
+        subitemsListContainer.appendChild(row);
+      });
+    }
+
+    window.toggleSubitemDone = async (idx) => {
+      if (!currentActiveSubitemDoc) return;
+      const item = myItems.find(i => i.id === currentActiveSubitemDoc);
+      if (!item || !item.subitems) return;
+
+      item.subitems[idx].isDone = !item.subitems[idx].isDone;
+      const allDone = item.subitems.length > 0 && item.subitems.every(s => s.isDone);
+
+      await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
+        subitems: item.subitems,
+        isDone: allDone
+      });
+
+      triggerHaptic("medium");
+      renderSubitemsModalList(item.subitems, true);
+    };
+
+    window.deleteSubitem = async (idx) => {
+      if (!currentActiveSubitemDoc) return;
+      const item = myItems.find(i => i.id === currentActiveSubitemDoc);
+      if (!item || !item.subitems) return;
+
+      item.subitems.splice(idx, 1);
+      const allDone = item.subitems.length > 0 && item.subitems.every(s => s.isDone);
+
+      await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
+        subitems: item.subitems,
+        isDone: allDone
+      });
+
+      renderSubitemsModalList(item.subitems, true);
+    };
+
+    addSubitemBtn.addEventListener("click", async () => {
+      const name = newSubitemName.value.trim();
+      if (!name || !currentActiveSubitemDoc) return;
+
+      const item = myItems.find(i => i.id === currentActiveSubitemDoc);
+      if (!item) return;
+
+      const subitems = item.subitems || [];
+      subitems.push({ name: name, isDone: false });
+
+      await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
+        subitems: subitems,
+        isDone: false
+      });
+
+      newSubitemName.value = "";
+      renderSubitemsModalList(subitems, true);
+    });
+
+    closeSubitemsModalBtn.addEventListener("click", () => {
+      subitemsModal.classList.add("hidden");
+      currentActiveSubitemDoc = null;
+    });
+
+    // פונקציה לפתיחת חלון בחירת תרופות לייבוא
+    function openImportPicker(itemName, sourceFriend, subitems, btnElement) {
+      pendingImportContext = {
+        itemName,
+        sourceFriend,
+        subitems: subitems || [],
+        btnElement
+      };
+
+      importPickerTitle.textContent = `💊 בחירת תרופות מ-${sourceFriend}`;
+      importPickerList.innerHTML = "";
+
+      pendingImportContext.subitems.forEach((sub, idx) => {
+        const row = document.createElement("div");
+        row.className = "subitem-row";
+        row.innerHTML = `
+          <label style="display:flex; align-items:center; gap:8px; width:100%; cursor:pointer;">
+            <input type="checkbox" id="import_sub_${idx}" checked style="width:auto; margin:0;">
+            <span style="font-size:0.9rem;">${sub.name}</span>
+          </label>
+        `;
+        importPickerList.appendChild(row);
+      });
+
+      importPickerModal.classList.remove("hidden");
+    }
+
+    confirmImportPickerBtn.addEventListener("click", async () => {
+      if (!pendingImportContext) return;
+      const { itemName, sourceFriend, subitems, btnElement } = pendingImportContext;
+
+      const selectedSubitems = [];
+      subitems.forEach((sub, idx) => {
+        const cb = document.getElementById(`import_sub_${idx}`);
+        if (cb && cb.checked) {
+          selectedSubitems.push({ name: sub.name, isDone: false });
+        }
+      });
+
+      importPickerModal.classList.add("hidden");
+
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.textContent = "...מייבא";
+        btnElement.style.background = "var(--gray)";
+      }
+
+      await addDoc(itemsRef, {
+        name: itemName,
+        owner: currentUser,
+        importedFrom: sourceFriend || "",
+        isPublic: false,
+        isDone: false,
+        hasSubitems: true,
+        subitems: selectedSubitems,
+        createdAt: Date.now()
+      });
+
+      triggerHaptic("light");
+      showToast(`הפריט "${itemName}" יובא עם ${selectedSubitems.length} תרופות!`);
+      pendingImportContext = null;
+    });
+
+    cancelImportPickerBtn.addEventListener("click", () => {
+      importPickerModal.classList.add("hidden");
+      pendingImportContext = null;
+    });
 
     function renderFriendsUI() {
       const { allUsers, publicGrouped } = cachedFriendsData;
@@ -877,13 +1200,25 @@
             const itemDiv = document.createElement("div");
             itemDiv.className = "item";
             
-            let statusMarkup = `<button class="btn-sm btn-import" onclick="importSingle('${item.name.replace(/'/g, "\\'")}', '${friend}', this)">+ ייבא</button>`;
+            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${item.name.replace(/'/g, "\\'")}', '${friend}', this, ${item.hasSubitems ? 'true' : 'false'}, '${encodeURIComponent(JSON.stringify(item.subitems || []))} ')">+ ייבא</button>`;
             if (exactExists) {
               statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
             }
 
+            let subitemsFriendMarkup = '';
+            if (item.hasSubitems && item.subitems && item.subitems.length > 0) {
+              subitemsFriendMarkup = `
+                <button class="subitems-btn" onclick="openFriendSubitems('${friend}', '${item.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(item.subitems))}')">
+                  💊 ${item.subitems.length} תרופות •••
+                </button>
+              `;
+            }
+
             itemDiv.innerHTML = `
-              <span class="item-title">${item.name}</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="item-title">${item.name}</span>
+                ${subitemsFriendMarkup}
+              </div>
               ${statusMarkup}
             `;
             sec.appendChild(itemDiv);
@@ -910,6 +1245,19 @@
         friendsItemsList.appendChild(sec);
       });
     }
+
+    window.handleImportClick = (itemName, sourceFriend, btnElement, hasSubitems, subitemsJson) => {
+      let parsedSubitems = [];
+      try {
+        if (subitemsJson) parsedSubitems = JSON.parse(decodeURIComponent(subitemsJson));
+      } catch(e) {}
+
+      if (hasSubitems && parsedSubitems.length > 0) {
+        openImportPicker(itemName, sourceFriend, parsedSubitems, btnElement);
+      } else {
+        window.importSingle(itemName, sourceFriend, btnElement, hasSubitems, subitemsJson);
+      }
+    };
 
     function loadFriendsItems() {
       if (unsubscribeFriendsItems) unsubscribeFriendsItems();
@@ -1039,7 +1387,7 @@
       }
     });
 
-    window.importSingle = async (itemName, sourceFriend, btnElement) => {
+    window.importSingle = async (itemName, sourceFriend, btnElement, hasSubitems, subitemsJson) => {
       triggerHaptic("light");
       if (btnElement) {
         btnElement.disabled = true;
@@ -1047,12 +1395,19 @@
         btnElement.style.background = "var(--gray)";
       }
 
+      let parsedSubitems = [];
+      try {
+        if (subitemsJson) parsedSubitems = JSON.parse(decodeURIComponent(subitemsJson));
+      } catch(e) {}
+
       await addDoc(itemsRef, {
         name: itemName,
         owner: currentUser,
         importedFrom: sourceFriend || "",
         isPublic: false,
         isDone: false,
+        hasSubitems: !!hasSubitems,
+        subitems: parsedSubitems.map(s => ({ name: s.name, isDone: false })),
         createdAt: Date.now()
       });
       showToast(`הפריט "${itemName}" יובא בהצלחה מ-${sourceFriend}!`);
@@ -1079,6 +1434,8 @@
             importedFrom: friendName,
             isPublic: false,
             isDone: false,
+            hasSubitems: !!data.hasSubitems,
+            subitems: (data.subitems || []).map(s => ({ name: s.name, isDone: false })),
             createdAt: Date.now()
           });
           count++;
