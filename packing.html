@@ -84,20 +84,37 @@
     .scrollable-list-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0; position: relative; }
     .scrollable-items-container { flex: 1; overflow-y: auto; padding-left: 4px; padding-right: 4px; -webkit-overflow-scrolling: touch; position: relative; }
 
-    .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 10px; }
     .item:last-child { border-bottom: none; }
-    .item-title-group { flex: 1; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    
+    .item-title-group { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
     .item-title { font-size: 0.95rem; word-break: break-word; }
     .item.done { opacity: 0.55; background-color: #f8fafc; }
     .item.done .item-title { text-decoration: line-through; color: var(--gray); }
     
-    .item-actions { display: flex; align-items: center; gap: 10px; }
+    .item-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-    .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; }
+    .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; white-space: nowrap; }
     .badge.public { background: #dbeafe; color: #1e40af; }
-    .badge-imported { font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; display: inline-block; }
+    
+    /* תגית ייבוא קומפקטית שאינה חורגת מהשורה */
+    .badge-imported {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 105px;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+    }
 
-    .icon-btn { background: none; border: none; padding: 6px; width: 34px; height: 34px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: color 0.2s, background-color 0.2s; }
+    .icon-btn { background: none; border: none; padding: 6px; width: 32px; height: 32px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: color 0.2s, background-color 0.2s; }
     .icon-btn:hover, .icon-btn:active { color: var(--text); background-color: #f1f5f9; }
     .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); background-color: #fef2f2; }
     .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
@@ -687,7 +704,6 @@
           }
         });
 
-        // בדיקה האם כל הרשימה יובאה במלואה מאותו חבר
         const importedSources = Object.keys(importedFromCounts);
         if (importedSources.length === 1 && importedFromCounts[importedSources[0]] === myItems.length) {
           fullImportBanner.textContent = `✨ כל הרשימה יובאה מ-${importedSources[0]}`;
@@ -728,7 +744,9 @@
       const div = document.createElement("div");
       div.className = `item ${item.isDone ? 'done' : ''}`;
       
-      const importBadgeMarkup = item.importedFrom ? `<span class="badge-imported">📥 מ${item.importedFrom}</span>` : '';
+      const importBadgeMarkup = item.importedFrom 
+        ? `<span class="badge-imported" title="יובא מ${item.importedFrom}">📥 מ${item.importedFrom}</span>` 
+        : '';
 
       div.innerHTML = `
         <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
