@@ -82,42 +82,83 @@
     .sticky-top-section { flex-shrink: 0; }
 
     .scrollable-list-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0; position: relative; }
-    .scrollable-items-container { flex: 1; overflow-y: auto; padding-left: 4px; padding-right: 4px; -webkit-overflow-scrolling: touch; position: relative; }
+    .scrollable-items-container { flex: 1; overflow-y: auto; padding-left: 2px; padding-right: 2px; -webkit-overflow-scrolling: touch; position: relative; }
 
-    .item { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid var(--border); gap: 10px; }
+    /* פריט מסודר: עמודת טקסט מימין, פעולות משמאל */
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
     .item:last-child { border-bottom: none; }
-    
-    .item-title-group { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
-    .item-title { font-size: 0.95rem; word-break: break-word; }
+
+    .item-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-text-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .item-title {
+      font-size: 0.95rem;
+      color: var(--text);
+      word-break: break-word;
+      line-height: 1.25;
+    }
+
     .item.done { opacity: 0.55; background-color: #f8fafc; }
     .item.done .item-title { text-decoration: line-through; color: var(--gray); }
     
-    .item-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-    .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #f1f5f9; color: var(--gray); border: none; width: auto; margin: 0; white-space: nowrap; }
-    .badge.public { background: #dbeafe; color: #1e40af; }
-    
-    /* תגית ייבוא קומפקטית שאינה חורגת מהשורה */
-    .badge-imported {
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      border-radius: 8px;
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fde68a;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 105px;
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       flex-shrink: 0;
-      display: inline-block;
-      vertical-align: middle;
     }
 
-    .icon-btn { background: none; border: none; padding: 6px; width: 32px; height: 32px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: color 0.2s, background-color 0.2s; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: var(--gray);
+      border: none;
+      width: auto;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .badge.public { background: #dbeafe; color: #1e40af; }
+    
+    /* תגית ייבוא מתחת לשם הפריט */
+    .item-imported-sub {
+      font-size: 0.72rem;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 1px 6px;
+      border-radius: 6px;
+      display: inline-block;
+      width: fit-content;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .icon-btn { background: none; border: none; padding: 4px; width: 30px; height: 30px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.2s, background-color 0.2s; }
     .icon-btn:hover, .icon-btn:active { color: var(--text); background-color: #f1f5f9; }
     .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); background-color: #fef2f2; }
-    .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+    .icon-btn svg { width: 17px; height: 17px; stroke-width: 2; }
 
     .btn-sm { width: auto; padding: 5px 10px; font-size: 0.8rem; margin: 0; }
     .btn-danger { background: var(--danger); }
@@ -744,16 +785,19 @@
       const div = document.createElement("div");
       div.className = `item ${item.isDone ? 'done' : ''}`;
       
-      const importBadgeMarkup = item.importedFrom 
-        ? `<span class="badge-imported" title="יובא מ${item.importedFrom}">📥 מ${item.importedFrom}</span>` 
+      const importSubtitleMarkup = item.importedFrom 
+        ? `<span class="item-imported-sub">📥 יובא מ-${item.importedFrom}</span>` 
         : '';
 
       div.innerHTML = `
-        <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
-        <div class="item-title-group">
-          <span class="item-title">${item.name}</span>
-          ${importBadgeMarkup}
+        <div class="item-main">
+          <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleDone('${item.id}', ${!item.isDone})">
+          <div class="item-text-box">
+            <span class="item-title">${item.name}</span>
+            ${importSubtitleMarkup}
+          </div>
         </div>
+        
         <div class="item-actions">
           <button class="badge ${item.isPublic ? 'public' : ''}" onclick="toggleVisibility('${item.id}', ${!item.isPublic})">
             ${item.isPublic ? '🌐 ציבורי' : '🔒 פרטי'}
