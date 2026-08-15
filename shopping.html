@@ -15,7 +15,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>רשימת קניות מיקונוס 2.0</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
   :root{
     --sea: #1d5f8a;
@@ -62,7 +62,7 @@
   }
 
   header{ text-align:center; margin-bottom: 8px; }
-  h1{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size: 24px; margin: 0; color: var(--sea-deep); }
+  h1{ font-family: 'Assistant', sans-serif; font-weight:800; font-size: 24px; margin: 0; color: var(--sea-deep); letter-spacing: -0.5px; }
 
   .list-tabs {
     display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 6px; gap: 4px;
@@ -384,10 +384,27 @@
       <button class="close-modal" id="closeMoreMenuModalBtn">✕</button>
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <button class="more-menu-item" id="transferAllToInPersonBtn" style="display:none; color: var(--sea); border-color: var(--sea);">🛒 העבר את כל הרשימה לקנייה עצמית</button>
       <button class="more-menu-item" id="auditToggleBtn">🔍 בדיקת המשלוח (מצב בדיקה)</button>
       <button class="more-menu-item" id="exportBtn">📋 טקסט לסופר (ייצוא)</button>
       <a class="more-menu-item" id="waBtn" target="_blank" href="#">💬 שתף קישור לרשימה</a>
       <button class="more-menu-item" id="settingsBtn" style="color: #c0533f;">⚙️ ניהול ואיפוס רשימה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal התראת כפילויות בהעברת הרשימה כולה -->
+<div class="modal-overlay" id="duplicateTransferModalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>⚠️ זוהו מוצרים שכבר קיימים</h3>
+      <button class="close-modal" id="closeDupTransferModalBtn">✕</button>
+    </div>
+    <div style="font-size: 13px; margin-bottom: 8px; color: var(--sea-deep);">המוצרים הבאים כבר קיימים ברשימת "בקנייה עצמית":</div>
+    <div id="duplicateTransferList" style="max-height: 140px; overflow-y: auto; background: var(--whitewash); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 12px; margin-bottom: 12px;"></div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button id="confirmMergeAllTransferBtn" class="submit-modal-btn" style="background: var(--sea);">➕ מזג כמויות והעבר את כולם</button>
+      <button id="confirmSkipDuplicatesTransferBtn" class="more-menu-item" style="justify-content: center;">⏩ דלג על הכפולים (העבר רק פריטים חדשים)</button>
     </div>
   </div>
 </div>
@@ -500,14 +517,14 @@
   let activePersonalMap = {};
   let tempPersonalQty = 1;
 
-  // פונקציית רטט קצרה (Haptic Feedback) לניידים
+  let pendingBulkTransferItems = [];
+  let pendingDuplicatesList = [];
+
   function triggerHapticFeedback(duration = 18) {
     if (navigator.vibrate) {
       try {
         navigator.vibrate(duration);
-      } catch (e) {
-        // מתעלם במידה והדפדפן חוסם
-      }
+      } catch (e) {}
     }
   }
 
@@ -663,8 +680,12 @@
     listStatusRef = ref(db, `lists/${currentListType}_status`);
 
     const exportBtn = document.getElementById('exportBtn');
+    const transferAllToInPersonBtn = document.getElementById('transferAllToInPersonBtn');
     if (exportBtn) {
       exportBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
+    }
+    if (transferAllToInPersonBtn) {
+      transferAllToInPersonBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
     }
 
     listenToFirebase();
@@ -679,6 +700,7 @@
   const filterBtn = document.getElementById('filterBtn');
   const auditToggleBtn = document.getElementById('auditToggleBtn');
   const exportBtn = document.getElementById('exportBtn');
+  const transferAllToInPersonBtn = document.getElementById('transferAllToInPersonBtn');
   const settingsBtn = document.getElementById('settingsBtn');
   const clearCurrentListBtn = document.getElementById('clearCurrentListBtn');
   const statusTag = document.getElementById('statusTag');
@@ -710,6 +732,12 @@
   const confirmCopyExportBtn = document.getElementById('confirmCopyExportBtn');
   const untranslatedWarning = document.getElementById('untranslatedWarning');
 
+  const duplicateTransferModalOverlay = document.getElementById('duplicateTransferModalOverlay');
+  const closeDupTransferModalBtn = document.getElementById('closeDupTransferModalBtn');
+  const duplicateTransferList = document.getElementById('duplicateTransferList');
+  const confirmMergeAllTransferBtn = document.getElementById('confirmMergeAllTransferBtn');
+  const confirmSkipDuplicatesTransferBtn = document.getElementById('confirmSkipDuplicatesTransferBtn');
+
   const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
   const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
   const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
@@ -735,6 +763,9 @@
 
   openMoreMenuBtn.onclick = () => {
     updateAuditMenuBtnUI();
+    if (transferAllToInPersonBtn) {
+      transferAllToInPersonBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
+    }
     moreMenuModalOverlay.classList.add('show');
   };
   closeMoreMenuModalBtn.onclick = () => moreMenuModalOverlay.classList.remove('show');
@@ -755,6 +786,7 @@
 
   closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
   closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
+  closeDupTransferModalBtn.onclick = () => duplicateTransferModalOverlay.classList.remove('show');
 
   exportBtn.onclick = () => {
     moreMenuModalOverlay.classList.remove('show');
@@ -992,6 +1024,14 @@
         menuDropdown.className = 'menu-dropdown';
         menuDropdown.id = `menu-${item.id}`;
 
+        if (currentListType === 'delivery') {
+          const transferSingleBtn = document.createElement('button');
+          transferSingleBtn.className = 'menu-item';
+          transferSingleBtn.textContent = '🛒 העבר לקנייה עצמית';
+          transferSingleBtn.addEventListener('click', () => transferSingleItemToInPerson(item));
+          menuDropdown.appendChild(transferSingleBtn);
+        }
+
         const priorityBtn = document.createElement('button');
         priorityBtn.className = 'menu-item';
         priorityBtn.textContent = item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף';
@@ -1199,6 +1239,158 @@
     if (menuEl) menuEl.classList.toggle('show');
   }
 
+  // העברת פריט בודד לקנייה עצמית
+  function transferSingleItemToInPerson(item) {
+    const user = requireUserName();
+    if (!user) return;
+
+    const inPersonRef = ref(db, `lists/inPerson`);
+    const totalQty = calculateTotalQty(item);
+
+    onValue(inPersonRef, (snapshot) => {
+      const inPersonItems = snapshot.val() || {};
+      const existingKey = Object.keys(inPersonItems).find(k => {
+        return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
+      });
+
+      if (existingKey) {
+        const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
+        const targetQty = currentQty + totalQty;
+        const shouldMerge = confirm(`המוצר "${item.name}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`);
+        if (shouldMerge) {
+          update(ref(db, `lists/inPerson/${existingKey}`), {
+            qty: targetQty.toString()
+          });
+          showToast(`הכמות עודכנה ל-${targetQty} ברשימת "בקנייה עצמית" 🛒`);
+        }
+      } else {
+        const newItemRef = push(inPersonRef);
+        set(newItemRef, {
+          name: item.name,
+          qty: totalQty.toString(),
+          unit: item.unit || "יח'",
+          category: item.category || detectCategory(item.name),
+          by: `הועבר ממשלוח (${user})`,
+          buyer: '',
+          done: false,
+          isPriority: item.isPriority || false,
+          auditStatus: '',
+          personalQtyMap: item.personalQtyMap || {}
+        });
+        showToast(`"${item.name}" הועבר בהצלחה לרשימת "בקנייה עצמית" 🛒`);
+      }
+    }, { onlyOnce: true });
+  }
+
+  // העברת כל הרשימה כולה לקנייה עצמית עם בדיקת כפילויות
+  transferAllToInPersonBtn.onclick = () => {
+    const user = requireUserName();
+    if (!user) return;
+
+    const keys = Object.keys(itemsMap);
+    if (keys.length === 0) {
+      showToast('רשימת המשלוח ריקה!');
+      return;
+    }
+
+    moreMenuModalOverlay.classList.remove('show');
+    const inPersonRef = ref(db, `lists/inPerson`);
+
+    onValue(inPersonRef, (snapshot) => {
+      const inPersonItems = snapshot.val() || {};
+      pendingBulkTransferItems = keys.map(k => itemsMap[k]);
+      pendingDuplicatesList = [];
+
+      pendingBulkTransferItems.forEach(item => {
+        const totalQty = calculateTotalQty(item);
+        const existingKey = Object.keys(inPersonItems).find(k => {
+          return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
+        });
+
+        if (existingKey) {
+          pendingDuplicatesList.push({
+            name: item.name,
+            unit: item.unit || "יח'",
+            transferQty: totalQty,
+            existingQty: parseInt(inPersonItems[existingKey].qty) || 1,
+            existingKey: existingKey,
+            itemData: item
+          });
+        }
+      });
+
+      if (pendingDuplicatesList.length > 0) {
+        duplicateTransferList.innerHTML = '';
+        pendingDuplicatesList.forEach(dup => {
+          const row = document.createElement('div');
+          row.style.padding = '4px 0';
+          row.style.borderBottom = '1px solid var(--line)';
+          row.innerHTML = `<strong>${dup.name}</strong> - קיים: ${dup.existingQty} ${dup.unit} | מועבר: +${dup.transferQty}`;
+          duplicateTransferList.appendChild(row);
+        });
+        duplicateTransferModalOverlay.classList.add('show');
+      } else {
+        executeBulkTransfer(inPersonItems, 'merge');
+      }
+    }, { onlyOnce: true });
+  };
+
+  confirmMergeAllTransferBtn.onclick = () => {
+    const inPersonRef = ref(db, `lists/inPerson`);
+    onValue(inPersonRef, (snapshot) => {
+      executeBulkTransfer(snapshot.val() || {}, 'merge');
+      duplicateTransferModalOverlay.classList.remove('show');
+    }, { onlyOnce: true });
+  };
+
+  confirmSkipDuplicatesTransferBtn.onclick = () => {
+    const inPersonRef = ref(db, `lists/inPerson`);
+    onValue(inPersonRef, (snapshot) => {
+      executeBulkTransfer(snapshot.val() || {}, 'skip');
+      duplicateTransferModalOverlay.classList.remove('show');
+    }, { onlyOnce: true });
+  };
+
+  function executeBulkTransfer(inPersonItems, duplicateAction) {
+    const user = requireUserName();
+    const inPersonRef = ref(db, `lists/inPerson`);
+    let transferredCount = 0;
+
+    pendingBulkTransferItems.forEach(item => {
+      const totalQty = calculateTotalQty(item);
+      const existingKey = Object.keys(inPersonItems).find(k => {
+        return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
+      });
+
+      if (existingKey) {
+        if (duplicateAction === 'merge') {
+          const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
+          update(ref(db, `lists/inPerson/${existingKey}`), {
+            qty: (currentQty + totalQty).toString()
+          });
+          transferredCount++;
+        }
+      } else {
+        const newItemRef = push(inPersonRef);
+        set(newItemRef, {
+          name: item.name,
+          qty: totalQty.toString(),
+          unit: item.unit || "יח'",
+          category: item.category || detectCategory(item.name),
+          by: `הועבר ממשלוח (${user})`,
+          buyer: '',
+          done: false,
+          isPriority: item.isPriority || false,
+          auditStatus: '',
+          personalQtyMap: item.personalQtyMap || {}
+        });
+        transferredCount++;
+      }
+    });
+
+    showToast(`${transferredCount} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`);
+  }
+
   function setAuditStatus(id, status) {
     triggerHapticFeedback(15);
     if (status === 'partial') {
@@ -1244,7 +1436,7 @@
   }
 
   function toggleItem(id, currentStatus) {
-    triggerHapticFeedback(25); // רטט קל בסימון V
+    triggerHapticFeedback(25);
     update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
   }
 
