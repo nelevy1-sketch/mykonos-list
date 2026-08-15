@@ -285,7 +285,7 @@
       <div class="modal-desc" id="subitemsModalDesc">סמן את התרופות שנארזו. הפריט יסומן כנארז רק לאחר סימון כולן.</div>
       
       <div id="addSubitemForm" style="display:flex; gap:6px; margin-bottom: 8px;">
-        <input type="text" id="newSubitemName" placeholder="הקלד שם תרופה (למשל: אקמול)..." style="margin-top:0;">
+        <input type="text" id="newSubitemName" placeholder="הקלד שם תרופה ולחץ Enter..." style="margin-top:0;">
         <button id="addSubitemBtn" class="btn-sm" style="width:auto; flex-shrink:0;">+ הוסף</button>
       </div>
 
@@ -546,7 +546,8 @@
 
         if (allUsersWithItems.size > 0) {
           existingNamesChips.innerHTML = "";
-          allUsersWithItems.forEach(name => {
+          const sortedUsers = Array.from(allUsersWithItems).sort((a, b) => a.localeCompare(b, 'he'));
+          sortedUsers.forEach(name => {
             const btn = document.createElement("button");
             btn.className = "name-chip";
             btn.textContent = name;
@@ -860,7 +861,6 @@
           const isMed = isMedicineItem(data.name);
           const hasSubs = data.hasSubitems || isMed;
           
-          // שדרוג רטרואקטיבי לפריט קיים
           let subitemsList = data.subitems;
           if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
             subitemsList = [
@@ -1006,6 +1006,7 @@
       addSubitemForm.style.display = isOwner ? "flex" : "none";
       renderSubitemsModalList(subitems, isOwner);
       subitemsModal.classList.remove("hidden");
+      if (isOwner) setTimeout(() => newSubitemName.focus(), 150);
     }
 
     function renderSubitemsModalList(subitems, isOwner) {
@@ -1023,8 +1024,13 @@
           ? `<input type="checkbox" ${sub.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="toggleSubitemDone(${idx})">`
           : `<span style="color:var(--gray); font-size:0.8rem;">•</span>`;
 
-        let deleteMarkup = isOwner 
-          ? `<button class="icon-btn danger" style="width:24px; height:24px; padding:2px;" onclick="deleteSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>`
+        let actionButtons = isOwner 
+          ? `
+            <div style="display:flex; align-items:center; gap:4px;">
+              <button class="icon-btn" style="width:24px; height:24px; padding:2px;" title="ערוך תרופה" onclick="editSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+              <button class="icon-btn danger" style="width:24px; height:24px; padding:2px;" title="מחק תרופה" onclick="deleteSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+            </div>
+          `
           : '';
 
         row.innerHTML = `
@@ -1032,7 +1038,7 @@
             ${checkboxMarkup}
             <span style="font-size:0.9rem;">${sub.name}</span>
           </div>
-          ${deleteMarkup}
+          ${actionButtons}
         `;
         subitemsListContainer.appendChild(row);
       });
@@ -1055,6 +1061,22 @@
       renderSubitemsModalList(item.subitems, true);
     };
 
+    window.editSubitem = async (idx) => {
+      if (!currentActiveSubitemDoc) return;
+      const item = myItems.find(i => i.id === currentActiveSubitemDoc);
+      if (!item || !item.subitems) return;
+
+      const oldName = item.subitems[idx].name;
+      const newName = prompt("ערוך שם תרופה / כדור:", oldName);
+      if (newName !== null && newName.trim() !== "" && newName.trim() !== oldName) {
+        item.subitems[idx].name = newName.trim();
+        await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
+          subitems: item.subitems
+        });
+        renderSubitemsModalList(item.subitems, true);
+      }
+    };
+
     window.deleteSubitem = async (idx) => {
       if (!currentActiveSubitemDoc) return;
       const item = myItems.find(i => i.id === currentActiveSubitemDoc);
@@ -1071,7 +1093,7 @@
       renderSubitemsModalList(item.subitems, true);
     };
 
-    addSubitemBtn.addEventListener("click", async () => {
+    async function handleAddSubitem() {
       const name = newSubitemName.value.trim();
       if (!name || !currentActiveSubitemDoc) return;
 
@@ -1088,6 +1110,16 @@
 
       newSubitemName.value = "";
       renderSubitemsModalList(subitems, true);
+      newSubitemName.focus();
+    }
+
+    addSubitemBtn.addEventListener("click", handleAddSubitem);
+
+    newSubitemName.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAddSubitem();
+      }
     });
 
     closeSubitemsModalBtn.addEventListener("click", () => {
@@ -1202,6 +1234,8 @@
 
       displayFriends.forEach(friend => {
         const publicItems = publicGrouped[friend] || [];
+        // מיון פריטי החבר לפי א-ב
+        publicItems.sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
         const sec = document.createElement("div");
         sec.className = "friend-section";
@@ -1314,7 +1348,8 @@
             }
           });
 
-          cachedFriendsData.allUsers = Array.from(allUsersSet);
+          // מיון רשימת שמות החברים לפי א-ב
+          cachedFriendsData.allUsers = Array.from(allUsersSet).sort((a, b) => a.localeCompare(b, 'he'));
           cachedFriendsData.publicGrouped = publicGrouped;
 
           renderFriendsUI();
