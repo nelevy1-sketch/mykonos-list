@@ -278,6 +278,16 @@
     </div>
   </div>
 
+  <!-- חלונית מודאל להצעת מיזוג פריטי תרופות כפולים -->
+  <div id="mergeMedsModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">💊 איחוד פריטי תרופות ועזרה ראשונה</div>
+      <div class="modal-desc" id="mergeMedsDesc">זיהינו מספר פריטים בנושא תרופות ועזרה ראשונה ברשימה שלך. האם תרצה למזג אותם לפריט ראשי אחד ולנהל את כולם בנוחות בחלונית פנימית?</div>
+      <button id="confirmMergeMedsBtn" style="background: var(--success); margin-bottom: 8px;">✨ כן, אחד לפריט תרופות אחד</button>
+      <button id="dismissMergeMedsBtn" style="background: #e2e8f0; color: var(--text);">השאר כפריטים נפרדים</button>
+    </div>
+  </div>
+
   <!-- חלונית מודאל לניהול תרופות אישי / צפייה -->
   <div id="subitemsModal" class="modal-overlay hidden">
     <div class="modal-box">
@@ -490,6 +500,11 @@
     const shareAllBtn = document.getElementById("shareAllBtn");
     const dismissModalBtn = document.getElementById("dismissModalBtn");
 
+    const mergeMedsModal = document.getElementById("mergeMedsModal");
+    const mergeMedsDesc = document.getElementById("mergeMedsDesc");
+    const confirmMergeMedsBtn = document.getElementById("confirmMergeMedsBtn");
+    const dismissMergeMedsBtn = document.getElementById("dismissMergeMedsBtn");
+
     const subitemsModal = document.getElementById("subitemsModal");
     const subitemsModalTitle = document.getElementById("subitemsModalTitle");
     const subitemsListContainer = document.getElementById("subitemsListContainer");
@@ -642,6 +657,77 @@
       }
     }
 
+    // בדיקה והצעת מיזוג פריטי תרופות כפולים בכניסה
+    async function checkForDuplicateMedsToMerge() {
+      try {
+        const q = query(itemsRef, where("owner", "==", currentUser));
+        const snapshot = await getDocs(q);
+        const medItems = [];
+
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          if (isMedicineItem(d.name)) {
+            medItems.push({ id: docSnap.id, ...d });
+          }
+        });
+
+        // אם יש יותר מפריט תרופות/עזרה ראשונה אחד
+        if (medItems.length > 1) {
+          const namesList = medItems.map(m => `"${m.name}"`).join(", ");
+          mergeMedsDesc.textContent = `נמצאו הפריטים: ${namesList}. האם תרצה למזג את כולם תחת פריט ראשי אחד בשם "ערכת תרופות ועזרה ראשונה" ולנהל את שאר הפריטים כתת-תרופות בחלונית הפנימית?`;
+          mergeMedsModal.classList.remove("hidden");
+
+          confirmMergeMedsBtn.onclick = async () => {
+            confirmMergeMedsBtn.disabled = true;
+            confirmMergeMedsBtn.textContent = "...ממזג פריטים";
+
+            let mergedSubitems = [
+              { name: "אקמול / אדוויל", isDone: false },
+              { name: "פלסטרים ותחבושת", isDone: false },
+              { name: "כדורים נגד בחילות", isDone: false }
+            ];
+
+            // איסוף כל שמות הפריטים כתת-פריטים
+            medItems.forEach(item => {
+              if (item.subitems && item.subitems.length > 0) {
+                item.subitems.forEach(s => {
+                  if (!mergedSubitems.some(m => normalizeText(m.name) === normalizeText(s.name))) {
+                    mergedSubitems.push(s);
+                  }
+                });
+              } else {
+                if (!mergedSubitems.some(m => normalizeText(m.name) === normalizeText(item.name))) {
+                  mergedSubitems.push({ name: item.name, isDone: item.isDone || false });
+                }
+              }
+            });
+
+            // השארת הראשון כראשי ומחיקת השאר
+            const primaryItem = medItems[0];
+            await updateDoc(doc(db, "packing_items", primaryItem.id), {
+              name: "ערכת תרופות ועזרה ראשונה",
+              hasSubitems: true,
+              subitems: mergedSubitems,
+              isDone: false
+            });
+
+            for (let i = 1; i < medItems.length; i++) {
+              await deleteDoc(doc(db, "packing_items", medItems[i].id));
+            }
+
+            mergeMedsModal.classList.add("hidden");
+            showToast("✨ כל פריטי התרופות מוזגו בהצלחה לפריט ראשי אחד!");
+          };
+
+          dismissMergeMedsBtn.onclick = () => {
+            mergeMedsModal.classList.add("hidden");
+          };
+        }
+      } catch (err) {
+        console.error("Error merging meds:", err);
+      }
+    }
+
     if (checkSessionValid()) {
       showApp();
       trackAnalyticsLogin(currentUser);
@@ -758,6 +844,7 @@
       loadMyItems();
       loadFriendsItems();
       checkForShareRequests();
+      checkForDuplicateMedsToMerge();
     }
 
     myTabBtn.addEventListener("click", () => {
@@ -805,6 +892,17 @@
       }
 
       const isMed = isMedicineItem(name);
+
+      // אם כבר קיים פריט תרופות ראשי ברשימה והמשתמש מנסה להכניס עוד אחד
+      if (isMed) {
+        const existingMedMainItem = myItems.find(i => i.hasSubitems || isMedicineItem(i.name));
+        if (existingMedMainItem) {
+          showToast(`💊 פריטי תרופות מנוהלים תחת "${existingMedMainItem.name}"`);
+          newItemName.value = "";
+          openMySubitems(existingMedMainItem.id);
+          return;
+        }
+      }
 
       const newDoc = await addDoc(itemsRef, {
         name: name,
@@ -892,7 +990,6 @@
           fullImportBanner.classList.add("hidden");
         }
 
-        // מיון מלא לפי א-ב (פריטים שטרם נארזו למעלה לפי א-ב, פריטים שנארזו למטה לפי א-ב)
         myItems.sort((a, b) => {
           if (a.isDone !== b.isDone) {
             return a.isDone ? 1 : -1;
