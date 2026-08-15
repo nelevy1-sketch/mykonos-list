@@ -84,30 +84,35 @@
     .scrollable-list-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0; position: relative; }
     .scrollable-items-container { flex: 1; overflow-y: auto; padding-left: 2px; padding-right: 2px; -webkit-overflow-scrolling: touch; position: relative; }
 
-    /* פריט מסודר: עמודת טקסט מימין, פעולות משמאל */
+    /* פריט מסודר: מבנה אחיד ויציב */
     .item {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 10px 4px;
       border-bottom: 1px solid var(--border);
-      gap: 8px;
+      gap: 10px;
     }
     .item:last-child { border-bottom: none; }
 
     .item-main {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       flex: 1;
       min-width: 0;
     }
 
+    .item-main input[type="checkbox"] {
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
     .item-text-box {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 2px;
+      align-items: flex-start;
+      gap: 3px;
       min-width: 0;
       flex: 1;
     }
@@ -142,17 +147,21 @@
     }
     .badge.public { background: #dbeafe; color: #1e40af; }
     
-    /* תגית ייבוא מתחת לשם הפריט */
+    /* תגית ייבוא: מתחת לשם, שורה אחת בלבד, ללא שבירה */
     .item-imported-sub {
       font-size: 0.72rem;
       color: #b45309;
       background: #fef3c7;
-      padding: 1px 6px;
+      border: 1px solid #fde68a;
+      padding: 1px 8px;
       border-radius: 6px;
-      display: inline-block;
-      width: fit-content;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
       font-weight: 500;
-      line-height: 1.2;
+      line-height: 1.3;
     }
 
     .icon-btn { background: none; border: none; padding: 4px; width: 30px; height: 30px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.2s, background-color 0.2s; }
