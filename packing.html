@@ -857,7 +857,28 @@
         let importedFromCounts = {};
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
-          myItems.push({ id: docSnap.id, ...data });
+          const isMed = isMedicineItem(data.name);
+          const hasSubs = data.hasSubitems || isMed;
+          
+          // שדרוג רטרואקטיבי לפריט קיים
+          let subitemsList = data.subitems;
+          if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
+            subitemsList = [
+              { name: "אקמול / אדוויל", isDone: false },
+              { name: "פלסטרים ותחבושת", isDone: false },
+              { name: "כדורים נגד בחילות", isDone: false }
+            ];
+          }
+
+          const itemObj = { 
+            id: docSnap.id, 
+            ...data, 
+            hasSubitems: hasSubs,
+            subitems: subitemsList || []
+          };
+
+          myItems.push(itemObj);
+
           if (data.importedFrom) {
             importedFromCounts[data.importedFrom] = (importedFromCounts[data.importedFrom] || 0) + 1;
           }
@@ -908,12 +929,13 @@
         : '';
 
       let subitemsBtnMarkup = '';
-      if (item.hasSubitems && item.subitems && item.subitems.length > 0) {
-        const doneSubs = item.subitems.filter(s => s.isDone).length;
-        const allSubsDone = doneSubs === item.subitems.length;
+      if (item.hasSubitems) {
+        const subs = item.subitems || [];
+        const doneSubs = subs.filter(s => s.isDone).length;
+        const allSubsDone = subs.length > 0 && doneSubs === subs.length;
         subitemsBtnMarkup = `
           <button class="subitems-btn ${allSubsDone ? 'done' : ''}" onclick="openMySubitems('${item.id}')">
-            💊 ${doneSubs}/${item.subitems.length} •••
+            💊 ${doneSubs}/${subs.length} •••
           </button>
         `;
       }
@@ -1073,7 +1095,6 @@
       currentActiveSubitemDoc = null;
     });
 
-    // פונקציה לפתיחת חלון בחירת תרופות לייבוא
     function openImportPicker(itemName, sourceFriend, subitems, btnElement) {
       pendingImportContext = {
         itemName,
@@ -1196,20 +1217,30 @@
           publicItems.forEach(item => {
             const normalizedFriendItem = normalizeText(item.name);
             const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
+            const isMed = isMedicineItem(item.name) || item.hasSubitems;
+
+            let subitemsList = item.subitems;
+            if (isMed && (!subitemsList || subitemsList.length === 0)) {
+              subitemsList = [
+                { name: "אקמול / אדוויל", isDone: false },
+                { name: "פלסטרים ותחבושת", isDone: false },
+                { name: "כדורים נגד בחילות", isDone: false }
+              ];
+            }
 
             const itemDiv = document.createElement("div");
             itemDiv.className = "item";
             
-            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${item.name.replace(/'/g, "\\'")}', '${friend}', this, ${item.hasSubitems ? 'true' : 'false'}, '${encodeURIComponent(JSON.stringify(item.subitems || []))} ')">+ ייבא</button>`;
+            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${item.name.replace(/'/g, "\\'")}', '${friend}', this, ${isMed ? 'true' : 'false'}, '${encodeURIComponent(JSON.stringify(subitemsList || []))} ')">+ ייבא</button>`;
             if (exactExists) {
               statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
             }
 
             let subitemsFriendMarkup = '';
-            if (item.hasSubitems && item.subitems && item.subitems.length > 0) {
+            if (isMed && subitemsList && subitemsList.length > 0) {
               subitemsFriendMarkup = `
-                <button class="subitems-btn" onclick="openFriendSubitems('${friend}', '${item.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(item.subitems))}')">
-                  💊 ${item.subitems.length} תרופות •••
+                <button class="subitems-btn" onclick="openFriendSubitems('${friend}', '${item.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(subitemsList))}')">
+                  💊 ${subitemsList.length} תרופות •••
                 </button>
               `;
             }
@@ -1428,14 +1459,24 @@
         const data = docSnap.data();
         const exists = myItems.some(i => normalizeText(i.name) === normalizeText(data.name));
         if (!exists) {
+          const isMed = isMedicineItem(data.name) || data.hasSubitems;
+          let subitemsList = data.subitems;
+          if (isMed && (!subitemsList || subitemsList.length === 0)) {
+            subitemsList = [
+              { name: "אקמול / אדוויל", isDone: false },
+              { name: "פלסטרים ותחבושת", isDone: false },
+              { name: "כדורים נגד בחילות", isDone: false }
+            ];
+          }
+
           await addDoc(itemsRef, {
             name: data.name,
             owner: currentUser,
             importedFrom: friendName,
             isPublic: false,
             isDone: false,
-            hasSubitems: !!data.hasSubitems,
-            subitems: (data.subitems || []).map(s => ({ name: s.name, isDone: false })),
+            hasSubitems: !!isMed,
+            subitems: (subitemsList || []).map(s => ({ name: s.name, isDone: false })),
             createdAt: Date.now()
           });
           count++;
