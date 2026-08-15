@@ -892,7 +892,13 @@
           fullImportBanner.classList.add("hidden");
         }
 
-        myItems.sort((a, b) => (a.isDone === b.isDone ? b.createdAt - a.createdAt : a.isDone ? 1 : -1));
+        // מיון מלא לפי א-ב (פריטים שטרם נארזו למעלה לפי א-ב, פריטים שנארזו למטה לפי א-ב)
+        myItems.sort((a, b) => {
+          if (a.isDone !== b.isDone) {
+            return a.isDone ? 1 : -1;
+          }
+          return a.name.localeCompare(b.name, 'he');
+        });
 
         const doneCount = myItems.filter(i => i.isDone).length;
         const isAllDone = myItems.length > 0 && doneCount === myItems.length;
@@ -1234,7 +1240,6 @@
 
       displayFriends.forEach(friend => {
         const publicItems = publicGrouped[friend] || [];
-        // מיון פריטי החבר לפי א-ב
         publicItems.sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
         const sec = document.createElement("div");
@@ -1348,7 +1353,6 @@
             }
           });
 
-          // מיון רשימת שמות החברים לפי א-ב
           cachedFriendsData.allUsers = Array.from(allUsersSet).sort((a, b) => a.localeCompare(b, 'he'));
           cachedFriendsData.publicGrouped = publicGrouped;
 
