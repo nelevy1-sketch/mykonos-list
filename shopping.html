@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+<!-- טעינה מיידית של ה-Theme למניעת הבהוב -->
+<script>
+  (function() {
+    const savedTheme = localStorage.getItem('mykonos-theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-0VXCEZ117S"></script>
 <script>
@@ -27,6 +37,33 @@
     --name-tag: #6d8f9c;
     --new-blue: #0066ff;
     --wa-green: #25D366;
+    --bg-gradient-start: var(--whitewash);
+    --bg-gradient-end: var(--white);
+    --header-bg: rgba(243, 246, 248, 0.98);
+    --card-bg: var(--white);
+    --text-main: var(--sea-deep);
+    --text-muted: #5c6b73;
+    --tab-bg: #e2ebf0;
+    --tag-bg: #eef5f9;
+  }
+
+  /* משתני Dark Mode מלוטשים ונעימים לעין */
+  [data-theme="dark"] {
+    --sea: #4da3d9;
+    --sea-deep: #e1ebf2;
+    --white: #1e262c;
+    --whitewash: #12171b;
+    --sun: #f0c05a;
+    --line: #2d3840;
+    --name-tag: #9ab4c2;
+    --bg-gradient-start: #0f1418;
+    --bg-gradient-end: #161c22;
+    --header-bg: rgba(18, 23, 27, 0.98);
+    --card-bg: #1e262c;
+    --text-main: #f0f4f8;
+    --text-muted: #9bb0bd;
+    --tab-bg: #253038;
+    --tag-bg: #273540;
   }
 
   *{ box-sizing: border-box; }
@@ -34,13 +71,14 @@
   body{
     margin:0;
     min-height:100vh;
-    background: linear-gradient(180deg, var(--whitewash) 0%, var(--white) 40%);
+    background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
     font-family: 'Assistant', sans-serif;
-    color: var(--sea-deep);
+    color: var(--text-main);
     display:flex;
     flex-direction: column;
     align-items: center;
     padding: 0 12px 80px;
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
   .card{ width:100%; max-width: 480px; }
@@ -51,7 +89,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(243, 246, 248, 0.98);
+    background: var(--header-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     padding: 12px 0 8px;
@@ -59,30 +97,52 @@
     margin-bottom: 10px;
     width: 100%;
     max-width: 480px;
+    transition: background 0.3s ease, border-color 0.3s ease;
   }
 
-  header{ text-align:center; margin-bottom: 8px; }
-  h1{ font-family: 'Assistant', sans-serif; font-weight:800; font-size: 24px; margin: 0; color: var(--sea-deep); letter-spacing: -0.5px; }
+  header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  h1{ font-family: 'Assistant', sans-serif; font-weight:800; font-size: 24px; margin: 0; color: var(--text-main); letter-spacing: -0.5px; }
+
+  .theme-toggle-btn {
+    background: var(--tab-bg);
+    border: 1px solid var(--line);
+    color: var(--text-main);
+    font-size: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .theme-toggle-btn:active { transform: scale(0.92); }
 
   .list-tabs {
-    display: flex; background: #e2ebf0; padding: 4px; border-radius: 12px; margin-bottom: 6px; gap: 4px;
+    display: flex; background: var(--tab-bg); padding: 4px; border-radius: 12px; margin-bottom: 6px; gap: 4px;
   }
 
   .tab-btn {
     flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 8px;
-    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--sea-deep); cursor: pointer; transition: all 0.2s;
+    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; transition: all 0.2s;
   }
-  .tab-btn.active { background: var(--white); color: var(--sea); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+  .tab-btn.active { background: var(--card-bg); color: var(--sea); box-shadow: 0 2px 5px rgba(0,0,0,0.12); }
 
   .status-bar {
     display: flex; justify-content: space-between; align-items: center;
-    background: var(--white); border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
+    background: var(--card-bg); border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
   }
-  .status-tag { background: #eef5f9; color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-  .status-tag:hover { background: #dceaf2; }
+  .status-tag { background: var(--tag-bg); color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
 
   .progress-section {
-    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
+    background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
   }
   .progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
   .progress-bar-bg { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
@@ -90,46 +150,46 @@
 
   .whoami{
     display:flex; align-items:center; gap:8px; margin-bottom: 12px;
-    background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
+    background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
     width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .whoami.highlight {
     border: 2px solid #c0533f !important;
-    background: #fffdfd;
+    background: rgba(192, 83, 63, 0.08);
     box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
   }
   .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
-  .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--sea-deep); flex:1; background:transparent; font-weight:700; min-width:0; }
+  .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--text-main); flex:1; background:transparent; font-weight:700; min-width:0; }
 
   .main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .open-modal-btn {
     flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
     padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.2); display: flex; align-items: center; justify-content: center; gap: 6px;
+    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.25); display: flex; align-items: center; justify-content: center; gap: 6px;
   }
   .filter-btn {
-    flex: 1.2; background: var(--white); border: 1.5px solid var(--line); color: var(--sea-deep);
+    flex: 1.2; background: var(--card-bg); border: 1.5px solid var(--line); color: var(--text-main);
     border-radius: 12px; padding: 12px 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
   }
   .more-menu-btn {
-    background: var(--whitewash); border: 1.5px solid var(--line); color: var(--sea-deep);
+    background: var(--whitewash); border: 1.5px solid var(--line); color: var(--text-main);
     border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 700; cursor: pointer;
   }
 
   .category-header {
-    font-size: 15px; font-weight: 700; color: var(--sea-deep); margin: 16px 0 8px;
+    font-size: 15px; font-weight: 700; color: var(--text-main); margin: 16px 0 8px;
     padding-bottom: 4px; border-bottom: 2px solid var(--sea); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
   }
-  .cat-count { font-size: 11px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--sea-deep); }
+  .cat-count { font-size: 11px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--text-main); }
 
   ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
   ul.collapsed { display: none; }
 
   li{
-    display:flex; flex-direction:column; gap:4px; background: var(--white);
+    display:flex; flex-direction:column; gap:4px; background: var(--card-bg);
     border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; position: relative;
   }
-  li.is-priority { border: 2px solid var(--sun) !important; background: #fffdf5; }
+  li.is-priority { border: 2px solid var(--sun) !important; background: rgba(232, 184, 75, 0.08); }
 
   .item-row{ display:flex; align-items:center; gap:8px; }
 
@@ -141,7 +201,7 @@
   .check.done::after{ content:"✓"; color:white; font-size:12px; font-weight:700; }
 
   .item-main{ flex:1; min-width:0; }
-  .item-text{ font-size: 14px; font-weight:600; word-break: break-word; }
+  .item-text{ font-size: 14px; font-weight:600; word-break: break-word; color: var(--text-main); }
   .item-text.done{ text-decoration: line-through; opacity: .45; }
 
   .qty-control-box {
@@ -152,79 +212,79 @@
     background: transparent; border: none; font-size: 13px; font-weight: 700;
     color: var(--sea); cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;
   }
-  .qty-btn:active { color: var(--sea-deep); transform: scale(1.1); }
-  .item-qty-val { font-size: 11px; font-weight: 700; color: var(--sea-deep); }
+  .qty-btn:active { color: var(--text-main); transform: scale(1.1); }
+  .item-qty-val { font-size: 11px; font-weight: 700; color: var(--text-main); }
 
   .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
   .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
   .item-by { color: var(--name-tag); }
-  .item-buyer { background: #eef5f9; color: var(--sea-deep); }
-  .item-wanting { background: #eafaf1; color: #2b7a4b; }
+  .item-buyer { background: var(--tag-bg); color: var(--text-main); }
+  .item-wanting { background: rgba(37, 211, 102, 0.15); color: #25D366; }
 
-  .item-audit-tag.received { background: #eafaf1; color: #2b7a4b; }
-  .item-audit-tag.partial { background: #fffdf5; color: #b8860b; }
-  .item-audit-tag.replaced { background: #eef5f9; color: #1d5f8a; }
-  .item-audit-tag.missing { background: #fdf0ed; color: #c0533f; }
+  .item-audit-tag.received { background: rgba(37, 211, 102, 0.15); color: #25D366; }
+  .item-audit-tag.partial { background: rgba(232, 184, 75, 0.15); color: var(--sun); }
+  .item-audit-tag.replaced { background: var(--tag-bg); color: var(--sea); }
+  .item-audit-tag.missing { background: rgba(192, 83, 63, 0.15); color: #e57373; }
 
   .item-btn-actions { display: flex; gap: 4px; align-items: center; }
 
   .claim-btn, .want-btn {
     font-size: 10px; background: var(--whitewash); border: 1px solid var(--line);
-    color: var(--sea-deep); padding: 4px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;
+    color: var(--text-main); padding: 4px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;
   }
   .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
-  .claim-btn.active { background: var(--sea-deep); color: white; }
+  .claim-btn.active { background: var(--sea); color: white; }
 
   .audit-controls {
     display: flex; gap: 4px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px;
   }
   .audit-status-btn {
     flex: 1; font-size: 10px; padding: 4px 2px; border: 1px solid var(--line);
-    background: var(--whitewash); border-radius: 4px; cursor: pointer; font-weight: 600; text-align: center;
+    background: var(--whitewash); color: var(--text-main); border-radius: 4px; cursor: pointer; font-weight: 600; text-align: center;
   }
-  .audit-status-btn.active { font-weight: 800; border-color: var(--sea-deep); }
+  .audit-status-btn.active { font-weight: 800; border-color: var(--sea); color: var(--sea); }
 
   .menu-btn { background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px; }
 
   .menu-dropdown {
     display: none; position: absolute; top: 36px; left: 10px;
-    background: white; border: 1px solid var(--line); border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; flex-direction: column; overflow: hidden;
+    background: var(--card-bg); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 10; flex-direction: column; overflow: hidden;
   }
   .menu-dropdown.show { display: flex; }
 
   .menu-item {
-    padding: 8px 12px; font-size: 12px; border: none; background: transparent;
+    padding: 8px 12px; font-size: 12px; border: none; background: transparent; color: var(--text-main);
     text-align: right; cursor: pointer; font-family: inherit; font-weight: 600;
   }
   .menu-item:hover { background: var(--whitewash); }
-  .menu-item.danger { color: #c0533f; }
+  .menu-item.danger { color: #e57373; }
 
   /* Toast */
   .toast {
-    visibility: hidden; width: 90%; max-width: 400px; background-color: var(--sea-deep); color: #fff; text-align: center;
-    border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
+    visibility: hidden; width: 90%; max-width: 400px; background-color: var(--card-bg); color: var(--text-main); text-align: center;
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
     transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25); box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.35); box-sizing: border-box;
   }
   .toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
-  .undo-btn { background: var(--sun); color: var(--sea-deep); border: none; padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+  .undo-btn { background: var(--sun); color: #12171b; border: none; padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
   @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.5); z-index: 150; align-items: center; justify-content: center; padding: 12px;
+    background: rgba(0,0,0,0.65); z-index: 150; align-items: center; justify-content: center; padding: 12px;
   }
   .modal-overlay.show { display: flex; }
 
   .modal-card {
-    background: white; border-radius: 16px; width: 100%; max-width: 380px;
-    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); box-sizing: border-box;
+    background: var(--card-bg); color: var(--text-main); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 380px;
+    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); box-sizing: border-box;
   }
   .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .modal-header h3 { margin: 0; font-size: 16px; color: var(--sea-deep); }
+  .modal-header h3 { margin: 0; font-size: 16px; color: var(--text-main); }
   .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
 
   .form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
@@ -233,7 +293,7 @@
 
   select, input[type="text"], input[type="number"], textarea {
     padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
-    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); width: 100%; box-sizing: border-box;
+    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); color: var(--text-main); width: 100%; box-sizing: border-box;
   }
 
   .submit-modal-btn {
@@ -244,12 +304,12 @@
   .more-menu-item {
     width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
     background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
-    display: flex; align-items: center; justify-content: flex-start; gap: 8px; color: var(--sea-deep); text-decoration: none; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: flex-start; gap: 8px; color: var(--text-main); text-decoration: none; box-sizing: border-box;
     transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
-  .more-menu-item:hover { background: #eef5f9; border-color: var(--sea); }
+  .more-menu-item:hover { background: var(--tag-bg); border-color: var(--sea); }
   .more-menu-item.active-mode {
-    background: #eafaf1 !important; border-color: #25D366 !important; color: #1e6b37 !important;
+    background: rgba(37, 211, 102, 0.15) !important; border-color: #25D366 !important; color: #25D366 !important;
   }
 
   .back-btn {
@@ -258,11 +318,11 @@
 
   .preview-textarea {
     width: 100%; height: 160px; font-family: inherit; font-size: 13px; line-height: 1.4;
-    border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; resize: none; background: var(--whitewash); margin-bottom: 8px;
+    border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; resize: none; background: var(--whitewash); color: var(--text-main); margin-bottom: 8px;
   }
 
   .untranslated-warning {
-    background: #fffdf5; border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #8a6200; margin-bottom: 10px;
+    background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--sun); margin-bottom: 10px;
   }
 </style>
 </head>
@@ -272,6 +332,7 @@
 <div class="sticky-header-container">
   <header>
     <h1>רשימת קניות מיקונוס</h1>
+    <button class="theme-toggle-btn" id="themeToggleBtn" title="החלף מצב תצוגה">🌙</button>
   </header>
 
   <div class="list-tabs">
@@ -388,7 +449,7 @@
       <button class="more-menu-item" id="auditToggleBtn">🔍 בדיקת המשלוח (מצב בדיקה)</button>
       <button class="more-menu-item" id="exportBtn">📋 טקסט לסופר (ייצוא)</button>
       <a class="more-menu-item" id="waBtn" target="_blank" href="#">💬 שתף קישור לרשימה</a>
-      <button class="more-menu-item" id="settingsBtn" style="color: #c0533f;">⚙️ ניהול ואיפוס רשימה</button>
+      <button class="more-menu-item" id="settingsBtn" style="color: #e57373;">⚙️ ניהול ואיפוס רשימה</button>
     </div>
   </div>
 </div>
@@ -400,7 +461,7 @@
       <h3>⚠️ זוהו מוצרים שכבר קיימים</h3>
       <button class="close-modal" id="closeDupTransferModalBtn">✕</button>
     </div>
-    <div style="font-size: 13px; margin-bottom: 8px; color: var(--sea-deep);">המוצרים הבאים כבר קיימים ברשימת "בקנייה עצמית":</div>
+    <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">המוצרים הבאים כבר קיימים ברשימת "בקנייה עצמית":</div>
     <div id="duplicateTransferList" style="max-height: 140px; overflow-y: auto; background: var(--whitewash); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 12px; margin-bottom: 12px;"></div>
     <div style="display: flex; flex-direction: column; gap: 8px;">
       <button id="confirmMergeAllTransferBtn" class="submit-modal-btn" style="background: var(--sea);">➕ מזג כמויות והעבר את כולם</button>
@@ -446,14 +507,14 @@
       <h3 id="personalModalTitle">🙋‍♂️ כמות אישית שלי</h3>
       <button class="close-modal" id="closePersonalModalBtn">✕</button>
     </div>
-    <div style="margin-bottom: 12px; font-size: 13px; color: var(--sea-deep);" id="personalModalDesc">בחר כמה יחידות תרצה להוסיף לעצמך:</div>
+    <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-main);" id="personalModalDesc">בחר כמה יחידות תרצה להוסיף לעצמך:</div>
     <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
-      <button id="decPersonalQtyBtn" style="background: var(--whitewash); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">-</button>
-      <span id="personalQtyDisplay" style="font-size: 22px; font-weight: bold; color: var(--sea-deep);">1</span>
-      <button id="incPersonalQtyBtn" style="background: var(--whitewash); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">+</button>
+      <button id="decPersonalQtyBtn" style="background: var(--whitewash); color: var(--text-main); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">-</button>
+      <span id="personalQtyDisplay" style="font-size: 22px; font-weight: bold; color: var(--text-main);">1</span>
+      <button id="incPersonalQtyBtn" style="background: var(--whitewash); color: var(--text-main); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">+</button>
     </div>
     <button id="savePersonalQtyBtn" class="submit-modal-btn">שמור כמות אישית</button>
-    <button id="removePersonalQtyBtn" style="width: 100%; background: transparent; color: #c0533f; border: none; padding: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">הסר את הבקשה שלי</button>
+    <button id="removePersonalQtyBtn" style="width: 100%; background: transparent; color: #e57373; border: none; padding: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">הסר את הבקשה שלי</button>
   </div>
 </div>
 
@@ -506,6 +567,7 @@
   let listStatusRef = ref(db, `lists/${currentListType}_status`);
 
   const NAME_KEY = 'mykonos-my-name';
+  const THEME_KEY = 'mykonos-theme';
   let itemsMap = {};
   let listStatus = '📝 בהכנה';
   let hideDoneItems = false;
@@ -527,6 +589,28 @@
       } catch (e) {}
     }
   }
+
+  // לוגיקת החלפת מצב Dark / Light ושמירתו ב-localStorage
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  
+  function updateThemeUI() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    themeToggleBtn.textContent = isDark ? '☀️' : '🌙';
+  }
+  updateThemeUI();
+
+  themeToggleBtn.addEventListener('click', () => {
+    triggerHapticFeedback(15);
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem(THEME_KEY, 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem(THEME_KEY, 'dark');
+    }
+    updateThemeUI();
+  });
 
   const TAB_NAMES = {
     'delivery': 'משלוח 📦',
@@ -572,7 +656,7 @@
       'לחמניות': { en: 'Buns / Bread', el: 'Ψωμάκια' },
       'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
       'ביצים': { en: 'Eggs', el: 'Αυγά' },
-      'חלב': { en: 'Milk', el: 'Γάλα' },
+      'חלב': { en: 'Milk', el: 'Γάלה' },
       'חמאה': { en: 'Butter', el: 'Βούτυρο' },
       'סודה': { en: 'Soda Water', el: 'Σόδα' },
       'יין': { en: 'Wine', el: 'Κρασί' },
@@ -1239,7 +1323,6 @@
     if (menuEl) menuEl.classList.toggle('show');
   }
 
-  // העברת פריט בודד לקנייה עצמית
   function transferSingleItemToInPerson(item) {
     const user = requireUserName();
     if (!user) return;
@@ -1282,7 +1365,6 @@
     }, { onlyOnce: true });
   }
 
-  // העברת כל הרשימה כולה לקנייה עצמית עם בדיקת כפילויות
   transferAllToInPersonBtn.onclick = () => {
     const user = requireUserName();
     if (!user) return;
