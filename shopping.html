@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.0</title>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.googletagmanager.com%2Fgtag%2Fjs%3Fid%3DG-0VXCEZ117S&data=05%7C02%7Cnelevy%40pelephone.co.il%7Caf567197daf74c63d0ea08defb7e3eeb%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224717059600742%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=6bsfSGMFmBjdymBGrTZ9ulRiqIPjZ%2BaVfHcpQSBlOo4%3D&reserved=0"></script>
+<!-- טעינה מיידית של ה-Theme למניעת הבהוב -->
 <script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-0VXCEZ117S');
-</script>
-
-<!-- טעינת Theme מהירה -->
-<script>
+(function() {
 try {
 const savedTheme = localStorage.getItem('mykonos-theme');
 if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
 document.documentElement.setAttribute('data-theme', 'dark');
 }
 } catch(e){}
+})();
 </script>
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.googletagmanager.com%2Fgtag%2Fjs%3Fid%3DG-0VXCEZ117S&data=05%7C02%7Cnelevy%40pelephone.co.il%7C2c014a526f63493739c508defb7f09b9%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224720485298198%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=F0Icm7qCWObCOjXuaO2GEXpx5CK%2BSi%2F4udyzNda9EyA%3D&reserved=0"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'G-0VXCEZ117S');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>רשימת קניות מיקונוס 2.0</title>
 <style>
-@import url('https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DAssistant%3Awght%40400%3B600%3B700%3B800%26display%3Dswap&data=05%7C02%7Cnelevy%40pelephone.co.il%7Caf567197daf74c63d0ea08defb7e3eeb%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224717059635988%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=ThwDJM6vNVW%2FuuqxvHl24emXy4GsyYNyT7fZKfpPM5g%3D&reserved=0');
+@import url('https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DAssistant%3Awght%40400%3B600%3B700%3B800%26display%3Dswap&data=05%7C02%7Cnelevy%40pelephone.co.il%7C2c014a526f63493739c508defb7f09b9%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224720485328169%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=rIu%2F7yuuwFhyUlRTvkQOaVftnIOoz9rSxOwdTQTqFus%3D&reserved=0');
 
 :root{
 --sea: #1d5f8a;
@@ -160,25 +162,19 @@ box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
 .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
 .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--text-main); flex:1; background:transparent; font-weight:700; min-width:0; }
 
-.main-actions-row { display: flex; gap: 6px; margin-bottom: 12px; }
+.main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
 .open-modal-btn {
-flex: 1.8; background: var(--sea); color: white; border: none; border-radius: 12px;
-padding: 12px 8px; font-size: 14px; font-weight: 700; cursor: pointer;
-box-shadow: 0 3px 8px rgba(29, 95, 138, 0.25); display: flex; align-items: center; justify-content: center; gap: 4px;
+flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
+padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+box-shadow: 0 3px 8px rgba(29, 95, 138, 0.25); display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.voice-record-btn {
-background: var(--card-bg); border: 1.5px solid var(--sea); color: var(--sea);
-border-radius: 12px; padding: 12px 14px; font-size: 16px; cursor: pointer;
-display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
-}
-.voice-record-btn:active { transform: scale(0.92); }
 .filter-btn {
 flex: 1.2; background: var(--card-bg); border: 1.5px solid var(--line); color: var(--text-main);
-border-radius: 12px; padding: 12px 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+border-radius: 12px; padding: 12px 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
 }
 .more-menu-btn {
 background: var(--whitewash); border: 1.5px solid var(--line); color: var(--text-main);
-border-radius: 12px; padding: 12px 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 700; cursor: pointer;
 }
 
 .category-header {
@@ -264,18 +260,6 @@ text-align: right; cursor: pointer; font-family: inherit; font-weight: 600;
 }
 .menu-item:hover { background: var(--whitewash); }
 .menu-item.danger { color: #e57373; }
-
-/* Voice Recording Animation Modal */
-.voice-record-pulse {
-width: 64px; height: 64px; border-radius: 50%; background: #c0533f;
-display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;
-margin: 16px auto; animation: pulseRing 1.4s infinite;
-}
-@keyframes pulseRing {
-0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 83, 63, 0.7); }
-70% { transform: scale(1.05); box-shadow: 0 0 0 16px rgba(192, 83, 63, 0); }
-100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 83, 63, 0); }
-}
 
 /* Toast */
 .toast {
@@ -380,10 +364,9 @@ background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radiu
 <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
 </div>
 
-<!-- סרגל פעולות עם כפתור הקלטה קולית -->
+<!-- סרגל פעולות -->
 <div class="main-actions-row">
 <button class="open-modal-btn" id="openModalBtn">➕ הוסף פריט</button>
-<button class="voice-record-btn" id="voiceRecordBtn" title="הקלטה קולית">🎙️</button>
 <button class="filter-btn" id="filterBtn">👁️ הסתר שהושלמו</button>
 <button class="more-menu-btn" id="openMoreMenuBtn">⋮ עוד</button>
 </div>
@@ -397,33 +380,6 @@ background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radiu
 <div id="toast" class="toast">
 <span id="toastText">הודעה</span>
 <button class="undo-btn" id="undoBtn" style="display:none;">ביטול (Undo)</button>
-</div>
-
-<!-- Modal הקלטה קולית -->
-<div class="modal-overlay" id="voiceModalOverlay">
-<div class="modal-card" style="text-align: center;">
-<div class="modal-header">
-<h3 style="margin: 0 auto;">🎙️ מקליט פריטים...</h3>
-<button class="close-modal" id="closeVoiceModalBtn">✕</button>
-</div>
-<div class="voice-record-pulse">🎙️</div>
-<div id="voiceLiveText" style="font-size: 14px; font-weight: 700; color: var(--sea); min-height: 40px; margin-bottom: 8px;">מדבר... אמור מוצרים (למשל: "למשלוח 2 חלב ושישיית מים")</div>
-<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">ניתן לציין: "למשלוח", "בסופר / לקנייה", "מהארץ"</div>
-<button id="stopVoiceBtn" class="submit-modal-btn" style="background: #c0533f;">⏹️ סיים הקלטה ובדוק פריטים</button>
-</div>
-</div>
-
-<!-- Modal אישור פריטים שנקלטו בהקלטה -->
-<div class="modal-overlay" id="voiceConfirmModalOverlay">
-<div class="modal-card">
-<div class="modal-header">
-<h3>📋 זוהו המוצרים הבאים</h3>
-<button class="close-modal" id="closeVoiceConfirmModalBtn">✕</button>
-</div>
-<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">בדוק את הפריטים שנקלטו לפני הוספתם:</div>
-<div id="voiceParsedItemsList" style="max-height: 160px; overflow-y: auto; background: var(--whitewash); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 13px; margin-bottom: 12px;"></div>
-<button id="saveVoiceItemsBtn" class="submit-modal-btn" style="background: var(--wa-green);">✓ אשר והוסף את כל הפריטים לרשימות</button>
-</div>
 </div>
 
 <!-- Modal הוספת פריט -->
@@ -590,13 +546,13 @@ background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radiu
 </div>
 
 <script type="module">
-import { initializeApp } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-app.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7Caf567197daf74c63d0ea08defb7e3eeb%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224717059657043%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=RZx2hbUm0FJx%2FGG5rK%2Foz5F5rCWL%2F%2FQSGNBE4CaTR2A%3D&reserved=0"
-import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-database.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7Caf567197daf74c63d0ea08defb7e3eeb%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224717059677592%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=kBiAM0TUxbvnwSsu44qZyRNHPtTMHNLaco5vKNQsEuU%3D&reserved=0"
+import { initializeApp } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-app.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7C2c014a526f63493739c508defb7f09b9%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224720485347702%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=5oXw7xBGkpyu4zDkk3AxRZOMOp1PMQpEAixkkt4zA68%3D&reserved=0"
+import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-database.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7C2c014a526f63493739c508defb7f09b9%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224720485365605%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=4oF3Mqlq7nniOn%2BzGDqFVAd0sW8EOBJ9NrrBHw%2FgpiY%3D&reserved=0"
 
 const firebaseConfig = {
 apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
 authDomain: "mykonos-list.firebaseapp.com",
-databaseURL: "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fmykonos-list-default-rtdb.firebaseio.com%2F&data=05%7C02%7Cnelevy%40pelephone.co.il%7Caf567197daf74c63d0ea08defb7e3eeb%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224717059700055%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=maup3rSxD8WhDWF3O21IbznlA5V7PhbaquBlm5wV8nQ%3D&reserved=0",
+databaseURL: "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fmykonos-list-default-rtdb.firebaseio.com%2F&data=05%7C02%7Cnelevy%40pelephone.co.il%7C2c014a526f63493739c508defb7f09b9%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224720485383075%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=3pKqo3F2KQCry9hbU0vLL02fYnl1kZlu1pwWp6VtK58%3D&reserved=0",
 projectId: "mykonos-list",
 storageBucket: "mykonos-list.firebasestorage.app",
 messagingSenderId: "471388041921",
@@ -626,7 +582,6 @@ let tempPersonalQty = 1;
 
 let pendingBulkTransferItems = [];
 let pendingDuplicatesList = [];
-let pendingVoiceParsedItems = [];
 
 function triggerHapticFeedback(duration = 18) {
 if (navigator.vibrate) {
@@ -710,7 +665,7 @@ items: {
 
 const shareUrl = window.location.href;
 const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
-document.getElementById('waBtn').href = `https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapi.whatsapp.com%2Fsend%3Ftext%3D%24&data=05%7C02%7Cnelevy%40pelephone.co.il%7Caf567197daf74c63d0ea08defb7e3eeb%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224717059719267%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=4YZrUKhFtE49UTQuE1XClSbgIISWi5f5dI11jAisJUU%3D&reserved=0{waText}`;
+document.getElementById('waBtn').href = `https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapi.whatsapp.com%2Fsend%3Ftext%3D%24&data=05%7C02%7Cnelevy%40pelephone.co.il%7C2c014a526f63493739c508defb7f09b9%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224720485400460%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=OvPq1fSD8X8iQoSJg%2BuoP4PA23sNRKggmfDROrRQMJk%3D&reserved=0{waText}`;
 
 const SYNONYMS_MAP = {
 'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
@@ -839,17 +794,6 @@ const openModalBtn = document.getElementById('openModalBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const addModalForm = document.getElementById('addModalForm');
 
-const voiceRecordBtn = document.getElementById('voiceRecordBtn');
-const voiceModalOverlay = document.getElementById('voiceModalOverlay');
-const closeVoiceModalBtn = document.getElementById('closeVoiceModalBtn');
-const voiceLiveText = document.getElementById('voiceLiveText');
-const stopVoiceBtn = document.getElementById('stopVoiceBtn');
-
-const voiceConfirmModalOverlay = document.getElementById('voiceConfirmModalOverlay');
-const closeVoiceConfirmModalBtn = document.getElementById('closeVoiceConfirmModalBtn');
-const voiceParsedItemsList = document.getElementById('voiceParsedItemsList');
-const saveVoiceItemsBtn = document.getElementById('saveVoiceItemsBtn');
-
 const openMoreMenuBtn = document.getElementById('openMoreMenuBtn');
 const moreMenuModalOverlay = document.getElementById('moreMenuModalOverlay');
 const closeMoreMenuModalBtn = document.getElementById('closeMoreMenuModalBtn');
@@ -923,7 +867,6 @@ moreMenuModalOverlay.classList.add('show');
 closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
 closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
 closeDupTransferModalBtn.onclick = () => duplicateTransferModalOverlay.classList.remove('show');
-closeVoiceConfirmModalBtn.onclick = () => voiceConfirmModalOverlay.classList.remove('show');
 
 exportBtn.onclick = () => {
 moreMenuModalOverlay.classList.remove('show');
@@ -940,211 +883,6 @@ closeExportPreviewModalBtn.onclick = () => exportPreviewModalOverlay.classList.r
 backToLangFromPreviewBtn.onclick = () => {
 exportPreviewModalOverlay.classList.remove('show');
 exportLangModalOverlay.classList.add('show');
-};
-
-// --- מנגנון זיהוי דיבור מוגן ובטוח עבור Safari / iOS ---
-let speechRecognition = null;
-let fullRecordedSpeech = '';
-
-function initSpeechRecognitionSafely() {
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SpeechRecognition) return null;
-try {
-const recognizer = new SpeechRecognition();
-recognizer.continuous = true;
-recognizer.interimResults = true;
-recognizer.lang = 'he-IL';
-
-recognizer.onresult = (event) => {
-let interim = '';
-for (let i = event.resultIndex; i < event.results.length; ++i) {
-if (event.results[i].isFinal) {
-fullRecordedSpeech += ' ' + event.results[i][0].transcript;
-} else {
-interim += event.results[i][0].transcript;
-}
-}
-voiceLiveText.textContent = (fullRecordedSpeech + ' ' + interim).trim() || 'מקשיב...';
-};
-
-recognizer.onerror = () => {
-showToast('שגיאה בזיהוי הדיבור');
-stopRecordingSession();
-};
-return recognizer;
-} catch(e) {
-return null;
-}
-}
-
-voiceRecordBtn.onclick = () => {
-if (!requireUserName()) return;
-triggerHapticFeedback(25);
-if (!speechRecognition) {
-speechRecognition = initSpeechRecognitionSafely();
-}
-
-if (!speechRecognition) {
-alert('הדפדפן שלך אינו תומך בהקלטה קולית מובנית.');
-return;
-}
-
-fullRecordedSpeech = '';
-voiceLiveText.textContent = 'מקשיב... (דבר בחופשיות)';
-voiceModalOverlay.classList.add('show');
-try {
-speechRecognition.start();
-} catch(e) {}
-};
-
-closeVoiceModalBtn.onclick = () => stopRecordingSession();
-
-stopVoiceBtn.onclick = () => {
-stopRecordingSession();
-processVoiceInput(fullRecordedSpeech);
-};
-
-function stopRecordingSession() {
-if (speechRecognition) {
-try { speechRecognition.stop(); } catch(e) {}
-}
-voiceModalOverlay.classList.remove('show');
-}
-
-const NUMBER_WORDS_MAP = {
-'אחד': 1, 'אחת': 1, 'שניים': 2, 'שתיים': 2, 'שני': 2, 'שתי': 2,
-'שלוש': 3, 'שלושה': 3, 'ארבע': 4, 'ארבעה': 4, 'חמש': 5, 'חמישה': 5,
-'שש': 6, 'שישה': 6, 'שבע': 7, 'שבעה': 7, 'שמונה': 8, 'תשע': 9, 'תשעה': 9,
-'עשר': 10, 'עשרה': 10, 'שישייה': 6, 'שישיית': 6
-};
-
-function parseSingleItemPhrase(phrase, defaultTargetList) {
-let clean = phrase.trim();
-if (!clean) return null;
-
-let targetList = defaultTargetList;
-
-if (clean.includes('למשלוח') || clean.includes('משלוח')) {
-targetList = 'delivery';
-clean = clean.replace(/למשלוח|משלוח/g, '').trim();
-} else if (clean.includes('לקניה') || clean.includes('לקנייה') || clean.includes('בסופר') || clean.includes('סופר')) {
-targetList = 'inPerson';
-clean = clean.replace(/לקניה עצמית|לקנייה עצמית|לקניה|לקנייה|בסופר|סופר/g, '').trim();
-} else if (clean.includes('מהארץ') || clean.includes('לארוז') || clean.includes('בארץ')) {
-targetList = 'fromIsrael';
-clean = clean.replace(/מהארץ|לארוז|בארץ/g, '').trim();
-}
-
-clean = clean.replace(/^(תביא|תקנה|תזמין|תוסיף|נא להוסיף|שים|לקנות|להביא|להזמין)\s+/g, '').trim();
-clean = clean.replace(/^(ו|וגם)\s+/g, '').trim();
-
-let qty = 1;
-let unit = "יח'"
-
-if (clean.includes('שישיית') || clean.includes('שישייה')) {
-qty = 1;
-unit = "מארז"
-clean = clean.replace(/שישיית|שישייה/g, '').trim();
-} else if (clean.includes('מארז') || clean.includes('חבילת') || clean.includes('חבילה')) {
-unit = "מארז"
-clean = clean.replace(/מארז של|מארז|חבילת|חבילה/g, '').trim();
-} else if (clean.includes('בקבוק') || clean.includes('בקבוקי')) {
-unit = "בקבוק"
-clean = clean.replace(/בקבוקי|בקבוק/g, '').trim();
-} else if (clean.includes('קילו') || clean.includes('ק"ג')) {
-unit = 'ק"ג';
-clean = clean.replace(/קילו|ק"ג/g, '').trim();
-}
-
-const numMatch = clean.match(/\b(\d+)\b/);
-if (numMatch) {
-qty = parseInt(numMatch[1]);
-clean = clean.replace(numMatch[0], '').trim();
-} else {
-for (const [word, num] of Object.entries(NUMBER_WORDS_MAP)) {
-const regex = new RegExp(`\\b${word}\\b`, 'g');
-if (regex.test(clean)) {
-qty = num;
-clean = clean.replace(regex, '').trim();
-break;
-}
-}
-}
-
-clean = clean.replace(/^(של|מ|את)\s+/g, '').trim();
-clean = normalizeProductName(clean);
-
-if (!clean || clean.length < 2) return null;
-
-return {
-name: clean,
-qty: qty.toString(),
-unit: unit,
-category: detectCategory(clean),
-targetList: targetList
-};
-}
-
-function processVoiceInput(text) {
-if (!text || !text.trim()) {
-showToast('לא נקלט קול או טקסט בהקלטה.');
-return;
-}
-
-const phrases = text.split(/,|\n|\s+וגם\s+|\s+בנוסף\s+|\s+ו(?=[0-9]|אחד|שני|שלוש|ארבע|חמש|קילו|שישיית|בקבוק)/g);
-pendingVoiceParsedItems = [];
-
-phrases.forEach(phrase => {
-const parsed = parseSingleItemPhrase(phrase, currentListType);
-if (parsed) {
-pendingVoiceParsedItems.push(parsed);
-}
-});
-
-if (pendingVoiceParsedItems.length === 0) {
-showToast('לא הצלחנו לפענח מוצרים. נסה שוב.');
-return;
-}
-
-voiceParsedItemsList.innerHTML = '';
-pendingVoiceParsedItems.forEach((item) => {
-const row = document.createElement('div');
-row.style.padding = '6px 0';
-row.style.borderBottom = '1px solid var(--line)';
-row.style.display = 'flex';
-row.style.justifyContent = 'space-between';
-row.style.alignItems = 'center';
-const tabLabel = TAB_NAMES[item.targetList] || 'משלוח 📦';
-row.innerHTML = `<span><strong>${item.name}</strong> (${item.qty} ${item.unit})</span> <span style="font-size:11px; background:var(--tag-bg); color:var(--sea); padding:2px 6px; border-radius:6px;">${tabLabel}</span>`;
-voiceParsedItemsList.appendChild(row);
-});
-
-voiceConfirmModalOverlay.classList.add('show');
-}
-
-saveVoiceItemsBtn.onclick = () => {
-const user = requireUserName();
-if (!user) return;
-
-pendingVoiceParsedItems.forEach(item => {
-const targetRef = ref(db, `lists/${item.targetList}`);
-const newItemRef = push(targetRef);
-set(newItemRef, {
-name: item.name,
-qty: item.qty,
-unit: item.unit,
-category: item.category,
-by: `הקלטה (${user})`,
-buyer: '',
-done: false,
-isPriority: false,
-auditStatus: '',
-personalQtyMap: {}
-});
-});
-
-voiceConfirmModalOverlay.classList.remove('show');
-showToast(`${pendingVoiceParsedItems.length} מוצרים נוספו בהצלחה מההקלטה! 🎉`);
 };
 
 function updateAuditMenuBtnUI() {
