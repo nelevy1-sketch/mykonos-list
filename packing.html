@@ -603,6 +603,51 @@
     let myItems = [];
     let allUsersWithItems = new Set();
 
+    // ---- Escaping helpers ----
+    // escapeHtml: לשימוש כשמכניסים טקסט חופשי (שם פריט/חבר) לתוך innerHTML כטקסט רגיל.
+    // בלי זה, שם פריט עם "<" או ">" עלול לשבור את התצוגה אצל כל מי שרואה את הרשימה (כולל חברים).
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // escapeForInlineHandler: לשימוש כשמכניסים טקסט חופשי כארגומנט בתוך onclick="fn('VALUE')".
+    // מטפל גם בגרש בודד (סוגר את מחרוזת ה-JS) וגם בגרשיים כפולים (סוגרים את attribute ה-HTML).
+    function escapeForInlineHandler(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // getDefaultSubitems: רשימת ברירת המחדל לתת-פריטים לפי קטגוריה מזוהה (תרופות/טיפוח).
+    // מרוכזת כאן במקום אחד במקום ארבע כפילויות שהיו קודם בקוד.
+    function getDefaultSubitems(name) {
+      if (isMedicineItem(name)) {
+        return [
+          { name: "אקמול / אדוויל", isDone: false },
+          { name: "פלסטרים ותחבושת", isDone: false },
+          { name: "כדורים נגד בחילות", isDone: false }
+        ];
+      }
+      if (isToiletriesItem(name)) {
+        return [
+          { name: "מברשת ומשחת שיניים", isDone: false },
+          { name: "דאודורנט ובושם", isDone: false },
+          { name: "שמפו וסבון גוף", isDone: false }
+        ];
+      }
+      return [];
+    }
+
     function triggerHaptic(type = "light") {
       if ("vibrate" in navigator) {
         if (type === "light") {
@@ -900,12 +945,16 @@
 
     loginBtn.addEventListener("click", handleLogin);
 
+    // אוטו-לוגין רק עבור שמות מוכרים (מי שכבר יש לו פריטים במערכת).
+    // כך הקלדת ביניים של שם חדש (למשל טעות הקלדה שמלווה ב-PIN שכבר הוזן) לא תיצור
+    // בטעות חשבון/רשימה חדשה בלי אישור מפורש - יצירת חשבון חדש קורית רק בלחיצה על הכפתור/Enter.
     function triggerAutoSubmitWithDelay() {
       if (autoSubmitTimeout) clearTimeout(autoSubmitTimeout);
       autoSubmitTimeout = setTimeout(() => {
         const name = userNameInput.value.trim();
         const pin = userPinInput.value.trim();
-        if (name && pin.length === 4 && !isSubmitting) {
+        if (!name || pin.length !== 4 || isSubmitting) return;
+        if (allUsersWithItems.has(name)) {
           handleLogin();
         }
       }, 300);
@@ -1006,21 +1055,7 @@
         }
       }
 
-      let defaultSubitems = [];
-      if (isMed) {
-        defaultSubitems = [
-          { name: "אקמול / אדוויל", isDone: false },
-          { name: "פלסטרים ותחבושת", isDone: false },
-          { name: "כדורים נגד בחילות", isDone: false }
-        ];
-      } else if (isToil) {
-        defaultSubitems = [
-          { name: "מברשת ומשחת שיניים", isDone: false },
-          { name: "דאודורנט ובושם", isDone: false },
-          { name: "שמפו וסבון גוף", isDone: false }
-        ];
-      }
-
+      const defaultSubitems = getDefaultSubitems(name);
       const hasSubs = isMed || isToil;
 
       const newDoc = await addDoc(itemsRef, {
@@ -1073,19 +1108,7 @@
           
           let subitemsList = data.subitems;
           if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
-            if (isMed) {
-              subitemsList = [
-                { name: "אקמול / אדוויל", isDone: false },
-                { name: "פלסטרים ותחבושת", isDone: false },
-                { name: "כדורים נגד בחילות", isDone: false }
-              ];
-            } else if (isToil) {
-              subitemsList = [
-                { name: "מברשת ומשחת שיניים", isDone: false },
-                { name: "דאודורנט ובושם", isDone: false },
-                { name: "שמפו וסבון גוף", isDone: false }
-              ];
-            }
+            subitemsList = getDefaultSubitems(data.name);
           }
 
           const itemObj = { 
@@ -1146,9 +1169,10 @@
     function renderMyItem(item) {
       const div = document.createElement("div");
       div.className = `item ${item.isDone ? 'done' : ''}`;
-      
+
+      const safeName = escapeHtml(item.name);
       const importSubtitleMarkup = item.importedFrom 
-        ? `<span class="item-imported-sub">• יובא מ-${item.importedFrom}</span>` 
+        ? `<span class="item-imported-sub">• יובא מ-${escapeHtml(item.importedFrom)}</span>` 
         : '';
 
       let subitemsBtnMarkup = '';
@@ -1169,7 +1193,7 @@
           <input type="checkbox" ${item.isDone ? 'checked' : ''} style="width:auto; margin:0;" onchange="handleItemCheck('${item.id}', ${!item.isDone}, ${item.hasSubitems ? 'true' : 'false'})">
           <div class="item-text-box">
             <div class="item-title-row">
-              <span class="item-title">${item.name}</span>
+              <span class="item-title">${safeName}</span>
               ${subitemsBtnMarkup}
             </div>
             ${importSubtitleMarkup}
@@ -1254,7 +1278,14 @@
         existingParentLists.forEach(parent => {
           const btn = document.createElement("button");
           btn.className = "menu-btn-item";
-          btn.innerHTML = `${getItemIcon(parent.name)} <strong>${parent.name}</strong>`;
+          // בנייה עם textContent על ילד נפרד ולא innerHTML, כדי לא לחשוף
+          // את שם הרשימה של החבר להזרקת HTML (גם אם המקור הוא חבר אמין, זו אותה עקביות שהוחלה בכל הרינדור)
+          const iconSpan = document.createElement("span");
+          iconSpan.textContent = getItemIcon(parent.name) + ' ';
+          const nameStrong = document.createElement("strong");
+          nameStrong.textContent = parent.name;
+          btn.appendChild(iconSpan);
+          btn.appendChild(nameStrong);
           btn.onclick = async () => {
             triggerHaptic("medium");
             moveToParentModal.classList.add("hidden");
@@ -1394,7 +1425,7 @@
         row.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
             ${checkboxMarkup}
-            <span style="font-size:0.9rem;">${sub.name}</span>
+            <span style="font-size:0.9rem;">${escapeHtml(sub.name)}</span>
           </div>
           ${actionButtons}
         `;
@@ -1461,6 +1492,15 @@
       if (!item) return;
 
       const subitems = item.subitems || [];
+
+      // מניעת כפילות בתוך תת-רשימה, באותו היגיון שכבר קיים על פריטים ראשיים
+      const normalizedInput = normalizeText(name);
+      const existingSub = subitems.find(s => normalizeText(s.name) === normalizedInput);
+      if (existingSub) {
+        showToast(`⚠️ הפריט "${existingSub.name}" כבר קיים ברשימה הפנימית!`);
+        return;
+      }
+
       subitems.push({ name: name, isDone: false });
 
       await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
@@ -1505,7 +1545,7 @@
         row.innerHTML = `
           <label style="display:flex; align-items:center; gap:8px; width:100%; cursor:pointer;">
             <input type="checkbox" id="import_sub_${idx}" checked style="width:auto; margin:0;">
-            <span style="font-size:0.9rem;">${sub.name}</span>
+            <span style="font-size:0.9rem;">${escapeHtml(sub.name)}</span>
           </label>
         `;
         importPickerList.appendChild(row);
@@ -1600,12 +1640,15 @@
         const sec = document.createElement("div");
         sec.className = "friend-section";
 
+        const safeFriend = escapeHtml(friend);
+        const friendForHandler = escapeForInlineHandler(friend);
+
         if (publicItems.length > 0) {
           sec.innerHTML = `
             <div class="friend-title">
-              <span>הרשימה של ${friend}</span>
+              <span>הרשימה של ${safeFriend}</span>
             </div>
-            <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friend}', this)">ייבא את כל הרשימה של ${friend}</button>
+            <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friendForHandler}', this)">ייבא את כל הרשימה של ${safeFriend}</button>
           `;
 
           publicItems.forEach(item => {
@@ -1617,25 +1660,17 @@
 
             let subitemsList = item.subitems;
             if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
-              if (isMed) {
-                subitemsList = [
-                  { name: "אקמול / אדוויל", isDone: false },
-                  { name: "פלסטרים ותחבושת", isDone: false },
-                  { name: "כדורים נגד בחילות", isDone: false }
-                ];
-              } else if (isToil) {
-                subitemsList = [
-                  { name: "מברשת ומשחת שיניים", isDone: false },
-                  { name: "דאודורנט ובושם", isDone: false },
-                  { name: "שמפו וסבון גוף", isDone: false }
-                ];
-              }
+              subitemsList = getDefaultSubitems(item.name);
             }
 
             const itemDiv = document.createElement("div");
             itemDiv.className = "item";
+
+            const safeItemName = escapeHtml(item.name);
+            const itemNameForHandler = escapeForInlineHandler(item.name);
+            const subitemsJsonForHandler = encodeURIComponent(JSON.stringify(subitemsList || []));
             
-            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${item.name.replace(/'/g, "\\'")}', '${friend}', this, ${hasSubs ? 'true' : 'false'}, '${encodeURIComponent(JSON.stringify(subitemsList || []))} ')">+ ייבא</button>`;
+            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${itemNameForHandler}', '${friendForHandler}', this, ${hasSubs ? 'true' : 'false'}, '${subitemsJsonForHandler}')">+ ייבא</button>`;
             if (exactExists) {
               statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
             }
@@ -1643,7 +1678,7 @@
             let subitemsFriendMarkup = '';
             if (hasSubs && subitemsList && subitemsList.length > 0) {
               subitemsFriendMarkup = `
-                <button class="subitems-btn" onclick="openFriendSubitems('${friend}', '${item.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(subitemsList))}')">
+                <button class="subitems-btn" onclick="openFriendSubitems('${friendForHandler}', '${itemNameForHandler}', '${subitemsJsonForHandler}')">
                   ${getItemIcon(item.name)} ${subitemsList.length} פריטים •••
                 </button>
               `;
@@ -1651,7 +1686,7 @@
 
             itemDiv.innerHTML = `
               <div style="display:flex; align-items:center; gap:6px;">
-                <span class="item-title">${item.name}</span>
+                <span class="item-title">${safeItemName}</span>
                 ${subitemsFriendMarkup}
               </div>
               ${statusMarkup}
@@ -1663,14 +1698,14 @@
 
           sec.innerHTML = `
             <div class="friend-title">
-              <span>הרשימה של ${friend}</span>
+              <span>הרשימה של ${safeFriend}</span>
             </div>
             <div class="private-notice">
-              <p>🔒 הרשימה של ${friend} פרטית כרגע</p>
+              <p>🔒 הרשימה של ${safeFriend} פרטית כרגע</p>
               <button class="btn-sm" 
                       style="background: ${isRequestPending ? '#94a3b8' : '#3b82f6'}; cursor: ${isRequestPending ? 'not-allowed' : 'pointer'};" 
                       ${isRequestPending ? 'disabled' : ''} 
-                      onclick="sendShareRequest('${friend}', this)">
+                      onclick="sendShareRequest('${friendForHandler}', this)">
                 ${isRequestPending ? 'נשלחה כבר בקשת שיתוף' : '📩 שלח לבקשת שיתוף הרשימה'}
               </button>
             </div>
@@ -1733,11 +1768,13 @@
       triggerHaptic("light");
       if (myItems.length === 0) return;
       if (confirm("האם להפוך את כל הפריטים ברשימה שלך לציבוריים? (חברים יוכלו לראות ולייבא אותם)")) {
+        bulkPublicBtn.disabled = true;
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
-        snapshot.forEach(async (docSnap) => {
+        for (const docSnap of snapshot.docs) {
           await updateDoc(doc(db, "packing_items", docSnap.id), { isPublic: true });
-        });
+        }
+        bulkPublicBtn.disabled = false;
         showToast("🌐 כל הפריטים שלך הפכו לציבוריים!");
       }
     });
@@ -1746,11 +1783,13 @@
       triggerHaptic("light");
       if (myItems.length === 0) return;
       if (confirm("האם להפוך את כל הפריטים ברשימה שלך לפרטיים? (חברים לא יוכלו לראות אותם)")) {
+        bulkPrivateBtn.disabled = true;
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
-        snapshot.forEach(async (docSnap) => {
+        for (const docSnap of snapshot.docs) {
           await updateDoc(doc(db, "packing_items", docSnap.id), { isPublic: false });
-        });
+        }
+        bulkPrivateBtn.disabled = false;
         showToast("🔒 כל הפריטים שלך הפכו לפרטיים!");
       }
     });
@@ -1813,11 +1852,13 @@
     clearAllBtn.addEventListener("click", async () => {
       triggerHaptic("light");
       if (confirm("האם אתה בטוח שברצונך למחוק את כל הרשימה שלך?")) {
+        clearAllBtn.disabled = true;
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
-        snapshot.forEach(async (docSnap) => {
+        for (const docSnap of snapshot.docs) {
           await deleteDoc(doc(db, "packing_items", docSnap.id));
-        });
+        }
+        clearAllBtn.disabled = false;
         showToast("כל הרשימה נמחקה");
       }
     });
@@ -1869,19 +1910,7 @@
           
           let subitemsList = data.subitems;
           if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
-            if (isMed) {
-              subitemsList = [
-                { name: "אקמול / אדוויל", isDone: false },
-                { name: "פלסטרים ותחבושת", isDone: false },
-                { name: "כדורים נגד בחילות", isDone: false }
-              ];
-            } else if (isToil) {
-              subitemsList = [
-                { name: "מברשת ומשחת שיניים", isDone: false },
-                { name: "דאודורנט ובושם", isDone: false },
-                { name: "שמפו וסבון גוף", isDone: false }
-              ];
-            }
+            subitemsList = getDefaultSubitems(data.name);
           }
 
           await addDoc(itemsRef, {
