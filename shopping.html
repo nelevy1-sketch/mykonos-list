@@ -1,18 +1,21 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
 <!-- טעינה מיידית של ה-Theme למניעת הבהוב -->
 <script>
 (function() {
+try {
 const savedTheme = localStorage.getItem('mykonos-theme');
 if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
 document.documentElement.setAttribute('data-theme', 'dark');
 }
+} catch(e){}
 })();
 </script>
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.googletagmanager.com%2Fgtag%2Fjs%3Fid%3DG-0VXCEZ117S&data=05%7C02%7Cnelevy%40pelephone.co.il%7Cf2826504d86b4d86359108defb7adea6%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224703079932031%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=uo%2ByVy%2BfTJ47LS1qoPoRf%2Fgy2zC%2FOGrbZZd8SG%2BgCIQ%3D&reserved=0"></script>
+<script async src="https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.googletagmanager.com%2Fgtag%2Fjs%3Fid%3DG-0VXCEZ117S&data=05%7C02%7Cnelevy%40pelephone.co.il%7C754527a3d4974e32955208defb7c2e72%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224708236484483%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=QCTs9go1gupDPZiKlmhVSPWjza4jlhpSEyT4gxNVEo8%3D&reserved=0"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
@@ -25,7 +28,7 @@ gtag('config', 'G-0VXCEZ117S');
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>רשימת קניות מיקונוס 2.0</title>
 <style>
-@import url('https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DAssistant%3Awght%40400%3B600%3B700%3B800%26display%3Dswap&data=05%7C02%7Cnelevy%40pelephone.co.il%7Cf2826504d86b4d86359108defb7adea6%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224703079960805%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=F5N98qn2lTy1UWyQVMcCQ42xWP%2FLiJ7LcCqK0bcBz4o%3D&reserved=0');
+@import url('https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DAssistant%3Awght%40400%3B600%3B700%3B800%26display%3Dswap&data=05%7C02%7Cnelevy%40pelephone.co.il%7C754527a3d4974e32955208defb7c2e72%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224708236519020%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=TgJV%2BFmvVDls%2FkBB3j8QzlCR%2Buia6UVf0qJ6chxnKAE%3D&reserved=0');
 
 :root{
 --sea: #1d5f8a;
@@ -590,13 +593,13 @@ background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radiu
 </div>
 
 <script type="module">
-import { initializeApp } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-app.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7Cf2826504d86b4d86359108defb7adea6%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224703079980095%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=FMLxNHkx6Yn7sWbaQPb1j46mEvbfk5KS9GKPWFOE1Gs%3D&reserved=0"
-import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-database.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7Cf2826504d86b4d86359108defb7adea6%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224703079998625%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=6q5ccysR0H7fIFcPm%2FuMdv7AK2LmDnwswKK3Z%2F2Xxd0%3D&reserved=0"
+import { initializeApp } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-app.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7C754527a3d4974e32955208defb7c2e72%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224708236539150%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=7piBe9pEgGnW%2BDxZpVMImwAlI%2F%2Fdck7AjHdd6dREJxI%3D&reserved=0"
+import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-database.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7C754527a3d4974e32955208defb7c2e72%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224708236558941%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=RAl6Wy49RmbjBl0ZK44RBdbBAPiYQNUm%2FOS5%2Fa7XO%2BE%3D&reserved=0"
 
 const firebaseConfig = {
 apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
 authDomain: "mykonos-list.firebaseapp.com",
-databaseURL: "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fmykonos-list-default-rtdb.firebaseio.com%2F&data=05%7C02%7Cnelevy%40pelephone.co.il%7Cf2826504d86b4d86359108defb7adea6%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224703080021157%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=dqlftpWG%2B1SbkSBeTMx62JRlFQHMTEM3SV51QiCLVmo%3D&reserved=0",
+databaseURL: "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fmykonos-list-default-rtdb.firebaseio.com%2F&data=05%7C02%7Cnelevy%40pelephone.co.il%7C754527a3d4974e32955208defb7c2e72%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224708236577131%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=Kx6eaRJS1Ra26yK7Z2DXFdsHqcMtl5ORPjxYecB2h30%3D&reserved=0",
 projectId: "mykonos-list",
 storageBucket: "mykonos-list.firebasestorage.app",
 messagingSenderId: "471388041921",
@@ -710,7 +713,7 @@ items: {
 
 const shareUrl = window.location.href;
 const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
-document.getElementById('waBtn').href = `https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapi.whatsapp.com%2Fsend%3Ftext%3D%24&data=05%7C02%7Cnelevy%40pelephone.co.il%7Cf2826504d86b4d86359108defb7adea6%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224703080045566%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=Xn%2F7NGcra6KgQiGYOOJze5cl%2B943GRPJ1ly0MDPXuV8%3D&reserved=0{waText}`;
+document.getElementById('waBtn').href = `https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapi.whatsapp.com%2Fsend%3Ftext%3D%24&data=05%7C02%7Cnelevy%40pelephone.co.il%7C754527a3d4974e32955208defb7c2e72%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639224708236595045%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C60000%7C%7C%7C&sdata=5F0G1h5VHAIib6ya5dG9z99cN4W%2BcvvupWrBgMKeRAA%3D&reserved=0{waText}`;
 
 const SYNONYMS_MAP = {
 'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
@@ -942,19 +945,20 @@ exportPreviewModalOverlay.classList.remove('show');
 exportLangModalOverlay.classList.add('show');
 };
 
-// --- מנגנון זיהוי דיבור והקלטה קולית חכם בעברית ---
+// --- מנגנון זיהוי דיבור מוגן ובטוח עבור Safari / iOS ---
 let speechRecognition = null;
 let fullRecordedSpeech = '';
 
+function initSpeechRecognitionSafely() {
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SpeechRecognition) return null;
+try {
+const recognizer = new SpeechRecognition();
+recognizer.continuous = true;
+recognizer.interimResults = true;
+recognizer.lang = 'he-IL';
 
-if (SpeechRecognition) {
-speechRecognition = new SpeechRecognition();
-speechRecognition.continuous = true;
-speechRecognition.interimResults = true;
-speechRecognition.lang = 'he-IL';
-
-speechRecognition.onresult = (event) => {
+recognizer.onresult = (event) => {
 let interim = '';
 for (let i = event.resultIndex; i < event.results.length; ++i) {
 if (event.results[i].isFinal) {
@@ -966,19 +970,28 @@ interim += event.results[i][0].transcript;
 voiceLiveText.textContent = (fullRecordedSpeech + ' ' + interim).trim() || 'מקשיב...';
 };
 
-speechRecognition.onerror = (event) => {
-showToast('שגיאה בזיהוי הדיבור: ' + event.error);
+recognizer.onerror = (event) => {
+showToast('שגיאה בזיהוי הדיבור');
 stopRecordingSession();
 };
+return recognizer;
+} catch(e) {
+return null;
+}
 }
 
 voiceRecordBtn.onclick = () => {
 if (!requireUserName()) return;
+triggerHapticFeedback(25);
 if (!speechRecognition) {
-alert('הדפדפן שלך אינו תומך בהקלטה קולית מובנית. מומלץ להשתמש ב-Chrome או Safari.');
+speechRecognition = initSpeechRecognitionSafely();
+}
+
+if (!speechRecognition) {
+alert('הדפדפן שלך אינו תומך בהקלטה קולית מובנית. מומלץ להשתמש ב-Chrome או Safari מעודכן.');
 return;
 }
-triggerHapticFeedback(25);
+
 fullRecordedSpeech = '';
 voiceLiveText.textContent = 'מקשיב... (דבר בחופשיות)';
 voiceModalOverlay.classList.add('show');
@@ -1097,7 +1110,7 @@ return;
 }
 
 voiceParsedItemsList.innerHTML = '';
-pendingVoiceParsedItems.forEach((item, index) => {
+pendingVoiceParsedItems.forEach((item) => {
 const row = document.createElement('div');
 row.style.padding = '6px 0';
 row.style.borderBottom = '1px solid var(--line)';
@@ -1426,6 +1439,7 @@ statusTag.textContent = listStatus;
 });
 }
 
+// הפעלה מיידית של האזנה ל-Firebase
 listenToFirebase();
 
 function updateBaseQty(id, delta) {
