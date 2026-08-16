@@ -23,7 +23,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.0</title>
+<title>רשימת קניות מיקונוס 2.2</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
@@ -77,7 +77,7 @@
     display:flex;
     flex-direction: column;
     align-items: center;
-    padding: 0 12px 80px;
+    padding: 0 12px 60px;
     transition: background 0.3s ease, color 0.3s ease;
   }
 
@@ -324,6 +324,16 @@
   .untranslated-warning {
     background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--sun); margin-bottom: 10px;
   }
+
+  /* תגית גרסה בתחתית */
+  .app-version-tag {
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0.6;
+    text-align: center;
+    user-select: none;
+  }
 </style>
 </head>
 <body>
@@ -373,6 +383,9 @@
   <button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
 
   <div id="categoriesContainer"></div>
+
+  <!-- תגית גרסה -->
+  <div class="app-version-tag">גרסה 2.2 • Mykonos Shopping List</div>
 </div>
 
 <!-- Toast -->
@@ -405,7 +418,7 @@
             <option value="יח'">יח'</option>
             <option value="מארז">מארז</option>
             <option value="בקבוק">בקבוק</option>
-            <option value="ק"ג">ק"ג</option>
+            <option value="ק&quot;ג">ק"ג</option>
           </select>
         </div>
       </div>
@@ -590,7 +603,6 @@
     }
   }
 
-  // לוגיקת החלפת מצב Dark / Light ושמירתו ב-localStorage
   const themeToggleBtn = document.getElementById('themeToggleBtn');
   
   function updateThemeUI() {
@@ -656,7 +668,7 @@
       'לחמניות': { en: 'Buns / Bread', el: 'Ψωμάκια' },
       'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
       'ביצים': { en: 'Eggs', el: 'Αυγά' },
-      'חלב': { en: 'Milk', el: 'Γάלה' },
+      'חלב': { en: 'Milk', el: 'Γάλα' },
       'חמאה': { en: 'Butter', el: 'Βούτυρο' },
       'סודה': { en: 'Soda Water', el: 'Σόδα' },
       'יין': { en: 'Wine', el: 'Κρασί' },
