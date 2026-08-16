@@ -23,7 +23,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.4</title>
+<title>רשימת קניות מיקונוס 2.6</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
@@ -215,6 +215,40 @@
   .qty-btn:active { color: var(--text-main); transform: scale(1.1); }
   .item-qty-val { font-size: 11px; font-weight: 700; color: var(--text-main); }
 
+  /* בורר כמויות מהיר בטופס */
+  .modal-qty-picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--whitewash);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 3px 6px;
+    height: 38px;
+  }
+  .qty-picker-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    color: var(--sea);
+    font-size: 18px;
+    font-weight: 800;
+    width: 32px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: transform 0.1s;
+  }
+  .qty-picker-btn:active { transform: scale(0.92); }
+  .qty-picker-val {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
   .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
   .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
   .item-by { color: var(--name-tag); }
@@ -384,7 +418,7 @@
   <div id="categoriesContainer"></div>
 
   <!-- תגית גרסה -->
-  <div class="app-version-tag">גרסה 2.4 • Mykonos Shopping List</div>
+  <div class="app-version-tag">גרסה 2.6 • Mykonos Shopping List</div>
 </div>
 
 <!-- Toast -->
@@ -409,7 +443,13 @@
       <div class="form-row">
         <div class="form-group" style="flex: 1;">
           <label>כמות בסיס משותפת</label>
-          <input type="number" id="modalQtyInput" placeholder="1" min="1" autocomplete="off" />
+          <!-- בורר כמות מהיר (+/-) ללא מקלדת -->
+          <div class="modal-qty-picker">
+            <button type="button" id="modalQtyDecBtn" class="qty-picker-btn">-</button>
+            <span id="modalQtyDisplay" class="qty-picker-val">1</span>
+            <button type="button" id="modalQtyIncBtn" class="qty-picker-btn">+</button>
+          </div>
+          <input type="hidden" id="modalQtyInput" value="1" />
         </div>
         <div class="form-group" style="flex: 1;">
           <label>יחידה</label>
@@ -590,6 +630,7 @@
   let activePersonalItemId = null;
   let activePersonalMap = {};
   let tempPersonalQty = 1;
+  let tempModalAddQty = 1;
 
   let pendingBulkTransferItems = [];
   let pendingDuplicatesList = [];
@@ -650,7 +691,7 @@
     units: {
       'unit': { en: 'pcs', el: 'τεμ' },
       'pack': { en: 'pack', el: 'πακέτο' },
-      'bottle': { en: 'bottle', el: 'μπουκάλι' },
+      'bottle': { en: 'bottle', el: 'μπουκάλי' },
       'kg': { en: 'kg', el: 'κιλό' }
     },
     items: {
@@ -667,7 +708,7 @@
       'לחמניות': { en: 'Buns / Bread', el: 'Ψωμάκια' },
       'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
       'ביצים': { en: 'Eggs', el: 'Αυγά' },
-      'חלב': { en: 'Milk', el: 'Γάלה' },
+      'חלב': { en: 'Milk', el: 'Γάλα' },
       'חמאה': { en: 'Butter', el: 'Βούτυρο' },
       'סודה': { en: 'Soda Water', el: 'Σόδα' },
       'יין': { en: 'Wine', el: 'Κρασί' },
@@ -675,7 +716,6 @@
     }
   };
 
-  // נרמול יחידות חסין וגמיש
   function normalizeUnitKey(rawUnit, categoryName) {
     if (!rawUnit) {
       if (categoryName === 'פירות וירקות 🍅') return 'kg';
@@ -842,6 +882,28 @@
   const closeModalBtn = document.getElementById('closeModalBtn');
   const addModalForm = document.getElementById('addModalForm');
 
+  // רכיבי בורר כמות בטופס
+  const modalQtyDisplay = document.getElementById('modalQtyDisplay');
+  const modalQtyInput = document.getElementById('modalQtyInput');
+  const modalQtyDecBtn = document.getElementById('modalQtyDecBtn');
+  const modalQtyIncBtn = document.getElementById('modalQtyIncBtn');
+
+  modalQtyIncBtn.onclick = () => {
+    triggerHapticFeedback(10);
+    tempModalAddQty++;
+    modalQtyDisplay.textContent = tempModalAddQty;
+    modalQtyInput.value = tempModalAddQty;
+  };
+
+  modalQtyDecBtn.onclick = () => {
+    if (tempModalAddQty > 1) {
+      triggerHapticFeedback(10);
+      tempModalAddQty--;
+      modalQtyDisplay.textContent = tempModalAddQty;
+      modalQtyInput.value = tempModalAddQty;
+    }
+  };
+
   const openMoreMenuBtn = document.getElementById('openMoreMenuBtn');
   const moreMenuModalOverlay = document.getElementById('moreMenuModalOverlay');
   const closeMoreMenuModalBtn = document.getElementById('closeMoreMenuModalBtn');
@@ -885,6 +947,9 @@
 
   openModalBtn.onclick = () => {
     if (!requireUserName()) return;
+    tempModalAddQty = 1;
+    modalQtyDisplay.textContent = '1';
+    modalQtyInput.value = '1';
     modalOverlay.classList.add('show');
   };
   closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
@@ -1299,6 +1364,9 @@
     }
 
     addModalForm.reset();
+    tempModalAddQty = 1;
+    modalQtyDisplay.textContent = '1';
+    modalQtyInput.value = '1';
     modalOverlay.classList.remove('show');
   });
 
