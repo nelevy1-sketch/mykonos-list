@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -302,21 +303,27 @@
       <div class="modal-title" id="actionMenuTitle">אפשרויות פריט</div>
       <div id="actionMenuSubtitle" class="modal-desc" style="margin-bottom: 8px;"></div>
       
-      <button id="menuEditBtn" class="menu-btn-item">✏️ ערוך שם פריט</button>
-      <button id="menuManageSubsBtn" class="menu-btn-item">📦 נהל תת-רשימה (הוסף/ערוך פריטים פנימיים)</button>
+      <button id="menuManageSubsBtn" class="menu-btn-item hidden">📦 נהל תת-רשימה (סמן/הוסף פריטים פנימיים)</button>
       <button id="menuMoveToParentBtn" class="menu-btn-item">📥 העבר לתוך רשימה אחרת...</button>
+      <button id="menuEditBtn" class="menu-btn-item">✏️ ערוך שם פריט</button>
       <button id="menuDeleteBtn" class="menu-btn-item danger-text">🗑️ מחק פריט</button>
       
       <button id="closeActionMenuBtn" style="margin-top: 14px; background: #e2e8f0; color: var(--text);">סגור</button>
     </div>
   </div>
 
-  <!-- מודאל בחירת פריט אב להעברה פנימה -->
+  <!-- מודאל בחירת פריט אב או יצירת תת-רשימה חדשה -->
   <div id="moveToParentModal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-title">📥 העבר לתוך רשימה</div>
-      <div class="modal-desc" id="moveToParentDesc">בחר לאיזה פריט ברצונך להעביר את הפריט:</div>
+      <div class="modal-desc" id="moveToParentDesc">בחר רשימה קיימת או צור רשימת אב חדשה:</div>
       
+      <!-- אפשרות ליצירת רשימת אב חדשה במקום -->
+      <div style="display:flex; gap:6px; margin-bottom: 10px;">
+        <input type="text" id="newParentCategoryInput" placeholder="שם רשימה חדשה (למשל: אלקטרוניקה)..." style="margin-top:0;">
+        <button id="createAndMoveBtn" class="btn-sm" style="width:auto; flex-shrink:0;">+ צור והעבר</button>
+      </div>
+
       <div id="parentsChoiceList" class="subitems-list"></div>
 
       <button id="closeMoveToParentBtn" style="margin-top: 10px; background: #e2e8f0; color: var(--text);">ביטול</button>
@@ -559,6 +566,8 @@
 
     const moveToParentModal = document.getElementById("moveToParentModal");
     const moveToParentDesc = document.getElementById("moveToParentDesc");
+    const newParentCategoryInput = document.getElementById("newParentCategoryInput");
+    const createAndMoveBtn = document.getElementById("createAndMoveBtn");
     const parentsChoiceList = document.getElementById("parentsChoiceList");
     const closeMoveToParentBtn = document.getElementById("closeMoveToParentBtn");
 
@@ -1160,6 +1169,7 @@
       myItemsList.appendChild(div);
     }
 
+    // פתיחת תפריט 3 הנקודות - הצגת 'נהל תת-רשימה' רק אם יש תת-רשימה
     window.openItemActionMenu = (id) => {
       triggerHaptic("light");
       const item = myItems.find(i => i.id === id);
@@ -1167,7 +1177,16 @@
 
       currentSelectedMenuItem = item;
       actionMenuTitle.textContent = item.name;
-      actionMenuSubtitle.textContent = item.hasSubitems ? `מכיל ${item.subitems.length} פריטים פנימיים` : `פריט רגיל`;
+
+      const hasActiveSubs = item.hasSubitems && item.subitems && item.subitems.length > 0;
+
+      if (hasActiveSubs) {
+        actionMenuSubtitle.textContent = `מכיל ${item.subitems.length} פריטים פנימיים`;
+        menuManageSubsBtn.classList.remove("hidden");
+      } else {
+        actionMenuSubtitle.textContent = `פריט רגיל`;
+        menuManageSubsBtn.classList.add("hidden");
+      }
 
       itemActionMenuModal.classList.remove("hidden");
     };
@@ -1198,48 +1217,89 @@
       }
     });
 
+    // פתיחת חלון העברה: מציג רק רשימות אב קיימות + אפשרות ליצירת חדשה
     menuMoveToParentBtn.addEventListener("click", () => {
       if (!currentSelectedMenuItem) return;
       itemActionMenuModal.classList.add("hidden");
 
-      const potentialParents = myItems.filter(i => i.id !== currentSelectedMenuItem.id);
-      if (potentialParents.length === 0) {
-        showToast("אין פריטים אחרים ברשימה להעביר אליהם");
-        return;
-      }
+      // סינון: רק פריטים שכבר מוגדרים כתת-רשימה / רשימת אב
+      const existingParentLists = myItems.filter(i => i.id !== currentSelectedMenuItem.id && (i.hasSubitems || isMedicineItem(i.name) || isToiletriesItem(i.name)));
 
-      moveToParentDesc.textContent = `בחר לאיזה פריט להעביר את "${currentSelectedMenuItem.name}":`;
+      moveToParentDesc.textContent = `בחר רשימת יעד עבור "${currentSelectedMenuItem.name}" או צור חדשה:`;
+      newParentCategoryInput.value = "";
       parentsChoiceList.innerHTML = "";
 
-      potentialParents.forEach(parent => {
-        const btn = document.createElement("button");
-        btn.className = "menu-btn-item";
-        btn.innerHTML = `${getItemIcon(parent.name)} <strong>${parent.name}</strong>`;
-        btn.onclick = async () => {
-          triggerHaptic("medium");
-          moveToParentModal.classList.add("hidden");
+      if (existingParentLists.length > 0) {
+        existingParentLists.forEach(parent => {
+          const btn = document.createElement("button");
+          btn.className = "menu-btn-item";
+          btn.innerHTML = `${getItemIcon(parent.name)} <strong>${parent.name}</strong>`;
+          btn.onclick = async () => {
+            triggerHaptic("medium");
+            moveToParentModal.classList.add("hidden");
 
-          const childName = currentSelectedMenuItem.name;
-          const parentDoc = myItems.find(i => i.id === parent.id);
-          const currentSubs = parentDoc.subitems || [];
+            const childName = currentSelectedMenuItem.name;
+            const parentDoc = myItems.find(i => i.id === parent.id);
+            const currentSubs = parentDoc.subitems || [];
 
-          currentSubs.push({ name: childName, isDone: currentSelectedMenuItem.isDone || false });
-          
-          await updateDoc(doc(db, "packing_items", parent.id), {
-            hasSubitems: true,
-            subitems: currentSubs,
-            isDone: false
-          });
+            currentSubs.push({ name: childName, isDone: currentSelectedMenuItem.isDone || false });
+            
+            await updateDoc(doc(db, "packing_items", parent.id), {
+              hasSubitems: true,
+              subitems: currentSubs,
+              isDone: false
+            });
 
-          await deleteDoc(doc(db, "packing_items", currentSelectedMenuItem.id));
+            await deleteDoc(doc(db, "packing_items", currentSelectedMenuItem.id));
 
-          showToast(`✨ "${childName}" הועבר בהצלחה לתוך "${parent.name}"!`);
-          currentSelectedMenuItem = null;
-        };
-        parentsChoiceList.appendChild(btn);
-      });
+            showToast(`✨ "${childName}" הועבר בהצלחה לתוך "${parent.name}"!`);
+            currentSelectedMenuItem = null;
+          };
+          parentsChoiceList.appendChild(btn);
+        });
+      } else {
+        parentsChoiceList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות אב קיימות. תוכל ליצור אחת למעלה.</p>";
+      }
 
       moveToParentModal.classList.remove("hidden");
+      setTimeout(() => newParentCategoryInput.focus(), 150);
+    });
+
+    // יצירת רשימת אב חדשה והעברה אליה במקום
+    async function handleCreateAndMove() {
+      const newCategoryName = newParentCategoryInput.value.trim();
+      if (!newCategoryName || !currentSelectedMenuItem) return;
+
+      triggerHaptic("medium");
+      moveToParentModal.classList.add("hidden");
+
+      const childName = currentSelectedMenuItem.name;
+      const childDone = currentSelectedMenuItem.isDone || false;
+
+      // יצירת פריט האב החדש
+      await addDoc(itemsRef, {
+        name: newCategoryName,
+        owner: currentUser,
+        isPublic: false,
+        isDone: false,
+        hasSubitems: true,
+        subitems: [{ name: childName, isDone: childDone }],
+        createdAt: Date.now()
+      });
+
+      // מחיקת הפריט הבודד
+      await deleteDoc(doc(db, "packing_items", currentSelectedMenuItem.id));
+
+      showToast(`✨ נוצרה הרשימה "${newCategoryName}" ו-"${childName}" הועבר לתוכה!`);
+      currentSelectedMenuItem = null;
+    }
+
+    createAndMoveBtn.addEventListener("click", handleCreateAndMove);
+    newParentCategoryInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleCreateAndMove();
+      }
     });
 
     closeMoveToParentBtn.addEventListener("click", () => {
@@ -1609,7 +1669,6 @@
         if (subitemsJson) parsedSubitems = JSON.parse(decodeURIComponent(subitemsJson));
       } catch(e) {}
 
-      // אם יש תת-פריטים - פותח מודאל בחירה סלקטיבי
       if (hasSubitems && parsedSubitems.length > 0) {
         openImportPicker(itemName, sourceFriend, parsedSubitems, btnElement);
       } else {
