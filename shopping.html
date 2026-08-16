@@ -23,7 +23,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.2</title>
+<title>רשימת קניות מיקונוס 2.3</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
@@ -47,7 +47,6 @@
     --tag-bg: #eef5f9;
   }
 
-  /* משתני Dark Mode מלוטשים ונעימים לעין */
   [data-theme="dark"] {
     --sea: #4da3d9;
     --sea-deep: #e1ebf2;
@@ -325,7 +324,6 @@
     background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--sun); margin-bottom: 10px;
   }
 
-  /* תגית גרסה בתחתית */
   .app-version-tag {
     margin-top: 24px;
     font-size: 11px;
@@ -385,7 +383,7 @@
   <div id="categoriesContainer"></div>
 
   <!-- תגית גרסה -->
-  <div class="app-version-tag">גרסה 2.2 • Mykonos Shopping List</div>
+  <div class="app-version-tag">גרסה 2.3 • Mykonos Shopping List</div>
 </div>
 
 <!-- Toast -->
@@ -649,10 +647,10 @@
       'מוצרים נוספים 🛒': { en: 'Other Items 🛒', el: 'Άλλα Είδη 🛒' }
     },
     units: {
-      "יח'": { en: 'pcs', el: 'τεμ' },
-      "מארז": { en: 'pack', el: 'πακέτο' },
-      "בקבוק": { en: 'bottle', el: 'μπουκάλι' },
-      "ק\"ג": { en: 'kg', el: 'κιλό' }
+      'unit': { en: 'pcs', el: 'τεμ' },
+      'pack': { en: 'pack', el: 'πακέτο' },
+      'bottle': { en: 'bottle', el: 'μπουκάλι' },
+      'kg': { en: 'kg', el: 'κιλό' }
     },
     items: {
       'קולה זירו': { en: 'Coca-Cola Zero', el: 'Coca-Cola Zero' },
@@ -675,6 +673,24 @@
       'בירה': { en: 'Beer', el: 'Μπίρα' }
     }
   };
+
+  // נרמול יחידות למניעת תקלות של גרשיים וגרשים נטויים
+  function normalizeUnitKey(rawUnit) {
+    if (!rawUnit) return 'unit';
+    const clean = rawUnit.toString().trim().toLowerCase().replace(/["״'״]/g, '');
+    if (clean === 'קג' || clean === 'קילו' || clean === 'kg') return 'kg';
+    if (clean === 'מארז' || clean === 'חבילה' || clean === 'pack') return 'pack';
+    if (clean === 'בקבוק' || clean === 'bottle') return 'bottle';
+    return 'unit';
+  }
+
+  function translateUnit(rawUnit, lang) {
+    const key = normalizeUnitKey(rawUnit);
+    if (lang !== 'he' && TRANSLATION_DICTIONARY.units[key]) {
+      return TRANSLATION_DICTIONARY.units[key][lang] || rawUnit;
+    }
+    return rawUnit || "יח'";
+  }
 
   const shareUrl = window.location.href;
   const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
@@ -1697,17 +1713,13 @@
       grouped[cat].forEach(i => {
         const totalQty = calculateTotalQty(i);
         let itemName = i.name;
-        let unitName = i.unit || "יח'";
+        let unitName = translateUnit(i.unit, lang);
 
         if (lang !== 'he') {
           if (TRANSLATION_DICTIONARY.items[i.name]) {
             itemName = TRANSLATION_DICTIONARY.items[i.name][lang] || i.name;
           } else {
             untranslatedItems.push(i.name);
-          }
-
-          if (TRANSLATION_DICTIONARY.units[unitName]) {
-            unitName = TRANSLATION_DICTIONARY.units[unitName][lang] || unitName;
           }
         }
 
