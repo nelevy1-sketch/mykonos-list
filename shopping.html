@@ -250,10 +250,11 @@
   }
 
   .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
-  .item-by, .item-buyer, .item-wanting, .item-audit-tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+  .item-by, .item-buyer, .item-wanting, .item-audit-tag, .item-note { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
   .item-by { color: var(--name-tag); }
   .item-buyer { background: var(--tag-bg); color: var(--text-main); }
   .item-wanting { background: rgba(37, 211, 102, 0.15); color: #25D366; }
+  .item-note { background: var(--tag-bg); color: var(--text-muted); font-style: italic; }
 
   .item-audit-tag.received { background: rgba(37, 211, 102, 0.15); color: #25D366; }
   .item-audit-tag.partial { background: rgba(232, 184, 75, 0.15); color: var(--sun); }
@@ -598,7 +599,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, off, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, off, set, push, remove, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
@@ -691,7 +692,7 @@
     units: {
       'unit': { en: 'pcs', el: 'τεμ' },
       'pack': { en: 'pack', el: 'πακέτο' },
-      'bottle': { en: 'bottle', el: 'μπουκάλי' },
+      'bottle': { en: 'bottle', el: 'μπουκάλι' },
       'kg': { en: 'kg', el: 'κιλό' }
     },
     items: {
@@ -1066,6 +1067,43 @@
     return baseQty + personalRequests;
   }
 
+  // פונקציה משותפת: מוצאת פריט קיים ברשימת יעד לפי שם מנורמל + יחידה,
+  // ומאחדת את לוגיקת ה"מזג אם קיים, אחרת צור" ששימשה בעבר בשלושה מקומות שונים
+  function findMatchingItemKey(targetItemsMap, item) {
+    const normName = normalizeProductName(item.name).toLowerCase();
+    const unit = item.unit || "יח'";
+    return Object.keys(targetItemsMap).find(k => {
+      const t = targetItemsMap[k];
+      return normalizeProductName(t.name).toLowerCase() === normName && (t.unit || "יח'") === unit;
+    });
+  }
+
+  function mergeOrCreateItem(targetListPath, targetItemsMap, item, qtyToAdd, byLabel, opts = {}) {
+    const existingKey = findMatchingItemKey(targetItemsMap, item);
+    if (existingKey) {
+      const currentQty = parseInt(targetItemsMap[existingKey].qty) || 1;
+      update(ref(db, `${targetListPath}/${existingKey}`), {
+        qty: (currentQty + qtyToAdd).toString()
+      });
+      return { merged: true, key: existingKey };
+    }
+
+    const newItemRef = push(ref(db, targetListPath));
+    set(newItemRef, {
+      name: item.name,
+      qty: qtyToAdd.toString(),
+      unit: item.unit || "יח'",
+      category: item.category || detectCategory(item.name),
+      by: byLabel,
+      buyer: '',
+      done: false,
+      isPriority: opts.isPriority !== undefined ? opts.isPriority : (item.isPriority || false),
+      auditStatus: '',
+      personalQtyMap: opts.carryPersonalMap ? (item.personalQtyMap || {}) : {}
+    });
+    return { merged: false, key: newItemRef.key };
+  }
+
   function render() {
     categoriesContainer.innerHTML = '';
     statusTag.textContent = listStatus;
@@ -1188,6 +1226,13 @@
           auditSpan.className = `item-audit-tag ${item.auditStatus}`;
           auditSpan.textContent = auditLabels[item.auditStatus];
           subInfo.appendChild(auditSpan);
+        }
+
+        if (item.notes && item.notes.length > 0) {
+          const noteSpan = document.createElement('span');
+          noteSpan.className = 'item-note';
+          noteSpan.textContent = `📝 ${item.notes.join(', ')}`;
+          subInfo.appendChild(noteSpan);
         }
 
         itemMain.appendChild(itemText);
@@ -1404,10 +1449,11 @@
 
     triggerHapticFeedback(20);
     saveUndoBackup(activePersonalItemId);
-    activePersonalMap[user] = tempPersonalQty;
 
-    update(ref(db, `lists/${currentListType}/${activePersonalItemId}`), {
-      personalQtyMap: activePersonalMap
+    // כתיבה ישירה לנתיב הספציפי של המשתמש בתוך personalQtyMap,
+    // ולא של כל האובייקט - כדי למנוע דריסה כשכמה חברים לוחצים "גם אני" באותו זמן
+    update(ref(db, `lists/${currentListType}/${activePersonalItemId}/personalQtyMap`), {
+      [user]: tempPersonalQty
     });
 
     personalQtyModalOverlay.classList.remove('show');
@@ -1419,10 +1465,10 @@
     if (!user || !activePersonalItemId) return;
 
     saveUndoBackup(activePersonalItemId);
-    delete activePersonalMap[user];
 
-    update(ref(db, `lists/${currentListType}/${activePersonalItemId}`), {
-      personalQtyMap: activePersonalMap
+    // מחיקה ישירה של המפתח של המשתמש בלבד, מאותה סיבה
+    update(ref(db, `lists/${currentListType}/${activePersonalItemId}/personalQtyMap`), {
+      [user]: null
     });
 
     personalQtyModalOverlay.classList.remove('show');
@@ -1438,49 +1484,29 @@
     if (menuEl) menuEl.classList.toggle('show');
   }
 
-  function transferSingleItemToInPerson(item) {
+  async function transferSingleItemToInPerson(item) {
     const user = requireUserName();
     if (!user) return;
 
-    const inPersonRef = ref(db, `lists/inPerson`);
     const totalQty = calculateTotalQty(item);
+    const inPersonSnap = await get(ref(db, `lists/inPerson`));
+    const inPersonItems = inPersonSnap.val() || {};
 
-    onValue(inPersonRef, (snapshot) => {
-      const inPersonItems = snapshot.val() || {};
-      const existingKey = Object.keys(inPersonItems).find(k => {
-        return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
-      });
+    const existingKey = findMatchingItemKey(inPersonItems, item);
+    if (existingKey) {
+      const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
+      const targetQty = currentQty + totalQty;
+      const shouldMerge = confirm(`המוצר "${item.name}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`);
+      if (!shouldMerge) return;
+    }
 
-      if (existingKey) {
-        const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
-        const targetQty = currentQty + totalQty;
-        const shouldMerge = confirm(`המוצר "${item.name}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`);
-        if (shouldMerge) {
-          update(ref(db, `lists/inPerson/${existingKey}`), {
-            qty: targetQty.toString()
-          });
-          showToast(`הכמות עודכנה ל-${targetQty} ברשימת "בקנייה עצמית" 🛒`);
-        }
-      } else {
-        const newItemRef = push(inPersonRef);
-        set(newItemRef, {
-          name: item.name,
-          qty: totalQty.toString(),
-          unit: item.unit || "יח'",
-          category: item.category || detectCategory(item.name),
-          by: `הועבר ממשלוח (${user})`,
-          buyer: '',
-          done: false,
-          isPriority: item.isPriority || false,
-          auditStatus: '',
-          personalQtyMap: item.personalQtyMap || {}
-        });
-        showToast(`"${item.name}" הועבר בהצלחה לרשימת "בקנייה עצמית" 🛒`);
-      }
-    }, { onlyOnce: true });
+    mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
+    showToast(existingKey
+      ? `הכמות עודכנה ברשימת "בקנייה עצמית" 🛒`
+      : `"${item.name}" הועבר בהצלחה לרשימת "בקנייה עצמית" 🛒`);
   }
 
-  transferAllToInPersonBtn.onclick = () => {
+  transferAllToInPersonBtn.onclick = async () => {
     const user = requireUserName();
     if (!user) return;
 
@@ -1491,98 +1517,79 @@
     }
 
     moreMenuModalOverlay.classList.remove('show');
-    const inPersonRef = ref(db, `lists/inPerson`);
 
-    onValue(inPersonRef, (snapshot) => {
-      const inPersonItems = snapshot.val() || {};
-      pendingBulkTransferItems = keys.map(k => itemsMap[k]);
-      pendingDuplicatesList = [];
+    const inPersonSnap = await get(ref(db, `lists/inPerson`));
+    const inPersonItems = inPersonSnap.val() || {};
 
-      pendingBulkTransferItems.forEach(item => {
-        const totalQty = calculateTotalQty(item);
-        const existingKey = Object.keys(inPersonItems).find(k => {
-          return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
+    pendingBulkTransferItems = keys.map(k => itemsMap[k]);
+    pendingDuplicatesList = [];
+
+    pendingBulkTransferItems.forEach(item => {
+      const totalQty = calculateTotalQty(item);
+      const existingKey = findMatchingItemKey(inPersonItems, item);
+
+      if (existingKey) {
+        pendingDuplicatesList.push({
+          name: item.name,
+          unit: item.unit || "יח'",
+          transferQty: totalQty,
+          existingQty: parseInt(inPersonItems[existingKey].qty) || 1,
+          existingKey: existingKey,
+          itemData: item
         });
-
-        if (existingKey) {
-          pendingDuplicatesList.push({
-            name: item.name,
-            unit: item.unit || "יח'",
-            transferQty: totalQty,
-            existingQty: parseInt(inPersonItems[existingKey].qty) || 1,
-            existingKey: existingKey,
-            itemData: item
-          });
-        }
-      });
-
-      if (pendingDuplicatesList.length > 0) {
-        duplicateTransferList.innerHTML = '';
-        pendingDuplicatesList.forEach(dup => {
-          const row = document.createElement('div');
-          row.style.padding = '4px 0';
-          row.style.borderBottom = '1px solid var(--line)';
-          row.innerHTML = `<strong>${dup.name}</strong> - קיים: ${dup.existingQty} ${dup.unit} | מועבר: +${dup.transferQty}`;
-          duplicateTransferList.appendChild(row);
-        });
-        duplicateTransferModalOverlay.classList.add('show');
-      } else {
-        executeBulkTransfer(inPersonItems, 'merge');
       }
-    }, { onlyOnce: true });
+    });
+
+    if (pendingDuplicatesList.length > 0) {
+      duplicateTransferList.innerHTML = '';
+      pendingDuplicatesList.forEach(dup => {
+        const row = document.createElement('div');
+        row.style.padding = '4px 0';
+        row.style.borderBottom = '1px solid var(--line)';
+
+        const strong = document.createElement('strong');
+        strong.textContent = dup.name;
+
+        const detailsText = document.createTextNode(
+          ` - קיים: ${dup.existingQty} ${dup.unit} | מועבר: +${dup.transferQty}`
+        );
+
+        row.appendChild(strong);
+        row.appendChild(detailsText);
+        duplicateTransferList.appendChild(row);
+      });
+      duplicateTransferModalOverlay.classList.add('show');
+    } else {
+      executeBulkTransfer(inPersonItems, 'merge');
+    }
   };
 
-  confirmMergeAllTransferBtn.onclick = () => {
-    const inPersonRef = ref(db, `lists/inPerson`);
-    onValue(inPersonRef, (snapshot) => {
-      executeBulkTransfer(snapshot.val() || {}, 'merge');
-      duplicateTransferModalOverlay.classList.remove('show');
-    }, { onlyOnce: true });
+  confirmMergeAllTransferBtn.onclick = async () => {
+    const inPersonSnap = await get(ref(db, `lists/inPerson`));
+    executeBulkTransfer(inPersonSnap.val() || {}, 'merge');
+    duplicateTransferModalOverlay.classList.remove('show');
   };
 
-  confirmSkipDuplicatesTransferBtn.onclick = () => {
-    const inPersonRef = ref(db, `lists/inPerson`);
-    onValue(inPersonRef, (snapshot) => {
-      executeBulkTransfer(snapshot.val() || {}, 'skip');
-      duplicateTransferModalOverlay.classList.remove('show');
-    }, { onlyOnce: true });
+  confirmSkipDuplicatesTransferBtn.onclick = async () => {
+    const inPersonSnap = await get(ref(db, `lists/inPerson`));
+    executeBulkTransfer(inPersonSnap.val() || {}, 'skip');
+    duplicateTransferModalOverlay.classList.remove('show');
   };
 
   function executeBulkTransfer(inPersonItems, duplicateAction) {
     const user = requireUserName();
-    const inPersonRef = ref(db, `lists/inPerson`);
     let transferredCount = 0;
 
     pendingBulkTransferItems.forEach(item => {
       const totalQty = calculateTotalQty(item);
-      const existingKey = Object.keys(inPersonItems).find(k => {
-        return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
-      });
+      const existingKey = findMatchingItemKey(inPersonItems, item);
 
-      if (existingKey) {
-        if (duplicateAction === 'merge') {
-          const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
-          update(ref(db, `lists/inPerson/${existingKey}`), {
-            qty: (currentQty + totalQty).toString()
-          });
-          transferredCount++;
-        }
-      } else {
-        const newItemRef = push(inPersonRef);
-        set(newItemRef, {
-          name: item.name,
-          qty: totalQty.toString(),
-          unit: item.unit || "יח'",
-          category: item.category || detectCategory(item.name),
-          by: `הועבר ממשלוח (${user})`,
-          buyer: '',
-          done: false,
-          isPriority: item.isPriority || false,
-          auditStatus: '',
-          personalQtyMap: item.personalQtyMap || {}
-        });
-        transferredCount++;
+      if (existingKey && duplicateAction === 'skip') {
+        return; // דילוג מכוון על כפילות
       }
+
+      mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
+      transferredCount++;
     });
 
     showToast(`${transferredCount} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`);
@@ -1670,58 +1677,32 @@
     missingModalOverlay.classList.add('show');
   };
 
-  transferMissingToInPersonBtn.onclick = () => {
+  transferMissingToInPersonBtn.onclick = async () => {
     const user = requireUserName();
     if (!user) return;
 
     const keys = Object.keys(itemsMap);
     const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
 
-    const inPersonRef = ref(db, `lists/inPerson`);
+    const inPersonSnap = await get(ref(db, `lists/inPerson`));
+    const inPersonItems = inPersonSnap.val() || {};
+    let transferredCount = 0;
 
-    onValue(inPersonRef, (snapshot) => {
-      const inPersonItems = snapshot.val() || {};
-      let transferredCount = 0;
+    missingItems.forEach(id => {
+      const item = itemsMap[id];
+      let missingQty = calculateTotalQty(item);
+      if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
+        missingQty = item.partialMissingQty;
+      }
 
-      missingItems.forEach(id => {
-        const item = itemsMap[id];
-        let missingQty = calculateTotalQty(item);
-        if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
-          missingQty = item.partialMissingQty;
-        }
+      if (missingQty <= 0) return;
 
-        if (missingQty <= 0) return;
+      mergeOrCreateItem('lists/inPerson', inPersonItems, item, missingQty, `הועבר ממשלוח (${user})`, { isPriority: true, carryPersonalMap: false });
+      transferredCount++;
+    });
 
-        const existingKey = Object.keys(inPersonItems).find(k => {
-          return normalizeProductName(inPersonItems[k].name).toLowerCase() === normalizeProductName(item.name).toLowerCase() && (inPersonItems[k].unit || "יח'") === (item.unit || "יח'");
-        });
-
-        if (existingKey) {
-          const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
-          update(ref(db, `lists/inPerson/${existingKey}`), {
-            qty: (currentQty + missingQty).toString()
-          });
-        } else {
-          const newItemRef = push(inPersonRef);
-          set(newItemRef, {
-            name: item.name,
-            qty: missingQty.toString(),
-            unit: item.unit || "יח'",
-            category: item.category || detectCategory(item.name),
-            by: `הועבר ממשלוח (${user})`,
-            buyer: '',
-            done: false,
-            isPriority: true,
-            auditStatus: '',
-            personalQtyMap: {}
-          });
-        }
-        transferredCount++;
-      });
-
-      missingModalOverlay.classList.remove('show');
-      showToast(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`);
-    }, { onlyOnce: true });
+    missingModalOverlay.classList.remove('show');
+    showToast(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`);
   };
 
   clearCurrentListBtn.addEventListener('click', () => {
