@@ -23,7 +23,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.3</title>
+<title>רשימת קניות מיקונוס 2.4</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
@@ -47,6 +47,7 @@
     --tag-bg: #eef5f9;
   }
 
+  /* משתני Dark Mode מלוטשים ונעימים לעין */
   [data-theme="dark"] {
     --sea: #4da3d9;
     --sea-deep: #e1ebf2;
@@ -383,7 +384,7 @@
   <div id="categoriesContainer"></div>
 
   <!-- תגית גרסה -->
-  <div class="app-version-tag">גרסה 2.3 • Mykonos Shopping List</div>
+  <div class="app-version-tag">גרסה 2.4 • Mykonos Shopping List</div>
 </div>
 
 <!-- Toast -->
@@ -666,7 +667,7 @@
       'לחמניות': { en: 'Buns / Bread', el: 'Ψωμάκια' },
       'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
       'ביצים': { en: 'Eggs', el: 'Αυγά' },
-      'חלב': { en: 'Milk', el: 'Γάλα' },
+      'חלב': { en: 'Milk', el: 'Γάלה' },
       'חמאה': { en: 'Butter', el: 'Βούτυρο' },
       'סודה': { en: 'Soda Water', el: 'Σόδα' },
       'יין': { en: 'Wine', el: 'Κρασί' },
@@ -674,21 +675,36 @@
     }
   };
 
-  // נרמול יחידות למניעת תקלות של גרשיים וגרשים נטויים
-  function normalizeUnitKey(rawUnit) {
-    if (!rawUnit) return 'unit';
-    const clean = rawUnit.toString().trim().toLowerCase().replace(/["״'״]/g, '');
-    if (clean === 'קג' || clean === 'קילו' || clean === 'kg') return 'kg';
-    if (clean === 'מארז' || clean === 'חבילה' || clean === 'pack') return 'pack';
-    if (clean === 'בקבוק' || clean === 'bottle') return 'bottle';
+  // נרמול יחידות חסין וגמיש
+  function normalizeUnitKey(rawUnit, categoryName) {
+    if (!rawUnit) {
+      if (categoryName === 'פירות וירקות 🍅') return 'kg';
+      return 'unit';
+    }
+
+    let clean = rawUnit.toString().trim().toLowerCase();
+    clean = clean.replace(/&quot;|&#34;/g, '');
+    clean = clean.replace(/["״'׳”״“’‘\\]/g, '');
+    clean = clean.trim();
+
+    if (clean === 'קג' || clean === 'קילו' || clean === 'קילוגרם' || clean === 'kg' || clean === 'kilo') {
+      return 'kg';
+    }
+    if (clean === 'מארז' || clean === 'חבילה' || clean === 'pack' || clean === 'package') {
+      return 'pack';
+    }
+    if (clean === 'בקבוק' || clean === 'bottle') {
+      return 'bottle';
+    }
     return 'unit';
   }
 
-  function translateUnit(rawUnit, lang) {
-    const key = normalizeUnitKey(rawUnit);
+  function translateUnit(rawUnit, lang, categoryName) {
+    const key = normalizeUnitKey(rawUnit, categoryName);
     if (lang !== 'he' && TRANSLATION_DICTIONARY.units[key]) {
       return TRANSLATION_DICTIONARY.units[key][lang] || rawUnit;
     }
+    if (key === 'kg' && (!rawUnit || rawUnit === "יח'")) return 'ק"ג';
     return rawUnit || "יח'";
   }
 
@@ -1068,9 +1084,12 @@
         decBtn.textContent = '-';
         decBtn.addEventListener('click', () => updateBaseQty(item.id, -1));
 
+        const cat = item.category || detectCategory(item.name);
+        const displayUnit = translateUnit(item.unit, 'he', cat);
+
         const qtyVal = document.createElement('span');
         qtyVal.className = 'item-qty-val';
-        qtyVal.textContent = `${totalQty} ${item.unit || "יח'"}`;
+        qtyVal.textContent = `${totalQty} ${displayUnit}`;
         qtyVal.title = `בסיס: ${baseQty}`;
 
         const incBtn = document.createElement('button');
@@ -1713,7 +1732,7 @@
       grouped[cat].forEach(i => {
         const totalQty = calculateTotalQty(i);
         let itemName = i.name;
-        let unitName = translateUnit(i.unit, lang);
+        let unitName = translateUnit(i.unit, lang, cat);
 
         if (lang !== 'he') {
           if (TRANSLATION_DICTIONARY.items[i.name]) {
