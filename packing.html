@@ -268,7 +268,6 @@
     .menu-btn-item:active { background: #e2e8f0; }
     .menu-btn-item.danger-text { color: var(--danger); }
 
-    /* תצוגת מספר גרסה קבועה וברורה בתחתית */
     .app-version-footer {
       flex-shrink: 0;
       text-align: center;
@@ -485,7 +484,7 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v1.5.2</div>
+    <div class="app-version-footer">גרסה v1.5.3</div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -879,30 +878,42 @@
       }
     }
 
-    async function checkForSmartMergesOnLogin() {
+    async function checkForSmartMergesOnLogin(skipCategories = []) {
       try {
         const q = query(itemsRef, where("owner", "==", currentUser));
         const snapshot = await getDocs(q);
         const userItems = [];
         snapshot.forEach(docSnap => userItems.push({ id: docSnap.id, ...docSnap.data() }));
 
-        const medItems = userItems.filter(i => isMedicineItem(i.name));
-        if (medItems.length > 1) {
-          showSmartMergePrompt("💊 איחוד תרופות וכדורים", "תרופות וכדורים", medItems);
-          return;
+        if (!skipCategories.includes('med')) {
+          const medItems = userItems.filter(i => isMedicineItem(i.name));
+          if (medItems.length > 1) {
+            const existingGroupsCount = medItems.filter(i => i.hasSubitems).length;
+            const title = existingGroupsCount > 1
+              ? "💊 זוהו אצלך שתי קבוצות תרופות נפרדות"
+              : "💊 איחוד תרופות וכדורים";
+            showSmartMergePrompt(title, "תרופות וכדורים", medItems, () => checkForSmartMergesOnLogin([...skipCategories, 'med']));
+            return;
+          }
         }
 
-        const toilItems = userItems.filter(i => isToiletriesItem(i.name));
-        if (toilItems.length > 1) {
-          showSmartMergePrompt("🧴 איחוד מוצרי טיפוח וכלי רחצה", "תיק רחצה", toilItems);
-          return;
+        if (!skipCategories.includes('toil')) {
+          const toilItems = userItems.filter(i => isToiletriesItem(i.name));
+          if (toilItems.length > 1) {
+            const existingGroupsCount = toilItems.filter(i => i.hasSubitems).length;
+            const title = existingGroupsCount > 1
+              ? "🧴 זוהו אצלך שתי קבוצות טיפוח נפרדות"
+              : "🧴 איחוד מוצרי טיפוח וכלי רחצה";
+            showSmartMergePrompt(title, "תיק רחצה", toilItems, () => checkForSmartMergesOnLogin([...skipCategories, 'toil']));
+            return;
+          }
         }
       } catch (err) {
         console.error("Error checking smart merges:", err);
       }
     }
 
-    function showSmartMergePrompt(title, targetCategoryName, itemsToMerge) {
+    function showSmartMergePrompt(title, targetCategoryName, itemsToMerge, onResolved) {
       smartMergeTitle.textContent = title;
       const namesList = itemsToMerge.map(m => `"${m.name}"`).join(", ");
       smartMergeDesc.textContent = `זיהינו ברשימה שלך מספר פריטים שמתאימים להיות יחד: ${namesList}. האם תרצה לאחד אותם לפריט ראשי אחד בשם "${targetCategoryName}" ולנהל אותם בתוכו כתת-רשימה?`;
@@ -913,9 +924,10 @@
         confirmSmartMergeBtn.disabled = true;
         confirmSmartMergeBtn.textContent = "...ממזג פריטים";
 
+        const sortedItems = [...itemsToMerge].sort((a, b) => (b.hasSubitems ? 1 : 0) - (a.hasSubitems ? 1 : 0));
         let mergedSubitems = [];
 
-        itemsToMerge.forEach(item => {
+        sortedItems.forEach(item => {
           if (item.hasSubitems && item.subitems && item.subitems.length > 0) {
             item.subitems.forEach(s => {
               if (!mergedSubitems.some(m => normalizeText(m.name) === normalizeText(s.name))) {
@@ -929,7 +941,7 @@
           }
         });
 
-        const primaryItem = itemsToMerge[0];
+        const primaryItem = sortedItems[0];
         await updateDoc(doc(db, "packing_items", primaryItem.id), {
           name: targetCategoryName,
           hasSubitems: true,
@@ -937,16 +949,21 @@
           isDone: false
         });
 
-        for (let i = 1; i < itemsToMerge.length; i++) {
-          await deleteDoc(doc(db, "packing_items", itemsToMerge[i].id));
+        for (let i = 1; i < sortedItems.length; i++) {
+          await deleteDoc(doc(db, "packing_items", sortedItems[i].id));
         }
 
         smartMergeModal.classList.add("hidden");
+        confirmSmartMergeBtn.disabled = false;
+        confirmSmartMergeBtn.textContent = "✨ כן, אחד לרשימה אחת";
         showToast(`✨ כל הפריטים מוזגו בהצלחה תחת "${targetCategoryName}"!`);
+
+        if (onResolved) onResolved();
       };
 
       dismissSmartMergeBtn.onclick = () => {
         smartMergeModal.classList.add("hidden");
+        if (onResolved) onResolved();
       };
     }
 
