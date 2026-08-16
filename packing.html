@@ -186,7 +186,7 @@
     .icon-btn { background: none; border: none; padding: 4px; width: 30px; height: 30px; margin: 0; color: var(--gray-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.2s, background-color 0.2s; }
     .icon-btn:hover, .icon-btn:active { color: var(--text); background-color: #f1f5f9; }
     .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); background-color: #fef2f2; }
-    .icon-btn svg { width: 17px; height: 17px; stroke-width: 2; }
+    .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
 
     .btn-sm { width: auto; padding: 5px 10px; font-size: 0.8rem; margin: 0; }
     .btn-danger { background: var(--danger); }
@@ -250,6 +250,24 @@
     .subitem-row:last-child { border-bottom: none; }
     .subitem-row.done span { text-decoration: line-through; color: var(--gray); }
 
+    .menu-btn-item {
+      text-align: right;
+      background: #f8fafc;
+      color: var(--text);
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-top: 8px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background-color 0.2s;
+    }
+    .menu-btn-item:active { background: #e2e8f0; }
+    .menu-btn-item.danger-text { color: var(--danger); }
+
     @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
     #toast {
@@ -268,7 +286,7 @@
 
   <div id="toast"></div>
 
-  <!-- חלונית מודאל לבקשת שיתוף רשימה -->
+  <!-- מודאל בקשת שיתוף רשימה -->
   <div id="requestModal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-title">📩 חבר ביקש לראות את הרשימה שלך!</div>
@@ -278,7 +296,34 @@
     </div>
   </div>
 
-  <!-- חלונית מודאל להצעת מיזוג פריטי תרופות כפולים -->
+  <!-- תפריט פעולות (3 נקודות) לפריט -->
+  <div id="itemActionMenuModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="actionMenuTitle">אפשרויות פריט</div>
+      <div id="actionMenuSubtitle" class="modal-desc" style="margin-bottom: 8px;"></div>
+      
+      <button id="menuEditBtn" class="menu-btn-item">✏️ ערוך שם פריט</button>
+      <button id="menuManageSubsBtn" class="menu-btn-item">📦 נהל תת-רשימה (הוסף/ערוך פריטים פנימיים)</button>
+      <button id="menuMoveToParentBtn" class="menu-btn-item">📥 העבר לתוך רשימה אחרת...</button>
+      <button id="menuDeleteBtn" class="menu-btn-item danger-text">🗑️ מחק פריט</button>
+      
+      <button id="closeActionMenuBtn" style="margin-top: 14px; background: #e2e8f0; color: var(--text);">סגור</button>
+    </div>
+  </div>
+
+  <!-- מודאל בחירת פריט אב להעברה פנימה -->
+  <div id="moveToParentModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">📥 העבר לתוך רשימה</div>
+      <div class="modal-desc" id="moveToParentDesc">בחר לאיזה פריט ברצונך להעביר את הפריט:</div>
+      
+      <div id="parentsChoiceList" class="subitems-list"></div>
+
+      <button id="closeMoveToParentBtn" style="margin-top: 10px; background: #e2e8f0; color: var(--text);">ביטול</button>
+    </div>
+  </div>
+
+  <!-- מודאל מיזוג פריטי תרופות כפולים -->
   <div id="mergeMedsModal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-title">💊 איחוד פריטי תרופות ועזרה ראשונה</div>
@@ -288,14 +333,14 @@
     </div>
   </div>
 
-  <!-- חלונית מודאל לניהול תרופות אישי / צפייה -->
+  <!-- מודאל ניהול תת-פריטים / צפייה -->
   <div id="subitemsModal" class="modal-overlay hidden">
     <div class="modal-box">
-      <div class="modal-title" id="subitemsModalTitle">💊 רשימת תרופות וכדורים</div>
-      <div class="modal-desc" id="subitemsModalDesc">סמן את התרופות שנארזו. הפריט יסומן כנארז רק לאחר סימון כולן.</div>
+      <div class="modal-title" id="subitemsModalTitle">📦 רשימת פריטים פנימית</div>
+      <div class="modal-desc" id="subitemsModalDesc">סמן את הפריטים שנארזו. הפריט יסומן כנארז רק לאחר סימון כולם.</div>
       
       <div id="addSubitemForm" style="display:flex; gap:6px; margin-bottom: 8px;">
-        <input type="text" id="newSubitemName" placeholder="הקלד שם תרופה ולחץ Enter..." style="margin-top:0;">
+        <input type="text" id="newSubitemName" placeholder="הקלד פריט פנימי ולחץ Enter..." style="margin-top:0;">
         <button id="addSubitemBtn" class="btn-sm" style="width:auto; flex-shrink:0;">+ הוסף</button>
       </div>
 
@@ -305,11 +350,11 @@
     </div>
   </div>
 
-  <!-- חלונית מודאל לבחירת תרופות לייבוא מחבר -->
+  <!-- מודאל בחירת תת-פריטים לייבוא מחבר (גנרי לכל קטגוריה) -->
   <div id="importPickerModal" class="modal-overlay hidden">
     <div class="modal-box">
-      <div class="modal-title" id="importPickerTitle">💊 בחירת תרופות לייבוא</div>
-      <div class="modal-desc">בחר אילו תרופות ברצונך לייבא לרשימה האישית שלך:</div>
+      <div class="modal-title" id="importPickerTitle">📦 בחירת פריטים לייבוא</div>
+      <div class="modal-desc">בחר אילו פריטים ברצונך לייבא לרשימה האישית שלך:</div>
       
       <div id="importPickerList" class="subitems-list"></div>
 
@@ -370,10 +415,11 @@
           <option value="דרכון ואישורי טיסה">
           <option value="רישיון נהיגה בינלאומי">
           <option value="כרטיסי אשראי ומזומן">
-          <option value="קרם הגנה משמש">
-          <option value="ספריי הגנה">
+          <option value="תיק רחצה">
           <option value="ערכת תרופות ועזרה ראשונה">
           <option value="תרופות וכדורים">
+          <option value="קרם הגנה משמש">
+          <option value="ספריי הגנה">
           <option value="מטען נייד (Power Bank)">
           <option value="מטען לטלפון">
           <option value="משקפי שמש">
@@ -381,6 +427,7 @@
           <option value="מגבת חוף">
           <option value="כלי רחצה וגילוח">
           <option value="מברשת ומשחת שיניים">
+          <option value="דאודורנט ובושם">
           <option value="אוזניות">
           <option value="כפכפים">
         </datalist>
@@ -462,6 +509,7 @@
     };
 
     let currentActiveSubitemDoc = null;
+    let currentSelectedMenuItem = null;
     let pendingImportContext = null;
 
     const loginCard = document.getElementById("loginCard");
@@ -499,6 +547,20 @@
     const requestModalDesc = document.getElementById("requestModalDesc");
     const shareAllBtn = document.getElementById("shareAllBtn");
     const dismissModalBtn = document.getElementById("dismissModalBtn");
+
+    const itemActionMenuModal = document.getElementById("itemActionMenuModal");
+    const actionMenuTitle = document.getElementById("actionMenuTitle");
+    const actionMenuSubtitle = document.getElementById("actionMenuSubtitle");
+    const menuEditBtn = document.getElementById("menuEditBtn");
+    const menuManageSubsBtn = document.getElementById("menuManageSubsBtn");
+    const menuMoveToParentBtn = document.getElementById("menuMoveToParentBtn");
+    const menuDeleteBtn = document.getElementById("menuDeleteBtn");
+    const closeActionMenuBtn = document.getElementById("closeActionMenuBtn");
+
+    const moveToParentModal = document.getElementById("moveToParentModal");
+    const moveToParentDesc = document.getElementById("moveToParentDesc");
+    const parentsChoiceList = document.getElementById("parentsChoiceList");
+    const closeMoveToParentBtn = document.getElementById("closeMoveToParentBtn");
 
     const mergeMedsModal = document.getElementById("mergeMedsModal");
     const mergeMedsDesc = document.getElementById("mergeMedsDesc");
@@ -603,6 +665,17 @@
       return norm.includes("תרופ") || norm.includes("כדור") || norm.includes("עזרהראשונ");
     }
 
+    function isToiletriesItem(name) {
+      const norm = normalizeText(name);
+      return norm.includes("תיקרחצ") || norm.includes("כלירחצ");
+    }
+
+    function getItemIcon(name) {
+      if (isMedicineItem(name)) return "💊";
+      if (isToiletriesItem(name)) return "🧴";
+      return "📦";
+    }
+
     function getGreeting() {
       const hour = new Date().getHours();
       if (hour >= 5 && hour < 12) return "בוקר טוב";
@@ -657,7 +730,6 @@
       }
     }
 
-    // בדיקה והצעת מיזוג פריטי תרופות כפולים בכניסה
     async function checkForDuplicateMedsToMerge() {
       try {
         const q = query(itemsRef, where("owner", "==", currentUser));
@@ -671,10 +743,9 @@
           }
         });
 
-        // אם יש יותר מפריט תרופות/עזרה ראשונה אחד
         if (medItems.length > 1) {
           const namesList = medItems.map(m => `"${m.name}"`).join(", ");
-          mergeMedsDesc.textContent = `נמצאו הפריטים: ${namesList}. האם תרצה למזג את כולם תחת פריט ראשי אחד בשם "ערכת תרופות ועזרה ראשונה" ולנהל את שאר הפריטים כתת-תרופות בחלונית הפנימית?`;
+          mergeMedsDesc.textContent = `נמצאו הפריטים: ${namesList}. האם תרצה למזג אותם תחת פריט ראשי אחד בשם "ערכת תרופות ועזרה ראשונה" ולנהל את שאר הפריטים כתת-תרופות בחלונית הפנימית?`;
           mergeMedsModal.classList.remove("hidden");
 
           confirmMergeMedsBtn.onclick = async () => {
@@ -687,7 +758,6 @@
               { name: "כדורים נגד בחילות", isDone: false }
             ];
 
-            // איסוף כל שמות הפריטים כתת-פריטים
             medItems.forEach(item => {
               if (item.subitems && item.subitems.length > 0) {
                 item.subitems.forEach(s => {
@@ -702,7 +772,6 @@
               }
             });
 
-            // השארת הראשון כראשי ומחיקת השאר
             const primaryItem = medItems[0];
             await updateDoc(doc(db, "packing_items", primaryItem.id), {
               name: "ערכת תרופות ועזרה ראשונה",
@@ -892,8 +961,8 @@
       }
 
       const isMed = isMedicineItem(name);
+      const isToil = isToiletriesItem(name);
 
-      // אם כבר קיים פריט תרופות ראשי ברשימה והמשתמש מנסה להכניס עוד אחד
       if (isMed) {
         const existingMedMainItem = myItems.find(i => i.hasSubitems || isMedicineItem(i.name));
         if (existingMedMainItem) {
@@ -904,17 +973,30 @@
         }
       }
 
+      let defaultSubitems = [];
+      if (isMed) {
+        defaultSubitems = [
+          { name: "אקמול / אדוויל", isDone: false },
+          { name: "פלסטרים ותחבושת", isDone: false },
+          { name: "כדורים נגד בחילות", isDone: false }
+        ];
+      } else if (isToil) {
+        defaultSubitems = [
+          { name: "מברשת ומשחת שיניים", isDone: false },
+          { name: "דאודורנט ובושם", isDone: false },
+          { name: "שמפו וסבון גוף", isDone: false }
+        ];
+      }
+
+      const hasSubs = isMed || isToil;
+
       const newDoc = await addDoc(itemsRef, {
         name: name,
         owner: currentUser,
         isPublic: newItemVisibility.value === "public",
         isDone: false,
-        hasSubitems: isMed,
-        subitems: isMed ? [
-          { name: "אקמול / אדוויל", isDone: false },
-          { name: "פלסטרים ותחבושת", isDone: false },
-          { name: "כדורים נגד בחילות", isDone: false }
-        ] : [],
+        hasSubitems: hasSubs,
+        subitems: defaultSubitems,
         createdAt: Date.now()
       });
 
@@ -923,12 +1005,8 @@
       newItemName.value = "";
       newItemName.focus();
 
-      if (isMed) {
-        openSubitemsModal(newDoc.id, name, [
-          { name: "אקמול / אדוויל", isDone: false },
-          { name: "פלסטרים ותחבושת", isDone: false },
-          { name: "כדורים נגד בחילות", isDone: false }
-        ], true);
+      if (hasSubs) {
+        openSubitemsModal(newDoc.id, name, defaultSubitems, true);
       }
     });
 
@@ -957,15 +1035,24 @@
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           const isMed = isMedicineItem(data.name);
-          const hasSubs = data.hasSubitems || isMed;
+          const isToil = isToiletriesItem(data.name);
+          const hasSubs = data.hasSubitems || (data.subitems && data.subitems.length > 0) || isMed || isToil;
           
           let subitemsList = data.subitems;
           if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
-            subitemsList = [
-              { name: "אקמול / אדוויל", isDone: false },
-              { name: "פלסטרים ותחבושת", isDone: false },
-              { name: "כדורים נגד בחילות", isDone: false }
-            ];
+            if (isMed) {
+              subitemsList = [
+                { name: "אקמול / אדוויל", isDone: false },
+                { name: "פלסטרים ותחבושת", isDone: false },
+                { name: "כדורים נגד בחילות", isDone: false }
+              ];
+            } else if (isToil) {
+              subitemsList = [
+                { name: "מברשת ומשחת שיניים", isDone: false },
+                { name: "דאודורנט ובושם", isDone: false },
+                { name: "שמפו וסבון גוף", isDone: false }
+              ];
+            }
           }
 
           const itemObj = { 
@@ -1032,13 +1119,14 @@
         : '';
 
       let subitemsBtnMarkup = '';
-      if (item.hasSubitems) {
-        const subs = item.subitems || [];
+      const icon = getItemIcon(item.name);
+      if (item.hasSubitems && item.subitems && item.subitems.length > 0) {
+        const subs = item.subitems;
         const doneSubs = subs.filter(s => s.isDone).length;
         const allSubsDone = subs.length > 0 && doneSubs === subs.length;
         subitemsBtnMarkup = `
           <button class="subitems-btn ${allSubsDone ? 'done' : ''}" onclick="openMySubitems('${item.id}')">
-            💊 ${doneSubs}/${subs.length} •••
+            ${icon} ${doneSubs}/${subs.length}
           </button>
         `;
       }
@@ -1059,16 +1147,105 @@
           <button class="badge ${item.isPublic ? 'public' : ''}" onclick="toggleVisibility('${item.id}', ${!item.isPublic})">
             ${item.isPublic ? '🌐 ציבורי' : '🔒 פרטי'}
           </button>
-          <button class="icon-btn" title="ערוך פריט" onclick="editItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-          <button class="icon-btn danger" title="מחק פריט" onclick="deleteItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          
+          <button class="icon-btn" title="אפשרויות נוספות" onclick="openItemActionMenu('${item.id}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="1.5"></circle>
+              <circle cx="19" cy="12" r="1.5"></circle>
+              <circle cx="5" cy="12" r="1.5"></circle>
+            </svg>
           </button>
         </div>
       `;
       myItemsList.appendChild(div);
     }
+
+    window.openItemActionMenu = (id) => {
+      triggerHaptic("light");
+      const item = myItems.find(i => i.id === id);
+      if (!item) return;
+
+      currentSelectedMenuItem = item;
+      actionMenuTitle.textContent = item.name;
+      actionMenuSubtitle.textContent = item.hasSubitems ? `מכיל ${item.subitems.length} פריטים פנימיים` : `פריט רגיל`;
+
+      itemActionMenuModal.classList.remove("hidden");
+    };
+
+    closeActionMenuBtn.addEventListener("click", () => {
+      itemActionMenuModal.classList.add("hidden");
+      currentSelectedMenuItem = null;
+    });
+
+    menuEditBtn.addEventListener("click", () => {
+      itemActionMenuModal.classList.add("hidden");
+      if (currentSelectedMenuItem) {
+        window.editItem(currentSelectedMenuItem.id, currentSelectedMenuItem.name);
+      }
+    });
+
+    menuManageSubsBtn.addEventListener("click", () => {
+      itemActionMenuModal.classList.add("hidden");
+      if (currentSelectedMenuItem) {
+        openMySubitems(currentSelectedMenuItem.id);
+      }
+    });
+
+    menuDeleteBtn.addEventListener("click", () => {
+      itemActionMenuModal.classList.add("hidden");
+      if (currentSelectedMenuItem) {
+        window.deleteItem(currentSelectedMenuItem.id, currentSelectedMenuItem.name);
+      }
+    });
+
+    menuMoveToParentBtn.addEventListener("click", () => {
+      if (!currentSelectedMenuItem) return;
+      itemActionMenuModal.classList.add("hidden");
+
+      const potentialParents = myItems.filter(i => i.id !== currentSelectedMenuItem.id);
+      if (potentialParents.length === 0) {
+        showToast("אין פריטים אחרים ברשימה להעביר אליהם");
+        return;
+      }
+
+      moveToParentDesc.textContent = `בחר לאיזה פריט להעביר את "${currentSelectedMenuItem.name}":`;
+      parentsChoiceList.innerHTML = "";
+
+      potentialParents.forEach(parent => {
+        const btn = document.createElement("button");
+        btn.className = "menu-btn-item";
+        btn.innerHTML = `${getItemIcon(parent.name)} <strong>${parent.name}</strong>`;
+        btn.onclick = async () => {
+          triggerHaptic("medium");
+          moveToParentModal.classList.add("hidden");
+
+          const childName = currentSelectedMenuItem.name;
+          const parentDoc = myItems.find(i => i.id === parent.id);
+          const currentSubs = parentDoc.subitems || [];
+
+          currentSubs.push({ name: childName, isDone: currentSelectedMenuItem.isDone || false });
+          
+          await updateDoc(doc(db, "packing_items", parent.id), {
+            hasSubitems: true,
+            subitems: currentSubs,
+            isDone: false
+          });
+
+          await deleteDoc(doc(db, "packing_items", currentSelectedMenuItem.id));
+
+          showToast(`✨ "${childName}" הועבר בהצלחה לתוך "${parent.name}"!`);
+          currentSelectedMenuItem = null;
+        };
+        parentsChoiceList.appendChild(btn);
+      });
+
+      moveToParentModal.classList.remove("hidden");
+    });
+
+    closeMoveToParentBtn.addEventListener("click", () => {
+      moveToParentModal.classList.add("hidden");
+      currentSelectedMenuItem = null;
+    });
 
     window.handleItemCheck = async (id, newDoneState, hasSubitems) => {
       const item = myItems.find(i => i.id === id);
@@ -1078,7 +1255,7 @@
         const allSubsDone = item.subitems.every(s => s.isDone);
         if (!allSubsDone) {
           triggerHaptic("light");
-          showToast("💊 יש לסמן וי על כל התרופות ברשימה הפנימית תחילה!");
+          showToast(`📦 יש לסמן וי על כל הפריטים ברשימה הפנימית של "${item.name}" תחילה!`);
           loadMyItems();
           openMySubitems(id);
           return;
@@ -1105,7 +1282,7 @@
 
     function openSubitemsModal(docId, title, subitems, isOwner) {
       currentActiveSubitemDoc = isOwner ? docId : null;
-      subitemsModalTitle.textContent = `💊 ${title}`;
+      subitemsModalTitle.textContent = `${getItemIcon(title)} ${title}`;
       addSubitemForm.style.display = isOwner ? "flex" : "none";
       renderSubitemsModalList(subitems, isOwner);
       subitemsModal.classList.remove("hidden");
@@ -1115,7 +1292,7 @@
     function renderSubitemsModalList(subitems, isOwner) {
       subitemsListContainer.innerHTML = "";
       if (!subitems || subitems.length === 0) {
-        subitemsListContainer.innerHTML = "<p style='color:var(--gray); text-align:center; font-size:0.85rem; padding:10px;'>אין תרופות מוגדרות ברשימה.</p>";
+        subitemsListContainer.innerHTML = "<p style='color:var(--gray); text-align:center; font-size:0.85rem; padding:10px;'>אין פריטים מוגדרים ברשימה זו עדיין.</p>";
         return;
       }
 
@@ -1130,8 +1307,8 @@
         let actionButtons = isOwner 
           ? `
             <div style="display:flex; align-items:center; gap:4px;">
-              <button class="icon-btn" style="width:24px; height:24px; padding:2px;" title="ערוך תרופה" onclick="editSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-              <button class="icon-btn danger" style="width:24px; height:24px; padding:2px;" title="מחק תרופה" onclick="deleteSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+              <button class="icon-btn" style="width:24px; height:24px; padding:2px;" title="ערוך פריט" onclick="editSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+              <button class="icon-btn danger" style="width:24px; height:24px; padding:2px;" title="מחק פריט" onclick="deleteSubitem(${idx})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
             </div>
           `
           : '';
@@ -1170,7 +1347,7 @@
       if (!item || !item.subitems) return;
 
       const oldName = item.subitems[idx].name;
-      const newName = prompt("ערוך שם תרופה / כדור:", oldName);
+      const newName = prompt("ערוך שם פריט פנימי:", oldName);
       if (newName !== null && newName.trim() !== "" && newName.trim() !== oldName) {
         item.subitems[idx].name = newName.trim();
         await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
@@ -1187,8 +1364,10 @@
 
       item.subitems.splice(idx, 1);
       const allDone = item.subitems.length > 0 && item.subitems.every(s => s.isDone);
+      const hasSubs = item.subitems.length > 0;
 
       await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
+        hasSubitems: hasSubs,
         subitems: item.subitems,
         isDone: allDone
       });
@@ -1207,6 +1386,7 @@
       subitems.push({ name: name, isDone: false });
 
       await updateDoc(doc(db, "packing_items", currentActiveSubitemDoc), {
+        hasSubitems: true,
         subitems: subitems,
         isDone: false
       });
@@ -1238,7 +1418,7 @@
         btnElement
       };
 
-      importPickerTitle.textContent = `💊 בחירת תרופות מ-${sourceFriend}`;
+      importPickerTitle.textContent = `${getItemIcon(itemName)} בחירת פריטים מ-${sourceFriend}`;
       importPickerList.innerHTML = "";
 
       pendingImportContext.subitems.forEach((sub, idx) => {
@@ -1282,13 +1462,13 @@
         importedFrom: sourceFriend || "",
         isPublic: false,
         isDone: false,
-        hasSubitems: true,
+        hasSubitems: selectedSubitems.length > 0,
         subitems: selectedSubitems,
         createdAt: Date.now()
       });
 
       triggerHaptic("light");
-      showToast(`הפריט "${itemName}" יובא עם ${selectedSubitems.length} תרופות!`);
+      showToast(`הפריט "${itemName}" יובא עם ${selectedSubitems.length} פריטים פנימיים!`);
       pendingImportContext = null;
     });
 
@@ -1353,30 +1533,40 @@
           publicItems.forEach(item => {
             const normalizedFriendItem = normalizeText(item.name);
             const exactExists = myItems.some(i => normalizeText(i.name) === normalizedFriendItem);
-            const isMed = isMedicineItem(item.name) || item.hasSubitems;
+            const isMed = isMedicineItem(item.name);
+            const isToil = isToiletriesItem(item.name);
+            const hasSubs = item.hasSubitems || (item.subitems && item.subitems.length > 0) || isMed || isToil;
 
             let subitemsList = item.subitems;
-            if (isMed && (!subitemsList || subitemsList.length === 0)) {
-              subitemsList = [
-                { name: "אקמול / אדוויל", isDone: false },
-                { name: "פלסטרים ותחבושת", isDone: false },
-                { name: "כדורים נגד בחילות", isDone: false }
-              ];
+            if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
+              if (isMed) {
+                subitemsList = [
+                  { name: "אקמול / אדוויל", isDone: false },
+                  { name: "פלסטרים ותחבושת", isDone: false },
+                  { name: "כדורים נגד בחילות", isDone: false }
+                ];
+              } else if (isToil) {
+                subitemsList = [
+                  { name: "מברשת ומשחת שיניים", isDone: false },
+                  { name: "דאודורנט ובושם", isDone: false },
+                  { name: "שמפו וסבון גוף", isDone: false }
+                ];
+              }
             }
 
             const itemDiv = document.createElement("div");
             itemDiv.className = "item";
             
-            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${item.name.replace(/'/g, "\\'")}', '${friend}', this, ${isMed ? 'true' : 'false'}, '${encodeURIComponent(JSON.stringify(subitemsList || []))} ')">+ ייבא</button>`;
+            let statusMarkup = `<button class="btn-sm btn-import" onclick="handleImportClick('${item.name.replace(/'/g, "\\'")}', '${friend}', this, ${hasSubs ? 'true' : 'false'}, '${encodeURIComponent(JSON.stringify(subitemsList || []))} ')">+ ייבא</button>`;
             if (exactExists) {
               statusMarkup = `<span style="font-size:0.8rem; color:var(--gray);">קיים אצלך</span>`;
             }
 
             let subitemsFriendMarkup = '';
-            if (isMed && subitemsList && subitemsList.length > 0) {
+            if (hasSubs && subitemsList && subitemsList.length > 0) {
               subitemsFriendMarkup = `
                 <button class="subitems-btn" onclick="openFriendSubitems('${friend}', '${item.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(subitemsList))}')">
-                  💊 ${subitemsList.length} תרופות •••
+                  ${getItemIcon(item.name)} ${subitemsList.length} פריטים •••
                 </button>
               `;
             }
@@ -1419,6 +1609,7 @@
         if (subitemsJson) parsedSubitems = JSON.parse(decodeURIComponent(subitemsJson));
       } catch(e) {}
 
+      // אם יש תת-פריטים - פותח מודאל בחירה סלקטיבי
       if (hasSubitems && parsedSubitems.length > 0) {
         openImportPicker(itemName, sourceFriend, parsedSubitems, btnElement);
       } else {
@@ -1595,14 +1786,25 @@
         const data = docSnap.data();
         const exists = myItems.some(i => normalizeText(i.name) === normalizeText(data.name));
         if (!exists) {
-          const isMed = isMedicineItem(data.name) || data.hasSubitems;
+          const isMed = isMedicineItem(data.name);
+          const isToil = isToiletriesItem(data.name);
+          const hasSubs = data.hasSubitems || (data.subitems && data.subitems.length > 0) || isMed || isToil;
+          
           let subitemsList = data.subitems;
-          if (isMed && (!subitemsList || subitemsList.length === 0)) {
-            subitemsList = [
-              { name: "אקמול / אדוויל", isDone: false },
-              { name: "פלסטרים ותחבושת", isDone: false },
-              { name: "כדורים נגד בחילות", isDone: false }
-            ];
+          if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
+            if (isMed) {
+              subitemsList = [
+                { name: "אקמול / אדוויל", isDone: false },
+                { name: "פלסטרים ותחבושת", isDone: false },
+                { name: "כדורים נגד בחילות", isDone: false }
+              ];
+            } else if (isToil) {
+              subitemsList = [
+                { name: "מברשת ומשחת שיניים", isDone: false },
+                { name: "דאודורנט ובושם", isDone: false },
+                { name: "שמפו וסבון גוף", isDone: false }
+              ];
+            }
           }
 
           await addDoc(itemsRef, {
@@ -1611,7 +1813,7 @@
             importedFrom: friendName,
             isPublic: false,
             isDone: false,
-            hasSubitems: !!isMed,
+            hasSubitems: !!hasSubs,
             subitems: (subitemsList || []).map(s => ({ name: s.name, isDone: false })),
             createdAt: Date.now()
           });
