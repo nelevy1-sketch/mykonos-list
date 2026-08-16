@@ -485,7 +485,7 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v1.5.1</div>
+    <div class="app-version-footer">גרסה v1.5.2</div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -603,9 +603,6 @@
     let myItems = [];
     let allUsersWithItems = new Set();
 
-    // ---- Escaping helpers ----
-    // escapeHtml: לשימוש כשמכניסים טקסט חופשי (שם פריט/חבר) לתוך innerHTML כטקסט רגיל.
-    // בלי זה, שם פריט עם "<" או ">" עלול לשבור את התצוגה אצל כל מי שרואה את הרשימה (כולל חברים).
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -616,8 +613,6 @@
         .replace(/'/g, '&#39;');
     }
 
-    // escapeForInlineHandler: לשימוש כשמכניסים טקסט חופשי כארגומנט בתוך onclick="fn('VALUE')".
-    // מטפל גם בגרש בודד (סוגר את מחרוזת ה-JS) וגם בגרשיים כפולים (סוגרים את attribute ה-HTML).
     function escapeForInlineHandler(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -628,8 +623,6 @@
         .replace(/>/g, '&gt;');
     }
 
-    // getDefaultSubitems: רשימת ברירת המחדל לתת-פריטים לפי קטגוריה מזוהה (תרופות/טיפוח).
-    // מרוכזת כאן במקום אחד במקום ארבע כפילויות שהיו קודם בקוד.
     function getDefaultSubitems(name) {
       if (isMedicineItem(name)) {
         return [
@@ -646,6 +639,88 @@
         ];
       }
       return [];
+    }
+
+    function findExistingCategoryGroup(name, itemsPool) {
+      const pool = itemsPool || myItems;
+      if (isMedicineItem(name)) {
+        return pool.find(i => i.hasSubitems && isMedicineItem(i.name));
+      }
+      if (isToiletriesItem(name)) {
+        return pool.find(i => i.hasSubitems && isToiletriesItem(i.name));
+      }
+      return null;
+    }
+
+    async function importItemSmart(name, sourceFriend, incomingSubitems, options = {}) {
+      const silent = options.silent || false;
+      const itemsPool = options.itemsPool || myItems;
+
+      const normalizedInput = normalizeText(name);
+      const exactExists = itemsPool.some(i => normalizeText(i.name) === normalizedInput);
+      if (exactExists) {
+        if (!silent) showToast(`⚠️ הפריט "${name}" כבר קיים ברשימה שלך, הייבוא דולג`);
+        return { created: false, merged: false, skipped: true };
+      }
+
+      const existingGroup = findExistingCategoryGroup(name, itemsPool);
+
+      if (existingGroup) {
+        const subsToMerge = (incomingSubitems && incomingSubitems.length > 0)
+          ? incomingSubitems
+          : [{ name: name, isDone: false }];
+
+        const currentSubs = existingGroup.subitems ? [...existingGroup.subitems] : [];
+        let addedCount = 0;
+        subsToMerge.forEach(s => {
+          const already = currentSubs.some(c => normalizeText(c.name) === normalizeText(s.name));
+          if (!already) {
+            currentSubs.push({ name: s.name, isDone: false });
+            addedCount++;
+          }
+        });
+
+        if (addedCount > 0) {
+          await updateDoc(doc(db, "packing_items", existingGroup.id), {
+            subitems: currentSubs,
+            isDone: false
+          });
+          existingGroup.subitems = currentSubs;
+        }
+
+        if (!silent) {
+          showToast(addedCount > 0
+            ? `✨ "${name}" מוזג לתוך "${existingGroup.name}" שלך`
+            : `הפריט כבר קיים בתוך "${existingGroup.name}" שלך`);
+        }
+        return { created: false, merged: addedCount > 0 };
+      }
+
+      const hasSubs = !!(incomingSubitems && incomingSubitems.length > 0);
+      const newDocRef = await addDoc(itemsRef, {
+        name: name,
+        owner: currentUser,
+        importedFrom: sourceFriend || "",
+        isPublic: false,
+        isDone: false,
+        hasSubitems: hasSubs,
+        subitems: (incomingSubitems || []).map(s => ({ name: s.name, isDone: false })),
+        createdAt: Date.now()
+      });
+
+      itemsPool.push({
+        id: newDocRef.id,
+        name: name,
+        owner: currentUser,
+        importedFrom: sourceFriend || "",
+        isPublic: false,
+        isDone: false,
+        hasSubitems: hasSubs,
+        subitems: (incomingSubitems || []).map(s => ({ name: s.name, isDone: false }))
+      });
+
+      if (!silent) showToast(`הפריט "${name}" יובא בהצלחה מ-${sourceFriend}!`);
+      return { created: true, merged: false };
     }
 
     function triggerHaptic(type = "light") {
@@ -945,9 +1020,6 @@
 
     loginBtn.addEventListener("click", handleLogin);
 
-    // אוטו-לוגין רק עבור שמות מוכרים (מי שכבר יש לו פריטים במערכת).
-    // כך הקלדת ביניים של שם חדש (למשל טעות הקלדה שמלווה ב-PIN שכבר הוזן) לא תיצור
-    // בטעות חשבון/רשימה חדשה בלי אישור מפורש - יצירת חשבון חדש קורית רק בלחיצה על הכפתור/Enter.
     function triggerAutoSubmitWithDelay() {
       if (autoSubmitTimeout) clearTimeout(autoSubmitTimeout);
       autoSubmitTimeout = setTimeout(() => {
@@ -1045,12 +1117,12 @@
       const isMed = isMedicineItem(name);
       const isToil = isToiletriesItem(name);
 
-      if (isMed) {
-        const existingMedMainItem = myItems.find(i => i.hasSubitems || isMedicineItem(i.name));
-        if (existingMedMainItem && normalizeText(existingMedMainItem.name) !== normalizedInput) {
-          showToast(`💊 פריטי תרופות מנוהלים תחת "${existingMedMainItem.name}"`);
+      if (isMed || isToil) {
+        const existingGroup = findExistingCategoryGroup(name);
+        if (existingGroup && normalizeText(existingGroup.name) !== normalizedInput) {
+          showToast(`${getItemIcon(name)} פריטים מהקטגוריה הזו מנוהלים תחת "${existingGroup.name}"`);
           newItemName.value = "";
-          openMySubitems(existingMedMainItem.id);
+          openMySubitems(existingGroup.id);
           return;
         }
       }
@@ -1278,8 +1350,6 @@
         existingParentLists.forEach(parent => {
           const btn = document.createElement("button");
           btn.className = "menu-btn-item";
-          // בנייה עם textContent על ילד נפרד ולא innerHTML, כדי לא לחשוף
-          // את שם הרשימה של החבר להזרקת HTML (גם אם המקור הוא חבר אמין, זו אותה עקביות שהוחלה בכל הרינדור)
           const iconSpan = document.createElement("span");
           iconSpan.textContent = getItemIcon(parent.name) + ' ';
           const nameStrong = document.createElement("strong");
@@ -1493,7 +1563,6 @@
 
       const subitems = item.subitems || [];
 
-      // מניעת כפילות בתוך תת-רשימה, באותו היגיון שכבר קיים על פריטים ראשיים
       const normalizedInput = normalizeText(name);
       const existingSub = subitems.find(s => normalizeText(s.name) === normalizedInput);
       if (existingSub) {
@@ -1574,19 +1643,8 @@
         btnElement.style.background = "var(--gray)";
       }
 
-      await addDoc(itemsRef, {
-        name: itemName,
-        owner: currentUser,
-        importedFrom: sourceFriend || "",
-        isPublic: false,
-        isDone: false,
-        hasSubitems: selectedSubitems.length > 0,
-        subitems: selectedSubitems,
-        createdAt: Date.now()
-      });
-
       triggerHaptic("light");
-      showToast(`הפריט "${itemName}" יובא עם ${selectedSubitems.length} פריטים פנימיים!`);
+      await importItemSmart(itemName, sourceFriend, selectedSubitems);
       pendingImportContext = null;
     });
 
@@ -1876,17 +1934,7 @@
         if (subitemsJson) parsedSubitems = JSON.parse(decodeURIComponent(subitemsJson));
       } catch(e) {}
 
-      await addDoc(itemsRef, {
-        name: itemName,
-        owner: currentUser,
-        importedFrom: sourceFriend || "",
-        isPublic: false,
-        isDone: false,
-        hasSubitems: !!hasSubitems,
-        subitems: parsedSubitems.map(s => ({ name: s.name, isDone: false })),
-        createdAt: Date.now()
-      });
-      showToast(`הפריט "${itemName}" יובא בהצלחה מ-${sourceFriend}!`);
+      await importItemSmart(itemName, sourceFriend, parsedSubitems);
     };
 
     window.importAll = async (friendName, btnElement) => {
@@ -1899,34 +1947,33 @@
 
       const q = query(itemsRef, where("owner", "==", friendName), where("isPublic", "==", true));
       const snapshot = await getDocs(q);
-      let count = 0;
+
+      const workingItems = [...myItems];
+      let createdCount = 0;
+      let mergedCount = 0;
+
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
-        const exists = myItems.some(i => normalizeText(i.name) === normalizeText(data.name));
-        if (!exists) {
-          const isMed = isMedicineItem(data.name);
-          const isToil = isToiletriesItem(data.name);
-          const hasSubs = data.hasSubitems || (data.subitems && data.subitems.length > 0) || isMed || isToil;
-          
-          let subitemsList = data.subitems;
-          if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
-            subitemsList = getDefaultSubitems(data.name);
-          }
+        const isMed = isMedicineItem(data.name);
+        const isToil = isToiletriesItem(data.name);
+        const hasSubs = data.hasSubitems || (data.subitems && data.subitems.length > 0) || isMed || isToil;
 
-          await addDoc(itemsRef, {
-            name: data.name,
-            owner: currentUser,
-            importedFrom: friendName,
-            isPublic: false,
-            isDone: false,
-            hasSubitems: !!hasSubs,
-            subitems: (subitemsList || []).map(s => ({ name: s.name, isDone: false })),
-            createdAt: Date.now()
-          });
-          count++;
+        let subitemsList = data.subitems;
+        if (hasSubs && (!subitemsList || subitemsList.length === 0)) {
+          subitemsList = getDefaultSubitems(data.name);
         }
+
+        const result = await importItemSmart(data.name, friendName, subitemsList, { silent: true, itemsPool: workingItems });
+        if (result.created) createdCount++;
+        else if (result.merged) mergedCount++;
       }
-      showToast(`יובאו ${count} פריטים מהרשימה של ${friendName}`);
+
+      const parts = [];
+      if (createdCount > 0) parts.push(`${createdCount} פריטים חדשים`);
+      if (mergedCount > 0) parts.push(`${mergedCount} מוזגו לקבוצות קיימות אצלך`);
+      showToast(parts.length > 0
+        ? `יובא מ-${friendName}: ${parts.join(', ')}`
+        : `לא נמצאו פריטים חדשים לייבוא מ-${friendName}`);
     };
   </script>
 </body>
