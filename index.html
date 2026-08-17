@@ -151,6 +151,7 @@
       gap: 14px;
     }
 
+    /* בסיס כפתורים */
     .btn {
       display: flex;
       align-items: center;
@@ -175,36 +176,24 @@
       fill: currentColor;
     }
 
-    .btn-shopping {
-      background-color: var(--greek-blue);
-      color: #ffffff;
-      box-shadow: 0 3px 0 var(--greek-blue-dark), 0 6px 12px rgba(0, 91, 174, 0.15);
-    }
-    .btn-shopping:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--greek-blue-dark), 0 8px 15px rgba(0, 91, 174, 0.2);
-    }
-    .btn-shopping:active {
-      transform: translateY(3px);
-      box-shadow: 0 0 0 var(--greek-blue-dark), 0 2px 4px rgba(0, 91, 174, 0.1);
-    }
-
-    .btn-packing {
+    /* כפתורי רשימות - עיצוב אחיד */
+    .btn-list {
       background-color: #ffffff;
       color: var(--greek-blue);
       border: 2px solid var(--greek-blue);
       box-shadow: 0 3px 0 var(--greek-blue), 0 6px 12px rgba(0, 0, 0, 0.04);
     }
-    .btn-packing:hover {
+    .btn-list:hover {
       background-color: #f8fafc;
       transform: translateY(-1px);
       box-shadow: 0 4px 0 var(--greek-blue), 0 8px 15px rgba(0, 0, 0, 0.06);
     }
-    .btn-packing:active {
+    .btn-list:active {
       transform: translateY(3px);
       box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
+    /* כפתור Splitwise */
     .btn-splitwise {
       background-color: var(--splitwise-green);
       color: #ffffff;
@@ -263,13 +252,13 @@
 
     <div class="buttons-container">
       <!-- קניות משותפת -->
-      <a href="shopping.html" class="btn btn-shopping">
+      <a href="shopping.html" class="btn btn-list">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
         <span>רשימת קניות משותפת</span>
       </a>
 
       <!-- ציוד -->
-      <a href="packing.html" class="btn btn-packing">
+      <a href="packing.html" class="btn btn-list">
         <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
         <span>רשימת ציוד ומה לארוז</span>
       </a>
@@ -327,7 +316,7 @@
       });
     });
 
-    // 3. שליפת מזג אוויר חי במיקונוס (קואורדינטות: 37.4467, 25.3289)
+    // 3. שליפת מזג אוויר חי במיקונוס
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FAthens");
@@ -341,7 +330,6 @@
           document.getElementById('mykTemp').textContent = `${temp}°C`;
           document.getElementById('mykWind').textContent = `${wind} קמ"ש`;
 
-          // תרגום קוד מזג אוויר לסמיילי
           let statusText = "☀️ בהיר";
           if (code >= 1 && code <= 3) statusText = "⛅ מעונן חלקית";
           else if (code >= 45 && code <= 48) statusText = "🌫️ ערפילי";
