@@ -175,7 +175,7 @@
       fill: currentColor;
     }
 
-    /* כפתורי רשימות - עיצוב אחיד */
+    /* כפתורי רשימות */
     .btn-list {
       background-color: #ffffff;
       color: var(--greek-blue);
@@ -192,7 +192,7 @@
       box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
-    /* קו הפרדה מעוצב */
+    /* מפריד */
     .section-divider {
       display: flex;
       align-items: center;
@@ -215,7 +215,7 @@
       margin-right: 10px;
     }
 
-    /* כפתור Splitwise */
+    /* Splitwise */
     .btn-splitwise {
       background-color: var(--splitwise-green);
       color: #ffffff;
@@ -267,7 +267,7 @@
       </div>
       <div style="width: 1px; height: 24px; background: #bae6fd;"></div>
       <div class="weather-item">
-        <span class="weather-val" id="mykStatus">☀️ בהיר</span>
+        <span class="weather-val" id="mykStatus">טוען...</span>
         <span class="weather-lbl">מצב שמיים</span>
       </div>
     </div>
@@ -285,7 +285,6 @@
         <span>רשימת ציוד ומה לארוז</span>
       </a>
 
-      <!-- קו הפרדה ברור לקבוצת התשלומים -->
       <div class="section-divider">הוצאות ותשלומים</div>
 
       <!-- Splitwise -->
@@ -341,22 +340,23 @@
       });
     });
 
-    // 3. שליפת מזג אוויר חי במיקונוס
+    // 3. שליפת מזג אוויר חי במיקונוס (כולל בדיקת יום/לילה ורענון תקופתי)
     async function fetchMykonosWeather() {
       try {
-        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FAthens");
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
         const data = await res.json();
         
         if (data && data.current) {
           const temp = Math.round(data.current.temperature_2m);
           const wind = Math.round(data.current.wind_speed_10m);
           const code = data.current.weather_code;
+          const isDay = data.current.is_day === 1;
 
           document.getElementById('mykTemp').textContent = `${temp}°C`;
           document.getElementById('mykWind').textContent = `${wind} קמ"ש`;
 
-          let statusText = "☀️ בהיר";
-          if (code >= 1 && code <= 3) statusText = "⛅ מעונן חלקית";
+          let statusText = isDay ? "☀️ בהיר" : "🌙 לילה בהיר";
+          if (code >= 1 && code <= 3) statusText = isDay ? "⛅ מעונן חלקית" : "☁️ לילה מעונן";
           else if (code >= 45 && code <= 48) statusText = "🌫️ ערפילי";
           else if (code >= 51 && code <= 67) statusText = "🌧️ גשום";
           else if (code >= 80) statusText = "🌦️ ממטרים";
@@ -369,6 +369,8 @@
     }
 
     fetchMykonosWeather();
+    // רענון נתוני מזג אוויר אוטומטי כל 15 דקות
+    setInterval(fetchMykonosWeather, 15 * 60 * 1000);
   </script>
 
 </body>
