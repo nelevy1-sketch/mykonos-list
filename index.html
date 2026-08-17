@@ -35,7 +35,7 @@
 
     .card {
       background: var(--card-bg);
-      padding: 38px 28px;
+      padding: 34px 24px;
       border-radius: 28px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       border: 1px solid #e2e8f0;
@@ -51,10 +51,9 @@
       display: flex;
       gap: 16px;
       font-size: 2.8rem;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    /* אנימציית התנופפות לדגלים */
     .flag {
       display: inline-block;
       transform-origin: bottom center;
@@ -72,43 +71,76 @@
     }
 
     h1 {
-      font-size: 1.6rem;
+      font-size: 1.55rem;
       font-weight: 800;
       color: var(--greek-blue);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       letter-spacing: -0.5px;
     }
 
     p.subtitle {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #64748b;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     /* תיבת השעון */
     .timer-box {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
-      border-radius: 16px;
-      padding: 12px 16px;
+      border-radius: 14px;
+      padding: 10px 14px;
       width: 100%;
-      margin-bottom: 24px;
+      margin-bottom: 12px;
     }
 
     .timer-title {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: #64748b;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       text-transform: uppercase;
     }
 
     .timer-display {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 800;
       color: var(--greek-blue);
       letter-spacing: 0.5px;
       font-variant-numeric: tabular-nums;
+    }
+
+    /* תיבת מזג האוויר במיקונוס */
+    .weather-box {
+      background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 14px;
+      padding: 10px 14px;
+      width: 100%;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      color: var(--greek-blue-dark);
+    }
+
+    .weather-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .weather-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--greek-blue);
+    }
+
+    .weather-lbl {
+      font-size: 0.72rem;
+      color: #64748b;
+      font-weight: 600;
     }
 
     .buttons-container {
@@ -116,46 +148,16 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
 
-    /* קבוצת הניווט הפנימי (קניות + ציוד) - שני הכפתורים ששייכים לאותה מערכת */
-    .internal-nav-group {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    /* מפריד ויזואלי בין הניווט הפנימי לקישור החיצוני של Splitwise,
-       כדי להבהיר שמדובר בפעולה מסוג שונה (יציאה לאפליקציה אחרת) */
-    .section-divider {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 22px 0 4px;
-      color: #94a3b8;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-    .section-divider::before,
-    .section-divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: #e2e8f0;
-    }
-
-    /* בסיס כפתורים */
     .btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       width: 100%;
-      padding: 16px 20px;
+      padding: 15px 20px;
       border-radius: 16px;
       text-decoration: none;
       font-weight: 700;
@@ -164,7 +166,7 @@
       transition: all 0.15s ease;
       cursor: pointer;
       user-select: none;
-      -webkit-tap-highlight-color: transparent; /* מעלים את ההבהוב האפור בלחיצה בנייד */
+      -webkit-tap-highlight-color: transparent;
     }
 
     .btn svg {
@@ -187,25 +189,20 @@
       box-shadow: 0 0 0 var(--greek-blue-dark), 0 2px 4px rgba(0, 91, 174, 0.1);
     }
 
-    /* btn-packing עוצב מחדש: קודם היה רקע לבן עם מסגרת ו"מדף" תלת-ממדי
-       באותו הכחול של המסגרת עצמה - זה טשטש את אפקט ה"לחיצות" כי
-       לא היה ניגוד ברור בין המשטח, המסגרת וה"צל" מתחתיו.
-       עכשיו יש רקע כחול-בהיר מובחן, ומדף כהה יותר בבירור מהמסגרת -
-       אותה שפת עיצוב תלת-ממדית כמו שני הכפתורים האחרים. */
     .btn-packing {
-      background-color: #eaf2fb;
+      background-color: #ffffff;
       color: var(--greek-blue);
       border: 2px solid var(--greek-blue);
-      box-shadow: 0 3px 0 var(--greek-blue-dark), 0 6px 12px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 3px 0 var(--greek-blue), 0 6px 12px rgba(0, 0, 0, 0.04);
     }
     .btn-packing:hover {
-      background-color: #dfebfa;
+      background-color: #f8fafc;
       transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--greek-blue-dark), 0 8px 15px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 0 var(--greek-blue), 0 8px 15px rgba(0, 0, 0, 0.06);
     }
     .btn-packing:active {
       transform: translateY(3px);
-      box-shadow: 0 0 0 var(--greek-blue-dark), 0 2px 4px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
     .btn-splitwise {
@@ -223,7 +220,7 @@
     }
 
     .footer-text {
-      margin-top: 32px;
+      margin-top: 28px;
       font-size: 0.85rem;
       color: #94a3b8;
       font-weight: 600;
@@ -246,25 +243,39 @@
       <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
     </div>
 
-    <div class="buttons-container">
-      <!-- קבוצת הניווט הפנימי: קניות + ציוד -->
-      <div class="internal-nav-group">
-        <a href="shopping.html" class="btn btn-shopping">
-          <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          <span>רשימת קניות משותפת</span>
-        </a>
-
-        <a href="packing.html" class="btn btn-packing">
-          <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
-          <span>רשימת ציוד ומה לארוז</span>
-        </a>
+    <!-- רכיב מזג אוויר בלייב במיקונוס -->
+    <div class="weather-box" id="weatherBox">
+      <div class="weather-item">
+        <span class="weather-val" id="mykTemp">--°C</span>
+        <span class="weather-lbl">🌡️ טמפרטורה</span>
       </div>
+      <div style="width: 1px; height: 24px; background: #bae6fd;"></div>
+      <div class="weather-item">
+        <span class="weather-val" id="mykWind">-- קמ"ש</span>
+        <span class="weather-lbl">💨 רוח (מיקונוס)</span>
+      </div>
+      <div style="width: 1px; height: 24px; background: #bae6fd;"></div>
+      <div class="weather-item">
+        <span class="weather-val" id="mykStatus">☀️ בהיר</span>
+        <span class="weather-lbl">מצב שמיים</span>
+      </div>
+    </div>
 
-      <!-- מפריד לפני קישור חיצוני -->
-      <div class="section-divider">קישור חיצוני</div>
+    <div class="buttons-container">
+      <!-- קניות משותפת -->
+      <a href="shopping.html" class="btn btn-shopping">
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        <span>רשימת קניות משותפת</span>
+      </a>
+
+      <!-- ציוד -->
+      <a href="packing.html" class="btn btn-packing">
+        <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
+        <span>רשימת ציוד ומה לארוז</span>
+      </a>
 
       <!-- Splitwise -->
-      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" rel="noopener noreferrer" class="btn btn-splitwise">
+      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise">
         <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
         <span>הקבוצה שלנו ב-Splitwise</span>
       </a>
@@ -274,10 +285,8 @@
   </div>
 
   <script>
-    // --- 1. מנגנון השעון / הספירה לאחור ---
-    // הוגדר עם offset מפורש (+03:00, שעון ישראל/יוון בקיץ) במקום זמן מקומי לא-מוגדר,
-    // כדי שהספירה תהיה נכונה גם אם מישהו פותח את הדף ממכשיר שכבר שינה אזור זמן (בטיסה, בחו"ל וכו')
-    const targetDate = new Date("2026-08-20T08:15:00+03:00");
+    // 1. שעון וספירה לאחור
+    const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
 
@@ -309,14 +318,44 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // --- 2. מנגנון רטט (Haptic Feedback) בלחיצה ---
+    // 2. רטט בלחיצת כפתור
     document.querySelectorAll('.btn').forEach(button => {
       button.addEventListener('click', () => {
         if ('vibrate' in navigator) {
-          navigator.vibrate(15); // רטט עדין של 15 מילי-שניות
+          navigator.vibrate(15);
         }
       });
     });
+
+    // 3. שליפת מזג אוויר חי במיקונוס (קואורדינטות: 37.4467, 25.3289)
+    async function fetchMykonosWeather() {
+      try {
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FAthens");
+        const data = await res.json();
+        
+        if (data && data.current) {
+          const temp = Math.round(data.current.temperature_2m);
+          const wind = Math.round(data.current.wind_speed_10m);
+          const code = data.current.weather_code;
+
+          document.getElementById('mykTemp').textContent = `${temp}°C`;
+          document.getElementById('mykWind').textContent = `${wind} קמ"ש`;
+
+          // תרגום קוד מזג אוויר לסמיילי
+          let statusText = "☀️ בהיר";
+          if (code >= 1 && code <= 3) statusText = "⛅ מעונן חלקית";
+          else if (code >= 45 && code <= 48) statusText = "🌫️ ערפילי";
+          else if (code >= 51 && code <= 67) statusText = "🌧️ גשום";
+          else if (code >= 80) statusText = "🌦️ ממטרים";
+
+          document.getElementById('mykStatus').textContent = statusText;
+        }
+      } catch (err) {
+        console.error("שגיאה בטעינת מזג האוויר:", err);
+      }
+    }
+
+    fetchMykonosWeather();
   </script>
 
 </body>
