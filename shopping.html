@@ -23,7 +23,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.7</title>
+<title>רשימת קניות מיקונוס 2.9</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
@@ -150,7 +150,7 @@
 
   .whoami{
     display:flex; align-items:center; gap:8px; margin-bottom: 12px;
-    background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
+    background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px;
     width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .whoami.highlight {
@@ -159,7 +159,10 @@
     box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
   }
   .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
-  .whoami input{ border:none; outline:none; font-family:inherit; font-size:14px; color: var(--text-main); flex:1; background:transparent; font-weight:700; min-width:0; }
+  .whoami select{
+    border:none; outline:none; font-family:inherit; font-size:14px; color: var(--text-main);
+    flex:1; background:transparent; font-weight:700; min-width:0; padding: 6px 0; cursor: pointer;
+  }
 
   .main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .open-modal-btn {
@@ -402,9 +405,21 @@
     </div>
   </div>
 
+  <!-- תפריט גלילה מסודר לפי א-ב -->
   <div class="whoami" id="whoamiBox">
     <label for="myName">שם:</label>
-    <input type="text" id="myName" placeholder="הזן את שמך…" autocomplete="off" />
+    <select id="myName">
+      <option value="">בחר/י את שמך מהרשימה…</option>
+      <option value="איילה">איילה</option>
+      <option value="בולבול">בולבול</option>
+      <option value="בנצה">בנצה</option>
+      <option value="ברגה">ברגה</option>
+      <option value="מארג">מארג</option>
+      <option value="מרגלית">מרגלית</option>
+      <option value="נירה">נירה</option>
+      <option value="פוטה">פוטה</option>
+      <option value="ציפי">ציפי</option>
+    </select>
   </div>
 
   <!-- סרגל פעולות -->
@@ -419,7 +434,7 @@
   <div id="categoriesContainer"></div>
 
   <!-- תגית גרסה -->
-  <div class="app-version-tag">גרסה 2.7 • Mykonos Shopping List</div>
+  <div class="app-version-tag">גרסה 2.9 • Mykonos Shopping List</div>
 </div>
 
 <!-- Toast -->
@@ -696,7 +711,6 @@
       'kg': { en: 'kg', el: 'κιλό' }
     },
     items: {
-      // פירות וירקות
       'עגבניות': { en: 'Tomatoes', el: 'Ντομάτες' },
       'עגבניות שרי': { en: 'Cherry Tomatoes', el: 'Ντοματίνια' },
       'מלפפונים': { en: 'Cucumbers', el: 'Αγγούρια' },
@@ -719,7 +733,6 @@
       'פלפל': { en: 'Bell Peppers', el: 'Πιπεριές' },
       'פטריות': { en: 'Mushrooms', el: 'Μανιτάρια' },
       
-      // משקאות ושתייה
       'קולה זירו': { en: 'Coca-Cola Zero', el: 'Coca-Cola Zero' },
       'קוקה קולה': { en: 'Coca-Cola', el: 'Coca-Cola' },
       'מים מינרלים': { en: 'Mineral Water (Pack of 6)', el: 'Εμφιαλωμένο Νερό (Εξάδα)' },
@@ -738,7 +751,6 @@
       'תה': { en: 'Tea', el: 'Τσάι' },
       'קרח': { en: 'Ice Bag', el: 'Πάγος' },
 
-      // חלב וביצים
       'מעדני פרו': { en: 'Protein Yogurt', el: 'Γιαούρτι Πρωτεΐνης' },
       'יוגורט יווני': { en: 'Greek Yogurt', el: 'Ελληνικό Γιαούρτι' },
       'גבינה צהובה': { en: 'Sliced Yellow Cheese', el: 'Κίτρινο Τυρί σε Φέτες' },
@@ -754,7 +766,6 @@
       'חמאה': { en: 'Butter', el: 'Βούτυρο' },
       'שמנת מתוקה': { en: 'Heavy Cream', el: 'Κρέμα Γάλακτος' },
 
-      // מאפה ודגנים
       'לחמניות': { en: 'Buns / Rolls', el: 'Ψωμάκια' },
       'לחם': { en: 'Bread', el: 'Ψωμί' },
       'לחם טוסט': { en: 'Toast Bread', el: 'Ψωμί για Τοστ' },
@@ -765,7 +776,6 @@
       'פסטה': { en: 'Pasta', el: 'Ζυμαρικά' },
       'קורנפלקס': { en: 'Cereal', el: 'Δημητριακά' },
 
-      // בשר ודגים
       'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
       'כרעיים עוף': { en: 'Chicken Thighs', el: 'Μπούτια Κοτόπουλο' },
       'בשר טחון': { en: 'Minced Meat', el: 'Κιμάς' },
@@ -774,14 +784,12 @@
       'טונה': { en: 'Canned Tuna', el: 'Τόνος' },
       'נקניקיות': { en: 'Sausages', el: 'Λουκάνικα' },
 
-      // חטיפים ומתוקים
       'חטיפי חלבון': { en: 'Protein Bars', el: 'Μπάρες Πρωτεΐνης' },
       'שוקולד': { en: 'Chocolate', el: 'Σοκολάτα' },
       'עוגיות': { en: 'Cookies', el: 'Μπισκότα' },
       'צ\'יפס': { en: 'Potato Chips', el: 'Πατατάκια' },
       'אגוזים / שקדים': { en: 'Nuts & Almonds', el: 'Ξηροί Καρποί' },
 
-      // פארם, ניקיון וכלי בית
       'נייר סופג': { en: 'Paper Towels / Kitchen Roll', el: 'Χαρτί Κουζίνας' },
       'נייר טואלט': { en: 'Toilet Paper', el: 'Χαρτί Υγείας' },
       'מגבונים': { en: 'Wet Wipes', el: 'Μωρομάντηλα' },
@@ -797,7 +805,6 @@
       'ניילון נצמד': { en: 'Plastic Wrap', el: 'Διαφανής Μεμβράνη' },
       'נייר אפייה': { en: 'Baking Paper', el: 'Λαδόκολλα' },
 
-      // מזווה ושונות
       'שמן זית': { en: 'Olive Oil', el: 'Ελαιόλαδο' },
       'שמן קנולה': { en: 'Vegetable Oil', el: 'Σπορέλαιο' },
       'מלח': { en: 'Salt', el: 'Αλάτι' },
@@ -846,21 +853,19 @@
     if (lang === 'he') return rawName;
     const clean = normalizeProductName(rawName).trim().toLowerCase();
     
-    // התאמה ישירה
     for (const [key, trans] of Object.entries(TRANSLATION_DICTIONARY.items)) {
       if (key.toLowerCase() === clean) {
         return trans[lang] || rawName;
       }
     }
 
-    // התאמה לפי מילות מפתח
     for (const [key, trans] of Object.entries(TRANSLATION_DICTIONARY.items)) {
       if (clean.includes(key.toLowerCase()) || key.toLowerCase().includes(clean)) {
         return trans[lang] || rawName;
       }
     }
 
-    return null; // לא נמצא תרגום
+    return null;
   }
 
   const shareUrl = window.location.href;
@@ -942,7 +947,7 @@
     if (!myName) {
       whoamiBox.classList.add('highlight');
       myNameInput.focus();
-      showToast('נא להזין שם בשדה "שם:" בראש המסך');
+      showToast('נא לבחור את שמך מהרשימה בראש המסך');
       return null;
     }
     whoamiBox.classList.remove('highlight');
@@ -1158,7 +1163,7 @@
 
   const savedName = localStorage.getItem(NAME_KEY);
   if (savedName) myNameInput.value = savedName;
-  myNameInput.addEventListener('input', () => {
+  myNameInput.addEventListener('change', () => {
     const val = myNameInput.value.trim();
     localStorage.setItem(NAME_KEY, val);
     if (val) document.getElementById('whoamiBox').classList.remove('highlight');
@@ -1696,7 +1701,7 @@
       const existingKey = findMatchingItemKey(inPersonItems, item);
 
       if (existingKey && duplicateAction === 'skip') {
-        return; // דילוג מכוון על כפילות
+        return;
       }
 
       mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
