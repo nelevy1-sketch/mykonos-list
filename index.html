@@ -81,7 +81,7 @@
     p.subtitle {
       font-size: 0.9rem;
       color: #64748b;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     /* תיבת השעון */
@@ -91,7 +91,7 @@
       border-radius: 14px;
       padding: 10px 14px;
       width: 100%;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .timer-title {
@@ -110,37 +110,44 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* תיבת מזג האוויר במיקונוס */
-    .weather-box {
-      background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-      border: 1px solid #bae6fd;
-      border-radius: 14px;
-      padding: 10px 14px;
+    /* אזור מזג אוויר עדין ומינימליסטי */
+    .weather-container {
       width: 100%;
-      margin-bottom: 20px;
+      padding: 6px 0 16px 0;
+      margin-bottom: 16px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      color: var(--greek-blue-dark);
+      background: transparent;
+      /* פס תחתון מתפוגג בצדדים */
+      border-bottom: 1px solid transparent;
+      border-image: linear-gradient(to right, transparent, #cbd5e1 25%, #cbd5e1 75%, transparent) 1;
     }
 
     .weather-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
+      flex: 1;
     }
 
     .weather-val {
-      font-size: 1rem;
-      font-weight: 800;
-      color: var(--greek-blue);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
     .weather-lbl {
       font-size: 0.72rem;
-      color: #64748b;
-      font-weight: 600;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .weather-divider {
+      width: 1px;
+      height: 18px;
+      background: #e2e8f0;
     }
 
     .buttons-container {
@@ -175,7 +182,7 @@
       fill: currentColor;
     }
 
-    /* כפתורי רשימות */
+    /* כפתורי רשימות - עיצוב אחיד */
     .btn-list {
       background-color: #ffffff;
       color: var(--greek-blue);
@@ -192,12 +199,12 @@
       box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
-    /* מפריד */
+    /* קו הפרדה בין אזור הרשימות לאזור התשלומים */
     .section-divider {
       display: flex;
       align-items: center;
       width: 100%;
-      margin: 8px 0;
+      margin: 6px 0;
       color: #94a3b8;
       font-size: 0.75rem;
       font-weight: 600;
@@ -215,7 +222,7 @@
       margin-right: 10px;
     }
 
-    /* Splitwise */
+    /* כפתור Splitwise */
     .btn-splitwise {
       background-color: var(--splitwise-green);
       color: #ffffff;
@@ -254,18 +261,18 @@
       <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
     </div>
 
-    <!-- רכיב מזג אוויר בלייב במיקונוס -->
-    <div class="weather-box" id="weatherBox">
+    <!-- רכיב מזג אוויר נקי ללא מסגרת עם קו מתפוגג -->
+    <div class="weather-container">
       <div class="weather-item">
         <span class="weather-val" id="mykTemp">--°C</span>
         <span class="weather-lbl">🌡️ טמפרטורה</span>
       </div>
-      <div style="width: 1px; height: 24px; background: #bae6fd;"></div>
+      <div class="weather-divider"></div>
       <div class="weather-item">
         <span class="weather-val" id="mykWind">-- קמ"ש</span>
-        <span class="weather-lbl">💨 רוח (מיקונוס)</span>
+        <span class="weather-lbl">💨 רוח באי</span>
       </div>
-      <div style="width: 1px; height: 24px; background: #bae6fd;"></div>
+      <div class="weather-divider"></div>
       <div class="weather-item">
         <span class="weather-val" id="mykStatus">טוען...</span>
         <span class="weather-lbl">מצב שמיים</span>
@@ -340,7 +347,7 @@
       });
     });
 
-    // 3. שליפת מזג אוויר חי במיקונוס (כולל בדיקת יום/לילה ורענון תקופתי)
+    // 3. שליפת מזג אוויר חי במיקונוס (יום/לילה ורענון תקופתי)
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
@@ -369,7 +376,6 @@
     }
 
     fetchMykonosWeather();
-    // רענון נתוני מזג אוויר אוטומטי כל 15 דקות
     setInterval(fetchMykonosWeather, 15 * 60 * 1000);
   </script>
 
