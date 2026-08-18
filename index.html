@@ -8,6 +8,8 @@
     :root {
       --greek-blue: #005bae;
       --greek-blue-dark: #004585;
+      --spliit-indigo: #6366f1;
+      --spliit-indigo-dark: #4f46e5;
       --splitwise-green: #1cc29f;
       --splitwise-dark: #149c7f;
       --bg-color: #eef2f6;
@@ -110,7 +112,7 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* שורת מזג אוויר מורחבת (5 עמודות קומפקטיות ומאוזנות) */
+    /* שורת מזג אוויר */
     .weather-container {
       width: 100%;
       padding: 4px 0 14px 0;
@@ -186,6 +188,7 @@
       fill: currentColor;
     }
 
+    /* כפתורי רשימות - עיצוב אחיד */
     .btn-list {
       background-color: #ffffff;
       color: var(--greek-blue);
@@ -202,6 +205,7 @@
       box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
+    /* קו הפרדה */
     .section-divider {
       display: flex;
       align-items: center;
@@ -224,18 +228,34 @@
       margin-right: 10px;
     }
 
-    .btn-splitwise {
-      background-color: var(--splitwise-green);
+    /* כפתור Spliit הראשי (אינדיגו/סגול אלגנטי) */
+    .btn-spliit {
+      background-color: var(--spliit-indigo);
       color: #ffffff;
-      box-shadow: 0 3px 0 var(--splitwise-dark), 0 6px 12px rgba(28, 194, 159, 0.15);
+      box-shadow: 0 3px 0 var(--spliit-indigo-dark), 0 6px 12px rgba(99, 102, 241, 0.2);
     }
-    .btn-splitwise:hover {
+    .btn-spliit:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.2);
+      box-shadow: 0 4px 0 var(--spliit-indigo-dark), 0 8px 15px rgba(99, 102, 241, 0.25);
     }
-    .btn-splitwise:active {
+    .btn-spliit:active {
       transform: translateY(3px);
-      box-shadow: 0 0 0 var(--splitwise-dark), 0 2px 4px rgba(28, 194, 159, 0.1);
+      box-shadow: 0 0 0 var(--spliit-indigo-dark), 0 2px 4px rgba(99, 102, 241, 0.1);
+    }
+
+    /* כפתור Splitwise משני (קטן ועדין יותר) */
+    .btn-splitwise-secondary {
+      background-color: #f8fafc;
+      color: #0f766e;
+      border: 1px solid #99f6e4;
+      font-size: 0.88rem;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .btn-splitwise-secondary:hover {
+      background-color: #f0fdfa;
+      border-color: #5eead4;
     }
 
     .footer-text {
@@ -262,7 +282,7 @@
       <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
     </div>
 
-    <!-- רכיב מזג אוויר מורחב: טמפ', שמיים, רוח, לחות ו-UV -->
+    <!-- רכיב מזג אוויר -->
     <div class="weather-container">
       <div class="weather-item">
         <span class="weather-val" id="mykTemp">--°C</span>
@@ -303,12 +323,17 @@
         <span>רשימת ציוד ומה לארוז</span>
       </a>
 
-      <div class="section-divider">הוצאות ותשלומים</div>
+      <div class="section-divider">חישוב הוצאות בטיול</div>
 
-      <!-- Splitwise -->
-      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise">
-        <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
-        <span>הקבוצה שלנו ב-Splitwise</span>
+      <!-- Spliit (ראשי וחינמי) -->
+      <a href="https://spliit.app/groups/mTdTK6l_IZHWOhmjS45ZQ/expenses" target="_blank" class="btn btn-spliit">
+        <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        <span>הוצאות קבוצתיות ב-Spliit (חינם) 💸</span>
+      </a>
+
+      <!-- Splitwise (משני) -->
+      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise-secondary">
+        <span>קבוצת הגיבוי ב-Splitwise</span>
       </a>
     </div>
 
@@ -365,7 +390,7 @@
       });
     });
 
-    // 3. שליפת נתוני מזג אוויר (כולל לחות ואינדקס UV)
+    // 3. מזג אוויר חי במיקונוס
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
