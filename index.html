@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -119,7 +120,6 @@
       justify-content: space-around;
       align-items: center;
       background: transparent;
-      /* פס תחתון מתפוגג בצדדים */
       border-bottom: 1px solid transparent;
       border-image: linear-gradient(to right, transparent, #cbd5e1 25%, #cbd5e1 75%, transparent) 1;
     }
@@ -305,7 +305,7 @@
   </div>
 
   <script>
-    // 1. שעון וספירה לאחור
+    // 1. שעון וספירה לאחור (העלמת "0 ימים" כשיש פחות מ-24 שעות)
     const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
@@ -321,7 +321,14 @@
         const seconds = Math.floor((diff / 1000) % 60);
 
         timerTitle.textContent = "זמן נותר להמראה ✈️";
-        timerDisplay.textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        if (days > 0) {
+          timerDisplay.textContent = `${days} ימים, ${timeString}`;
+        } else {
+          timerDisplay.textContent = timeString;
+        }
       } else {
         timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
         
@@ -347,7 +354,7 @@
       });
     });
 
-    // 3. שליפת מזג אוויר חי במיקונוס (יום/לילה ורענון תקופתי)
+    // 3. שליפת מזג אוויר חי במיקונוס
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
