@@ -8,9 +8,9 @@
     :root {
       --greek-blue: #005bae;
       --greek-blue-dark: #004585;
-      --spliit-indigo: #6366f1;
-      --spliit-indigo-dark: #4f46e5;
-      --splitwise-green: #1cc29f;
+      --spliit-color: #6366f1;
+      --spliit-dark: #4f46e5;
+      --splitwise-color: #1cc29f;
       --splitwise-dark: #149c7f;
       --bg-color: #eef2f6;
       --card-bg: #ffffff;
@@ -188,7 +188,6 @@
       fill: currentColor;
     }
 
-    /* כפתורי רשימות - עיצוב אחיד */
     .btn-list {
       background-color: #ffffff;
       color: var(--greek-blue);
@@ -205,7 +204,6 @@
       box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
-    /* קו הפרדה */
     .section-divider {
       display: flex;
       align-items: center;
@@ -228,34 +226,54 @@
       margin-right: 10px;
     }
 
-    /* כפתור Spliit הראשי (אינדיגו/סגול אלגנטי) */
-    .btn-spliit {
-      background-color: var(--spliit-indigo);
+    /* עיצוב כפתור ההוצאות הראשי (דינמי) */
+    .btn-expense-spliit {
+      background-color: var(--spliit-color);
       color: #ffffff;
-      box-shadow: 0 3px 0 var(--spliit-indigo-dark), 0 6px 12px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 3px 0 var(--spliit-dark), 0 6px 12px rgba(99, 102, 241, 0.2);
     }
-    .btn-spliit:hover {
+    .btn-expense-spliit:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--spliit-indigo-dark), 0 8px 15px rgba(99, 102, 241, 0.25);
+      box-shadow: 0 4px 0 var(--spliit-dark), 0 8px 15px rgba(99, 102, 241, 0.25);
     }
-    .btn-spliit:active {
+    .btn-expense-spliit:active {
       transform: translateY(3px);
-      box-shadow: 0 0 0 var(--spliit-indigo-dark), 0 2px 4px rgba(99, 102, 241, 0.1);
+      box-shadow: 0 0 0 var(--spliit-dark), 0 2px 4px rgba(99, 102, 241, 0.1);
     }
 
-    /* כפתור Splitwise משני (קטן ועדין יותר) */
-    .btn-splitwise-secondary {
-      background-color: #f8fafc;
-      color: #0f766e;
-      border: 1px solid #99f6e4;
-      font-size: 0.88rem;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-weight: 600;
+    .btn-expense-splitwise {
+      background-color: var(--splitwise-color);
+      color: #ffffff;
+      box-shadow: 0 3px 0 var(--splitwise-dark), 0 6px 12px rgba(28, 194, 159, 0.2);
     }
-    .btn-splitwise-secondary:hover {
-      background-color: #f0fdfa;
-      border-color: #5eead4;
+    .btn-expense-splitwise:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.25);
+    }
+    .btn-expense-splitwise:active {
+      transform: translateY(3px);
+      box-shadow: 0 0 0 var(--splitwise-dark), 0 2px 4px rgba(28, 194, 159, 0.1);
+    }
+
+    /* כפתור החלפה מהיר ועדין */
+    .switch-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s ease;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .switch-btn:hover {
+      color: #334155;
     }
 
     .footer-text {
@@ -323,25 +341,67 @@
         <span>רשימת ציוד ומה לארוז</span>
       </a>
 
-      <div class="section-divider">חישוב הוצאות בטיול</div>
+      <div class="section-divider">הוצאות ותשלומים</div>
 
-      <!-- Spliit (ראשי וחינמי) -->
-      <a href="https://spliit.app/groups/mTdTK6l_IZHWOhmjS45ZQ/expenses" target="_blank" class="btn btn-spliit">
-        <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-        <span>הוצאות קבוצתיות ב-Spliit (חינם) 💸</span>
+      <!-- כפתור הוצאות דינמי שמתחלף -->
+      <a id="expenseBtn" href="#" target="_blank" class="btn">
+        <svg viewBox="0 0 24 24" id="expenseIcon"></svg>
+        <span id="expenseText"></span>
       </a>
 
-      <!-- Splitwise (משני) -->
-      <a href="https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s" target="_blank" class="btn btn-splitwise-secondary">
-        <span>קבוצת הגיבוי ב-Splitwise</span>
-      </a>
+      <!-- מתג החלפה מהיר -->
+      <button class="switch-btn" id="toggleExpenseApp">
+        🔄 החלף אפליקציית הוצאות (<span id="altAppName"></span>)
+      </button>
     </div>
 
     <div class="footer-text">Mykonos 2026 ☀️</div>
   </div>
 
   <script>
-    // 1. שעון וספירה לאחור
+    // 1. ניהול אפליקציית הוצאות נבחרת (Spliit מול Splitwise)
+    const appsConfig = {
+      spliit: {
+        name: "Spliit",
+        title: "הוצאות קבוצתיות ב-Spliit 💸",
+        url: "https://spliit.app/groups/mTdTK6l_IZHWOhmjS45ZQ/expenses",
+        className: "btn-expense-spliit",
+        iconPath: "M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"
+      },
+      splitwise: {
+        name: "Splitwise",
+        title: "הקבוצה שלנו ב-Splitwise",
+        url: "https://www.splitwise.com/join/v6H6rTgvqDq+8vv9f?v=s",
+        className: "btn-expense-splitwise",
+        iconPath: "M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+      }
+    };
+
+    let currentExpenseApp = localStorage.getItem('preferred_expense_app') || 'spliit';
+
+    function renderExpenseButton() {
+      const active = appsConfig[currentExpenseApp];
+      const altKey = currentExpenseApp === 'spliit' ? 'splitwise' : 'spliit';
+      const alt = appsConfig[altKey];
+
+      const btn = document.getElementById('expenseBtn');
+      btn.href = active.url;
+      btn.className = `btn ${active.className}`;
+      document.getElementById('expenseText').textContent = active.title;
+      document.getElementById('expenseIcon').innerHTML = `<path d="${active.iconPath}"/>`;
+      document.getElementById('altAppName').textContent = alt.name;
+    }
+
+    document.getElementById('toggleExpenseApp').addEventListener('click', () => {
+      currentExpenseApp = currentExpenseApp === 'spliit' ? 'splitwise' : 'spliit';
+      localStorage.setItem('preferred_expense_app', currentExpenseApp);
+      renderExpenseButton();
+      if ('vibrate' in navigator) navigator.vibrate(20);
+    });
+
+    renderExpenseButton();
+
+    // 2. שעון וספירה לאחור
     const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
@@ -381,16 +441,14 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // 2. רטט בלחיצת כפתור
+    // 3. רטט בלחיצת כפתור
     document.querySelectorAll('.btn').forEach(button => {
       button.addEventListener('click', () => {
-        if ('vibrate' in navigator) {
-          navigator.vibrate(15);
-        }
+        if ('vibrate' in navigator) navigator.vibrate(15);
       });
     });
 
-    // 3. מזג אוויר חי במיקונוס
+    // 4. מזג אוויר חי במיקונוס
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
