@@ -3,1938 +3,1971 @@
 <head>
 <!-- טעינה מיידית של ה-Theme למניעת הבהוב -->
 <script>
-  (function() {
-    const savedTheme = localStorage.getItem('mykonos-theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-  })();
+(function() {
+const savedTheme = localStorage.getItem('mykonos-theme');
+if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+document.documentElement.setAttribute('data-theme', 'dark');
+}
+})();
 </script>
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0VXCEZ117S"></script>
+<script async src="https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.googletagmanager.com%2Fgtag%2Fjs%3Fid%3DG-0VXCEZ117S&data=05%7C02%7Cnelevy%40pelephone.co.il%7C9f1b950c9c1745234b1108defcece131%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639226291503921157%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=yCoZKdg1v93zdfupb61zYw8n2%2FdHTAf6d5iwy4vQWZs%3D&reserved=0"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
 
-  gtag('config', 'G-0VXCEZ117S');
+gtag('config', 'G-0VXCEZ117S');
 </script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>רשימת קניות מיקונוס 2.9</title>
+<title>רשימת קניות מיקונוס 2.10</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
+@import url('https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DAssistant%3Awght%40400%3B600%3B700%3B800%26display%3Dswap&data=05%7C02%7Cnelevy%40pelephone.co.il%7C9f1b950c9c1745234b1108defcece131%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639226291503953657%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=kTOO1ZgxNMADYGPekjA75ftekHXorX54lpZXJvYS6hI%3D&reserved=0');
 
-  :root{
-    --sea: #1d5f8a;
-    --sea-deep: #0f3a56;
-    --white: #fdfdfb;
-    --whitewash: #f3f6f8;
-    --sun: #e8b84b;
-    --line: #d8e2e7;
-    --name-tag: #6d8f9c;
-    --new-blue: #0066ff;
-    --wa-green: #25D366;
-    --bg-gradient-start: var(--whitewash);
-    --bg-gradient-end: var(--white);
-    --header-bg: rgba(243, 246, 248, 0.98);
-    --card-bg: var(--white);
-    --text-main: var(--sea-deep);
-    --text-muted: #5c6b73;
-    --tab-bg: #e2ebf0;
-    --tag-bg: #eef5f9;
-  }
+:root{
+--sea: #1d5f8a;
+--sea-deep: #0f3a56;
+--white: #fdfdfb;
+--whitewash: #f3f6f8;
+--sun: #e8b84b;
+--line: #d8e2e7;
+--name-tag: #6d8f9c;
+--new-blue: #0066ff;
+--wa-green: #25D366;
+--bg-gradient-start: var(--whitewash);
+--bg-gradient-end: var(--white);
+--header-bg: rgba(243, 246, 248, 0.98);
+--card-bg: var(--white);
+--text-main: var(--sea-deep);
+--text-muted: #5c6b73;
+--tab-bg: #e2ebf0;
+--tag-bg: #eef5f9;
+}
 
-  /* משתני Dark Mode מלוטשים ונעימים לעין */
-  [data-theme="dark"] {
-    --sea: #4da3d9;
-    --sea-deep: #e1ebf2;
-    --white: #1e262c;
-    --whitewash: #12171b;
-    --sun: #f0c05a;
-    --line: #2d3840;
-    --name-tag: #9ab4c2;
-    --bg-gradient-start: #0f1418;
-    --bg-gradient-end: #161c22;
-    --header-bg: rgba(18, 23, 27, 0.98);
-    --card-bg: #1e262c;
-    --text-main: #f0f4f8;
-    --text-muted: #9bb0bd;
-    --tab-bg: #253038;
-    --tag-bg: #273540;
-  }
+/* משתני Dark Mode */
+[data-theme="dark"] {
+--sea: #4da3d9;
+--sea-deep: #e1ebf2;
+--white: #1e262c;
+--whitewash: #12171b;
+--sun: #f0c05a;
+--line: #2d3840;
+--name-tag: #9ab4c2;
+--bg-gradient-start: #0f1418;
+--bg-gradient-end: #161c22;
+--header-bg: rgba(18, 23, 27, 0.98);
+--card-bg: #1e262c;
+--text-main: #f0f4f8;
+--text-muted: #9bb0bd;
+--tab-bg: #253038;
+--tag-bg: #273540;
+}
 
-  *{ box-sizing: border-box; }
+*{ box-sizing: border-box; }
 
-  body{
-    margin:0;
-    min-height:100vh;
-    background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
-    font-family: 'Assistant', sans-serif;
-    color: var(--text-main);
-    display:flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 12px 60px;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
+body{
+margin:0;
+min-height:100vh;
+background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
+font-family: 'Assistant', sans-serif;
+color: var(--text-main);
+display:flex;
+flex-direction: column;
+align-items: center;
+padding: 0 12px 60px;
+transition: background 0.3s ease, color 0.3s ease;
+}
 
-  .card{ width:100%; max-width: 480px; }
+.card{ width:100%; max-width: 480px; }
 
-  /* Sticky Header */
-  .sticky-header-container {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--header-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 12px 0 8px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 10px;
-    width: 100%;
-    max-width: 480px;
-    transition: background 0.3s ease, border-color 0.3s ease;
-  }
+/* Sticky Header */
+.sticky-header-container {
+position: -webkit-sticky;
+position: sticky;
+top: 0;
+z-index: 100;
+background: var(--header-bg);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+padding: 12px 0 8px;
+border-bottom: 1px solid var(--line);
+margin-bottom: 10px;
+width: 100%;
+max-width: 480px;
+transition: background 0.3s ease, border-color 0.3s ease;
+}
 
-  header{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 0 4px;
-  }
-  h1{ font-family: 'Assistant', sans-serif; font-weight:800; font-size: 24px; margin: 0; color: var(--text-main); letter-spacing: -0.5px; }
+header{
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 8px;
+padding: 0 4px;
+}
+h1{ font-family: 'Assistant', sans-serif; font-weight:800; font-size: 24px; margin: 0; color: var(--text-main); letter-spacing: -0.5px; }
 
-  .theme-toggle-btn {
-    background: var(--tab-bg);
-    border: 1px solid var(--line);
-    color: var(--text-main);
-    font-size: 16px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-  .theme-toggle-btn:active { transform: scale(0.92); }
+.theme-toggle-btn {
+background: var(--tab-bg);
+border: 1px solid var(--line);
+color: var(--text-main);
+font-size: 16px;
+width: 36px;
+height: 36px;
+border-radius: 50%;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.2s ease;
+}
+.theme-toggle-btn:active { transform: scale(0.92); }
 
-  .list-tabs {
-    display: flex; background: var(--tab-bg); padding: 4px; border-radius: 12px; margin-bottom: 6px; gap: 4px;
-  }
+.list-tabs {
+display: flex; background: var(--tab-bg); padding: 4px; border-radius: 12px; margin-bottom: 6px; gap: 4px;
+}
 
-  .tab-btn {
-    flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 8px;
-    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; transition: all 0.2s;
-  }
-  .tab-btn.active { background: var(--card-bg); color: var(--sea); box-shadow: 0 2px 5px rgba(0,0,0,0.12); }
+.tab-btn {
+flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 8px;
+font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; transition: all 0.2s;
+}
+.tab-btn.active { background: var(--card-bg); color: var(--sea); box-shadow: 0 2px 5px rgba(0,0,0,0.12); }
 
-  .status-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--card-bg); border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
-  }
-  .status-tag { background: var(--tag-bg); color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+.status-bar {
+display: flex; justify-content: space-between; align-items: center;
+background: var(--card-bg); border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
+}
+.status-tag { background: var(--tag-bg); color: var(--sea); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
 
-  .progress-section {
-    background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
-  }
-  .progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
-  .progress-bar-bg { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sea), var(--wa-green)); width: 0%; transition: width 0.3s ease; }
+.progress-section {
+background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
+}
+.progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.progress-bar-bg { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sea), var(--wa-green)); width: 0%; transition: width 0.3s ease; }
 
-  .whoami{
-    display:flex; align-items:center; gap:8px; margin-bottom: 12px;
-    background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px;
-    width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  .whoami.highlight {
-    border: 2px solid #c0533f !important;
-    background: rgba(192, 83, 63, 0.08);
-    box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
-  }
-  .whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
-  .whoami select{
-    border:none; outline:none; font-family:inherit; font-size:14px; color: var(--text-main);
-    flex:1; background:transparent; font-weight:700; min-width:0; padding: 6px 0; cursor: pointer;
-  }
+.whoami{
+display:flex; align-items:center; gap:8px; margin-bottom: 12px;
+background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px;
+width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.whoami.highlight {
+border: 2px solid #c0533f !important;
+background: rgba(192, 83, 63, 0.08);
+box-shadow: 0 0 8px rgba(192, 83, 63, 0.25);
+}
+.whoami label{ font-size:13px; font-weight:700; color: var(--sea); opacity:.9; white-space:nowrap; }
+.whoami select{
+border:none; outline:none; font-family:inherit; font-size:14px; color: var(--text-main);
+flex:1; background:transparent; font-weight:700; min-width:0; padding: 6px 0; cursor: pointer;
+}
 
-  .main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
-  .open-modal-btn {
-    flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
-    padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 3px 8px rgba(29, 95, 138, 0.25); display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
-  .filter-btn {
-    flex: 1.2; background: var(--card-bg); border: 1.5px solid var(--line); color: var(--text-main);
-    border-radius: 12px; padding: 12px 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
-  }
-  .more-menu-btn {
-    background: var(--whitewash); border: 1.5px solid var(--line); color: var(--text-main);
-    border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 700; cursor: pointer;
-  }
+.main-actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.open-modal-btn {
+flex: 2; background: var(--sea); color: white; border: none; border-radius: 12px;
+padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+box-shadow: 0 3px 8px rgba(29, 95, 138, 0.25); display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.filter-btn {
+flex: 1.2; background: var(--card-bg); border: 1.5px solid var(--line); color: var(--text-main);
+border-radius: 12px; padding: 12px 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+}
+.more-menu-btn {
+background: var(--whitewash); border: 1.5px solid var(--line); color: var(--text-main);
+border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+}
 
-  .category-header {
-    font-size: 15px; font-weight: 700; color: var(--text-main); margin: 16px 0 8px;
-    padding-bottom: 4px; border-bottom: 2px solid var(--sea); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
-  }
-  .cat-count { font-size: 11px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--text-main); }
+.category-header {
+font-size: 15px; font-weight: 700; color: var(--text-main); margin: 16px 0 8px;
+padding-bottom: 4px; border-bottom: 2px solid var(--sea); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
+}
+.cat-count { font-size: 11px; background: var(--line); padding: 2px 8px; border-radius: 10px; color: var(--text-main); }
 
-  ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
-  ul.collapsed { display: none; }
+ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+ul.collapsed { display: none; }
 
-  li{
-    display:flex; flex-direction:column; gap:4px; background: var(--card-bg);
-    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; position: relative;
-  }
-  li.is-priority { border: 2px solid var(--sun) !important; background: rgba(232, 184, 75, 0.08); }
+li{
+display:flex; flex-direction:column; gap:4px; background: var(--card-bg);
+border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; position: relative;
+}
+li.is-priority { border: 2px solid var(--sun) !important; background: rgba(232, 184, 75, 0.08); }
 
-  .item-row{ display:flex; align-items:center; gap:8px; }
+.item-row{ display:flex; align-items:center; gap:8px; }
 
-  .check{
-    width: 22px; height: 22px; flex-shrink:0; border-radius: 50%; border: 2px solid var(--sea);
-    cursor:pointer; display:flex; align-items:center; justify-content:center; background: transparent;
-  }
-  .check.done{ background: var(--sea); }
-  .check.done::after{ content:"✓"; color:white; font-size:12px; font-weight:700; }
+.check{
+width: 22px; height: 22px; flex-shrink:0; border-radius: 50%; border: 2px solid var(--sea);
+cursor:pointer; display:flex; align-items:center; justify-content:center; background: transparent;
+}
+.check.done{ background: var(--sea); }
+.check.done::after{ content:"✓" color:white; font-size:12px; font-weight:700; }
 
-  .item-main{ flex:1; min-width:0; }
-  .item-text{ font-size: 14px; font-weight:600; word-break: break-word; color: var(--text-main); }
-  .item-text.done{ text-decoration: line-through; opacity: .45; }
+.item-main{ flex:1; min-width:0; }
+.item-text{ font-size: 14px; font-weight:600; word-break: break-word; color: var(--text-main); }
+.item-text.done{ text-decoration: line-through; opacity: .45; }
 
-  .qty-control-box {
-    display: inline-flex; align-items: center; gap: 3px; background: var(--whitewash);
-    border: 1px solid var(--line); border-radius: 6px; padding: 1px 4px; margin-inline-start: 4px;
-  }
-  .qty-btn {
-    background: transparent; border: none; font-size: 13px; font-weight: 700;
-    color: var(--sea); cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;
-  }
-  .qty-btn:active { color: var(--text-main); transform: scale(1.1); }
-  .item-qty-val { font-size: 11px; font-weight: 700; color: var(--text-main); }
+.qty-control-box {
+display: inline-flex; align-items: center; gap: 3px; background: var(--whitewash);
+border: 1px solid var(--line); border-radius: 6px; padding: 1px 4px; margin-inline-start: 4px;
+}
+.qty-btn {
+background: transparent; border: none; font-size: 13px; font-weight: 700;
+color: var(--sea); cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;
+}
+.qty-btn:active { color: var(--text-main); transform: scale(1.1); }
+.item-qty-val { font-size: 11px; font-weight: 700; color: var(--text-main); }
 
-  /* בורר כמויות מהיר בטופס */
-  .modal-qty-picker {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--whitewash);
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    padding: 3px 6px;
-    height: 38px;
-  }
-  .qty-picker-btn {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    color: var(--sea);
-    font-size: 18px;
-    font-weight: 800;
-    width: 32px;
-    height: 30px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    transition: transform 0.1s;
-  }
-  .qty-picker-btn:active { transform: scale(0.92); }
-  .qty-picker-val {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--text-main);
-  }
+/* בורר כמויות מהיר בטופס */
+.modal-qty-picker {
+display: flex;
+align-items: center;
+justify-content: space-between;
+background: var(--whitewash);
+border: 1.5px solid var(--line);
+border-radius: 8px;
+padding: 3px 6px;
+height: 38px;
+}
+.qty-picker-btn {
+background: var(--card-bg);
+border: 1px solid var(--line);
+color: var(--sea);
+font-size: 18px;
+font-weight: 800;
+width: 32px;
+height: 30px;
+border-radius: 6px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+user-select: none;
+transition: transform 0.1s;
+}
+.qty-picker-btn:active { transform: scale(0.92); }
+.qty-picker-val {
+font-size: 16px;
+font-weight: 800;
+color: var(--text-main);
+}
 
-  .item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
-  .item-by, .item-buyer, .item-wanting, .item-audit-tag, .item-note { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
-  .item-by { color: var(--name-tag); }
-  .item-buyer { background: var(--tag-bg); color: var(--text-main); }
-  .item-wanting { background: rgba(37, 211, 102, 0.15); color: #25D366; }
-  .item-note { background: var(--tag-bg); color: var(--text-muted); font-style: italic; }
+.item-sub-info { display: flex; gap: 4px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
+.item-by, .item-buyer, .item-wanting, .item-audit-tag, .item-note { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+.item-by { color: var(--name-tag); }
+.item-buyer { background: var(--tag-bg); color: var(--text-main); }
+.item-wanting { background: rgba(37, 211, 102, 0.15); color: #25D366; }
+.item-note { background: var(--tag-bg); color: var(--text-muted); font-style: italic; }
 
-  .item-audit-tag.received { background: rgba(37, 211, 102, 0.15); color: #25D366; }
-  .item-audit-tag.partial { background: rgba(232, 184, 75, 0.15); color: var(--sun); }
-  .item-audit-tag.replaced { background: var(--tag-bg); color: var(--sea); }
-  .item-audit-tag.missing { background: rgba(192, 83, 63, 0.15); color: #e57373; }
+.item-audit-tag.received { background: rgba(37, 211, 102, 0.15); color: #25D366; }
+.item-audit-tag.partial { background: rgba(232, 184, 75, 0.15); color: var(--sun); }
+.item-audit-tag.replaced { background: var(--tag-bg); color: var(--sea); }
+.item-audit-tag.missing { background: rgba(192, 83, 63, 0.15); color: #e57373; }
 
-  .item-btn-actions { display: flex; gap: 4px; align-items: center; }
+.item-btn-actions { display: flex; gap: 4px; align-items: center; }
 
-  .claim-btn, .want-btn {
-    font-size: 10px; background: var(--whitewash); border: 1px solid var(--line);
-    color: var(--text-main); padding: 4px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;
-  }
-  .want-btn.active { background: #25D366; color: white; border-color: #25D366; }
-  .claim-btn.active { background: var(--sea); color: white; }
+.claim-btn, .want-btn {
+font-size: 10px; background: var(--whitewash); border: 1px solid var(--line);
+color: var(--text-main); padding: 4px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;
+}
+.want-btn.active { background: #25D366; color: white; border-color: #25D366; }
+.claim-btn.active { background: var(--sea); color: white; }
 
-  .audit-controls {
-    display: flex; gap: 4px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px;
-  }
-  .audit-status-btn {
-    flex: 1; font-size: 10px; padding: 4px 2px; border: 1px solid var(--line);
-    background: var(--whitewash); color: var(--text-main); border-radius: 4px; cursor: pointer; font-weight: 600; text-align: center;
-  }
-  .audit-status-btn.active { font-weight: 800; border-color: var(--sea); color: var(--sea); }
+.audit-controls {
+display: flex; gap: 4px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px;
+}
+.audit-status-btn {
+flex: 1; font-size: 10px; padding: 4px 2px; border: 1px solid var(--line);
+background: var(--whitewash); color: var(--text-main); border-radius: 4px; cursor: pointer; font-weight: 600; text-align: center;
+}
+.audit-status-btn.active { font-weight: 800; border-color: var(--sea); color: var(--sea); }
 
-  .menu-btn { background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px; }
+.menu-btn { background: none; border: none; font-size: 18px; color: var(--name-tag); cursor: pointer; padding: 2px 6px; }
 
-  .menu-dropdown {
-    display: none; position: absolute; top: 36px; left: 10px;
-    background: var(--card-bg); border: 1px solid var(--line); border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 10; flex-direction: column; overflow: hidden;
-  }
-  .menu-dropdown.show { display: flex; }
+.menu-dropdown {
+display: none; position: absolute; top: 36px; left: 10px;
+background: var(--card-bg); border: 1px solid var(--line); border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 10; flex-direction: column; overflow: hidden;
+}
+.menu-dropdown.show { display: flex; }
 
-  .menu-item {
-    padding: 8px 12px; font-size: 12px; border: none; background: transparent; color: var(--text-main);
-    text-align: right; cursor: pointer; font-family: inherit; font-weight: 600;
-  }
-  .menu-item:hover { background: var(--whitewash); }
-  .menu-item.danger { color: #e57373; }
+.menu-item {
+padding: 8px 12px; font-size: 12px; border: none; background: transparent; color: var(--text-main);
+text-align: right; cursor: pointer; font-family: inherit; font-weight: 600;
+}
+.menu-item:hover { background: var(--whitewash); }
+.menu-item.danger { color: #e57373; }
 
-  /* Toast */
-  .toast {
-    visibility: hidden; width: 90%; max-width: 400px; background-color: var(--card-bg); color: var(--text-main); text-align: center;
-    border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
-    transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.35); box-sizing: border-box;
-  }
-  .toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
-  .undo-btn { background: var(--sun); color: #12171b; border: none; padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+/* Toast */
+.toast {
+visibility: hidden; width: 90%; max-width: 400px; background-color: var(--card-bg); color: var(--text-main); text-align: center;
+border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; position: fixed; z-index: 200; left: 50%; bottom: 20px;
+transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.35); box-sizing: border-box;
+}
+.toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 3.7s; }
+.undo-btn { background: var(--sun); color: #12171b; border: none; padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
-  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
-  @keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+@keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+@keyframes fadeout { from { bottom: 20px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
-  .modal-overlay {
-    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.65); z-index: 150; align-items: center; justify-content: center; padding: 12px;
-  }
-  .modal-overlay.show { display: flex; }
+.modal-overlay {
+display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+background: rgba(0,0,0,0.65); z-index: 150; align-items: center; justify-content: center; padding: 12px;
+}
+.modal-overlay.show { display: flex; }
 
-  .modal-card {
-    background: var(--card-bg); color: var(--text-main); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 380px;
-    max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); box-sizing: border-box;
-  }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .modal-header h3 { margin: 0; font-size: 16px; color: var(--text-main); }
-  .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
+.modal-card {
+background: var(--card-bg); color: var(--text-main); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 380px;
+max-height: 85vh; overflow-y: auto; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); box-sizing: border-box;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.modal-header h3 { margin: 0; font-size: 16px; color: var(--text-main); }
+.close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--name-tag); }
 
-  .form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
-  .form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
-  .form-row { display: flex; gap: 8px; }
+.form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+.form-group label { font-size: 11px; font-weight: 700; color: var(--sea); }
+.form-row { display: flex; gap: 8px; }
 
-  select, input[type="text"], input[type="number"], textarea {
-    padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
-    font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); color: var(--text-main); width: 100%; box-sizing: border-box;
-  }
+select, input[type="text"], input[type="number"], textarea {
+padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line);
+font-size: 14px; font-family: inherit; outline: none; background: var(--whitewash); color: var(--text-main); width: 100%; box-sizing: border-box;
+}
 
-  .submit-modal-btn {
-    width: 100%; background: var(--sea); color: white; border: none;
-    padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
-  }
+.submit-modal-btn {
+width: 100%; background: var(--sea); color: white; border: none;
+padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
+}
 
-  .more-menu-item {
-    width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
-    background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
-    display: flex; align-items: center; justify-content: flex-start; gap: 8px; color: var(--text-main); text-decoration: none; box-sizing: border-box;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-  }
-  .more-menu-item:hover { background: var(--tag-bg); border-color: var(--sea); }
-  .more-menu-item.active-mode {
-    background: rgba(37, 211, 102, 0.15) !important; border-color: #25D366 !important; color: #25D366 !important;
-  }
+.more-menu-item {
+width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
+background: var(--whitewash); font-size: 14px; font-weight: bold; cursor: pointer;
+display: flex; align-items: center; justify-content: flex-start; gap: 8px; color: var(--text-main); text-decoration: none; box-sizing: border-box;
+transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.more-menu-item:hover { background: var(--tag-bg); border-color: var(--sea); }
+.more-menu-item.active-mode {
+background: rgba(37, 211, 102, 0.15) !important; border-color: #25D366 !important; color: #25D366 !important;
+}
 
-  .back-btn {
-    background: transparent; border: none; font-size: 13px; font-weight: 700; color: var(--sea); cursor: pointer; padding: 4px 8px;
-  }
+.back-btn {
+background: transparent; border: none; font-size: 13px; font-weight: 700; color: var(--sea); cursor: pointer; padding: 4px 8px;
+}
 
-  .preview-textarea {
-    width: 100%; height: 160px; font-family: inherit; font-size: 13px; line-height: 1.4;
-    border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; resize: none; background: var(--whitewash); color: var(--text-main); margin-bottom: 8px;
-  }
+.preview-textarea {
+width: 100%; height: 160px; font-family: inherit; font-size: 13px; line-height: 1.4;
+border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; resize: none; background: var(--whitewash); color: var(--text-main); margin-bottom: 8px;
+}
 
-  .untranslated-warning {
-    background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--sun); margin-bottom: 10px;
-  }
+.untranslated-warning {
+background: rgba(232, 184, 75, 0.12); border: 1px solid var(--sun); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--sun); margin-bottom: 10px;
+}
 
-  .app-version-tag {
-    margin-top: 24px;
-    font-size: 11px;
-    color: var(--text-muted);
-    opacity: 0.6;
-    text-align: center;
-    user-select: none;
-  }
+.app-version-tag {
+margin-top: 24px;
+font-size: 11px;
+color: var(--text-muted);
+opacity: 0.6;
+text-align: center;
+user-select: none;
+}
 </style>
 </head>
 <body>
 
 <!-- Sticky Header -->
 <div class="sticky-header-container">
-  <header>
-    <h1>רשימת קניות מיקונוס</h1>
-    <button class="theme-toggle-btn" id="themeToggleBtn" title="החלף מצב תצוגה">🌙</button>
-  </header>
+<header>
+<h1>רשימת קניות מיקונוס</h1>
+<button class="theme-toggle-btn" id="themeToggleBtn" title="החלף מצב תצוגה">🌙</button>
+</header>
 
-  <div class="list-tabs">
-    <button class="tab-btn active" id="tabDeliveryBtn">📦 משלוח</button>
-    <button class="tab-btn" id="tabInPersonBtn">🛒 בקניה עצמית</button>
-    <button class="tab-btn" id="tabFromIsraelBtn">✈️ מהארץ</button>
-  </div>
+<div class="list-tabs">
+<button class="tab-btn active" id="tabDeliveryBtn">📦 משלוח</button>
+<button class="tab-btn" id="tabInPersonBtn">🛒 בקניה עצמית</button>
+<button class="tab-btn" id="tabFromIsraelBtn">✈️ מהארץ</button>
+</div>
 
-  <div class="status-bar">
-    <span>סטטוס רשימה:</span>
-    <span class="status-tag" id="statusTag">📝 בהכנה</span>
-  </div>
+<div class="status-bar">
+<span>סטטוס רשימה:</span>
+<span class="status-tag" id="statusTag">📝 בהכנה</span>
+</div>
 </div>
 
 <div class="card">
-  <div class="progress-section">
-    <div class="progress-info">
-      <span>התקדמות ברשימה זו</span>
-      <span id="progressText">0 מתוך 0 (0%)</span>
-    </div>
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progressBarFill"></div>
-    </div>
-  </div>
+<div class="progress-section">
+<div class="progress-info">
+<span>התקדמות ברשימה זו</span>
+<span id="progressText">0 מתוך 0 (0%)</span>
+</div>
+<div class="progress-bar-bg">
+<div class="progress-bar-fill" id="progressBarFill"></div>
+</div>
+</div>
 
-  <!-- תפריט גלילה מסודר לפי א-ב -->
-  <div class="whoami" id="whoamiBox">
-    <label for="myName">שם:</label>
-    <select id="myName">
-      <option value="">בחר/י את שמך מהרשימה…</option>
-      <option value="איילה">איילה</option>
-      <option value="בולבול">בולבול</option>
-      <option value="בנצה">בנצה</option>
-      <option value="ברגה">ברגה</option>
-      <option value="מארג">מארג</option>
-      <option value="מרגלית">מרגלית</option>
-      <option value="נירה">נירה</option>
-      <option value="פוטה">פוטה</option>
-      <option value="ציפי">ציפי</option>
-    </select>
-  </div>
+<!-- תפריט גלילה מסודר לפי א-ב -->
+<div class="whoami" id="whoamiBox">
+<label for="myName">שם:</label>
+<select id="myName">
+<option value="">בחר/י את שמך מהרשימה…</option>
+<option value="איילה">איילה</option>
+<option value="בולבול">בולבול</option>
+<option value="בנצה">בנצה</option>
+<option value="ברגה">ברגה</option>
+<option value="מארג">מארג</option>
+<option value="מרגלית">מרגלית</option>
+<option value="נירה">נירה</option>
+<option value="פוטה">פוטה</option>
+<option value="ציפי">ציפי</option>
+</select>
+</div>
 
-  <!-- סרגל פעולות -->
-  <div class="main-actions-row">
-    <button class="open-modal-btn" id="openModalBtn">➕ הוסף פריט</button>
-    <button class="filter-btn" id="filterBtn">👁️ הסתר שהושלמו</button>
-    <button class="more-menu-btn" id="openMoreMenuBtn">⋮ עוד</button>
-  </div>
+<!-- סרגל פעולות -->
+<div class="main-actions-row">
+<button class="open-modal-btn" id="openModalBtn">➕ הוסף פריט</button>
+<button class="filter-btn" id="filterBtn">👁️ הסתר שהושלמו</button>
+<button class="more-menu-btn" id="openMoreMenuBtn">⋮ עוד</button>
+</div>
 
-  <button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
+<button id="showMissingSummaryBtn" style="display:none; width:100%; background:#c0533f; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px;">📋 סיכום חוסרים ורשימת קנייה</button>
 
-  <div id="categoriesContainer"></div>
+<div id="categoriesContainer"></div>
 
-  <!-- תגית גרסה -->
-  <div class="app-version-tag">גרסה 2.9 • Mykonos Shopping List</div>
+<!-- תגית גרסה -->
+<div class="app-version-tag">גרסה 2.10 • Mykonos Shopping List</div>
 </div>
 
 <!-- Toast -->
 <div id="toast" class="toast">
-  <span id="toastText">הודעה</span>
-  <button class="undo-btn" id="undoBtn" style="display:none;">ביטול (Undo)</button>
+<span id="toastText">הודעה</span>
+<button class="undo-btn" id="undoBtn" style="display:none;">ביטול (Undo)</button>
 </div>
 
 <!-- Modal הוספת פריט -->
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3>הוספת פריט חדש</h3>
-      <button class="close-modal" id="closeModalBtn">✕</button>
-    </div>
-    <form id="addModalForm">
-      <div class="form-group">
-        <label>שם המוצר</label>
-        <input type="text" id="modalNameInput" placeholder="לדוגמה: עגבניות, זירו..." required autocomplete="off" />
-      </div>
+<div class="modal-card">
+<div class="modal-header">
+<h3>הוספת פריט חדש</h3>
+<button class="close-modal" id="closeModalBtn">✕</button>
+</div>
+<form id="addModalForm">
+<div class="form-group">
+<label>שם המוצר</label>
+<input type="text" id="modalNameInput" placeholder="לדוגמה: קישואים, קרואסונים..." required autocomplete="off" />
+</div>
 
-      <div class="form-row">
-        <div class="form-group" style="flex: 1;">
-          <label>כמות בסיס משותפת</label>
-          <!-- בורר כמות מהיר (+/-) ללא מקלדת -->
-          <div class="modal-qty-picker">
-            <button type="button" id="modalQtyDecBtn" class="qty-picker-btn">-</button>
-            <span id="modalQtyDisplay" class="qty-picker-val">1</span>
-            <button type="button" id="modalQtyIncBtn" class="qty-picker-btn">+</button>
-          </div>
-          <input type="hidden" id="modalQtyInput" value="1" />
-        </div>
-        <div class="form-group" style="flex: 1;">
-          <label>יחידה</label>
-          <select id="modalUnitInput">
-            <option value="יח'">יח'</option>
-            <option value="מארז">מארז</option>
-            <option value="בקבוק">בקבוק</option>
-            <option value="ק&quot;ג">ק"ג</option>
-          </select>
-        </div>
-      </div>
+<div class="form-row">
+<div class="form-group" style="flex: 1;">
+<label>כמות בסיס משותפת</label>
+<!-- בורר כמות מהיר (+/-) ללא מקלדת -->
+<div class="modal-qty-picker">
+<button type="button" id="modalQtyDecBtn" class="qty-picker-btn">-</button>
+<span id="modalQtyDisplay" class="qty-picker-val">1</span>
+<button type="button" id="modalQtyIncBtn" class="qty-picker-btn">+</button>
+</div>
+<input type="hidden" id="modalQtyInput" value="1" />
+</div>
+<div class="form-group" style="flex: 1;">
+<label>יחידה</label>
+<select id="modalUnitInput">
+<option value="יח'">יח'</option>
+<option value="מארז">מארז</option>
+<option value="בקבוק">בקבוק</option>
+<option value="ק&quot;ג">ק"ג</option>
+</select>
+</div>
+</div>
 
-      <div class="form-group">
-        <label>הערה אישית (אופציונלי)</label>
-        <input type="text" id="modalNoteInput" placeholder="לדוגמה: מותג ספציפי או טעם" autocomplete="off" />
-      </div>
+<div class="form-group">
+<label>הערה אישית (אופציונלי)</label>
+<input type="text" id="modalNoteInput" placeholder="לדוגמה: מותג ספציפי או טעם" autocomplete="off" />
+</div>
 
-      <button type="submit" class="submit-modal-btn">הוסף לרשימה</button>
-    </form>
-  </div>
+<button type="submit" class="submit-modal-btn">הוסף לרשימה</button>
+</form>
+</div>
 </div>
 
 <!-- Modal בחירת סטטוס רשימה -->
 <div class="modal-overlay" id="statusModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3>📌 עדכון סטטוס רשימה</h3>
-      <button class="close-modal" id="closeStatusModalBtn">✕</button>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-      <button class="more-menu-item" id="statusSelectPrep">📝 בהכנה</button>
-      <button class="more-menu-item" id="statusSelectReady">✅ מוכנה</button>
-      <button class="more-menu-item" id="statusSelectOrdered">🚚 הוזמנה / בקנייה</button>
-      <button class="more-menu-item" id="statusSelectAudit">🔍 בדיקת המשלוח</button>
-      <button class="more-menu-item" id="statusSelectDone">🎉 הושלמה</button>
-    </div>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<h3>📌 עדכון סטטוס רשימה</h3>
+<button class="close-modal" id="closeStatusModalBtn">✕</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+<button class="more-menu-item" id="statusSelectPrep">📝 בהכנה</button>
+<button class="more-menu-item" id="statusSelectReady">✅ מוכנה</button>
+<button class="more-menu-item" id="statusSelectOrdered">🚚 הוזמנה / בקנייה</button>
+<button class="more-menu-item" id="statusSelectAudit">🔍 בדיקת המשלוח</button>
+<button class="more-menu-item" id="statusSelectDone">🎉 הושלמה</button>
+</div>
+</div>
 </div>
 
 <!-- Modal תפריט "⋮ עוד" -->
 <div class="modal-overlay" id="moreMenuModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3>⚙️ אפשרויות נוספות</h3>
-      <button class="close-modal" id="closeMoreMenuModalBtn">✕</button>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-      <button class="more-menu-item" id="transferAllToInPersonBtn" style="display:none; color: var(--sea); border-color: var(--sea);">🛒 העבר את כל הרשימה לקנייה עצמית</button>
-      <button class="more-menu-item" id="auditToggleBtn">🔍 בדיקת המשלוח (מצב בדיקה)</button>
-      <button class="more-menu-item" id="exportBtn">📋 טקסט לסופר (ייצוא)</button>
-      <a class="more-menu-item" id="waBtn" target="_blank" href="#">💬 שתף קישור לרשימה</a>
-      <button class="more-menu-item" id="settingsBtn" style="color: #e57373;">⚙️ ניהול ואיפוס רשימה</button>
-    </div>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<h3>⚙️ אפשרויות נוספות</h3>
+<button class="close-modal" id="closeMoreMenuModalBtn">✕</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+<button class="more-menu-item" id="transferAllToInPersonBtn" style="display:none; color: var(--sea); border-color: var(--sea);">🛒 העבר את כל הרשימה לקנייה עצמית</button>
+<button class="more-menu-item" id="auditToggleBtn">🔍 בדיקת המשלוח (מצב בדיקה)</button>
+<button class="more-menu-item" id="exportBtn">📋 טקסט לסופר (ייצוא)</button>
+<a class="more-menu-item" id="waBtn" target="_blank" href="#">💬 שתף קישור לרשימה</a>
+<button class="more-menu-item" id="settingsBtn" style="color: #e57373;">⚙️ ניהול ואיפוס רשימה</button>
+</div>
+</div>
 </div>
 
 <!-- Modal התראת כפילויות בהעברת הרשימה כולה -->
 <div class="modal-overlay" id="duplicateTransferModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3>⚠️ זוהו מוצרים שכבר קיימים</h3>
-      <button class="close-modal" id="closeDupTransferModalBtn">✕</button>
-    </div>
-    <div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">המוצרים הבאים כבר קיימים ברשימת "בקנייה עצמית":</div>
-    <div id="duplicateTransferList" style="max-height: 140px; overflow-y: auto; background: var(--whitewash); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 12px; margin-bottom: 12px;"></div>
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <button id="confirmMergeAllTransferBtn" class="submit-modal-btn" style="background: var(--sea);">➕ מזג כמויות והעבר את כולם</button>
-      <button id="confirmSkipDuplicatesTransferBtn" class="more-menu-item" style="justify-content: center;">⏩ דלג על הכפולים (העבר רק פריטים חדשים)</button>
-    </div>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<h3>⚠️ זוהו מוצרים שכבר קיימים</h3>
+<button class="close-modal" id="closeDupTransferModalBtn">✕</button>
+</div>
+<div style="font-size: 13px; margin-bottom: 8px; color: var(--text-main);">המוצרים הבאים כבר קיימים ברשימת "בקנייה עצמית":</div>
+<div id="duplicateTransferList" style="max-height: 140px; overflow-y: auto; background: var(--whitewash); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 12px; margin-bottom: 12px;"></div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<button id="confirmMergeAllTransferBtn" class="submit-modal-btn" style="background: var(--sea);">➕ מזג כמויות והעבר את כולם</button>
+<button id="confirmSkipDuplicatesTransferBtn" class="more-menu-item" style="justify-content: center;">⏩ דלג על הכפולים (העבר רק פריטים חדשים)</button>
+</div>
+</div>
 </div>
 
 <!-- Modal בחירת שפה לייצוא לסופר -->
 <div class="modal-overlay" id="exportLangModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <button class="back-btn" id="backToMoreFromLangBtn">← חזור</button>
-      <h3 style="margin:0;">🌐 בחר שפה לייצוא</h3>
-      <button class="close-modal" id="closeLangModalBtn">✕</button>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-      <button class="more-menu-item" id="exportHebrewBtn">🇮🇱 עברית (Hebrew)</button>
-      <button class="more-menu-item" id="exportEnglishBtn">🇬🇧 אנגלית (English)</button>
-      <button class="more-menu-item" id="exportGreekBtn">🇬🇷 יוונית (Greek - Ελληνικά)</button>
-    </div>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<button class="back-btn" id="backToMoreFromLangBtn">← חזור</button>
+<h3 style="margin:0;">🌐 בחר שפה לייצוא</h3>
+<button class="close-modal" id="closeLangModalBtn">✕</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+<button class="more-menu-item" id="exportHebrewBtn">🇮🇱 עברית (Hebrew)</button>
+<button class="more-menu-item" id="exportEnglishBtn">🇬🇧 אנגלית (English)</button>
+<button class="more-menu-item" id="exportGreekBtn">🇬🇷 יוונית (Greek - Ελληνικά)</button>
+</div>
+</div>
 </div>
 
 <!-- Modal תצוגה מקדימה ואישור העתקה לסופר -->
 <div class="modal-overlay" id="exportPreviewModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <button class="back-btn" id="backToLangFromPreviewBtn">← חזור לשפות</button>
-      <h3 style="margin:0;">📋 תצוגה מקדימה לסופר</h3>
-      <button class="close-modal" id="closeExportPreviewModalBtn">✕</button>
-    </div>
-    <div id="untranslatedWarning" class="untranslated-warning" style="display:none;"></div>
-    <textarea id="exportPreviewTextarea" class="preview-textarea" readonly></textarea>
-    <button id="confirmCopyExportBtn" class="submit-modal-btn" style="background: var(--wa-green);">📋 העתק טקסט לוואטסאפ / ללוח</button>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<button class="back-btn" id="backToLangFromPreviewBtn">← חזור לשפות</button>
+<h3 style="margin:0;">📋 תצוגה מקדימה לסופר</h3>
+<button class="close-modal" id="closeExportPreviewModalBtn">✕</button>
+</div>
+<div id="untranslatedWarning" class="untranslated-warning" style="display:none;"></div>
+<textarea id="exportPreviewTextarea" class="preview-textarea" readonly></textarea>
+<button id="confirmCopyExportBtn" class="submit-modal-btn" style="background: var(--wa-green);">📋 העתק טקסט לוואטסאפ / ללוח</button>
+</div>
 </div>
 
 <!-- Modal בחירת כמות אישית -->
 <div class="modal-overlay" id="personalQtyModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3 id="personalModalTitle">🙋‍♂️ כמות אישית שלי</h3>
-      <button class="close-modal" id="closePersonalModalBtn">✕</button>
-    </div>
-    <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-main);" id="personalModalDesc">בחר כמה יחידות תרצה להוסיף לעצמך:</div>
-    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
-      <button id="decPersonalQtyBtn" style="background: var(--whitewash); color: var(--text-main); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">-</button>
-      <span id="personalQtyDisplay" style="font-size: 22px; font-weight: bold; color: var(--text-main);">1</span>
-      <button id="incPersonalQtyBtn" style="background: var(--whitewash); color: var(--text-main); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">+</button>
-    </div>
-    <button id="savePersonalQtyBtn" class="submit-modal-btn">שמור כמות אישית</button>
-    <button id="removePersonalQtyBtn" style="width: 100%; background: transparent; color: #e57373; border: none; padding: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">הסר את הבקשה שלי</button>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<h3 id="personalModalTitle">🙋‍♂️ כמות אישית שלי</h3>
+<button class="close-modal" id="closePersonalModalBtn">✕</button>
+</div>
+<div style="margin-bottom: 12px; font-size: 13px; color: var(--text-main);" id="personalModalDesc">בחר כמה יחידות תרצה להוסיף לעצמך:</div>
+<div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+<button id="decPersonalQtyBtn" style="background: var(--whitewash); color: var(--text-main); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">-</button>
+<span id="personalQtyDisplay" style="font-size: 22px; font-weight: bold; color: var(--text-main);">1</span>
+<button id="incPersonalQtyBtn" style="background: var(--whitewash); color: var(--text-main); border: 1px solid var(--line); font-size: 20px; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">+</button>
+</div>
+<button id="savePersonalQtyBtn" class="submit-modal-btn">שמור כמות אישית</button>
+<button id="removePersonalQtyBtn" style="width: 100%; background: transparent; color: #e57373; border: none; padding: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">הסר את הבקשה שלי</button>
+</div>
 </div>
 
 <!-- Modal סיכום חוסרים -->
 <div class="modal-overlay" id="missingModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3>📋 סיכום חוסרים מהבדיקה</h3>
-      <button class="close-modal" id="closeMissingModalBtn">✕</button>
-    </div>
-    <div id="missingItemsList" style="margin-bottom: 14px; font-size: 13px; max-height: 200px; overflow-y: auto;"></div>
-    <button id="transferMissingToInPersonBtn" style="width: 100%; background: var(--sea); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">העבר חוסרים אלה לקנייה עצמית 🛒</button>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<h3>📋 סיכום חוסרים מהבדיקה</h3>
+<button class="close-modal" id="closeMissingModalBtn">✕</button>
+</div>
+<div id="missingItemsList" style="margin-bottom: 14px; font-size: 13px; max-height: 200px; overflow-y: auto;"></div>
+<button id="transferMissingToInPersonBtn" style="width: 100%; background: var(--sea); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">העבר חוסרים אלה לקנייה עצמית 🛒</button>
+</div>
 </div>
 
 <!-- Modal ניהול -->
 <div class="modal-overlay" id="settingsModalOverlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <button class="back-btn" id="backToMoreFromSettingsBtn">← חזור</button>
-      <h3 style="margin:0;">⚙️ תפריט ניהול</h3>
-      <button class="close-modal" id="closeSettingsModalBtn">✕</button>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-      <button id="clearCurrentListBtn" style="background: #c0533f; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">🗑️ איפוס רשימה זו בלבד</button>
-    </div>
-  </div>
+<div class="modal-card">
+<div class="modal-header">
+<button class="back-btn" id="backToMoreFromSettingsBtn">← חזור</button>
+<h3 style="margin:0;">⚙️ תפריט ניהול</h3>
+<button class="close-modal" id="closeSettingsModalBtn">✕</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+<button id="clearCurrentListBtn" style="background: #c0533f; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">🗑️ איפוס רשימה זו בלבד</button>
+</div>
+</div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, off, set, push, remove, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
-    authDomain: "mykonos-list.firebaseapp.com",
-    databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
-    projectId: "mykonos-list",
-    storageBucket: "mykonos-list.firebasestorage.app",
-    messagingSenderId: "471388041921",
-    appId: "1:471388041921:web:c0100252c6397f67dc1a40",
-    measurementId: "G-0VXCEZ117S"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  let currentListType = 'delivery';
-  let listRef = ref(db, `lists/${currentListType}`);
-  let listStatusRef = ref(db, `lists/${currentListType}_status`);
-
-  const NAME_KEY = 'mykonos-my-name';
-  const THEME_KEY = 'mykonos-theme';
-  let itemsMap = {};
-  let listStatus = '📝 בהכנה';
-  let hideDoneItems = false;
-  let isAuditMode = false;
-  let collapsedCategories = {};
-  let lastStateBackup = null;
-
-  let activePersonalItemId = null;
-  let activePersonalMap = {};
-  let tempPersonalQty = 1;
-  let tempModalAddQty = 1;
-
-  let pendingBulkTransferItems = [];
-  let pendingDuplicatesList = [];
-
-  function triggerHapticFeedback(duration = 18) {
-    if (navigator.vibrate) {
-      try {
-        navigator.vibrate(duration);
-      } catch (e) {}
-    }
-  }
-
-  const themeToggleBtn = document.getElementById('themeToggleBtn');
-  
-  function updateThemeUI() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    themeToggleBtn.textContent = isDark ? '☀️' : '🌙';
-  }
-  updateThemeUI();
-
-  themeToggleBtn.addEventListener('click', () => {
-    triggerHapticFeedback(15);
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem(THEME_KEY, 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem(THEME_KEY, 'dark');
-    }
-    updateThemeUI();
-  });
-
-  const TAB_NAMES = {
-    'delivery': 'משלוח 📦',
-    'inPerson': 'בקניה עצמית 🛒',
-    'fromIsrael': 'מהארץ ✈️'
-  };
-
-  const AUDIT_LABELS_BY_TAB = {
-    'delivery': { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' },
-    'inPerson': { received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌' },
-    'fromIsrael': { received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌' }
-  };
-
-  const TRANSLATION_DICTIONARY = {
-    categories: {
-      'פירות וירקות 🍅': { en: 'Fruits & Vegetables 🍅', el: 'Φρούτα & Λαχανικά 🍅' },
-      'בשר, דגים ועופות 🥩': { en: 'Meat, Fish & Poultry 🥩', el: 'Κρέας & Ψάρια 🥩' },
-      'שתייה ומשקאות 🥤': { en: 'Drinks & Beverages 🥤', el: 'Ποτά & Αναψυκτικά 🥤' },
-      'חלב וביצים 🧀': { en: 'Dairy & Eggs 🧀', el: 'Γαλακτοκομικά & Αυγά 🧀' },
-      'מאפה ודגנים 🥖': { en: 'Bakery & Grains 🥖', el: 'Ψωμί & Δημητριακά 🥖' },
-      'חטיפים ומתוקים 🍫': { en: 'Snacks & Sweets 🍫', el: 'Σνακ & Γλυκά 🍫' },
-      'פארם וניקיון 🧼': { en: 'Pharmacy & Cleaning 🧼', el: 'Καθαριότητα & Φαρμακείο 🧼' },
-      'כלי בית וציוד 🏠': { en: 'Household & Supplies 🏠', el: 'Είδη Σπιτιού 🏠' },
-      'מוצרים נוספים 🛒': { en: 'Other Items 🛒', el: 'Άλλα Είδη 🛒' }
-    },
-    units: {
-      'unit': { en: 'pcs', el: 'τεμ' },
-      'pack': { en: 'pack', el: 'πακέτο' },
-      'bottle': { en: 'bottle', el: 'μπουκάλι' },
-      'kg': { en: 'kg', el: 'κιλό' }
-    },
-    items: {
-      'עגבניות': { en: 'Tomatoes', el: 'Ντομάτες' },
-      'עגבניות שרי': { en: 'Cherry Tomatoes', el: 'Ντοματίνια' },
-      'מלפפונים': { en: 'Cucumbers', el: 'Αγγούρια' },
-      'בננות': { en: 'Bananas', el: 'Μπανάνες' },
-      'לימונים': { en: 'Lemons', el: 'Λεμόνια' },
-      'אוכמניות': { en: 'Blueberries', el: 'Μύρτιλα' },
-      'פטל': { en: 'Raspberries', el: 'Σμέουρα' },
-      'תותים': { en: 'Strawberries', el: 'Φράουλες' },
-      'אבטיח': { en: 'Watermelon', el: 'Καρπούζι' },
-      'מלון': { en: 'Melon', el: 'Πεπόνι' },
-      'תפוחים': { en: 'Apples', el: 'Μήλα' },
-      'ענבים': { en: 'Grapes', el: 'Σταφύλια' },
-      'אבוקדו': { en: 'Avocado', el: 'Αβοκάντο' },
-      'בצל': { en: 'Onions', el: 'Κρεμμύδια' },
-      'בצל ירוק': { en: 'Green Onions', el: 'Φρέσκα Κρεμμυδάκια' },
-      'שום': { en: 'Garlic', el: 'Σκόρδο' },
-      'חסה': { en: 'Lettuce', el: 'Μαρούλι' },
-      'גזר': { en: 'Carrots', el: 'Καρότα' },
-      'תפוחי אדמה': { en: 'Potatoes', el: 'Πατάτες' },
-      'פלפל': { en: 'Bell Peppers', el: 'Πιπεριές' },
-      'פטריות': { en: 'Mushrooms', el: 'Μανιτάρια' },
-      
-      'קולה זירו': { en: 'Coca-Cola Zero', el: 'Coca-Cola Zero' },
-      'קוקה קולה': { en: 'Coca-Cola', el: 'Coca-Cola' },
-      'מים מינרלים': { en: 'Mineral Water (Pack of 6)', el: 'Εμφιαλωμένο Νερό (Εξάδα)' },
-      'סודה': { en: 'Soda Water', el: 'Σόδα' },
-      'טוניק': { en: 'Tonic Water', el: 'Τόνικ' },
-      'מיץ תפוזים': { en: 'Orange Juice', el: 'Χυμός Πορτοκάλι' },
-      'יין': { en: 'Wine', el: 'Κρασί' },
-      'יין לבן': { en: 'White Wine', el: 'Λευκό Κρασί' },
-      'יין אדום': { en: 'Red Wine', el: 'Κόκκινο Κρασί' },
-      'יין רוזה': { en: 'Rosé Wine', el: 'Ροζέ Κρασί' },
-      'בירה': { en: 'Beer', el: 'Μπίρα' },
-      'ג׳ין': { en: 'Gin', el: 'Τζιν' },
-      'וודקה': { en: 'Vodka', el: 'Βότκα' },
-      'קפה': { en: 'Coffee', el: 'Καφές' },
-      'קפסולות קפה': { en: 'Coffee Capsules', el: 'Κάψουλες Καφέ' },
-      'תה': { en: 'Tea', el: 'Τσάι' },
-      'קרח': { en: 'Ice Bag', el: 'Πάγος' },
-
-      'מעדני פרו': { en: 'Protein Yogurt', el: 'Γιαούρτι Πρωτεΐνης' },
-      'יוגורט יווני': { en: 'Greek Yogurt', el: 'Ελληνικό Γιαούρτι' },
-      'גבינה צהובה': { en: 'Sliced Yellow Cheese', el: 'Κίτρινο Τυρί σε Φέτες' },
-      'גבינת פטה': { en: 'Feta Cheese', el: 'Φέτα' },
-      'קוטג\'/ גבינה רכה': { en: 'Cottage Cheese / Soft Cheese', el: 'Τυρί Κότατζ' },
-      'גבינת מוצרלה': { en: 'Mozzarella', el: 'Μοτσαρέλα' },
-      'פרמזן': { en: 'Parmesan', el: 'Παρμεζάνα' },
-      'ביצים': { en: 'Eggs', el: 'Αυγά' },
-      'חלב': { en: 'Milk', el: 'Γάλα' },
-      'חלב שקדים': { en: 'Almond Milk', el: 'Γάλα Αμυγδάλου' },
-      'חלב סויה': { en: 'Soy Milk', el: 'Γάλα Σόγιας' },
-      'חלב שיבולת שועל': { en: 'Oat Milk', el: 'Γάλα Βρώμης' },
-      'חמאה': { en: 'Butter', el: 'Βούτυρο' },
-      'שמנת מתוקה': { en: 'Heavy Cream', el: 'Κρέμα Γάλακτος' },
-
-      'לחמניות': { en: 'Buns / Rolls', el: 'Ψωμάκια' },
-      'לחם': { en: 'Bread', el: 'Ψωμί' },
-      'לחם טוסט': { en: 'Toast Bread', el: 'Ψωμί για Τοστ' },
-      'פיתות': { en: 'Pita Bread', el: 'Πίτες' },
-      'גרנולה': { en: 'Granola', el: 'Γκρανόλα' },
-      'שיבולת שועל': { en: 'Oats', el: 'Βρώμη' },
-      'אורז': { en: 'Rice', el: 'Ρύζι' },
-      'פסטה': { en: 'Pasta', el: 'Ζυμαρικά' },
-      'קורנפלקס': { en: 'Cereal', el: 'Δημητριακά' },
-
-      'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
-      'כרעיים עוף': { en: 'Chicken Thighs', el: 'Μπούτια Κοτόπουλο' },
-      'בשר טחון': { en: 'Minced Meat', el: 'Κιμάς' },
-      'סטייק': { en: 'Steak', el: 'Μπριζόλα' },
-      'סלמון': { en: 'Fresh Salmon', el: 'Φρέσκος Σολομός' },
-      'טונה': { en: 'Canned Tuna', el: 'Τόνος' },
-      'נקניקיות': { en: 'Sausages', el: 'Λουκάνικα' },
-
-      'חטיפי חלבון': { en: 'Protein Bars', el: 'Μπάρες Πρωτεΐνης' },
-      'שוקולד': { en: 'Chocolate', el: 'Σοκολάτα' },
-      'עוגיות': { en: 'Cookies', el: 'Μπισκότα' },
-      'צ\'יפס': { en: 'Potato Chips', el: 'Πατατάκια' },
-      'אגוזים / שקדים': { en: 'Nuts & Almonds', el: 'Ξηροί Καρποί' },
-
-      'נייר סופג': { en: 'Paper Towels / Kitchen Roll', el: 'Χαρτί Κουζίνας' },
-      'נייר טואלט': { en: 'Toilet Paper', el: 'Χαρτί Υγείας' },
-      'מגבונים': { en: 'Wet Wipes', el: 'Μωρομάντηλα' },
-      'שקיות אשפה': { en: 'Trash Bags', el: 'Σακούλες Σκουπιδιών' },
-      'נוזל כלים': { en: 'Dish Soap', el: 'Υγρό Πιάτων' },
-      'ספוג כלים': { en: 'Dish Sponges', el: 'Σφουγγαράκια Πιάτων' },
-      'סבון ידיים': { en: 'Hand Soap', el: 'Κρεμοσάπουνο' },
-      'סבון גוף': { en: 'Body Wash / Shower Gel', el: 'Αφρόλουτρο' },
-      'שמפו': { en: 'Shampoo', el: 'Σαμπουάν' },
-      'משחת שיניים': { en: 'Toothpaste', el: 'Οδοντόκρεμα' },
-      'קרם הגנה': { en: 'Sunscreen', el: 'Αντηλιακό' },
-      'נייר אלומיניום': { en: 'Aluminum Foil', el: 'Αλουμινόχαρτο' },
-      'ניילון נצמד': { en: 'Plastic Wrap', el: 'Διαφανής Μεμβράνη' },
-      'נייר אפייה': { en: 'Baking Paper', el: 'Λαδόκολλα' },
-
-      'שמן זית': { en: 'Olive Oil', el: 'Ελαιόλαδο' },
-      'שמן קנולה': { en: 'Vegetable Oil', el: 'Σπορέλαιο' },
-      'מלח': { en: 'Salt', el: 'Αλάτι' },
-      'פלפל שחור': { en: 'Black Pepper', el: 'Μαύρο Πιπέρι' },
-      'סוכר': { en: 'Sugar', el: 'Ζάχαρη' },
-      'רטבים': { en: 'Sauces', el: 'Σάλτσες' },
-      'קטשופ': { en: 'Ketchup', el: 'Κέτσαπ' },
-      'מיונז': { en: 'Mayonnaise', el: 'Μαγιονέζα' },
-      'חרדל': { en: 'Mustard', el: 'Μουστάρδα' }
-    }
-  };
-
-  function normalizeUnitKey(rawUnit, categoryName) {
-    if (!rawUnit) {
-      if (categoryName === 'פירות וירקות 🍅') return 'kg';
-      return 'unit';
-    }
-
-    let clean = rawUnit.toString().trim().toLowerCase();
-    clean = clean.replace(/&quot;|&#34;/g, '');
-    clean = clean.replace(/["״'׳”״“’‘\\]/g, '');
-    clean = clean.trim();
-
-    if (clean === 'קג' || clean === 'קילו' || clean === 'קילוגרם' || clean === 'kg' || clean === 'kilo') {
-      return 'kg';
-    }
-    if (clean === 'מארז' || clean === 'חבילה' || clean === 'pack' || clean === 'package') {
-      return 'pack';
-    }
-    if (clean === 'בקבוק' || clean === 'bottle') {
-      return 'bottle';
-    }
-    return 'unit';
-  }
-
-  function translateUnit(rawUnit, lang, categoryName) {
-    const key = normalizeUnitKey(rawUnit, categoryName);
-    if (lang !== 'he' && TRANSLATION_DICTIONARY.units[key]) {
-      return TRANSLATION_DICTIONARY.units[key][lang] || rawUnit;
-    }
-    if (key === 'kg' && (!rawUnit || rawUnit === "יח'")) return 'ק"ג';
-    return rawUnit || "יח'";
-  }
-
-  function translateItemName(rawName, lang) {
-    if (lang === 'he') return rawName;
-    const clean = normalizeProductName(rawName).trim().toLowerCase();
-    
-    for (const [key, trans] of Object.entries(TRANSLATION_DICTIONARY.items)) {
-      if (key.toLowerCase() === clean) {
-        return trans[lang] || rawName;
-      }
-    }
-
-    for (const [key, trans] of Object.entries(TRANSLATION_DICTIONARY.items)) {
-      if (clean.includes(key.toLowerCase()) || key.toLowerCase().includes(clean)) {
-        return trans[lang] || rawName;
-      }
-    }
-
-    return null;
-  }
-
-  const shareUrl = window.location.href;
-  const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
-  document.getElementById('waBtn').href = `https://api.whatsapp.com/send?text=${waText}`;
-
-  const SYNONYMS_MAP = {
-    'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
-    'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
-    'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
-    'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
-    'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
-    'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
-    'עגבניות': ['עגבניה'],
-    'מלפפונים': ['מלפפון'],
-    'בננות': ['בננה'],
-    'לימונים': ['לימון'],
-    'לחמניות': ['לחמניה'],
-    'חזה עוף': ['עוף', 'חזה עוף פרוס', 'שניצל'],
-    'אוכמניות': ['אוכמניה', 'בלובריז', 'בלוברי'],
-    'נייר סופג': ['נייר מגבת', 'מגבות נייר', 'גליל נייר']
-  };
-
-  function normalizeProductName(input) {
-    if (!input) return '';
-    const clean = input.trim().toLowerCase();
-    for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
-      if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
-        return canonicalName;
-      }
-    }
-    return input.trim();
-  }
-
-  const CATEGORY_DICTIONARY = {
-    'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'אבוקדו', 'חסה', 'גזר', 'אוכמניות', 'פטל', 'תות', 'מלון', 'אבטיח', 'תפוח אדמה', 'פלפל', 'פטריות'],
-    'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'קבב', 'המבורגר', 'פרגית', 'סטייק', 'שניצל', 'כרעיים'],
-    'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'טוניק', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה', 'תה', 'קרח'],
-    'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו', 'פטה', 'מוצרלה'],
-    'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים', 'קורנפלקס', 'טוסט'],
-    'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות', 'אגוזים', 'שקדים'],
-    'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ניקוי', 'דאודורנט', 'קרם הגנה', 'נוזל כלים', 'ספוג'],
-    'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה', 'נייר סופג', 'ניילון נצמד', 'נייר אפייה']
-  };
-
-  function detectCategory(itemName) {
-    if (!itemName) return 'מוצרים נוספים 🛒';
-    const cleanName = itemName.trim().toLowerCase();
-    for (const [catName, keywords] of Object.entries(CATEGORY_DICTIONARY)) {
-      if (keywords.some(kw => cleanName.includes(kw.toLowerCase()))) {
-        return catName;
-      }
-    }
-    return 'מוצרים נוספים 🛒';
-  }
-
-  function showToast(message, showUndo = false) {
-    const toast = document.getElementById('toast');
-    const toastText = document.getElementById('toastText');
-    const undoBtn = document.getElementById('undoBtn');
-    
-    toastText.textContent = message;
-    undoBtn.style.display = showUndo ? 'block' : 'none';
-    
-    toast.classList.add('show');
-    setTimeout(() => { toast.classList.remove('show'); }, 3500);
-  }
-
-  function saveUndoBackup(itemId) {
-    if (itemId && itemsMap[itemId]) {
-      lastStateBackup = { itemId, data: JSON.parse(JSON.stringify(itemsMap[itemId])) };
-    }
-  }
-
-  function requireUserName() {
-    const myName = myNameInput.value.trim();
-    const whoamiBox = document.getElementById('whoamiBox');
-
-    if (!myName) {
-      whoamiBox.classList.add('highlight');
-      myNameInput.focus();
-      showToast('נא לבחור את שמך מהרשימה בראש המסך');
-      return null;
-    }
-    whoamiBox.classList.remove('highlight');
-    return myName;
-  }
-
-  function switchListTab(listType) {
-    triggerHapticFeedback(12);
-    currentListType = listType;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    if (listType === 'delivery') document.getElementById('tabDeliveryBtn').classList.add('active');
-    if (listType === 'inPerson') document.getElementById('tabInPersonBtn').classList.add('active');
-    if (listType === 'fromIsrael') document.getElementById('tabFromIsraelBtn').classList.add('active');
-
-    off(listRef);
-    off(listStatusRef);
-
-    listRef = ref(db, `lists/${currentListType}`);
-    listStatusRef = ref(db, `lists/${currentListType}_status`);
-
-    const exportBtn = document.getElementById('exportBtn');
-    const transferAllToInPersonBtn = document.getElementById('transferAllToInPersonBtn');
-    if (exportBtn) {
-      exportBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
-    }
-    if (transferAllToInPersonBtn) {
-      transferAllToInPersonBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
-    }
-
-    listenToFirebase();
-  }
-
-  document.getElementById('tabDeliveryBtn').addEventListener('click', () => switchListTab('delivery'));
-  document.getElementById('tabInPersonBtn').addEventListener('click', () => switchListTab('inPerson'));
-  document.getElementById('tabFromIsraelBtn').addEventListener('click', () => switchListTab('fromIsrael'));
-
-  const categoriesContainer = document.getElementById('categoriesContainer');
-  const myNameInput = document.getElementById('myName');
-  const filterBtn = document.getElementById('filterBtn');
-  const auditToggleBtn = document.getElementById('auditToggleBtn');
-  const exportBtn = document.getElementById('exportBtn');
-  const transferAllToInPersonBtn = document.getElementById('transferAllToInPersonBtn');
-  const settingsBtn = document.getElementById('settingsBtn');
-  const clearCurrentListBtn = document.getElementById('clearCurrentListBtn');
-  const statusTag = document.getElementById('statusTag');
-  const progressBarFill = document.getElementById('progressBarFill');
-  const progressText = document.getElementById('progressText');
-  const undoBtn = document.getElementById('undoBtn');
-  const showMissingSummaryBtn = document.getElementById('showMissingSummaryBtn');
-
-  const modalOverlay = document.getElementById('modalOverlay');
-  const openModalBtn = document.getElementById('openModalBtn');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  const addModalForm = document.getElementById('addModalForm');
-
-  // רכיבי בורר כמות בטופס
-  const modalQtyDisplay = document.getElementById('modalQtyDisplay');
-  const modalQtyInput = document.getElementById('modalQtyInput');
-  const modalQtyDecBtn = document.getElementById('modalQtyDecBtn');
-  const modalQtyIncBtn = document.getElementById('modalQtyIncBtn');
-
-  modalQtyIncBtn.onclick = () => {
-    triggerHapticFeedback(10);
-    tempModalAddQty++;
-    modalQtyDisplay.textContent = tempModalAddQty;
-    modalQtyInput.value = tempModalAddQty;
-  };
-
-  modalQtyDecBtn.onclick = () => {
-    if (tempModalAddQty > 1) {
-      triggerHapticFeedback(10);
-      tempModalAddQty--;
-      modalQtyDisplay.textContent = tempModalAddQty;
-      modalQtyInput.value = tempModalAddQty;
-    }
-  };
-
-  const openMoreMenuBtn = document.getElementById('openMoreMenuBtn');
-  const moreMenuModalOverlay = document.getElementById('moreMenuModalOverlay');
-  const closeMoreMenuModalBtn = document.getElementById('closeMoreMenuModalBtn');
-
-  const statusModalOverlay = document.getElementById('statusModalOverlay');
-  const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
-
-  const exportLangModalOverlay = document.getElementById('exportLangModalOverlay');
-  const closeLangModalBtn = document.getElementById('closeLangModalBtn');
-  const backToMoreFromLangBtn = document.getElementById('backToMoreFromLangBtn');
-
-  const exportPreviewModalOverlay = document.getElementById('exportPreviewModalOverlay');
-  const closeExportPreviewModalBtn = document.getElementById('closeExportPreviewModalBtn');
-  const backToLangFromPreviewBtn = document.getElementById('backToLangFromPreviewBtn');
-  const exportPreviewTextarea = document.getElementById('exportPreviewTextarea');
-  const confirmCopyExportBtn = document.getElementById('confirmCopyExportBtn');
-  const untranslatedWarning = document.getElementById('untranslatedWarning');
-
-  const duplicateTransferModalOverlay = document.getElementById('duplicateTransferModalOverlay');
-  const closeDupTransferModalBtn = document.getElementById('closeDupTransferModalBtn');
-  const duplicateTransferList = document.getElementById('duplicateTransferList');
-  const confirmMergeAllTransferBtn = document.getElementById('confirmMergeAllTransferBtn');
-  const confirmSkipDuplicatesTransferBtn = document.getElementById('confirmSkipDuplicatesTransferBtn');
-
-  const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
-  const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
-  const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
-  const decPersonalQtyBtn = document.getElementById('decPersonalQtyBtn');
-  const personalQtyDisplay = document.getElementById('personalQtyDisplay');
-  const savePersonalQtyBtn = document.getElementById('savePersonalQtyBtn');
-  const removePersonalQtyBtn = document.getElementById('removePersonalQtyBtn');
-
-  const missingModalOverlay = document.getElementById('missingModalOverlay');
-  const closeMissingModalBtn = document.getElementById('closeMissingModalBtn');
-  const missingItemsList = document.getElementById('missingItemsList');
-  const transferMissingToInPersonBtn = document.getElementById('transferMissingToInPersonBtn');
-
-  const settingsModalOverlay = document.getElementById('settingsModalOverlay');
-  const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
-  const backToMoreFromSettingsBtn = document.getElementById('backToMoreFromSettingsBtn');
-
-  openModalBtn.onclick = () => {
-    if (!requireUserName()) return;
-    tempModalAddQty = 1;
-    modalQtyDisplay.textContent = '1';
-    modalQtyInput.value = '1';
-    modalOverlay.classList.add('show');
-  };
-  closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
-
-  openMoreMenuBtn.onclick = () => {
-    updateAuditMenuBtnUI();
-    if (transferAllToInPersonBtn) {
-      transferAllToInPersonBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
-    }
-    moreMenuModalOverlay.classList.add('show');
-  };
-  closeMoreMenuModalBtn.onclick = () => moreMenuModalOverlay.classList.remove('show');
-
-  statusTag.onclick = () => statusModalOverlay.classList.add('show');
-  closeStatusModalBtn.onclick = () => statusModalOverlay.classList.remove('show');
-
-  settingsBtn.onclick = () => {
-    moreMenuModalOverlay.classList.remove('show');
-    settingsModalOverlay.classList.add('show');
-  };
-  closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
-
-  backToMoreFromSettingsBtn.onclick = () => {
-    settingsModalOverlay.classList.remove('show');
-    moreMenuModalOverlay.classList.add('show');
-  };
-
-  closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
-  closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
-  closeDupTransferModalBtn.onclick = () => duplicateTransferModalOverlay.classList.remove('show');
-
-  exportBtn.onclick = () => {
-    moreMenuModalOverlay.classList.remove('show');
-    exportLangModalOverlay.classList.add('show');
-  };
-  closeLangModalBtn.onclick = () => exportLangModalOverlay.classList.remove('show');
-
-  backToMoreFromLangBtn.onclick = () => {
-    exportLangModalOverlay.classList.remove('show');
-    moreMenuModalOverlay.classList.add('show');
-  };
-
-  closeExportPreviewModalBtn.onclick = () => exportPreviewModalOverlay.classList.remove('show');
-  backToLangFromPreviewBtn.onclick = () => {
-    exportPreviewModalOverlay.classList.remove('show');
-    exportLangModalOverlay.classList.add('show');
-  };
-
-  function updateAuditMenuBtnUI() {
-    if (isAuditMode) {
-      auditToggleBtn.classList.add('active-mode');
-      auditToggleBtn.textContent = '✓ בדיקת המשלוח (פעיל - לחץ לכיבוי)';
-    } else {
-      auditToggleBtn.classList.remove('active-mode');
-      auditToggleBtn.textContent = '🔍 בדיקת המשלוח (מצב בדיקה)';
-    }
-  }
-
-  function setStatusAndSave(newStatus) {
-    listStatus = newStatus;
-    if (listStatus === '🔍 בדיקת המשלוח') {
-      isAuditMode = true;
-      showMissingSummaryBtn.style.display = 'block';
-    }
-    set(listStatusRef, listStatus);
-    statusModalOverlay.classList.remove('show');
-    showToast(`הסטטוס עודכן ל-${listStatus}`);
-  }
-
-  document.getElementById('statusSelectPrep').onclick = () => setStatusAndSave('📝 בהכנה');
-  document.getElementById('statusSelectReady').onclick = () => setStatusAndSave('✅ מוכנה');
-  document.getElementById('statusSelectOrdered').onclick = () => setStatusAndSave('🚚 הוזמנה / בקנייה');
-  document.getElementById('statusSelectAudit').onclick = () => setStatusAndSave('🔍 בדיקת המשלוח');
-  document.getElementById('statusSelectDone').onclick = () => setStatusAndSave('🎉 הושלמה');
-
-  document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.classList.contains('menu-btn')) {
-      document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
-    }
-  });
-
-  const savedName = localStorage.getItem(NAME_KEY);
-  if (savedName) myNameInput.value = savedName;
-  myNameInput.addEventListener('change', () => {
-    const val = myNameInput.value.trim();
-    localStorage.setItem(NAME_KEY, val);
-    if (val) document.getElementById('whoamiBox').classList.remove('highlight');
-  });
-
-  function updateProgressBar(keys) {
-    const total = keys.length;
-    if (total === 0) {
-      progressBarFill.style.width = '0%';
-      progressText.textContent = '0 מתוך 0 (0%)';
-      return;
-    }
-    const doneCount = keys.filter(id => itemsMap[id].done).length;
-    const percent = Math.round((doneCount / total) * 100);
-    progressBarFill.style.width = percent + '%';
-    progressText.textContent = `${doneCount} מתוך ${total} (${percent}%)`;
-  }
-
-  function calculateTotalQty(item) {
-    const baseQty = parseInt(item.qty) || 1;
-    const personalRequests = item.personalQtyMap ? Object.values(item.personalQtyMap).reduce((a, b) => a + (parseInt(b) || 0), 0) : 0;
-    return baseQty + personalRequests;
-  }
-
-  function findMatchingItemKey(targetItemsMap, item) {
-    const normName = normalizeProductName(item.name).toLowerCase();
-    const unit = item.unit || "יח'";
-    return Object.keys(targetItemsMap).find(k => {
-      const t = targetItemsMap[k];
-      return normalizeProductName(t.name).toLowerCase() === normName && (t.unit || "יח'") === unit;
-    });
-  }
-
-  function mergeOrCreateItem(targetListPath, targetItemsMap, item, qtyToAdd, byLabel, opts = {}) {
-    const existingKey = findMatchingItemKey(targetItemsMap, item);
-    if (existingKey) {
-      const currentQty = parseInt(targetItemsMap[existingKey].qty) || 1;
-      update(ref(db, `${targetListPath}/${existingKey}`), {
-        qty: (currentQty + qtyToAdd).toString()
-      });
-      return { merged: true, key: existingKey };
-    }
-
-    const newItemRef = push(ref(db, targetListPath));
-    set(newItemRef, {
-      name: item.name,
-      qty: qtyToAdd.toString(),
-      unit: item.unit || "יח'",
-      category: item.category || detectCategory(item.name),
-      by: byLabel,
-      buyer: '',
-      done: false,
-      isPriority: opts.isPriority !== undefined ? opts.isPriority : (item.isPriority || false),
-      auditStatus: '',
-      personalQtyMap: opts.carryPersonalMap ? (item.personalQtyMap || {}) : {}
-    });
-    return { merged: false, key: newItemRef.key };
-  }
-
-  function render() {
-    categoriesContainer.innerHTML = '';
-    statusTag.textContent = listStatus;
-    const keys = Object.keys(itemsMap);
-    const myName = myNameInput.value.trim();
-
-    updateProgressBar(keys);
-    showMissingSummaryBtn.style.display = isAuditMode ? 'block' : 'none';
-
-    const grouped = {};
-    keys.forEach(id => {
-      const item = itemsMap[id];
-      if (hideDoneItems && item.done) return;
-
-      const cat = item.category || detectCategory(item.name);
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push({ id, ...item });
-    });
-
-    const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
-    const auditLabels = AUDIT_LABELS_BY_TAB[currentListType] || AUDIT_LABELS_BY_TAB['delivery'];
-
-    sortedCategories.forEach(catName => {
-      const remainingInCat = grouped[catName].filter(i => !i.done).length;
-
-      const catHeader = document.createElement('div');
-      catHeader.className = 'category-header';
-      catHeader.addEventListener('click', () => {
-        collapsedCategories[catName] = !collapsedCategories[catName];
-        render();
-      });
-
-      const catTitleSpan = document.createElement('span');
-      catTitleSpan.textContent = catName;
-
-      const catCountSpan = document.createElement('span');
-      catCountSpan.className = 'cat-count';
-      catCountSpan.textContent = `${remainingInCat} שנשארו`;
-
-      catHeader.appendChild(catTitleSpan);
-      catHeader.appendChild(catCountSpan);
-
-      const ul = document.createElement('ul');
-      if (collapsedCategories[catName]) ul.classList.add('collapsed');
-
-      grouped[catName].sort((a, b) => a.name.localeCompare(b.name, 'he'));
-
-      grouped[catName].forEach(item => {
-        const li = document.createElement('li');
-        if (item.isPriority) li.classList.add('is-priority');
-
-        const personalMap = item.personalQtyMap || {};
-        const myPersonalQty = personalMap[myName] || 0;
-        const isUserWanting = myName && myPersonalQty > 0;
-        const isUserBuyer = myName && item.buyer === myName;
-
-        const baseQty = parseInt(item.qty) || 1;
-        const totalQty = calculateTotalQty(item);
-
-        const wantingCount = Object.keys(personalMap).filter(k => personalMap[k] > 0).length;
-
-        const itemRow = document.createElement('div');
-        itemRow.className = 'item-row';
-
-        const checkDiv = document.createElement('div');
-        checkDiv.className = `check ${item.done ? 'done' : ''}`;
-        checkDiv.addEventListener('click', () => toggleItem(item.id, item.done));
-
-        const itemMain = document.createElement('div');
-        itemMain.className = 'item-main';
-
-        const itemText = document.createElement('span');
-        itemText.className = `item-text ${item.done ? 'done' : ''}`;
-        itemText.textContent = item.name;
-
-        const qtyBox = document.createElement('div');
-        qtyBox.className = 'qty-control-box';
-
-        const decBtn = document.createElement('button');
-        decBtn.className = 'qty-btn';
-        decBtn.textContent = '-';
-        decBtn.addEventListener('click', () => updateBaseQty(item.id, -1));
-
-        const cat = item.category || detectCategory(item.name);
-        const displayUnit = translateUnit(item.unit, 'he', cat);
-
-        const qtyVal = document.createElement('span');
-        qtyVal.className = 'item-qty-val';
-        qtyVal.textContent = `${totalQty} ${displayUnit}`;
-        qtyVal.title = `בסיס: ${baseQty}`;
-
-        const incBtn = document.createElement('button');
-        incBtn.className = 'qty-btn';
-        incBtn.textContent = '+';
-        incBtn.addEventListener('click', () => updateBaseQty(item.id, 1));
-
-        qtyBox.appendChild(decBtn);
-        qtyBox.appendChild(qtyVal);
-        qtyBox.appendChild(incBtn);
-
-        const subInfo = document.createElement('div');
-        subInfo.className = 'item-sub-info';
-
-        if (item.by) {
-          const bySpan = document.createElement('span');
-          bySpan.className = 'item-by';
-          bySpan.textContent = `הוסיף: ${item.by}`;
-          subInfo.appendChild(bySpan);
-        }
-
-        if (currentListType === 'inPerson' && item.buyer) {
-          const buyerSpan = document.createElement('span');
-          buyerSpan.className = 'item-buyer';
-          buyerSpan.textContent = `🛒 אחראי: ${item.buyer}`;
-          subInfo.appendChild(buyerSpan);
-        }
-
-        if (item.auditStatus) {
-          const auditSpan = document.createElement('span');
-          auditSpan.className = `item-audit-tag ${item.auditStatus}`;
-          auditSpan.textContent = auditLabels[item.auditStatus];
-          subInfo.appendChild(auditSpan);
-        }
-
-        if (item.notes && item.notes.length > 0) {
-          const noteSpan = document.createElement('span');
-          noteSpan.className = 'item-note';
-          noteSpan.textContent = `📝 ${item.notes.join(', ')}`;
-          subInfo.appendChild(noteSpan);
-        }
-
-        itemMain.appendChild(itemText);
-        itemMain.appendChild(qtyBox);
-        itemMain.appendChild(subInfo);
-
-        const btnActions = document.createElement('div');
-        btnActions.className = 'item-btn-actions';
-
-        const wantBtn = document.createElement('button');
-        wantBtn.className = `want-btn ${isUserWanting ? 'active' : ''}`;
-        wantBtn.textContent = wantingCount > 0 ? `🙋‍♂️ ${wantingCount} רוצים` : '🙋‍♂️ גם אני';
-        wantBtn.addEventListener('click', () => openPersonalQtyModal(item.id, personalMap));
-        btnActions.appendChild(wantBtn);
-
-        if (currentListType === 'inPerson') {
-          const claimBtn = document.createElement('button');
-          claimBtn.className = `claim-btn ${isUserBuyer ? 'active' : ''}`;
-          claimBtn.textContent = '🛒 אני קונה';
-          claimBtn.addEventListener('click', () => toggleClaimItem(item.id, item.buyer));
-          btnActions.appendChild(claimBtn);
-        }
-
-        const menuBtn = document.createElement('button');
-        menuBtn.className = 'menu-btn';
-        menuBtn.textContent = '⋮';
-        menuBtn.addEventListener('click', (e) => toggleMenu(`menu-${item.id}`, e));
-
-        const menuDropdown = document.createElement('div');
-        menuDropdown.className = 'menu-dropdown';
-        menuDropdown.id = `menu-${item.id}`;
-
-        if (currentListType === 'delivery') {
-          const transferSingleBtn = document.createElement('button');
-          transferSingleBtn.className = 'menu-item';
-          transferSingleBtn.textContent = '🛒 העבר לקנייה עצמית';
-          transferSingleBtn.addEventListener('click', () => transferSingleItemToInPerson(item));
-          menuDropdown.appendChild(transferSingleBtn);
-        }
-
-        const priorityBtn = document.createElement('button');
-        priorityBtn.className = 'menu-item';
-        priorityBtn.textContent = item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף';
-        priorityBtn.addEventListener('click', () => togglePriority(item.id, item.isPriority));
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'menu-item';
-        editBtn.textContent = '✏️ ערוך';
-        editBtn.addEventListener('click', () => editItem(item.id, item.name, item.qty));
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'menu-item danger';
-        delBtn.textContent = '✕ מחק';
-        delBtn.addEventListener('click', () => deleteItem(item.id));
-
-        menuDropdown.appendChild(priorityBtn);
-        menuDropdown.appendChild(editBtn);
-        menuDropdown.appendChild(delBtn);
-
-        itemRow.appendChild(checkDiv);
-        itemRow.appendChild(itemMain);
-        itemRow.appendChild(btnActions);
-        itemRow.appendChild(menuBtn);
-        itemRow.appendChild(menuDropdown);
-
-        li.appendChild(itemRow);
-
-        if (isAuditMode) {
-          const auditDiv = document.createElement('div');
-          auditDiv.className = 'audit-controls';
-
-          ['received', 'partial', 'replaced', 'missing'].forEach(st => {
-            const btn = document.createElement('button');
-            btn.className = `audit-status-btn ${item.auditStatus === st ? 'active' : ''}`;
-            btn.textContent = auditLabels[st];
-            btn.addEventListener('click', () => setAuditStatus(item.id, st));
-            auditDiv.appendChild(btn);
-          });
-
-          li.appendChild(auditDiv);
-        }
-
-        ul.appendChild(li);
-      });
-
-      categoriesContainer.appendChild(catHeader);
-      categoriesContainer.appendChild(ul);
-    });
-  }
-
-  function listenToFirebase() {
-    onValue(listRef, (snapshot) => {
-      itemsMap = snapshot.val() || {};
-      render();
-    });
-
-    onValue(listStatusRef, (snapshot) => {
-      listStatus = snapshot.val() || '📝 בהכנה';
-      statusTag.textContent = listStatus;
-    });
-  }
-
-  listenToFirebase();
-
-  function updateBaseQty(id, delta) {
-    if (!itemsMap[id]) return;
-    triggerHapticFeedback(15);
-    saveUndoBackup(id);
-    const currentBaseQty = parseInt(itemsMap[id].qty) || 1;
-    const newBaseQty = currentBaseQty + delta;
-
-    if (newBaseQty <= 0) {
-      if (confirm(`האם למחוק את "${itemsMap[id].name}" מהרשימה?`)) {
-        deleteItem(id);
-      }
-      return;
-    }
-
-    update(ref(db, `lists/${currentListType}/${id}`), { qty: newBaseQty.toString() });
-    showToast('הכמות עודכנה בהצלחה', true);
-  }
-
-  addModalForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const user = requireUserName();
-    if (!user) return;
-
-    const rawInputName = document.getElementById('modalNameInput').value.trim();
-    if (!rawInputName) return;
-
-    const normalizedName = normalizeProductName(rawInputName);
-    const detectedCategory = detectCategory(normalizedName);
-    const inputQty = parseInt(document.getElementById('modalQtyInput').value) || 1;
-    const unit = document.getElementById('modalUnitInput').value;
-    const note = document.getElementById('modalNoteInput').value.trim();
-
-    const existingKey = Object.keys(itemsMap).find(key => {
-      const existingItem = itemsMap[key];
-      const existingName = (existingItem.name || existingItem.text || '').trim();
-      const existingUnit = existingItem.unit || "יח'";
-      return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase() && existingUnit === unit;
-    });
-
-    if (existingKey) {
-      const existingItem = itemsMap[existingKey];
-      const currentQty = parseInt(existingItem.qty) || 1;
-      const targetQty = currentQty + inputQty;
-
-      const shouldUpdate = confirm(` המוצר "${normalizedName}" כבר קיים ברשימה בכמות ${currentQty} ${unit}.\n\nהאם לעדכן את הכמות ל-${targetQty} ${unit}?`);
-      
-      if (shouldUpdate) {
-        saveUndoBackup(existingKey);
-        update(ref(db, `lists/${currentListType}/${existingKey}`), {
-          qty: targetQty.toString()
-        });
-        showToast(`עודכן ל-${targetQty} ${unit}`, true);
-      }
-    } else {
-      const newItemRef = push(listRef);
-      set(newItemRef, {
-        name: normalizedName,
-        qty: inputQty.toString(),
-        unit: unit,
-        category: detectedCategory,
-        by: user,
-        buyer: '',
-        done: false,
-        isPriority: false,
-        auditStatus: '',
-        personalQtyMap: {},
-        notes: note ? [note] : []
-      });
-      showToast(`הוספנו את "${normalizedName}" לרשימה`);
-    }
-
-    addModalForm.reset();
-    tempModalAddQty = 1;
-    modalQtyDisplay.textContent = '1';
-    modalQtyInput.value = '1';
-    modalOverlay.classList.remove('show');
-  });
-
-  function openPersonalQtyModal(id, personalMap) {
-    const user = requireUserName();
-    if (!user) return;
-
-    triggerHapticFeedback(15);
-    activePersonalItemId = id;
-    activePersonalMap = { ...(personalMap || {}) };
-    tempPersonalQty = activePersonalMap[user] || 1;
-
-    personalQtyDisplay.textContent = tempPersonalQty;
-    document.getElementById('personalModalTitle').textContent = `🙋‍♂️ כמות אישית עבור ${itemsMap[id].name}`;
-    personalQtyModalOverlay.classList.add('show');
-  }
-
-  incPersonalQtyBtn.onclick = () => {
-    triggerHapticFeedback(10);
-    tempPersonalQty++;
-    personalQtyDisplay.textContent = tempPersonalQty;
-  };
-
-  decPersonalQtyBtn.onclick = () => {
-    if (tempPersonalQty > 1) {
-      triggerHapticFeedback(10);
-      tempPersonalQty--;
-      personalQtyDisplay.textContent = tempPersonalQty;
-    }
-  };
-
-  savePersonalQtyBtn.onclick = () => {
-    const user = requireUserName();
-    if (!user || !activePersonalItemId) return;
-
-    triggerHapticFeedback(20);
-    saveUndoBackup(activePersonalItemId);
-
-    update(ref(db, `lists/${currentListType}/${activePersonalItemId}/personalQtyMap`), {
-      [user]: tempPersonalQty
-    });
-
-    personalQtyModalOverlay.classList.remove('show');
-    showToast(`הבקשה האישית שלך עודכנה ל-+${tempPersonalQty}`, true);
-  };
-
-  removePersonalQtyBtn.onclick = () => {
-    const user = requireUserName();
-    if (!user || !activePersonalItemId) return;
-
-    saveUndoBackup(activePersonalItemId);
-
-    update(ref(db, `lists/${currentListType}/${activePersonalItemId}/personalQtyMap`), {
-      [user]: null
-    });
-
-    personalQtyModalOverlay.classList.remove('show');
-    showToast('הבקשה האישית הוסרה', true);
-  };
-
-  function toggleMenu(menuId, evt) {
-    if (evt) evt.stopPropagation();
-    document.querySelectorAll('.menu-dropdown').forEach(el => {
-      if (el.id !== menuId) el.classList.remove('show');
-    });
-    const menuEl = document.getElementById(menuId);
-    if (menuEl) menuEl.classList.toggle('show');
-  }
-
-  async function transferSingleItemToInPerson(item) {
-    const user = requireUserName();
-    if (!user) return;
-
-    const totalQty = calculateTotalQty(item);
-    const inPersonSnap = await get(ref(db, `lists/inPerson`));
-    const inPersonItems = inPersonSnap.val() || {};
-
-    const existingKey = findMatchingItemKey(inPersonItems, item);
-    if (existingKey) {
-      const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
-      const targetQty = currentQty + totalQty;
-      const shouldMerge = confirm(`המוצר "${item.name}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`);
-      if (!shouldMerge) return;
-    }
-
-    mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
-    showToast(existingKey
-      ? `הכמות עודכנה ברשימת "בקנייה עצמית" 🛒`
-      : `"${item.name}" הועבר בהצלחה לרשימת "בקנייה עצמית" 🛒`);
-  }
-
-  transferAllToInPersonBtn.onclick = async () => {
-    const user = requireUserName();
-    if (!user) return;
-
-    const keys = Object.keys(itemsMap);
-    if (keys.length === 0) {
-      showToast('רשימת המשלוח ריקה!');
-      return;
-    }
-
-    moreMenuModalOverlay.classList.remove('show');
-
-    const inPersonSnap = await get(ref(db, `lists/inPerson`));
-    const inPersonItems = inPersonSnap.val() || {};
-
-    pendingBulkTransferItems = keys.map(k => itemsMap[k]);
-    pendingDuplicatesList = [];
-
-    pendingBulkTransferItems.forEach(item => {
-      const totalQty = calculateTotalQty(item);
-      const existingKey = findMatchingItemKey(inPersonItems, item);
-
-      if (existingKey) {
-        pendingDuplicatesList.push({
-          name: item.name,
-          unit: item.unit || "יח'",
-          transferQty: totalQty,
-          existingQty: parseInt(inPersonItems[existingKey].qty) || 1,
-          existingKey: existingKey,
-          itemData: item
-        });
-      }
-    });
-
-    if (pendingDuplicatesList.length > 0) {
-      duplicateTransferList.innerHTML = '';
-      pendingDuplicatesList.forEach(dup => {
-        const row = document.createElement('div');
-        row.style.padding = '4px 0';
-        row.style.borderBottom = '1px solid var(--line)';
-
-        const strong = document.createElement('strong');
-        strong.textContent = dup.name;
-
-        const detailsText = document.createTextNode(
-          ` - קיים: ${dup.existingQty} ${dup.unit} | מועבר: +${dup.transferQty}`
-        );
-
-        row.appendChild(strong);
-        row.appendChild(detailsText);
-        duplicateTransferList.appendChild(row);
-      });
-      duplicateTransferModalOverlay.classList.add('show');
-    } else {
-      executeBulkTransfer(inPersonItems, 'merge');
-    }
-  };
-
-  confirmMergeAllTransferBtn.onclick = async () => {
-    const inPersonSnap = await get(ref(db, `lists/inPerson`));
-    executeBulkTransfer(inPersonSnap.val() || {}, 'merge');
-    duplicateTransferModalOverlay.classList.remove('show');
-  };
-
-  confirmSkipDuplicatesTransferBtn.onclick = async () => {
-    const inPersonSnap = await get(ref(db, `lists/inPerson`));
-    executeBulkTransfer(inPersonSnap.val() || {}, 'skip');
-    duplicateTransferModalOverlay.classList.remove('show');
-  };
-
-  function executeBulkTransfer(inPersonItems, duplicateAction) {
-    const user = requireUserName();
-    let transferredCount = 0;
-
-    pendingBulkTransferItems.forEach(item => {
-      const totalQty = calculateTotalQty(item);
-      const existingKey = findMatchingItemKey(inPersonItems, item);
-
-      if (existingKey && duplicateAction === 'skip') {
-        return;
-      }
-
-      mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
-      transferredCount++;
-    });
-
-    showToast(`${transferredCount} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`);
-  }
-
-  function setAuditStatus(id, status) {
-    triggerHapticFeedback(15);
-    if (status === 'partial') {
-      const item = itemsMap[id];
-      const totalOrdered = calculateTotalQty(item);
-      const rec = prompt(`הוזמנו סך הכל ${totalOrdered} ${item.unit || "יח'"}.\n\nכמה יחידות התקבלו בפועל?`, "1");
-      
-      if (rec !== null) {
-        const receivedQty = parseInt(rec) || 0;
-        const missingQty = Math.max(0, totalOrdered - receivedQty);
-        
-        update(ref(db, `lists/${currentListType}/${id}`), {
-          auditStatus: 'partial',
-          partialReceivedQty: receivedQty,
-          partialMissingQty: missingQty
-        });
-        showToast(`עודכן: התקבלו ${receivedQty}, חסרים ${missingQty}`);
-      }
-      return;
-    }
-
-    update(ref(db, `lists/${currentListType}/${id}`), { auditStatus: status });
-  }
-
-  function toggleClaimItem(id, currentBuyer) {
-    const user = requireUserName();
-    if (!user) return;
-
-    triggerHapticFeedback(15);
-    const newBuyer = (currentBuyer === user) ? '' : user;
-    update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
-  }
-
-  function togglePriority(id, currentStatus) {
-    update(ref(db, `lists/${currentListType}/${id}`), { isPriority: !currentStatus });
-  }
-
-  function editItem(id, currentName, currentQty) {
-    const newName = prompt('שם המוצר:', currentName);
-    if (!newName) return;
-    const normalizedName = normalizeProductName(newName.trim());
-    update(ref(db, `lists/${currentListType}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) });
-  }
-
-  function toggleItem(id, currentStatus) {
-    triggerHapticFeedback(25);
-    update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
-  }
-
-  function deleteItem(id) {
-    saveUndoBackup(id);
-    remove(ref(db, `lists/${currentListType}/${id}`));
-    showToast('הפריט נמחק', true);
-  }
-
-  showMissingSummaryBtn.onclick = () => {
-    const keys = Object.keys(itemsMap);
-    const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
-
-    if (missingItems.length === 0) {
-      showToast('אין פריטים חסרים בבדיקה זו! 🎉');
-      return;
-    }
-
-    missingItemsList.innerHTML = '';
-    missingItems.forEach(id => {
-      const item = itemsMap[id];
-      let missingQty = calculateTotalQty(item);
-      if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
-        missingQty = item.partialMissingQty;
-      }
-
-      const div = document.createElement('div');
-      div.style.padding = '6px 0';
-      div.style.borderBottom = '1px solid var(--line)';
-      div.textContent = `${item.name} - ${missingQty} ${item.unit || "יח'"} (${item.auditStatus === 'missing' ? 'חסר לחלוטין ❌' : 'חלקית ⚠️'})`;
-      missingItemsList.appendChild(div);
-    });
-
-    missingModalOverlay.classList.add('show');
-  };
-
-  transferMissingToInPersonBtn.onclick = async () => {
-    const user = requireUserName();
-    if (!user) return;
-
-    const keys = Object.keys(itemsMap);
-    const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
-
-    const inPersonSnap = await get(ref(db, `lists/inPerson`));
-    const inPersonItems = inPersonSnap.val() || {};
-    let transferredCount = 0;
-
-    missingItems.forEach(id => {
-      const item = itemsMap[id];
-      let missingQty = calculateTotalQty(item);
-      if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
-        missingQty = item.partialMissingQty;
-      }
-
-      if (missingQty <= 0) return;
-
-      mergeOrCreateItem('lists/inPerson', inPersonItems, item, missingQty, `הועבר ממשלוח (${user})`, { isPriority: true, carryPersonalMap: false });
-      transferredCount++;
-    });
-
-    missingModalOverlay.classList.remove('show');
-    showToast(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`);
-  };
-
-  clearCurrentListBtn.addEventListener('click', () => {
-    const currentTabTitle = TAB_NAMES[currentListType] || '';
-    const confirmClear = confirm(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`);
-    if (confirmClear) {
-      remove(listRef);
-      set(listStatusRef, '📝 בהכנה');
-      settingsModalOverlay.classList.remove('show');
-      showToast('הרשימה אופסה בהצלחה');
-    }
-  });
-
-  undoBtn.onclick = () => {
-    if (lastStateBackup && lastStateBackup.itemId) {
-      set(ref(db, `lists/${currentListType}/${lastStateBackup.itemId}`), lastStateBackup.data);
-      lastStateBackup = null;
-      document.getElementById('toast').classList.remove('show');
-      showToast('השינוי בוטל בהצלחה!');
-    }
-  };
-
-  filterBtn.addEventListener('click', () => {
-    hideDoneItems = !hideDoneItems;
-    filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שהושלמו';
-    render();
-  });
-
-  auditToggleBtn.addEventListener('click', () => {
-    isAuditMode = !isAuditMode;
-    moreMenuModalOverlay.classList.remove('show');
-
-    if (isAuditMode) {
-      showToast('מצב בדיקת משלוח הופעל');
-    } else {
-      showToast('מצב בדיקת משלוח כובה');
-    }
-    render();
-  });
-
-  document.getElementById('exportHebrewBtn').onclick = () => generateExportText('he');
-  document.getElementById('exportEnglishBtn').onclick = () => generateExportText('en');
-  document.getElementById('exportGreekBtn').onclick = () => generateExportText('el');
-
-  function generateExportText(lang) {
-    const keys = Object.keys(itemsMap);
-    if (keys.length === 0) {
-      showToast('הרשימה ריקה!');
-      exportLangModalOverlay.classList.remove('show');
-      return;
-    }
-
-    const grouped = {};
-    const untranslatedItems = [];
-
-    keys.forEach(id => {
-      const item = itemsMap[id];
-      const cat = item.category || detectCategory(item.name);
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(item);
-    });
-
-    let greetingMsg = 'שלום, אנו מעוניינים להזמין את המוצרים הבאים:';
-    if (lang === 'en') greetingMsg = 'Hello, we would like to order the following items:';
-    if (lang === 'el') greetingMsg = 'Γεια σας, θα θέλαμε να παραγγείλουμε τα ακόλουθα προϊόντα:';
-
-    let text = `${greetingMsg}\n\n`;
-
-    Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
-      let catTitle = cat;
-      if (lang !== 'he' && TRANSLATION_DICTIONARY.categories[cat]) {
-        catTitle = TRANSLATION_DICTIONARY.categories[cat][lang] || cat;
-      }
-
-      text += `*${catTitle}*\n`;
-      grouped[cat].forEach(i => {
-        const totalQty = calculateTotalQty(i);
-        let itemName = i.name;
-        let unitName = translateUnit(i.unit, lang, cat);
-
-        if (lang !== 'he') {
-          const translated = translateItemName(i.name, lang);
-          if (translated) {
-            itemName = translated;
-          } else {
-            untranslatedItems.push(i.name);
-          }
-        }
-
-        const buyerInfo = (i.buyer && lang === 'he') ? ` (אחראי: ${i.buyer})` : '';
-        text += `• ${itemName} - ${totalQty} ${unitName}${buyerInfo}\n`;
-      });
-      text += `\n`;
-    });
-
-    exportPreviewTextarea.value = text.trim();
-
-    if (lang !== 'he' && untranslatedItems.length > 0) {
-      untranslatedWarning.style.display = 'block';
-      untranslatedWarning.textContent = `⚠️ ${untranslatedItems.length} מוצרים לא תורגמו ונשארו בשמם המקורי: ${untranslatedItems.join(', ')}`;
-    } else {
-      untranslatedWarning.style.display = 'none';
-    }
-
-    exportLangModalOverlay.classList.remove('show');
-    exportPreviewModalOverlay.classList.add('show');
-  }
-
-  confirmCopyExportBtn.onclick = () => {
-    triggerHapticFeedback(20);
-    const textToCopy = exportPreviewTextarea.value;
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      exportPreviewModalOverlay.classList.remove('show');
-      showToast('הטקסט הועתק בהצלחה! תוכל להדביק אותו בוואטסאפ 📋');
-    });
-  };
+import { initializeApp } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-app.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7C9f1b950c9c1745234b1108defcece131%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639226291503972027%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=VVEPhssmD1rhK8YUvZOLfXkSNvb2Ml6gfeAvyFMq%2BiY%3D&reserved=0"
+import { getDatabase, ref, onValue, off, set, push, remove, update, get } from "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.gstatic.com%2Ffirebasejs%2F10.12.0%2Ffirebase-database.js&data=05%7C02%7Cnelevy%40pelephone.co.il%7C9f1b950c9c1745234b1108defcece131%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639226291503990102%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=Rqa7%2BHFzOESqbkqvLKmXGyJq%2BvJihJqFI%2BLVz%2FwK0ng%3D&reserved=0"
+
+const firebaseConfig = {
+apiKey: "AIzaSyDhTtqVrBiKfKLxd0Vmd_XwBEJm5oh_vMg",
+authDomain: "mykonos-list.firebaseapp.com",
+databaseURL: "https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fmykonos-list-default-rtdb.firebaseio.com%2F&data=05%7C02%7Cnelevy%40pelephone.co.il%7C9f1b950c9c1745234b1108defcece131%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639226291504007704%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=I6KyoZK4xybEwGAEN00pEYKA2RfK7XDTzqp4FpoHujs%3D&reserved=0",
+projectId: "mykonos-list",
+storageBucket: "mykonos-list.firebasestorage.app",
+messagingSenderId: "471388041921",
+appId: "1:471388041921:web:c0100252c6397f67dc1a40",
+measurementId: "G-0VXCEZ117S"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let currentListType = 'delivery';
+let listRef = ref(db, `lists/${currentListType}`);
+let listStatusRef = ref(db, `lists/${currentListType}_status`);
+
+const NAME_KEY = 'mykonos-my-name';
+const THEME_KEY = 'mykonos-theme';
+let itemsMap = {};
+let listStatus = '📝 בהכנה';
+let hideDoneItems = false;
+let isAuditMode = false;
+let collapsedCategories = {};
+let lastStateBackup = null;
+
+let activePersonalItemId = null;
+let activePersonalMap = {};
+let tempPersonalQty = 1;
+let tempModalAddQty = 1;
+
+let pendingBulkTransferItems = [];
+let pendingDuplicatesList = [];
+
+function triggerHapticFeedback(duration = 18) {
+if (navigator.vibrate) {
+try {
+navigator.vibrate(duration);
+} catch (e) {}
+}
+}
+
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+function updateThemeUI() {
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+themeToggleBtn.textContent = isDark ? '☀️' : '🌙';
+}
+updateThemeUI();
+
+themeToggleBtn.addEventListener('click', () => {
+triggerHapticFeedback(15);
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+if (isDark) {
+document.documentElement.removeAttribute('data-theme');
+localStorage.setItem(THEME_KEY, 'light');
+} else {
+document.documentElement.setAttribute('data-theme', 'dark');
+localStorage.setItem(THEME_KEY, 'dark');
+}
+updateThemeUI();
+});
+
+const TAB_NAMES = {
+'delivery': 'משלוח 📦',
+'inPerson': 'בקניה עצמית 🛒',
+'fromIsrael': 'מהארץ ✈️'
+};
+
+const AUDIT_LABELS_BY_TAB = {
+'delivery': { received: 'התקבל ✅', partial: 'חלקי ⚠️', replaced: 'הוחלף 🔄', missing: 'חסר ❌' },
+'inPerson': { received: 'נקנה ✅', partial: 'חלקי ⚠️', replaced: 'חלופי 🔄', missing: 'לא נמצא ❌' },
+'fromIsrael': { received: 'ארוז ✅', partial: 'חלקי ⚠️', replaced: 'באחריות 👤', missing: 'חסר ❌' }
+};
+
+const TRANSLATION_DICTIONARY = {
+categories: {
+'פירות וירקות 🍅': { en: 'Fruits & Vegetables 🍅', el: 'Φρούτα & Λαχανικά 🍅' },
+'בשר, דגים ועופות 🥩': { en: 'Meat, Fish & Poultry 🥩', el: 'Κρέας & Ψάρια 🥩' },
+'שתייה ומשקאות 🥤': { en: 'Drinks & Beverages 🥤', el: 'Ποτά & Αναψυκτικά 🥤' },
+'חלב וביצים 🧀': { en: 'Dairy & Eggs 🧀', el: 'Γαλακτοκομικά & Αυγά 🧀' },
+'מאפה ודגנים 🥖': { en: 'Bakery & Grains 🥖', el: 'Ψωμί & Δημητριακά 🥖' },
+'חטיפים ומתוקים 🍫': { en: 'Snacks & Sweets 🍫', el: 'Σνακ & Γλυκά 🍫' },
+'פארם וניקיון 🧼': { en: 'Pharmacy & Cleaning 🧼', el: 'Καθαριότητα & Φαρμακείο 🧼' },
+'כלי בית וציוד 🏠': { en: 'Household & Supplies 🏠', el: 'Είδη Σπιטיού 🏠' },
+'מוצרים נוספים 🛒': { en: 'Other Items 🛒', el: 'Άλλα Είδη 🛒' }
+},
+units: {
+'unit': { en: 'pcs', el: 'τεμ' },
+'pack': { en: 'pack', el: 'πακέτο' },
+'bottle': { en: 'bottle', el: 'μπουκάλι' },
+'kg': { en: 'kg', el: 'κιλό' }
+},
+items: {
+// פירות וירקות
+'עגבניות': { en: 'Tomatoes', el: 'Ντομάτες' },
+'עגבניות שרי': { en: 'Cherry Tomatoes', el: 'Ντοματίνια' },
+'מלפפונים': { en: 'Cucumbers', el: 'Αγγούρια' },
+'בננות': { en: 'Bananas', el: 'Μπανάνες' },
+'לימונים': { en: 'Lemons', el: 'Λεμόνια' },
+'קישואים': { en: 'Zucchini / Courgettes', el: 'Κολοκυθάκια' },
+'אוכמניות': { en: 'Blueberries', el: 'Μύρτιλα' },
+'פטל': { en: 'Raspberries', el: 'Σμέουρα' },
+'תותים': { en: 'Strawberries', el: 'Φράουλες' },
+'אבטיח': { en: 'Watermelon', el: 'Καρπούζι' },
+'מלון': { en: 'Melon', el: 'Πεπόνι' },
+'תפוחים': { en: 'Apples', el: 'Μήλα' },
+'תפוח סמיט': { en: 'Granny Smith Apples (Green)', el: 'Πράσινα Μήλα (Granny Smith)' },
+'תפוח חרמון': { en: 'Red Apples', el: 'Κόκκινα Μήλα' },
+'ענבים': { en: 'Grapes', el: 'Σταφύλια' },
+'אבוקדו': { en: 'Avocado', el: 'Αβοκάντο' },
+'בצל': { en: 'Onions', el: 'Κρεμμύδια' },
+'בצל ירוק': { en: 'Green Onions', el: 'Φρέσκα Κρεμμυδάκια' },
+'שום': { en: 'Garlic', el: 'Σκόρδο' },
+'חסה': { en: 'Lettuce', el: 'Μαρούλι' },
+'גזר': { en: 'Carrots', el: 'Καρότα' },
+'תפוחי אדמה': { en: 'Potatoes', el: 'Πατάτες' },
+'פלפל': { en: 'Bell Peppers', el: 'Πιπεριές' },
+'פטריות': { en: 'Mushrooms', el: 'Μανιτάρια' },
+// משקאות ושתייה
+'קולה זירו': { en: 'Coca-Cola Zero', el: 'Coca-Cola Zero' },
+'קוקה קולה': { en: 'Coca-Cola', el: 'Coca-Cola' },
+'מים מינרלים': { en: 'Mineral Water (Pack of 6)', el: 'Εμφιαλωμένο Νερό (Εξάδα)' },
+'סודה': { en: 'Soda Water', el: 'Σόδα' },
+'טוניק': { en: 'Tonic Water', el: 'Τόνικ' },
+'מיץ תפוזים': { en: 'Orange Juice', el: 'Χυμός Πορτοκάλι' },
+'יין': { en: 'Wine', el: 'Κρασί' },
+'יין לבן': { en: 'White Wine', el: 'Λευκό Κρασί' },
+'יין אדום': { en: 'Red Wine', el: 'Κόκκινο Κρασί' },
+'יין רוזה': { en: 'Rosé Wine', el: 'Ροζέ Κρασί' },
+'בירה': { en: 'Beer', el: 'Μπίρα' },
+'ג׳ין': { en: 'Gin', el: 'Τζιν' },
+'וודקה': { en: 'Vodka', el: 'Βότκα' },
+'קפה': { en: 'Coffee', el: 'Καφές' },
+'קפסולות קפה': { en: 'Coffee Capsules', el: 'Κάψουλες Καφέ' },
+'תה': { en: 'Tea', el: 'Τσάι' },
+'קרח': { en: 'Ice Bag', el: 'Πάγος' },
+
+// חלב וביצים
+'מעדני פרו': { en: 'Protein Yogurt', el: 'Γιαούρτι Πρωτεΐνης' },
+'יוגורט יווני': { en: 'Greek Yogurt', el: 'Ελληνικό Γιαούρτι' },
+'גבינה צהובה': { en: 'Sliced Yellow Cheese', el: 'Κίτρινο Τυρί σε Φέτες' },
+'גבינת פטה': { en: 'Feta Cheese', el: 'Φέτα' },
+'קוטג\'/ גבינה רכה': { en: 'Cottage Cheese / Soft Cheese', el: 'Τυρί Κότατζ' },
+'גבינת מוצרלה': { en: 'Mozzarella', el: 'Μοτσαρέλα' },
+'פרמזן': { en: 'Parmesan', el: 'Παρμεζάνα' },
+'ביצים': { en: 'Eggs', el: 'Αυγά' },
+'חלב': { en: 'Milk', el: 'Γάλα' },
+'חלב שקדים': { en: 'Almond Milk', el: 'Γάλα Αμυγδάλου' },
+'חלב סויה': { en: 'Soy Milk', el: 'Γάλα Σόγιας' },
+'חלב שיבולת שועל': { en: 'Oat Milk', el: 'Γάλα Βρώμης' },
+'חמאה': { en: 'Butter', el: 'Βούτυρο' },
+'שמנת מתוקה': { en: 'Heavy Cream', el: 'Κρέμα Γάλακτος' },
+
+// מאפה ודגנים
+'קרואסונים': { en: 'Croissants', el: 'Κρουασάν' },
+'קרואסון שוקולד': { en: 'Chocolate Croissant', el: 'Κρουασάν Σοκολάτας' },
+'קרואסון חמאה': { en: 'Butter Croissant', el: 'Κρουασάν Βουτύρου' },
+'מאפים': { en: 'Pastries', el: 'Σφολιάτες' },
+'לחמניות': { en: 'Buns / Rolls', el: 'Ψωμάκια' },
+'לחם': { en: 'Bread', el: 'Ψωμί' },
+'לחם טוסט': { en: 'Toast Bread', el: 'Ψωμί για Τοστ' },
+'פיתות': { en: 'Pita Bread', el: 'Πίτες' },
+'גרנולה': { en: 'Granola', el: 'Γκρανόλα' },
+'שיבולת שועל': { en: 'Oats', el: 'Βρώμη' },
+'אורז': { en: 'Rice', el: 'Ρύζι' },
+'פסטה': { en: 'Pasta', el: 'Ζυμαρικά' },
+'קורנפלקס': { en: 'Cereal', el: 'Δημητριακά' },
+
+// בשר ודגים
+'חזה עוף': { en: 'Chicken Breast', el: 'Στήθος Κοτόπουλο' },
+'כרעיים עוף': { en: 'Chicken Thighs', el: 'Μπούτια Κοτόπουλο' },
+'בשר טחון': { en: 'Minced Meat', el: 'Κιμάς' },
+'סטייק': { en: 'Steak', el: 'Μπριζόλα' },
+'סלמון': { en: 'Fresh Salmon', el: 'Φρέσκος Σολομός' },
+'טונה': { en: 'Canned Tuna', el: 'Τόνος' },
+'נקניקיות': { en: 'Sausages', el: 'Λουκάνικα' },
+
+// חטיפים, מתוקים וקפואים
+'גלידה': { en: 'Ice Cream Tub', el: 'Παγωτό' },
+'ארטיקים': { en: 'Popsicles / Ice Cream Bars', el: 'Γρανίτες / Παγωτά' },
+'סוכריות גומי': { en: 'Gummy Candy / Jellies', el: 'Ζελεδάκια' },
+'ממתקים': { en: 'Candy / Sweets', el: 'Γλυκά / Καραμέλες' },
+'חטיפי חלבון': { en: 'Protein Bars', el: 'Μπάρες Πρωτεΐνης' },
+'שוקולד': { en: 'Chocolate', el: 'Σοκολάτα' },
+'עוגיות': { en: 'Cookies', el: 'Μπισκότα' },
+'צ\'יפס': { en: 'Potato Chips', el: 'Πατατάκια' },
+'אגוזים / שקדים': { en: 'Nuts & Almonds', el: 'Ξηροί Καρποί' },
+
+// פארם, ניקיון וכלי בית
+'נייר סופג': { en: 'Paper Towels / Kitchen Roll', el: 'Χαρτί Κουζίνας' },
+'נייר טואלט': { en: 'Toilet Paper', el: 'Χαρτί Υγείας' },
+'מגבונים': { en: 'Wet Wipes', el: 'Μωρομάντηλα' },
+'שקיות אשפה': { en: 'Trash Bags', el: 'Σακούλες Σκουπιδιών' },
+'נוזל כלים': { en: 'Dish Soap', el: 'Υγρό Πιάτων' },
+'ספוג כלים': { en: 'Dish Sponges', el: 'Σφουγγαράκια Πιάτων' },
+'סבון ידיים': { en: 'Hand Soap', el: 'Κρεμοσάπουνο' },
+'סבון גוף': { en: 'Body Wash / Shower Gel', el: 'Αφρόλουτρο' },
+'שמפו': { en: 'Shampoo', el: 'Σαμπουάν' },
+'משחת שיניים': { en: 'Toothpaste', el: 'Οδοντόκρεμα' },
+'קרם הגנה': { en: 'Sunscreen', el: 'Αντηλιακό' },
+'נייר אלומיניום': { en: 'Aluminum Foil', el: 'Αλουμινόχαρτο' },
+'ניילון נצמד': { en: 'Plastic Wrap', el: 'Διαφανής Μεμβράνη' },
+'נייר אפייה': { en: 'Baking Paper', el: 'Λαδόκολλα' },
+
+// מזווה ושונות
+'שמן זית': { en: 'Olive Oil', el: 'Ελαιόλαδο' },
+'שמן קנולה': { en: 'Vegetable Oil', el: 'Σπορέλαιο' },
+'מלח': { en: 'Salt', el: 'Αλάτι' },
+'פלפל שחור': { en: 'Black Pepper', el: 'Μαύρο Πιπέρι' },
+'סוכר': { en: 'Sugar', el: 'Ζάχαρη' },
+'רטבים': { en: 'Sauces', el: 'Σάλτσες' },
+'קטשופ': { en: 'Ketchup', el: 'Κέτσαπ' },
+'מיונז': { en: 'Mayonnaise', el: 'Μαγιονέζα' },
+'חרדל': { en: 'Mustard', el: 'Μουστάρδα' }
+}
+};
+
+function normalizeUnitKey(rawUnit, categoryName) {
+if (!rawUnit) {
+if (categoryName === 'פירות וירקות 🍅') return 'kg';
+return 'unit';
+}
+
+let clean = rawUnit.toString().trim().toLowerCase();
+clean = clean.replace(/&quot;|&#34;/g, '');
+clean = clean.replace(/["״'׳”״“’‘\\]/g, '');
+clean = clean.trim();
+
+if (clean === 'קג' || clean === 'קילו' || clean === 'קילוגרם' || clean === 'kg' || clean === 'kilo') {
+return 'kg';
+}
+if (clean === 'מארז' || clean === 'חבילה' || clean === 'pack' || clean === 'package') {
+return 'pack';
+}
+if (clean === 'בקבוק' || clean === 'bottle') {
+return 'bottle';
+}
+return 'unit';
+}
+
+function translateUnit(rawUnit, lang, categoryName) {
+const key = normalizeUnitKey(rawUnit, categoryName);
+if (lang !== 'he' && TRANSLATION_DICTIONARY.units[key]) {
+return TRANSLATION_DICTIONARY.units[key][lang] || rawUnit;
+}
+if (key === 'kg' && (!rawUnit || rawUnit === "יח'")) return 'ק"ג';
+return rawUnit || "יח'"
+}
+
+function translateItemName(rawName, lang) {
+if (lang === 'he') return rawName;
+let clean = normalizeProductName(rawName).trim().toLowerCase();
+// ניקוי מילות עזר ותיאור
+clean = clean.replace(/\b(מסוג|סוג|בטעם|טעם|חבילת|שקית|מגש|קופסת|קופסא)\b/g, '').trim();
+
+// 1. בדיקה מול מילון מותאם
+if (TRANSLATION_DICTIONARY.items[rawName]) {
+return TRANSLATION_DICTIONARY.items[rawName][lang];
+}
+
+// 2. התאמה מדויקת לאחר נרמול
+for (const [key, trans] of Object.entries(TRANSLATION_DICTIONARY.items)) {
+if (key.toLowerCase() === clean) {
+return trans[lang];
+}
+}
+
+// 3. זיהוי חכם לפי מילות מפתח מורכבות (למשל סמיט, גומי, קרואסון)
+if (clean.includes('סמיט') || clean.includes('גרני')) return TRANSLATION_DICTIONARY.items['תפוח סמיט'][lang];
+if (clean.includes('גומי')) return TRANSLATION_DICTIONARY.items['סוכריות גומי'][lang];
+if (clean.includes('קישוא') || clean.includes('זוקיני')) return TRANSLATION_DICTIONARY.items['קישואים'][lang];
+if (clean.includes('קרואסון')) return TRANSLATION_DICTIONARY.items['קרואסונים'][lang];
+if (clean.includes('גליד')) return TRANSLATION_DICTIONARY.items['גלידה'][lang];
+if (clean.includes('ארטיק')) return TRANSLATION_DICTIONARY.items['ארטיקים'][lang];
+if (clean.includes('תפוח')) return TRANSLATION_DICTIONARY.items['תפוחים'][lang];
+
+// 4. התאמת הכלה כללית
+for (const [key, trans] of Object.entries(TRANSLATION_DICTIONARY.items)) {
+if (clean.includes(key.toLowerCase()) || key.toLowerCase().includes(clean)) {
+return trans[lang];
+}
+}
+
+return null;
+}
+
+const shareUrl = window.location.href;
+const waText = encodeURIComponent(`היי חברים, הנה רשימת הקניות המשותפת שלנו למיקונוס! תוסיפו מוצרים ונתעדכן בלייב 🛒🇬🇷\n\n${shareUrl}`);
+document.getElementById('waBtn').href = `https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapi.whatsapp.com%2Fsend%3Ftext%3D%24&data=05%7C02%7Cnelevy%40pelephone.co.il%7C9f1b950c9c1745234b1108defcece131%7Ca7644229a92a46f09b2bc8ee751aa1c9%7C0%7C0%7C639226291504028147%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=FLTWTF2OAuHkpGWhsC6o%2FWucAR3MXKlTUu9gbcEoZjY%3D&reserved=0{waText}`;
+
+const SYNONYMS_MAP = {
+'קולה זירו': ['זירו', 'קוקה קולה זירו', 'קולה זרו', 'קוקה זירו'],
+'מעדני פרו': ['מעדן חלבון', 'פרו', 'מעדן פרו', 'יוגורט חלבון', 'יוגורט פרו'],
+'מים מינרלים': ['מים', 'בקבוק מים', 'שישיית מים', 'שישית מים'],
+'גבינה צהובה': ['צהובה', 'גבינה צהובה פרוסה'],
+'קוטג\'/ גבינה רכה': ['קוטג', 'קוטג\'', 'גבינה לבנה', 'גבינה רכה'],
+'חטיפי חלבון': ['חטיף חלבון', 'חלבון'],
+'עגבניות': ['עגבניה'],
+'מלפפונים': ['מלפפון'],
+'בננות': ['בננה'],
+'לימונים': ['לימון'],
+'קישואים': ['קישוא', 'זוקיני'],
+'קרואסונים': ['קרואסון', 'קוראסון', 'קוראסונים'],
+'גלידה': ['גלידות', 'פיינט גלידה'],
+'סוכריות גומי': ['גומי', 'נחשי גומי', 'דובי גומי', 'סוכריות'],
+'לחמניות': ['לחמניה'],
+'חזה עוף': ['עוף', 'חזה עוף פרוס', 'שניצל'],
+'אוכמניות': ['אוכמניה', 'בלובריז', 'בלוברי'],
+'נייר סופג': ['נייר מגבת', 'מגבות נייר', 'גליל נייר']
+};
+
+function normalizeProductName(input) {
+if (!input) return '';
+const clean = input.trim().toLowerCase();
+for (const [canonicalName, aliases] of Object.entries(SYNONYMS_MAP)) {
+if (clean === canonicalName.toLowerCase() || aliases.some(alias => alias.toLowerCase() === clean)) {
+return canonicalName;
+}
+}
+return input.trim();
+}
+
+const CATEGORY_DICTIONARY = {
+'פירות וירקות 🍅': ['עגבניה', 'עגבניות', 'מלפפון', 'מלפפונים', 'בצל', 'שום', 'בננה', 'בננות', 'ענבים', 'לימון', 'לימונים', 'תפוח', 'תפוז', 'אבוקדו', 'חסה', 'גזר', 'אוכמניות', 'פטל', 'תות', 'מלון', 'אבטיח', 'תפוח אדמה', 'פלפל', 'פטריות', 'קישוא', 'זוקיני'],
+'בשר, דגים ועופות 🥩': ['עוף', 'חזה עוף', 'בשר', 'דג', 'דגים', 'טונה', 'סלמון', 'נקניק', 'קבב', 'המבורגר', 'פרגית', 'סטייק', 'שניצל', 'כרעיים'],
+'שתייה ומשקאות 🥤': ['מים', 'קולה', 'זירו', 'סודה', 'טוניק', 'מיץ', 'אשכוליות', 'יין', 'בירה', 'אלכוהול', 'וודקה', 'ג׳ין', 'קפה', 'תה', 'קרח'],
+'חלב וביצים 🧀': ['חלב', 'ביצים', 'גבינה', 'קוטג\'', 'חמאה', 'מעדן', 'מעדני', 'יוגורט', 'שמנת', 'צהובה', 'פרו', 'פטה', 'מוצרלה'],
+'מאפה ודגנים 🥖': ['לחם', 'לחמניות', 'שיבולת שועל', 'גרנולה', 'אורז', 'פסטה', 'פיתות', 'קרקרים', 'קורנפלקס', 'טוסט', 'קרואסון', 'מאפה'],
+'חטיפים ומתוקים 🍫': ['חטיף', 'חטיפי', 'חלבון', 'שוקולד', 'עוגיות', 'במבה', 'ביסלי', 'צ\'יפס', 'סוכריות', 'אגוזים', 'שקדים', 'גלידה', 'ארטיק', 'גומי', 'ממתק'],
+'פארם וניקיון 🧼': ['סבון', 'כביסה', 'כדוריות', 'אבקת כביסה', 'נוזל כביסה', 'משחת שיניים', 'שמפו', 'מרכך', 'נייר טואלט', 'מגבונים', 'ניקוי', 'דאודורנט', 'קרם הגנה', 'נוזל כלים', 'ספוג'],
+'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה', 'נייר סופג', 'ניילון נצמד', 'נייר אפייה']
+};
+
+function detectCategory(itemName) {
+if (!itemName) return 'מוצרים נוספים 🛒';
+const cleanName = itemName.trim().toLowerCase();
+for (const [catName, keywords] of Object.entries(CATEGORY_DICTIONARY)) {
+if (keywords.some(kw => cleanName.includes(kw.toLowerCase()))) {
+return catName;
+}
+}
+return 'מוצרים נוספים 🛒';
+}
+
+function showToast(message, showUndo = false) {
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
+const undoBtn = document.getElementById('undoBtn');
+toastText.textContent = message;
+undoBtn.style.display = showUndo ? 'block' : 'none';
+toast.classList.add('show');
+setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+
+function saveUndoBackup(itemId) {
+if (itemId && itemsMap[itemId]) {
+lastStateBackup = { itemId, data: JSON.parse(JSON.stringify(itemsMap[itemId])) };
+}
+}
+
+function requireUserName() {
+const myName = myNameInput.value.trim();
+const whoamiBox = document.getElementById('whoamiBox');
+
+if (!myName) {
+whoamiBox.classList.add('highlight');
+myNameInput.focus();
+showToast('נא לבחור את שמך מהרשימה בראש המסך');
+return null;
+}
+whoamiBox.classList.remove('highlight');
+return myName;
+}
+
+function switchListTab(listType) {
+triggerHapticFeedback(12);
+currentListType = listType;
+document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+if (listType === 'delivery') document.getElementById('tabDeliveryBtn').classList.add('active');
+if (listType === 'inPerson') document.getElementById('tabInPersonBtn').classList.add('active');
+if (listType === 'fromIsrael') document.getElementById('tabFromIsraelBtn').classList.add('active');
+
+off(listRef);
+off(listStatusRef);
+
+listRef = ref(db, `lists/${currentListType}`);
+listStatusRef = ref(db, `lists/${currentListType}_status`);
+
+const exportBtn = document.getElementById('exportBtn');
+const transferAllToInPersonBtn = document.getElementById('transferAllToInPersonBtn');
+if (exportBtn) {
+exportBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
+}
+if (transferAllToInPersonBtn) {
+transferAllToInPersonBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
+}
+
+listenToFirebase();
+}
+
+document.getElementById('tabDeliveryBtn').addEventListener('click', () => switchListTab('delivery'));
+document.getElementById('tabInPersonBtn').addEventListener('click', () => switchListTab('inPerson'));
+document.getElementById('tabFromIsraelBtn').addEventListener('click', () => switchListTab('fromIsrael'));
+
+const categoriesContainer = document.getElementById('categoriesContainer');
+const myNameInput = document.getElementById('myName');
+const filterBtn = document.getElementById('filterBtn');
+const auditToggleBtn = document.getElementById('auditToggleBtn');
+const exportBtn = document.getElementById('exportBtn');
+const transferAllToInPersonBtn = document.getElementById('transferAllToInPersonBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const clearCurrentListBtn = document.getElementById('clearCurrentListBtn');
+const statusTag = document.getElementById('statusTag');
+const progressBarFill = document.getElementById('progressBarFill');
+const progressText = document.getElementById('progressText');
+const undoBtn = document.getElementById('undoBtn');
+const showMissingSummaryBtn = document.getElementById('showMissingSummaryBtn');
+
+const modalOverlay = document.getElementById('modalOverlay');
+const openModalBtn = document.getElementById('openModalBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const addModalForm = document.getElementById('addModalForm');
+
+// רכיבי בורר כמות בטופס
+const modalQtyDisplay = document.getElementById('modalQtyDisplay');
+const modalQtyInput = document.getElementById('modalQtyInput');
+const modalQtyDecBtn = document.getElementById('modalQtyDecBtn');
+const modalQtyIncBtn = document.getElementById('modalQtyIncBtn');
+
+modalQtyIncBtn.onclick = () => {
+triggerHapticFeedback(10);
+tempModalAddQty++;
+modalQtyDisplay.textContent = tempModalAddQty;
+modalQtyInput.value = tempModalAddQty;
+};
+
+modalQtyDecBtn.onclick = () => {
+if (tempModalAddQty > 1) {
+triggerHapticFeedback(10);
+tempModalAddQty--;
+modalQtyDisplay.textContent = tempModalAddQty;
+modalQtyInput.value = tempModalAddQty;
+}
+};
+
+const openMoreMenuBtn = document.getElementById('openMoreMenuBtn');
+const moreMenuModalOverlay = document.getElementById('moreMenuModalOverlay');
+const closeMoreMenuModalBtn = document.getElementById('closeMoreMenuModalBtn');
+
+const statusModalOverlay = document.getElementById('statusModalOverlay');
+const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
+
+const exportLangModalOverlay = document.getElementById('exportLangModalOverlay');
+const closeLangModalBtn = document.getElementById('closeLangModalBtn');
+const backToMoreFromLangBtn = document.getElementById('backToMoreFromLangBtn');
+
+const exportPreviewModalOverlay = document.getElementById('exportPreviewModalOverlay');
+const closeExportPreviewModalBtn = document.getElementById('closeExportPreviewModalBtn');
+const backToLangFromPreviewBtn = document.getElementById('backToLangFromPreviewBtn');
+const exportPreviewTextarea = document.getElementById('exportPreviewTextarea');
+const confirmCopyExportBtn = document.getElementById('confirmCopyExportBtn');
+const untranslatedWarning = document.getElementById('untranslatedWarning');
+
+const duplicateTransferModalOverlay = document.getElementById('duplicateTransferModalOverlay');
+const closeDupTransferModalBtn = document.getElementById('closeDupTransferModalBtn');
+const duplicateTransferList = document.getElementById('duplicateTransferList');
+const confirmMergeAllTransferBtn = document.getElementById('confirmMergeAllTransferBtn');
+const confirmSkipDuplicatesTransferBtn = document.getElementById('confirmSkipDuplicatesTransferBtn');
+
+const personalQtyModalOverlay = document.getElementById('personalQtyModalOverlay');
+const closePersonalModalBtn = document.getElementById('closePersonalModalBtn');
+const incPersonalQtyBtn = document.getElementById('incPersonalQtyBtn');
+const decPersonalQtyBtn = document.getElementById('decPersonalQtyBtn');
+const personalQtyDisplay = document.getElementById('personalQtyDisplay');
+const savePersonalQtyBtn = document.getElementById('savePersonalQtyBtn');
+const removePersonalQtyBtn = document.getElementById('removePersonalQtyBtn');
+
+const missingModalOverlay = document.getElementById('missingModalOverlay');
+const closeMissingModalBtn = document.getElementById('closeMissingModalBtn');
+const missingItemsList = document.getElementById('missingItemsList');
+const transferMissingToInPersonBtn = document.getElementById('transferMissingToInPersonBtn');
+
+const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+const backToMoreFromSettingsBtn = document.getElementById('backToMoreFromSettingsBtn');
+
+openModalBtn.onclick = () => {
+if (!requireUserName()) return;
+tempModalAddQty = 1;
+modalQtyDisplay.textContent = '1';
+modalQtyInput.value = '1';
+modalOverlay.classList.add('show');
+};
+closeModalBtn.onclick = () => modalOverlay.classList.remove('show');
+
+openMoreMenuBtn.onclick = () => {
+updateAuditMenuBtnUI();
+if (transferAllToInPersonBtn) {
+transferAllToInPersonBtn.style.display = (currentListType === 'delivery') ? 'flex' : 'none';
+}
+moreMenuModalOverlay.classList.add('show');
+};
+closeMoreMenuModalBtn.onclick = () => moreMenuModalOverlay.classList.remove('show');
+
+statusTag.onclick = () => statusModalOverlay.classList.add('show');
+closeStatusModalBtn.onclick = () => statusModalOverlay.classList.remove('show');
+
+settingsBtn.onclick = () => {
+moreMenuModalOverlay.classList.remove('show');
+settingsModalOverlay.classList.add('show');
+};
+closeSettingsModalBtn.onclick = () => settingsModalOverlay.classList.remove('show');
+
+backToMoreFromSettingsBtn.onclick = () => {
+settingsModalOverlay.classList.remove('show');
+moreMenuModalOverlay.classList.add('show');
+};
+
+closeMissingModalBtn.onclick = () => missingModalOverlay.classList.remove('show');
+closePersonalModalBtn.onclick = () => personalQtyModalOverlay.classList.remove('show');
+closeDupTransferModalBtn.onclick = () => duplicateTransferModalOverlay.classList.remove('show');
+
+exportBtn.onclick = () => {
+moreMenuModalOverlay.classList.remove('show');
+exportLangModalOverlay.classList.add('show');
+};
+closeLangModalBtn.onclick = () => exportLangModalOverlay.classList.remove('show');
+
+backToMoreFromLangBtn.onclick = () => {
+exportLangModalOverlay.classList.remove('show');
+moreMenuModalOverlay.classList.add('show');
+};
+
+closeExportPreviewModalBtn.onclick = () => exportPreviewModalOverlay.classList.remove('show');
+backToLangFromPreviewBtn.onclick = () => {
+exportPreviewModalOverlay.classList.remove('show');
+exportLangModalOverlay.classList.add('show');
+};
+
+function updateAuditMenuBtnUI() {
+if (isAuditMode) {
+auditToggleBtn.classList.add('active-mode');
+auditToggleBtn.textContent = '✓ בדיקת המשלוח (פעיל - לחץ לכיבוי)';
+} else {
+auditToggleBtn.classList.remove('active-mode');
+auditToggleBtn.textContent = '🔍 בדיקת המשלוח (מצב בדיקה)';
+}
+}
+
+function setStatusAndSave(newStatus) {
+listStatus = newStatus;
+if (listStatus === '🔍 בדיקת המשלוח') {
+isAuditMode = true;
+showMissingSummaryBtn.style.display = 'block';
+}
+set(listStatusRef, listStatus);
+statusModalOverlay.classList.remove('show');
+showToast(`הסטטוס עודכן ל-${listStatus}`);
+}
+
+document.getElementById('statusSelectPrep').onclick = () => setStatusAndSave('📝 בהכנה');
+document.getElementById('statusSelectReady').onclick = () => setStatusAndSave('✅ מוכנה');
+document.getElementById('statusSelectOrdered').onclick = () => setStatusAndSave('🚚 הוזמנה / בקנייה');
+document.getElementById('statusSelectAudit').onclick = () => setStatusAndSave('🔍 בדיקת המשלוח');
+document.getElementById('statusSelectDone').onclick = () => setStatusAndSave('🎉 הושלמה');
+
+document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
+input.addEventListener('focus', () => {
+setTimeout(() => {
+input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}, 300);
+});
+});
+
+document.addEventListener('click', (e) => {
+if (!e.target.classList.contains('menu-btn')) {
+document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
+}
+});
+
+const savedName = localStorage.getItem(NAME_KEY);
+if (savedName) myNameInput.value = savedName;
+myNameInput.addEventListener('change', () => {
+const val = myNameInput.value.trim();
+localStorage.setItem(NAME_KEY, val);
+if (val) document.getElementById('whoamiBox').classList.remove('highlight');
+});
+
+function updateProgressBar(keys) {
+const total = keys.length;
+if (total === 0) {
+progressBarFill.style.width = '0%';
+progressText.textContent = '0 מתוך 0 (0%)';
+return;
+}
+const doneCount = keys.filter(id => itemsMap[id].done).length;
+const percent = Math.round((doneCount / total) * 100);
+progressBarFill.style.width = percent + '%';
+progressText.textContent = `${doneCount} מתוך ${total} (${percent}%)`;
+}
+
+function calculateTotalQty(item) {
+const baseQty = parseInt(item.qty) || 1;
+const personalRequests = item.personalQtyMap ? Object.values(item.personalQtyMap).reduce((a, b) => a + (parseInt(b) || 0), 0) : 0;
+return baseQty + personalRequests;
+}
+
+function findMatchingItemKey(targetItemsMap, item) {
+const normName = normalizeProductName(item.name).toLowerCase();
+const unit = item.unit || "יח'"
+return Object.keys(targetItemsMap).find(k => {
+const t = targetItemsMap[k];
+return normalizeProductName(t.name).toLowerCase() === normName && (t.unit || "יח'") === unit;
+});
+}
+
+function mergeOrCreateItem(targetListPath, targetItemsMap, item, qtyToAdd, byLabel, opts = {}) {
+const existingKey = findMatchingItemKey(targetItemsMap, item);
+if (existingKey) {
+const currentQty = parseInt(targetItemsMap[existingKey].qty) || 1;
+update(ref(db, `${targetListPath}/${existingKey}`), {
+qty: (currentQty + qtyToAdd).toString()
+});
+return { merged: true, key: existingKey };
+}
+
+const newItemRef = push(ref(db, targetListPath));
+set(newItemRef, {
+name: item.name,
+qty: qtyToAdd.toString(),
+unit: item.unit || "יח'",
+category: item.category || detectCategory(item.name),
+by: byLabel,
+buyer: '',
+done: false,
+isPriority: opts.isPriority !== undefined ? opts.isPriority : (item.isPriority || false),
+auditStatus: '',
+personalQtyMap: opts.carryPersonalMap ? (item.personalQtyMap || {}) : {}
+});
+return { merged: false, key: newItemRef.key };
+}
+
+function render() {
+categoriesContainer.innerHTML = '';
+statusTag.textContent = listStatus;
+const keys = Object.keys(itemsMap);
+const myName = myNameInput.value.trim();
+
+updateProgressBar(keys);
+showMissingSummaryBtn.style.display = isAuditMode ? 'block' : 'none';
+
+const grouped = {};
+keys.forEach(id => {
+const item = itemsMap[id];
+if (hideDoneItems && item.done) return;
+
+const cat = item.category || detectCategory(item.name);
+if (!grouped[cat]) grouped[cat] = [];
+grouped[cat].push({ id, ...item });
+});
+
+const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he'));
+const auditLabels = AUDIT_LABELS_BY_TAB[currentListType] || AUDIT_LABELS_BY_TAB['delivery'];
+
+sortedCategories.forEach(catName => {
+const remainingInCat = grouped[catName].filter(i => !i.done).length;
+
+const catHeader = document.createElement('div');
+catHeader.className = 'category-header';
+catHeader.addEventListener('click', () => {
+collapsedCategories[catName] = !collapsedCategories[catName];
+render();
+});
+
+const catTitleSpan = document.createElement('span');
+catTitleSpan.textContent = catName;
+
+const catCountSpan = document.createElement('span');
+catCountSpan.className = 'cat-count';
+catCountSpan.textContent = `${remainingInCat} שנשארו`;
+
+catHeader.appendChild(catTitleSpan);
+catHeader.appendChild(catCountSpan);
+
+const ul = document.createElement('ul');
+if (collapsedCategories[catName]) ul.classList.add('collapsed');
+
+grouped[catName].sort((a, b) => a.name.localeCompare(b.name, 'he'));
+
+grouped[catName].forEach(item => {
+const li = document.createElement('li');
+if (item.isPriority) li.classList.add('is-priority');
+
+const personalMap = item.personalQtyMap || {};
+const myPersonalQty = personalMap[myName] || 0;
+const isUserWanting = myName && myPersonalQty > 0;
+const isUserBuyer = myName && item.buyer === myName;
+
+const baseQty = parseInt(item.qty) || 1;
+const totalQty = calculateTotalQty(item);
+
+const wantingCount = Object.keys(personalMap).filter(k => personalMap[k] > 0).length;
+
+const itemRow = document.createElement('div');
+itemRow.className = 'item-row';
+
+const checkDiv = document.createElement('div');
+checkDiv.className = `check ${item.done ? 'done' : ''}`;
+checkDiv.addEventListener('click', () => toggleItem(item.id, item.done));
+
+const itemMain = document.createElement('div');
+itemMain.className = 'item-main';
+
+const itemText = document.createElement('span');
+itemText.className = `item-text ${item.done ? 'done' : ''}`;
+itemText.textContent = item.name;
+
+const qtyBox = document.createElement('div');
+qtyBox.className = 'qty-control-box';
+
+const decBtn = document.createElement('button');
+decBtn.className = 'qty-btn';
+decBtn.textContent = '-';
+decBtn.addEventListener('click', () => updateBaseQty(item.id, -1));
+
+const cat = item.category || detectCategory(item.name);
+const displayUnit = translateUnit(item.unit, 'he', cat);
+
+const qtyVal = document.createElement('span');
+qtyVal.className = 'item-qty-val';
+qtyVal.textContent = `${totalQty} ${displayUnit}`;
+qtyVal.title = `בסיס: ${baseQty}`;
+
+const incBtn = document.createElement('button');
+incBtn.className = 'qty-btn';
+incBtn.textContent = '+';
+incBtn.addEventListener('click', () => updateBaseQty(item.id, 1));
+
+qtyBox.appendChild(decBtn);
+qtyBox.appendChild(qtyVal);
+qtyBox.appendChild(incBtn);
+
+const subInfo = document.createElement('div');
+subInfo.className = 'item-sub-info';
+
+if (item.by) {
+const bySpan = document.createElement('span');
+bySpan.className = 'item-by';
+bySpan.textContent = `הוסיף: ${item.by}`;
+subInfo.appendChild(bySpan);
+}
+
+if (currentListType === 'inPerson' && item.buyer) {
+const buyerSpan = document.createElement('span');
+buyerSpan.className = 'item-buyer';
+buyerSpan.textContent = `🛒 אחראי: ${item.buyer}`;
+subInfo.appendChild(buyerSpan);
+}
+
+if (item.auditStatus) {
+const auditSpan = document.createElement('span');
+auditSpan.className = `item-audit-tag ${item.auditStatus}`;
+auditSpan.textContent = auditLabels[item.auditStatus];
+subInfo.appendChild(auditSpan);
+}
+
+if (item.notes && item.notes.length > 0) {
+const noteSpan = document.createElement('span');
+noteSpan.className = 'item-note';
+noteSpan.textContent = `📝 ${item.notes.join(', ')}`;
+subInfo.appendChild(noteSpan);
+}
+
+itemMain.appendChild(itemText);
+itemMain.appendChild(qtyBox);
+itemMain.appendChild(subInfo);
+
+const btnActions = document.createElement('div');
+btnActions.className = 'item-btn-actions';
+
+const wantBtn = document.createElement('button');
+wantBtn.className = `want-btn ${isUserWanting ? 'active' : ''}`;
+wantBtn.textContent = wantingCount > 0 ? `🙋‍♂️ ${wantingCount} רוצים` : '🙋‍♂️ גם אני';
+wantBtn.addEventListener('click', () => openPersonalQtyModal(item.id, personalMap));
+btnActions.appendChild(wantBtn);
+
+if (currentListType === 'inPerson') {
+const claimBtn = document.createElement('button');
+claimBtn.className = `claim-btn ${isUserBuyer ? 'active' : ''}`;
+claimBtn.textContent = '🛒 אני קונה';
+claimBtn.addEventListener('click', () => toggleClaimItem(item.id, item.buyer));
+btnActions.appendChild(claimBtn);
+}
+
+const menuBtn = document.createElement('button');
+menuBtn.className = 'menu-btn';
+menuBtn.textContent = '⋮';
+menuBtn.addEventListener('click', (e) => toggleMenu(`menu-${item.id}`, e));
+
+const menuDropdown = document.createElement('div');
+menuDropdown.className = 'menu-dropdown';
+menuDropdown.id = `menu-${item.id}`;
+
+if (currentListType === 'delivery') {
+const transferSingleBtn = document.createElement('button');
+transferSingleBtn.className = 'menu-item';
+transferSingleBtn.textContent = '🛒 העבר לקנייה עצמית';
+transferSingleBtn.addEventListener('click', () => transferSingleItemToInPerson(item));
+menuDropdown.appendChild(transferSingleBtn);
+}
+
+const priorityBtn = document.createElement('button');
+priorityBtn.className = 'menu-item';
+priorityBtn.textContent = item.isPriority ? '❌ בטל דחיפות' : '⭐ סמן כדחוף';
+priorityBtn.addEventListener('click', () => togglePriority(item.id, item.isPriority));
+
+const editBtn = document.createElement('button');
+editBtn.className = 'menu-item';
+editBtn.textContent = '✏️ ערוך';
+editBtn.addEventListener('click', () => editItem(item.id, item.name, item.qty));
+
+const delBtn = document.createElement('button');
+delBtn.className = 'menu-item danger';
+delBtn.textContent = '✕ מחק';
+delBtn.addEventListener('click', () => deleteItem(item.id));
+
+menuDropdown.appendChild(priorityBtn);
+menuDropdown.appendChild(editBtn);
+menuDropdown.appendChild(delBtn);
+
+itemRow.appendChild(checkDiv);
+itemRow.appendChild(itemMain);
+itemRow.appendChild(btnActions);
+itemRow.appendChild(menuBtn);
+itemRow.appendChild(menuDropdown);
+
+li.appendChild(itemRow);
+
+if (isAuditMode) {
+const auditDiv = document.createElement('div');
+auditDiv.className = 'audit-controls';
+
+['received', 'partial', 'replaced', 'missing'].forEach(st => {
+const btn = document.createElement('button');
+btn.className = `audit-status-btn ${item.auditStatus === st ? 'active' : ''}`;
+btn.textContent = auditLabels[st];
+btn.addEventListener('click', () => setAuditStatus(item.id, st));
+auditDiv.appendChild(btn);
+});
+
+li.appendChild(auditDiv);
+}
+
+ul.appendChild(li);
+});
+
+categoriesContainer.appendChild(catHeader);
+categoriesContainer.appendChild(ul);
+});
+}
+
+function listenToFirebase() {
+onValue(listRef, (snapshot) => {
+itemsMap = snapshot.val() || {};
+render();
+});
+
+onValue(listStatusRef, (snapshot) => {
+listStatus = snapshot.val() || '📝 בהכנה';
+statusTag.textContent = listStatus;
+});
+}
+
+listenToFirebase();
+
+function updateBaseQty(id, delta) {
+if (!itemsMap[id]) return;
+triggerHapticFeedback(15);
+saveUndoBackup(id);
+const currentBaseQty = parseInt(itemsMap[id].qty) || 1;
+const newBaseQty = currentBaseQty + delta;
+
+if (newBaseQty <= 0) {
+if (confirm(`האם למחוק את "${itemsMap[id].name}" מהרשימה?`)) {
+deleteItem(id);
+}
+return;
+}
+
+update(ref(db, `lists/${currentListType}/${id}`), { qty: newBaseQty.toString() });
+showToast('הכמות עודכנה בהצלחה', true);
+}
+
+addModalForm.addEventListener('submit', (e) => {
+e.preventDefault();
+const user = requireUserName();
+if (!user) return;
+
+const rawInputName = document.getElementById('modalNameInput').value.trim();
+if (!rawInputName) return;
+
+const normalizedName = normalizeProductName(rawInputName);
+const detectedCategory = detectCategory(normalizedName);
+const inputQty = parseInt(document.getElementById('modalQtyInput').value) || 1;
+const unit = document.getElementById('modalUnitInput').value;
+const note = document.getElementById('modalNoteInput').value.trim();
+
+const existingKey = Object.keys(itemsMap).find(key => {
+const existingItem = itemsMap[key];
+const existingName = (existingItem.name || existingItem.text || '').trim();
+const existingUnit = existingItem.unit || "יח'"
+return normalizeProductName(existingName).toLowerCase() === normalizedName.toLowerCase() && existingUnit === unit;
+});
+
+if (existingKey) {
+const existingItem = itemsMap[existingKey];
+const currentQty = parseInt(existingItem.qty) || 1;
+const targetQty = currentQty + inputQty;
+
+const shouldUpdate = confirm(` המוצר "${normalizedName}" כבר קיים ברשימה בכמות ${currentQty} ${unit}.\n\nהאם לעדכן את הכמות ל-${targetQty} ${unit}?`);
+if (shouldUpdate) {
+saveUndoBackup(existingKey);
+update(ref(db, `lists/${currentListType}/${existingKey}`), {
+qty: targetQty.toString()
+});
+showToast(`עודכן ל-${targetQty} ${unit}`, true);
+}
+} else {
+const newItemRef = push(listRef);
+set(newItemRef, {
+name: normalizedName,
+qty: inputQty.toString(),
+unit: unit,
+category: detectedCategory,
+by: user,
+buyer: '',
+done: false,
+isPriority: false,
+auditStatus: '',
+personalQtyMap: {},
+notes: note ? [note] : []
+});
+showToast(`הוספנו את "${normalizedName}" לרשימה`);
+}
+
+addModalForm.reset();
+tempModalAddQty = 1;
+modalQtyDisplay.textContent = '1';
+modalQtyInput.value = '1';
+modalOverlay.classList.remove('show');
+});
+
+function openPersonalQtyModal(id, personalMap) {
+const user = requireUserName();
+if (!user) return;
+
+triggerHapticFeedback(15);
+activePersonalItemId = id;
+activePersonalMap = { ...(personalMap || {}) };
+tempPersonalQty = activePersonalMap[user] || 1;
+
+personalQtyDisplay.textContent = tempPersonalQty;
+document.getElementById('personalModalTitle').textContent = `🙋‍♂️ כמות אישית עבור ${itemsMap[id].name}`;
+personalQtyModalOverlay.classList.add('show');
+}
+
+incPersonalQtyBtn.onclick = () => {
+triggerHapticFeedback(10);
+tempPersonalQty++;
+personalQtyDisplay.textContent = tempPersonalQty;
+};
+
+decPersonalQtyBtn.onclick = () => {
+if (tempPersonalQty > 1) {
+triggerHapticFeedback(10);
+tempPersonalQty--;
+personalQtyDisplay.textContent = tempPersonalQty;
+}
+};
+
+savePersonalQtyBtn.onclick = () => {
+const user = requireUserName();
+if (!user || !activePersonalItemId) return;
+
+triggerHapticFeedback(20);
+saveUndoBackup(activePersonalItemId);
+
+update(ref(db, `lists/${currentListType}/${activePersonalItemId}/personalQtyMap`), {
+[user]: tempPersonalQty
+});
+
+personalQtyModalOverlay.classList.remove('show');
+showToast(`הבקשה האישית שלך עודכנה ל-+${tempPersonalQty}`, true);
+};
+
+removePersonalQtyBtn.onclick = () => {
+const user = requireUserName();
+if (!user || !activePersonalItemId) return;
+
+saveUndoBackup(activePersonalItemId);
+
+update(ref(db, `lists/${currentListType}/${activePersonalItemId}/personalQtyMap`), {
+[user]: null
+});
+
+personalQtyModalOverlay.classList.remove('show');
+showToast('הבקשה האישית הוסרה', true);
+};
+
+function toggleMenu(menuId, evt) {
+if (evt) evt.stopPropagation();
+document.querySelectorAll('.menu-dropdown').forEach(el => {
+if (el.id !== menuId) el.classList.remove('show');
+});
+const menuEl = document.getElementById(menuId);
+if (menuEl) menuEl.classList.toggle('show');
+}
+
+async function transferSingleItemToInPerson(item) {
+const user = requireUserName();
+if (!user) return;
+
+const totalQty = calculateTotalQty(item);
+const inPersonSnap = await get(ref(db, `lists/inPerson`));
+const inPersonItems = inPersonSnap.val() || {};
+
+const existingKey = findMatchingItemKey(inPersonItems, item);
+if (existingKey) {
+const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
+const targetQty = currentQty + totalQty;
+const shouldMerge = confirm(`המוצר "${item.name}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`);
+if (!shouldMerge) return;
+}
+
+mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
+showToast(existingKey
+? `הכמות עודכנה ברשימת "בקנייה עצמית" 🛒`
+: `"${item.name}" הועבר בהצלחה לרשימת "בקנייה עצמית" 🛒`);
+}
+
+transferAllToInPersonBtn.onclick = async () => {
+const user = requireUserName();
+if (!user) return;
+
+const keys = Object.keys(itemsMap);
+if (keys.length === 0) {
+showToast('רשימת המשלוח ריקה!');
+return;
+}
+
+moreMenuModalOverlay.classList.remove('show');
+
+const inPersonSnap = await get(ref(db, `lists/inPerson`));
+const inPersonItems = inPersonSnap.val() || {};
+
+pendingBulkTransferItems = keys.map(k => itemsMap[k]);
+pendingDuplicatesList = [];
+
+pendingBulkTransferItems.forEach(item => {
+const totalQty = calculateTotalQty(item);
+const existingKey = findMatchingItemKey(inPersonItems, item);
+
+if (existingKey) {
+pendingDuplicatesList.push({
+name: item.name,
+unit: item.unit || "יח'",
+transferQty: totalQty,
+existingQty: parseInt(inPersonItems[existingKey].qty) || 1,
+existingKey: existingKey,
+itemData: item
+});
+}
+});
+
+if (pendingDuplicatesList.length > 0) {
+duplicateTransferList.innerHTML = '';
+pendingDuplicatesList.forEach(dup => {
+const row = document.createElement('div');
+row.style.padding = '4px 0';
+row.style.borderBottom = '1px solid var(--line)';
+
+const strong = document.createElement('strong');
+strong.textContent = dup.name;
+
+const detailsText = document.createTextNode(
+` - קיים: ${dup.existingQty} ${dup.unit} | מועבר: +${dup.transferQty}`
+);
+
+row.appendChild(strong);
+row.appendChild(detailsText);
+duplicateTransferList.appendChild(row);
+});
+duplicateTransferModalOverlay.classList.add('show');
+} else {
+executeBulkTransfer(inPersonItems, 'merge');
+}
+};
+
+confirmMergeAllTransferBtn.onclick = async () => {
+const inPersonSnap = await get(ref(db, `lists/inPerson`));
+executeBulkTransfer(inPersonSnap.val() || {}, 'merge');
+duplicateTransferModalOverlay.classList.remove('show');
+};
+
+confirmSkipDuplicatesTransferBtn.onclick = async () => {
+const inPersonSnap = await get(ref(db, `lists/inPerson`));
+executeBulkTransfer(inPersonSnap.val() || {}, 'skip');
+duplicateTransferModalOverlay.classList.remove('show');
+};
+
+function executeBulkTransfer(inPersonItems, duplicateAction) {
+const user = requireUserName();
+let transferredCount = 0;
+
+pendingBulkTransferItems.forEach(item => {
+const totalQty = calculateTotalQty(item);
+const existingKey = findMatchingItemKey(inPersonItems, item);
+
+if (existingKey && duplicateAction === 'skip') {
+return;
+}
+
+mergeOrCreateItem('lists/inPerson', inPersonItems, item, totalQty, `הועבר ממשלוח (${user})`, { carryPersonalMap: true });
+transferredCount++;
+});
+
+showToast(`${transferredCount} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`);
+}
+
+function setAuditStatus(id, status) {
+triggerHapticFeedback(15);
+if (status === 'partial') {
+const item = itemsMap[id];
+const totalOrdered = calculateTotalQty(item);
+const rec = prompt(`הוזמנו סך הכל ${totalOrdered} ${item.unit || "יח'"}.\n\nכמה יחידות התקבלו בפועל?`, "1");
+if (rec !== null) {
+const receivedQty = parseInt(rec) || 0;
+const missingQty = Math.max(0, totalOrdered - receivedQty);
+update(ref(db, `lists/${currentListType}/${id}`), {
+auditStatus: 'partial',
+partialReceivedQty: receivedQty,
+partialMissingQty: missingQty
+});
+showToast(`עודכן: התקבלו ${receivedQty}, חסרים ${missingQty}`);
+}
+return;
+}
+
+update(ref(db, `lists/${currentListType}/${id}`), { auditStatus: status });
+}
+
+function toggleClaimItem(id, currentBuyer) {
+const user = requireUserName();
+if (!user) return;
+
+triggerHapticFeedback(15);
+const newBuyer = (currentBuyer === user) ? '' : user;
+update(ref(db, `lists/${currentListType}/${id}`), { buyer: newBuyer });
+}
+
+function togglePriority(id, currentStatus) {
+update(ref(db, `lists/${currentListType}/${id}`), { isPriority: !currentStatus });
+}
+
+function editItem(id, currentName, currentQty) {
+const newName = prompt('שם המוצר:', currentName);
+if (!newName) return;
+const normalizedName = normalizeProductName(newName.trim());
+update(ref(db, `lists/${currentListType}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) });
+}
+
+function toggleItem(id, currentStatus) {
+triggerHapticFeedback(25);
+update(ref(db, `lists/${currentListType}/${id}`), { done: !currentStatus });
+}
+
+function deleteItem(id) {
+saveUndoBackup(id);
+remove(ref(db, `lists/${currentListType}/${id}`));
+showToast('הפריט נמחק', true);
+}
+
+showMissingSummaryBtn.onclick = () => {
+const keys = Object.keys(itemsMap);
+const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
+
+if (missingItems.length === 0) {
+showToast('אין פריטים חסרים בבדיקה זו! 🎉');
+return;
+}
+
+missingItemsList.innerHTML = '';
+missingItems.forEach(id => {
+const item = itemsMap[id];
+let missingQty = calculateTotalQty(item);
+if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
+missingQty = item.partialMissingQty;
+}
+
+const div = document.createElement('div');
+div.style.padding = '6px 0';
+div.style.borderBottom = '1px solid var(--line)';
+div.textContent = `${item.name} - ${missingQty} ${item.unit || "יח'"} (${item.auditStatus === 'missing' ? 'חסר לחלוטין ❌' : 'חלקית ⚠️'})`;
+missingItemsList.appendChild(div);
+});
+
+missingModalOverlay.classList.add('show');
+};
+
+transferMissingToInPersonBtn.onclick = async () => {
+const user = requireUserName();
+if (!user) return;
+
+const keys = Object.keys(itemsMap);
+const missingItems = keys.filter(id => itemsMap[id].auditStatus === 'missing' || itemsMap[id].auditStatus === 'partial');
+
+const inPersonSnap = await get(ref(db, `lists/inPerson`));
+const inPersonItems = inPersonSnap.val() || {};
+let transferredCount = 0;
+
+missingItems.forEach(id => {
+const item = itemsMap[id];
+let missingQty = calculateTotalQty(item);
+if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
+missingQty = item.partialMissingQty;
+}
+
+if (missingQty <= 0) return;
+
+mergeOrCreateItem('lists/inPerson', inPersonItems, item, missingQty, `הועבר ממשלוח (${user})`, { isPriority: true, carryPersonalMap: false });
+transferredCount++;
+});
+
+missingModalOverlay.classList.remove('show');
+showToast(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`);
+};
+
+clearCurrentListBtn.addEventListener('click', () => {
+const currentTabTitle = TAB_NAMES[currentListType] || '';
+const confirmClear = confirm(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`);
+if (confirmClear) {
+remove(listRef);
+set(listStatusRef, '📝 בהכנה');
+settingsModalOverlay.classList.remove('show');
+showToast('הרשימה אופסה בהצלחה');
+}
+});
+
+undoBtn.onclick = () => {
+if (lastStateBackup && lastStateBackup.itemId) {
+set(ref(db, `lists/${currentListType}/${lastStateBackup.itemId}`), lastStateBackup.data);
+lastStateBackup = null;
+document.getElementById('toast').classList.remove('show');
+showToast('השינוי בוטל בהצלחה!');
+}
+};
+
+filterBtn.addEventListener('click', () => {
+hideDoneItems = !hideDoneItems;
+filterBtn.textContent = hideDoneItems ? '👁️ הצג הכל' : '👁️ הסתר שהושלמו';
+render();
+});
+
+auditToggleBtn.addEventListener('click', () => {
+isAuditMode = !isAuditMode;
+moreMenuModalOverlay.classList.remove('show');
+
+if (isAuditMode) {
+showToast('מצב בדיקת משלוח הופעל');
+} else {
+showToast('מצב בדיקת משלוח כובה');
+}
+render();
+});
+
+document.getElementById('exportHebrewBtn').onclick = () => generateExportText('he');
+document.getElementById('exportEnglishBtn').onclick = () => generateExportText('en');
+document.getElementById('exportGreekBtn').onclick = () => generateExportText('el');
+
+function generateExportText(lang) {
+const keys = Object.keys(itemsMap);
+if (keys.length === 0) {
+showToast('הרשימה ריקה!');
+exportLangModalOverlay.classList.remove('show');
+return;
+}
+
+const grouped = {};
+const untranslatedItems = [];
+
+keys.forEach(id => {
+const item = itemsMap[id];
+const cat = item.category || detectCategory(item.name);
+if (!grouped[cat]) grouped[cat] = [];
+grouped[cat].push(item);
+});
+
+let greetingMsg = 'שלום, אנו מעוניינים להזמין את המוצרים הבאים:';
+if (lang === 'en') greetingMsg = 'Hello, we would like to order the following items:';
+if (lang === 'el') greetingMsg = 'Γεια σας, θα θέλαμε να παραγγείλουμε τα ακόλουθα προϊόντα:';
+
+let text = `${greetingMsg}\n\n`;
+
+Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'he')).forEach(cat => {
+let catTitle = cat;
+if (lang !== 'he' && TRANSLATION_DICTIONARY.categories[cat]) {
+catTitle = TRANSLATION_DICTIONARY.categories[cat][lang] || cat;
+}
+
+text += `*${catTitle}*\n`;
+grouped[cat].forEach(i => {
+const totalQty = calculateTotalQty(i);
+let itemName = i.name;
+let unitName = translateUnit(i.unit, lang, cat);
+
+if (lang !== 'he') {
+const translated = translateItemName(i.name, lang);
+if (translated) {
+itemName = translated;
+} else {
+untranslatedItems.push(i.name);
+}
+}
+
+const buyerInfo = (i.buyer && lang === 'he') ? ` (אחראי: ${i.buyer})` : '';
+text += `• ${itemName} - ${totalQty} ${unitName}${buyerInfo}\n`;
+});
+text += `\n`;
+});
+
+exportPreviewTextarea.value = text.trim();
+
+if (lang !== 'he' && untranslatedItems.length > 0) {
+untranslatedWarning.style.display = 'block';
+untranslatedWarning.textContent = `⚠️ ${untranslatedItems.length} מוצרים לא תורגמו ונשארו בשמם המקורי: ${untranslatedItems.join(', ')}`;
+} else {
+untranslatedWarning.style.display = 'none';
+}
+
+exportLangModalOverlay.classList.remove('show');
+exportPreviewModalOverlay.classList.add('show');
+}
+
+confirmCopyExportBtn.onclick = () => {
+triggerHapticFeedback(20);
+const textToCopy = exportPreviewTextarea.value;
+navigator.clipboard.writeText(textToCopy).then(() => {
+exportPreviewModalOverlay.classList.remove('show');
+showToast('הטקסט הועתק בהצלחה! תוכל להדביק אותו בוואטסאפ 📋');
+});
+};
 </script>
 </body>
 </html>
