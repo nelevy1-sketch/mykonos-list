@@ -93,7 +93,7 @@
       margin-bottom: 16px;
     }
 
-    /* באנר סטטוס טיסה ועיכובים */
+    /* באנר סטטוס טיסה חי */
     .flight-status-banner {
       width: 100%;
       background: #fef2f2;
@@ -115,7 +115,7 @@
       50% { transform: scale(1.02); }
     }
 
-    /* תיבת השעון */
+    /* שעון */
     .timer-box {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
@@ -141,7 +141,7 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* שורת מזג אוויר */
+    /* מזג אוויר */
     .weather-container {
       width: 100%;
       padding: 4px 0 14px 0;
@@ -254,10 +254,6 @@
       box-shadow: 0 3px 8px rgba(0, 91, 174, 0.08);
       transition: all 0.2s ease;
     }
-    .seats-banner-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 12px rgba(0, 91, 174, 0.15);
-    }
 
     /* כרטיסיית משפט העצמה יומי */
     .daily-quote-card {
@@ -272,12 +268,6 @@
       align-items: center;
       gap: 4px;
       box-shadow: 0 4px 10px rgba(245, 158, 11, 0.1);
-      animation: quoteFadeIn 0.5s ease-out;
-    }
-
-    @keyframes quoteFadeIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .quote-badge {
@@ -385,7 +375,7 @@
       text-underline-offset: 3px;
     }
 
-    /* Modal מפת המטוס */
+    /* Modal מפת מטוס */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -526,36 +516,87 @@
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
+      max-height: 90vh;
+      overflow-y: auto;
       border-radius: 24px;
-      padding: 24px 20px;
+      padding: 22px 18px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       text-align: right;
       box-shadow: 0 20px 40px rgba(0,0,0,0.25);
     }
-    .admin-modal h2 { font-size: 1.2rem; color: var(--greek-blue); }
+    .admin-modal h2 { font-size: 1.15rem; color: var(--greek-blue); }
     .admin-field { display: flex; flex-direction: column; gap: 4px; }
-    .admin-field label { font-size: 0.8rem; font-weight: 700; color: #64748b; }
+    .admin-field label { font-size: 0.78rem; font-weight: 700; color: #64748b; }
     .admin-input {
-      padding: 10px 12px;
+      padding: 9px 11px;
       border-radius: 10px;
       border: 1.5px solid #cbd5e1;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-family: inherit;
+    }
+
+    .admin-seats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .admin-seat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      gap: 6px;
+    }
+    .admin-seat-row span {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #334155;
+    }
+    .admin-seat-row input {
+      width: 58px;
+      padding: 5px 6px;
+      border-radius: 8px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
       direction: ltr;
     }
+
     .admin-btn-save {
       background: var(--greek-blue);
       color: #ffffff;
       border: none;
       padding: 12px;
       border-radius: 12px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 6px;
+      margin-top: 4px;
+    }
+
+    .admin-btn-whatsapp {
+      background: #25d366;
+      color: #ffffff;
+      border: none;
+      padding: 11px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
     }
 
     .footer-text { margin-top: 24px; font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
@@ -608,7 +649,7 @@
       <span class="checkin-badge" id="checkinBadge">צ'ק-אין ✈️</span>
     </a>
 
-    <!-- כפתור אנימציית מושבים -->
+    <!-- כפתור אנימציית מושבים (מוצג בהלוך, או בחזור רק אם עודכן) -->
     <div class="seats-banner-btn" id="seatsBannerBtn">
       <span>✈️ מפת הושבה אינטראקטיבית</span>
       <span style="font-size: 0.78rem; background: #bfdbfe; color: #1e40af; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
@@ -665,25 +706,42 @@
   <div class="modal-overlay" id="adminModal">
     <div class="admin-modal">
       <div class="modal-header">
-        <h2>🛠️ ניהול שעת טיסה ועיכובים</h2>
+        <h2>🛠️ ניהול טיסה, מושבים והודעות</h2>
         <button class="modal-close" id="closeAdminModal">✕</button>
       </div>
+      
       <div class="admin-field">
         <label>מועד המראה מעודכן:</label>
-        <input type="datetime-local" id="adminFlightInput" class="admin-input">
+        <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
       </div>
+
       <div class="admin-field">
         <label>הודעת סטטוס (אם יש עיכוב/שער):</label>
         <input type="text" id="adminStatusInput" placeholder="לדוגמה: עיכוב של 40 דק', שער B4" class="admin-input" style="direction: rtl;">
       </div>
-      <button class="admin-btn-save" id="saveFlightAdmin">עדכן בזמן אמת 🚀</button>
+
+      <div class="admin-field">
+        <label>שיבוץ מושבי החברים לפי שם:</label>
+        <div class="admin-seats-grid" id="adminSeatsContainer">
+          <!-- מיוצר דינמית לפי שמות החברים -->
+        </div>
+      </div>
+
+      <button class="admin-btn-save" id="saveFlightAdmin">שמור ועדכן בלייב 🚀</button>
+      
+      <a href="#" class="admin-btn-whatsapp" id="shareWhatsAppBtn" target="_blank">
+        <span>📲 שתף עדכון טיסה בוואטסאפ הקבוצתי</span>
+      </a>
     </div>
   </div>
 
   <script>
+    // רשימת החברים הקבועה
+    const groupMembers = ["מארג׳", "נירה", "ציפי", "בנצה", "ברגה", "פוטה", "איילה", "בולבול"];
+
     // 1. הגדרות Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSy...", // הזן את פרטי הפרויקט שלך
+      apiKey: "AIzaSy...",
       authDomain: "mykonos-2026.firebaseapp.com",
       databaseURL: "https://mykonos-2026-default-rtdb.firebaseio.com",
       projectId: "mykonos-2026",
@@ -692,19 +750,26 @@
       appId: "..."
     };
 
-    // אתחול Firebase בטוח
     let db = null;
     try {
       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
       db = firebase.database();
     } catch (e) {
-      console.warn("Firebase לא אותחל - עובר למצב מקומי ברירת מחדל");
+      console.warn("Firebase לא אותחל");
     }
 
-    // 2. זמני ברירת מחדל
+    // 2. משתני בסיס ומושבי הלוך ברירת מחדל
     let flightOut = new Date("2026-08-20T08:15:00");
     const flightBack = new Date("2026-08-28T12:00:00");
     const checkinReturnDate = new Date("2026-08-27T00:00:00");
+    const seatsReturnDate = new Date("2026-08-27T12:00:00"); // 24 שעות לפני החזרה
+
+    let seatedFriends = {
+      "20A": "מארג׳", "20B": "נירה", "20E": "ציפי", "20F": "בנצה",
+      "21A": "ברגה", "21D": "פוטה", "21F": "איילה", "22F": "בולבול"
+    };
+
+    let seatsReturnConfigured = false; // האם עודכנו מקומות לחזור
 
     // האזנה לעדכונים בזמן אמת מ-Firebase
     if (db) {
@@ -724,9 +789,33 @@
           updateClock();
         }
       });
+
+      db.ref("seats_config").on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (data && typeof data === 'object') {
+          seatedFriends = data;
+        }
+      });
+
+      db.ref("seats_return_configured").on("value", (snapshot) => {
+        seatsReturnConfigured = !!snapshot.val();
+        updateClock();
+      });
     }
 
-    // 3. פתיחת פאנל אדמין בלחיצה משולשת על הדגל
+    // יצירת שדות האדמין לכל חבר
+    const adminSeatsContainer = document.getElementById("adminSeatsContainer");
+    groupMembers.forEach((member, idx) => {
+      const row = document.createElement("div");
+      row.className = "admin-seat-row";
+      row.innerHTML = `
+        <span>${member}</span>
+        <input type="text" id="seatInput_${idx}" placeholder="מושב" maxlength="4">
+      `;
+      adminSeatsContainer.appendChild(row);
+    });
+
+    // 3. פתיחת פאנל אדמין מוסתר (3 לחיצות על דגל יוון)
     let flagClickCount = 0;
     let flagClickTimer = null;
     const adminModal = document.getElementById("adminModal");
@@ -740,11 +829,23 @@
         flagClickCount = 0;
         const pass = prompt("הזן סיסמת מנהל:");
         if (pass === "1234") {
-          // מילוי הנתונים הנוכחיים בפאנל
+          // מילוי שדות טיסה
           const tzOffset = flightOut.getTimezoneOffset() * 60000;
-          const localISOTime = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
-          document.getElementById("adminFlightInput").value = localISOTime;
-          
+          document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
+
+          // מילוי המושב הנוכחי של כל חבר
+          groupMembers.forEach((member, idx) => {
+            let memberSeat = "";
+            for (const [seat, name] of Object.entries(seatedFriends)) {
+              if (name === member) {
+                memberSeat = seat;
+                break;
+              }
+            }
+            document.getElementById(`seatInput_${idx}`).value = memberSeat;
+          });
+
+          updateWhatsAppShareLink();
           adminModal.classList.add("open");
         } else if (pass !== null) {
           alert("סיסמה שגויה");
@@ -754,34 +855,82 @@
 
     document.getElementById("closeAdminModal").addEventListener("click", () => adminModal.classList.remove("open"));
 
-    // שמירת עדכון טיסה
+    // עדכון לינק שיתוף בוואטסאפ
+    function updateWhatsAppShareLink() {
+      const timeVal = document.getElementById("adminFlightInput").value;
+      const statusVal = document.getElementById("adminStatusInput").value;
+      const formattedTime = timeVal ? new Date(timeVal).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : "";
+      
+      let msg = `🇬🇷 *עדכון טיסה למיקונוס!* ✈️\n`;
+      if (formattedTime) msg += `⏰ מועד המראה מעודכן: ${formattedTime}\n`;
+      if (statusVal) msg += `📢 עדכון: ${statusVal}\n`;
+      msg += `\nלצפייה בשעון המעודכן ובפרטים המלאים:\n${window.location.href}`;
+
+      document.getElementById("shareWhatsAppBtn").href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+    }
+
+    document.getElementById("adminFlightInput").addEventListener("input", updateWhatsAppShareLink);
+    document.getElementById("adminStatusInput").addEventListener("input", updateWhatsAppShareLink);
+
+    // שמירת עדכונים מהאדמין
     document.getElementById("saveFlightAdmin").addEventListener("click", () => {
       const newTimeVal = document.getElementById("adminFlightInput").value;
       const newStatusVal = document.getElementById("adminStatusInput").value;
 
+      // איסוף המושבים המעודכנים לפי כל חבר
+      const newSeats = {};
+      let anySeatUpdated = false;
+
+      groupMembers.forEach((member, idx) => {
+        const seatVal = document.getElementById(`seatInput_${idx}`).value.trim().toUpperCase();
+        if (seatVal) {
+          newSeats[seatVal] = member;
+          anySeatUpdated = true;
+        }
+      });
+
       if (newTimeVal) {
         flightOut = new Date(newTimeVal);
+        if (anySeatUpdated) {
+          seatedFriends = newSeats;
+          seatsReturnConfigured = true;
+        }
+
         if (db) {
           db.ref("flight_settings").set({
             flightOut: newTimeVal,
             statusMessage: newStatusVal
           });
+          if (anySeatUpdated) {
+            db.ref("seats_config").set(newSeats);
+            db.ref("seats_return_configured").set(true);
+          }
         }
+
         adminModal.classList.remove("open");
         updateClock();
-        alert("זמן הטיסה עודכן בהצלחה!");
+        alert("הנתונים נשמרו בהצלחה וסונכרנו לכל החברים!");
       }
     });
 
-    // 4. נתוני מושבי החברים
-    const seatedFriends = {
-      "20A": "מארג׳", "20B": "נירה", "20E": "ציפי", "20F": "בנצה",
-      "21A": "ברגה", "21D": "פוטה", "21F": "איילה", "22F": "בולבול"
-    };
-
+    // 4. בניית מפת מושבים דינמית לפי השורות הרלוונטיות
     function renderPlaneSeats() {
       const container = document.getElementById('planeLayout');
-      const rowsToDisplay = [19, 20, 21, 22, 23];
+      
+      // חישוב השורות להצגה לפי המושבים הקיימים
+      const seatKeys = Object.keys(seatedFriends);
+      let rowsToDisplay = [19, 20, 21, 22, 23];
+      
+      if (seatKeys.length > 0) {
+        const detectedRows = seatKeys.map(k => parseInt(k.replace(/\D/g, ''))).filter(n => !isNaN(n));
+        if (detectedRows.length > 0) {
+          const minR = Math.max(1, Math.min(...detectedRows) - 1);
+          const maxR = Math.max(...detectedRows) + 1;
+          rowsToDisplay = [];
+          for (let r = minR; r <= maxR; r++) rowsToDisplay.push(r);
+        }
+      }
+
       container.innerHTML = '';
       let seatDelayCounter = 0;
 
@@ -808,7 +957,7 @@
             }
             rowDiv.appendChild(seatDiv);
 
-            setTimeout(() => { seatDiv.classList.add('reveal'); }, seatDelayCounter * 35);
+            setTimeout(() => { seatDiv.classList.add('reveal'); }, seatDelayCounter * 30);
             seatDelayCounter++;
           }
         });
@@ -843,7 +992,7 @@
       document.getElementById('dailyQuoteText').textContent = tripQuotes[todayKey] || "״הרוח במיקונוס לא מעיפה דברים, היא רק עושה להם רילוקיישן.״ 🌬️🇬🇷";
     }
 
-    // 6. אפליקציית הוצאות (Spliit / Splitwise)
+    // 6. אפליקציית הוצאות
     const appsConfig = {
       spliit: {
         name: "Spliit",
@@ -883,7 +1032,7 @@
 
     renderExpenseButton();
 
-    // 7. שעון, ספירה לאחור והחלפת תצוגות
+    // 7. שעון, ספירה לאחור והחלפת תצוגות (כולל התניית חזרת באנר המושבים)
     function updateClock() {
       const now = new Date();
       const diffOut = flightOut - now;
@@ -904,19 +1053,18 @@
         document.getElementById("timerDisplay").textContent = `${now.toLocaleDateString('he-IL', dateOptions)} | ${now.toLocaleTimeString('he-IL', timeOptions)}`;
       }
 
-      // שעת היעלמות הבאנרים = שעת ההמראה בפועל + שעתיים
+      // זמני הסתרה והצגת באנרים
       const bannerHideTime = new Date(flightOut.getTime() + 2 * 60 * 60 * 1000);
       const checkinBanner = document.getElementById("checkinBanner");
       const seatsBannerBtn = document.getElementById("seatsBannerBtn");
       const dailyQuoteCard = document.getElementById("dailyQuoteCard");
 
+      // לוגיקת צ'ק-אין וציטוט יומי
       if (now < bannerHideTime) {
         checkinBanner.style.display = "flex";
-        seatsBannerBtn.style.display = "flex";
         dailyQuoteCard.style.display = "none";
       } else if (now >= bannerHideTime && now < checkinReturnDate) {
         checkinBanner.style.display = "none";
-        seatsBannerBtn.style.display = "none";
         dailyQuoteCard.style.display = "flex";
         updateDailyQuote();
       } else if (now >= checkinReturnDate && now < flightBack) {
@@ -924,13 +1072,25 @@
         document.getElementById('checkinMain').textContent = "צ'ק-אין לטיסה חזרה לארץ 🇮🇱";
         document.getElementById('checkinSub').textContent = "פתוח לביצוע דרך ארקיע";
         document.getElementById('checkinBadge').textContent = "צ'ק-אין חזור ✈️";
-        seatsBannerBtn.style.display = "none";
         dailyQuoteCard.style.display = "flex";
         updateDailyQuote();
       } else {
         checkinBanner.style.display = "none";
-        seatsBannerBtn.style.display = "none";
         dailyQuoteCard.style.display = "none";
+      }
+
+      // לוגיקת באנר המושבים:
+      // בהלוך -> מוצג
+      // אחרי ההמראה -> מוסתר
+      // בחזור (מ-27/08 12:00) -> מוצג אך ורק אם עודכנו מקומות (seatsReturnConfigured === true)
+      if (now < bannerHideTime) {
+        seatsBannerBtn.style.display = "flex";
+      } else if (now >= bannerHideTime && now < seatsReturnDate) {
+        seatsBannerBtn.style.display = "none";
+      } else if (now >= seatsReturnDate && now < flightBack) {
+        seatsBannerBtn.style.display = seatsReturnConfigured ? "flex" : "none";
+      } else {
+        seatsBannerBtn.style.display = "none";
       }
     }
 
