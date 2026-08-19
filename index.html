@@ -649,7 +649,7 @@
       <span class="checkin-badge" id="checkinBadge">צ'ק-אין ✈️</span>
     </a>
 
-    <!-- כפתור אנימציית מושבים (מוצג בהלוך, או בחזור רק אם עודכן) -->
+    <!-- כפתור אנימציית מושבים -->
     <div class="seats-banner-btn" id="seatsBannerBtn">
       <span>✈️ מפת הושבה אינטראקטיבית</span>
       <span style="font-size: 0.78rem; background: #bfdbfe; color: #1e40af; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
@@ -722,9 +722,7 @@
 
       <div class="admin-field">
         <label>שיבוץ מושבי החברים לפי שם:</label>
-        <div class="admin-seats-grid" id="adminSeatsContainer">
-          <!-- מיוצר דינמית לפי שמות החברים -->
-        </div>
+        <div class="admin-seats-grid" id="adminSeatsContainer"></div>
       </div>
 
       <button class="admin-btn-save" id="saveFlightAdmin">שמור ועדכן בלייב 🚀</button>
@@ -762,14 +760,14 @@
     let flightOut = new Date("2026-08-20T08:15:00");
     const flightBack = new Date("2026-08-28T12:00:00");
     const checkinReturnDate = new Date("2026-08-27T00:00:00");
-    const seatsReturnDate = new Date("2026-08-27T12:00:00"); // 24 שעות לפני החזרה
+    const seatsReturnDate = new Date("2026-08-27T12:00:00");
 
     let seatedFriends = {
       "20A": "מארג׳", "20B": "נירה", "20E": "ציפי", "20F": "בנצה",
       "21A": "ברגה", "21D": "פוטה", "21F": "איילה", "22F": "בולבול"
     };
 
-    let seatsReturnConfigured = false; // האם עודכנו מקומות לחזור
+    let seatsReturnConfigured = false;
 
     // האזנה לעדכונים בזמן אמת מ-Firebase
     if (db) {
@@ -829,11 +827,9 @@
         flagClickCount = 0;
         const pass = prompt("הזן סיסמת מנהל:");
         if (pass === "1234") {
-          // מילוי שדות טיסה
           const tzOffset = flightOut.getTimezoneOffset() * 60000;
           document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
 
-          // מילוי המושב הנוכחי של כל חבר
           groupMembers.forEach((member, idx) => {
             let memberSeat = "";
             for (const [seat, name] of Object.entries(seatedFriends)) {
@@ -855,7 +851,6 @@
 
     document.getElementById("closeAdminModal").addEventListener("click", () => adminModal.classList.remove("open"));
 
-    // עדכון לינק שיתוף בוואטסאפ
     function updateWhatsAppShareLink() {
       const timeVal = document.getElementById("adminFlightInput").value;
       const statusVal = document.getElementById("adminStatusInput").value;
@@ -872,12 +867,10 @@
     document.getElementById("adminFlightInput").addEventListener("input", updateWhatsAppShareLink);
     document.getElementById("adminStatusInput").addEventListener("input", updateWhatsAppShareLink);
 
-    // שמירת עדכונים מהאדמין
     document.getElementById("saveFlightAdmin").addEventListener("click", () => {
       const newTimeVal = document.getElementById("adminFlightInput").value;
       const newStatusVal = document.getElementById("adminStatusInput").value;
 
-      // איסוף המושבים המעודכנים לפי כל חבר
       const newSeats = {};
       let anySeatUpdated = false;
 
@@ -913,11 +906,9 @@
       }
     });
 
-    // 4. בניית מפת מושבים דינמית לפי השורות הרלוונטיות
+    // 4. בניית מפת מושבים דינמית
     function renderPlaneSeats() {
       const container = document.getElementById('planeLayout');
-      
-      // חישוב השורות להצגה לפי המושבים הקיימים
       const seatKeys = Object.keys(seatedFriends);
       let rowsToDisplay = [19, 20, 21, 22, 23];
       
@@ -973,16 +964,16 @@
     });
     document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
 
-    // 5. מאגר משפטי העצמה יומיים
+    // 5. מאגר משפטי העצמה יומיים מעודכן
     const tripQuotes = {
       "2026-08-20": "״יותר ממה שהעגל רוצה לינוק, הפרה רוצה להניק – אז תנו לברמן לעבוד!״ 🐮🍸",
       "2026-08-21": "״מי ששותה מים במיקונוס, סימן שנגמר לו הוודקה.״ 🌊🍋",
       "2026-08-22": "״אם אין לחם תאכלו גירוס, ואם אין גירוס – תזמינו עוד צ'ייסר.״ 🥙🇬🇷",
-      "2026-08-23": "״חיים רק פעם אחת, אבל בחשבון ב-Spliit משלמים על הכל ביחד.״ 💸🎉",
+      "2026-08-23": "״אל תדאג לגבי כסף, אתה הומו ולהומואים תמיד יש כסף!״ 💅💸",
       "2026-08-24": "״אל תסתכל בקנקן, אלא במה ששתית ממנו עד 4 לפנות בוקר.״ 🪩🤿",
-      "2026-08-25": "״מה שקורה במיקונוס – מתועד בווידאו ויועלה לקבוצה.״ 📸🏖️",
+      "2026-08-25": "״כשהשמש יורדת – הזימה עולה.״ 🌅😈",
       "2026-08-26": "״סטרייט זה רק קו באפליקציית ניווט, במיקונוס כולם מתעקלים.״ 💅🌈",
-      "2026-08-27": "״סוף מסלול מתקרב: לא לשכוח לארוז מטענים ולעשות צ'ק-אין חזור!״ 🧳✈️",
+      "2026-08-27": "״מה שקורה במיקונוס – מתועד בווידאו ויועלה לקבוצה.״ 📸🏖️",
       "2026-08-28": "״אל תבכו שזה נגמר, תחייכו כי מחר חוזרים למציאות.״ 🏝️💙"
     };
 
@@ -1032,7 +1023,7 @@
 
     renderExpenseButton();
 
-    // 7. שעון, ספירה לאחור והחלפת תצוגות (כולל התניית חזרת באנר המושבים)
+    // 7. שעון, ספירה לאחור והחלפת תצוגות
     function updateClock() {
       const now = new Date();
       const diffOut = flightOut - now;
@@ -1053,13 +1044,11 @@
         document.getElementById("timerDisplay").textContent = `${now.toLocaleDateString('he-IL', dateOptions)} | ${now.toLocaleTimeString('he-IL', timeOptions)}`;
       }
 
-      // זמני הסתרה והצגת באנרים
       const bannerHideTime = new Date(flightOut.getTime() + 2 * 60 * 60 * 1000);
       const checkinBanner = document.getElementById("checkinBanner");
       const seatsBannerBtn = document.getElementById("seatsBannerBtn");
       const dailyQuoteCard = document.getElementById("dailyQuoteCard");
 
-      // לוגיקת צ'ק-אין וציטוט יומי
       if (now < bannerHideTime) {
         checkinBanner.style.display = "flex";
         dailyQuoteCard.style.display = "none";
@@ -1079,10 +1068,6 @@
         dailyQuoteCard.style.display = "none";
       }
 
-      // לוגיקת באנר המושבים:
-      // בהלוך -> מוצג
-      // אחרי ההמראה -> מוסתר
-      // בחזור (מ-27/08 12:00) -> מוצג אך ורק אם עודכנו מקומות (seatsReturnConfigured === true)
       if (now < bannerHideTime) {
         seatsBannerBtn.style.display = "flex";
       } else if (now >= bannerHideTime && now < seatsReturnDate) {
