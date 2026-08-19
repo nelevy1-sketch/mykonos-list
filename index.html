@@ -319,12 +319,12 @@
       text-underline-offset: 3px;
     }
 
-    /* Modal ואנימציית המטוס */
+    /* Modal ואנימציית המטוס המעודכנת */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(6px);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
       align-items: center;
@@ -339,19 +339,24 @@
     }
 
     .plane-modal {
-      background: #0f172a;
+      background: #0b132b;
       color: #f8fafc;
       width: 100%;
       max-width: 390px;
       max-height: 90vh;
       border-radius: 28px;
-      padding: 22px 16px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      border: 1px solid #334155;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      border: 1px solid #1e293b;
       overflow: hidden;
+      transform: scale(0.92);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-overlay.open .plane-modal {
+      transform: scale(1);
     }
 
     .modal-header {
@@ -384,27 +389,50 @@
       justify-content: center;
     }
 
+    /* גוף המטוס וסורק הרדאר */
     .plane-canvas-wrapper {
       width: 100%;
-      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
       border: 1px solid #334155;
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 16px 8px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
+      direction: ltr; /* שמירה על סדר עמודות A-B-C משמאל ו-D-E-F מימין */
+    }
+
+    /* פס סריקת רדאר */
+    .radar-scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.6));
+      border-bottom: 2px solid #38bdf8;
+      pointer-events: none;
+      animation: radarScan 3s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    @keyframes radarScan {
+      0% { top: -60px; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
     }
 
     .plane-nose {
       width: 80px;
-      height: 40px;
+      height: 36px;
       border: 2px solid #38bdf8;
       border-bottom: none;
       border-radius: 40px 40px 0 0;
-      background: rgba(56, 189, 248, 0.08);
-      margin-bottom: 12px;
+      background: rgba(56, 189, 248, 0.1);
+      margin-bottom: 14px;
       position: relative;
     }
     .plane-nose::after {
@@ -414,9 +442,10 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 0.65rem;
-      color: #64748b;
+      color: #94a3b8;
       white-space: nowrap;
       font-weight: 700;
+      direction: rtl;
     }
 
     .seat-grid {
@@ -425,24 +454,25 @@
       flex-direction: column;
       gap: 10px;
       margin-top: 16px;
+      z-index: 5;
     }
 
     .seat-row {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 20px 1fr 1fr 1fr;
-      gap: 5px;
+      grid-template-columns: 1fr 1fr 1fr 22px 1fr 1fr 1fr;
+      gap: 6px;
       align-items: center;
     }
 
     .row-num {
-      font-size: 0.68rem;
+      font-size: 0.7rem;
       font-weight: 800;
       color: #64748b;
       text-align: center;
     }
 
     .seat {
-      height: 46px;
+      height: 48px;
       border-radius: 10px;
       display: flex;
       flex-direction: column;
@@ -450,45 +480,66 @@
       justify-content: center;
       font-size: 0.65rem;
       font-weight: 700;
-      background: #1e293b;
-      color: #475569;
+      background: rgba(30, 41, 59, 0.7);
+      color: #64748b;
       border: 1px solid #334155;
       position: relative;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      opacity: 0;
+      transform: translateY(15px) scale(0.9);
+      transition: all 0.3s ease;
     }
 
-    /* מושב של חבר עם אנימציה */
+    /* אנימציית Pop-in בהטענה */
+    .seat.reveal {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* מושב של חבר עם אפקט גלים פועמים */
     .seat.occupied {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: #ffffff;
       border: 1.5px solid #38bdf8;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-      animation: seatGlow 2.5s infinite alternate;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
       cursor: pointer;
-      transform: scale(1.05);
+      z-index: 6;
+      animation: friendPulse 2s infinite ease-in-out;
     }
 
-    @keyframes seatGlow {
-      0% {
-        box-shadow: 0 0 8px rgba(56, 189, 248, 0.4), inset 0 0 4px rgba(255, 255, 255, 0.2);
-      }
-      100% {
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.4);
-      }
+    /* גלי Sonar סביב מושבי החברים */
+    .seat.occupied::before {
+      content: '';
+      position: absolute;
+      top: -4px; left: -4px; right: -4px; bottom: -4px;
+      border-radius: 14px;
+      border: 2px solid #38bdf8;
+      animation: sonarRipple 2s infinite ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes sonarRipple {
+      0% { transform: scale(0.95); opacity: 1; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+
+    @keyframes friendPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); }
+      50% { transform: scale(1.06); box-shadow: 0 0 24px rgba(56, 189, 248, 0.9); }
     }
 
     .passenger-tag {
       font-size: 0.72rem;
       font-weight: 900;
       color: #ffffff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       line-height: 1.1;
+      direction: rtl;
     }
 
     .seat-letter {
       font-size: 0.58rem;
       color: #bae6fd;
-      opacity: 0.85;
+      opacity: 0.9;
     }
 
     .footer-text {
@@ -599,6 +650,7 @@
       </div>
 
       <div class="plane-canvas-wrapper">
+        <div class="radar-scan-line"></div>
         <div class="plane-nose"></div>
         <div class="seat-grid" id="planeLayout"></div>
       </div>
@@ -617,14 +669,16 @@
 
     function renderPlaneSeats() {
       const container = document.getElementById('planeLayout');
-      // נציג מקבץ שורות שכולל את כל החברים
       const rowsToDisplay = [19, 20, 21, 22, 27, 28, 29];
 
       container.innerHTML = '';
-      rowsToDisplay.forEach((row, rIdx) => {
+      let seatDelayCounter = 0;
+
+      rowsToDisplay.forEach((row) => {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'seat-row';
 
+        // משמאל לימין: A, B, C, מעבר, D, E, F
         const cols = ['A', 'B', 'C', 'AISLE', 'D', 'E', 'F'];
         cols.forEach(col => {
           if (col === 'AISLE') {
@@ -639,7 +693,6 @@
 
             if (seatedFriends[seatKey]) {
               seatDiv.classList.add('occupied');
-              seatDiv.style.animationDelay = `${(rIdx * 0.15)}s`;
               seatDiv.innerHTML = `
                 <span class="passenger-tag">${seatedFriends[seatKey]}</span>
                 <span class="seat-letter">${seatKey}</span>
@@ -650,20 +703,25 @@
             } else {
               seatDiv.innerHTML = `<span class="seat-letter">${col}</span>`;
             }
+
             rowDiv.appendChild(seatDiv);
+
+            // הפעלת אפקט כניסה מדורג
+            setTimeout(() => {
+              seatDiv.classList.add('reveal');
+            }, seatDelayCounter * 35);
+            seatDelayCounter++;
           }
         });
         container.appendChild(rowDiv);
       });
     }
 
-    renderPlaneSeats();
-
     // ניהול מודאל
     const seatsModal = document.getElementById('seatsModal');
     document.getElementById('openSeatsModal').addEventListener('click', () => {
       seatsModal.classList.add('open');
-      renderPlaneSeats(); // רענון האנימציה בפתיחה
+      renderPlaneSeats(); // מפעיל מחדש את אנימציית הכניסה
       if ('vibrate' in navigator) navigator.vibrate(15);
     });
     document.getElementById('closeSeatsModal').addEventListener('click', () => {
@@ -715,9 +773,9 @@
 
     renderExpenseButton();
 
-    // 3. שעון, ספירה לאחור והעלמת הבאנר מחר ב-10:00
+    // 3. שעון, ספירה לאחור והעלמת באנר צ'ק אין מחר ב-10:00
     const flightOut = new Date("2026-08-20T08:15:00");
-    const bannerHideTime = new Date("2026-08-20T10:00:00"); // הסתרה מחר ב-10 בבוקר
+    const bannerHideTime = new Date("2026-08-20T10:00:00");
     const flightBack = new Date("2026-08-28T12:00:00");
     const checkinReturnDate = new Date("2026-08-27T00:00:00");
 
@@ -750,7 +808,7 @@
         timerDisplay.textContent = `${now.toLocaleDateString('he-IL', dateOptions)} | ${now.toLocaleTimeString('he-IL', timeOptions)}`;
       }
 
-      // לוגיקת הסתרת באנר צ'ק אין
+      // לוגיקת הסתרת צ'ק אין
       if (now < bannerHideTime) {
         checkinBanner.style.display = "flex";
       } else if (now >= bannerHideTime && now < checkinReturnDate) {
