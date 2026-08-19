@@ -156,6 +156,59 @@
       flex-shrink: 0;
     }
 
+    /* באנר צ'ק-אין עדין וממוקד */
+    .checkin-banner {
+      width: 100%;
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: #1e3a8a;
+      transition: all 0.2s ease;
+    }
+
+    .checkin-banner:hover {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
+      transform: translateY(-1px);
+    }
+
+    .checkin-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: right;
+    }
+
+    .checkin-icon {
+      font-size: 1.3rem;
+    }
+
+    .checkin-text-main {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1e40af;
+    }
+
+    .checkin-text-sub {
+      font-size: 0.7rem;
+      color: #3b82f6;
+    }
+
+    .checkin-badge {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
     .buttons-container {
       width: 100%;
       display: flex;
@@ -226,7 +279,7 @@
       margin-right: 10px;
     }
 
-    /* עיצוב כפתור ההוצאות הראשי (דינמי) */
+    /* כפתורי הוצאות */
     .btn-expense-spliit {
       background-color: var(--spliit-color);
       color: #ffffff;
@@ -255,7 +308,6 @@
       box-shadow: 0 0 0 var(--splitwise-dark), 0 2px 4px rgba(28, 194, 159, 0.1);
     }
 
-    /* כפתור החלפה מהיר ועדין */
     .switch-btn {
       background: transparent;
       border: none;
@@ -328,6 +380,18 @@
       </div>
     </div>
 
+    <!-- באנר צ'ק אין של ארקיע -->
+    <a href="https://www.arkia.co.il/he/web-checkin-login?updateType=0" target="_blank" class="checkin-banner">
+      <div class="checkin-info">
+        <span class="checkin-icon">🎫</span>
+        <div>
+          <div class="checkin-text-main">צ'ק-אין לטיסה (ארקיע)</div>
+          <div class="checkin-text-sub">נפתח 24 שעות לפני הטיסה</div>
+        </div>
+      </div>
+      <span class="checkin-badge">כניסה</span>
+    </a>
+
     <div class="buttons-container">
       <!-- קניות משותפת -->
       <a href="shopping.html" class="btn btn-list">
@@ -343,13 +407,12 @@
 
       <div class="section-divider">הוצאות ותשלומים</div>
 
-      <!-- כפתור הוצאות דינמי שמתחלף -->
+      <!-- כפתור הוצאות מתחלף -->
       <a id="expenseBtn" href="#" target="_blank" class="btn">
         <svg viewBox="0 0 24 24" id="expenseIcon"></svg>
         <span id="expenseText"></span>
       </a>
 
-      <!-- מתג החלפה מהיר -->
       <button class="switch-btn" id="toggleExpenseApp">
         🔄 החלף אפליקציית הוצאות (<span id="altAppName"></span>)
       </button>
@@ -359,7 +422,7 @@
   </div>
 
   <script>
-    // 1. ניהול אפליקציית הוצאות נבחרת (Spliit מול Splitwise)
+    // 1. ניהול אפליקציית הוצאות
     const appsConfig = {
       spliit: {
         name: "Spliit",
@@ -441,8 +504,8 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // 3. רטט בלחיצת כפתור
-    document.querySelectorAll('.btn').forEach(button => {
+    // 3. רטט בלחיצה
+    document.querySelectorAll('.btn, .checkin-banner').forEach(button => {
       button.addEventListener('click', () => {
         if ('vibrate' in navigator) navigator.vibrate(15);
       });
