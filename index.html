@@ -156,25 +156,50 @@
       flex-shrink: 0;
     }
 
-    /* באנר צ'ק-אין עדין וממוקד */
+    /* באנר צ'ק-אין דינמי */
     .checkin-banner {
       width: 100%;
-      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-      border: 1px solid #bfdbfe;
       border-radius: 14px;
-      padding: 10px 14px;
+      padding: 11px 14px;
       margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       text-decoration: none;
-      color: #1e3a8a;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
 
-    .checkin-banner:hover {
-      background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
+    /* מצב 1: לפני פתיחה (מעל 24 שעות) */
+    .checkin-banner.locked {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #64748b;
+      opacity: 0.85;
+    }
+    .checkin-banner.locked .checkin-badge {
+      background: #94a3b8;
+      color: #ffffff;
+    }
+
+    /* מצב 2: פתוח (24 שעות לפני ההמראה) */
+    .checkin-banner.active {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1.5px solid #10b981;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+      animation: pulse-border 2.5s infinite;
+    }
+    .checkin-banner.active:hover {
       transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.22);
+    }
+    .checkin-banner.active .checkin-badge {
+      background: #059669;
+      color: #ffffff;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { border-color: #10b981; }
+      50% { border-color: #34d399; }
     }
 
     .checkin-info {
@@ -185,23 +210,21 @@
     }
 
     .checkin-icon {
-      font-size: 1.3rem;
+      font-size: 1.35rem;
     }
 
     .checkin-text-main {
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       font-weight: 700;
-      color: #1e40af;
+      color: var(--text-main);
     }
 
     .checkin-text-sub {
-      font-size: 0.7rem;
-      color: #3b82f6;
+      font-size: 0.72rem;
+      color: #64748b;
     }
 
     .checkin-badge {
-      background: #2563eb;
-      color: #ffffff;
       font-size: 0.75rem;
       font-weight: 700;
       padding: 5px 12px;
@@ -279,7 +302,6 @@
       margin-right: 10px;
     }
 
-    /* כפתורי הוצאות */
     .btn-expense-spliit {
       background-color: var(--spliit-color);
       color: #ffffff;
@@ -380,16 +402,16 @@
       </div>
     </div>
 
-    <!-- באנר צ'ק אין של ארקיע -->
-    <a href="https://www.arkia.co.il/he/web-checkin-login?updateType=0" target="_blank" class="checkin-banner">
+    <!-- באנר צ'ק-אין חכם שמתעדכן אוטומטית -->
+    <a id="checkinBanner" href="https://www.arkia.co.il/he/web-checkin-login?updateType=0" target="_blank" class="checkin-banner locked">
       <div class="checkin-info">
-        <span class="checkin-icon">🎫</span>
+        <span class="checkin-icon" id="checkinIcon">⏳</span>
         <div>
-          <div class="checkin-text-main">צ'ק-אין לטיסה (ארקיע)</div>
-          <div class="checkin-text-sub">נפתח 24 שעות לפני הטיסה</div>
+          <div class="checkin-text-main" id="checkinMain">צ'ק-אין לטיסה (ארקיע)</div>
+          <div class="checkin-text-sub" id="checkinSub">ייפתח 24 שעות לפני הטיסה</div>
         </div>
       </div>
-      <span class="checkin-badge">כניסה</span>
+      <span class="checkin-badge" id="checkinBadge">בקרוב</span>
     </a>
 
     <div class="buttons-container">
@@ -464,14 +486,21 @@
 
     renderExpenseButton();
 
-    // 2. שעון וספירה לאחור
+    // 2. שעון, ספירה לאחור ועדכון באנר צ'ק-אין אוטומטי
     const targetDate = new Date("2026-08-20T08:15:00");
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
 
+    const checkinBanner = document.getElementById("checkinBanner");
+    const checkinIcon = document.getElementById("checkinIcon");
+    const checkinMain = document.getElementById("checkinMain");
+    const checkinSub = document.getElementById("checkinSub");
+    const checkinBadge = document.getElementById("checkinBadge");
+
     function updateClock() {
       const now = new Date();
       const diff = targetDate - now;
+      const hoursRemaining = diff / (1000 * 60 * 60);
 
       if (diff > 0) {
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -480,7 +509,6 @@
         const seconds = Math.floor((diff / 1000) % 60);
 
         timerTitle.textContent = "זמן נותר להמראה ✈️";
-
         const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
         if (days > 0) {
@@ -488,7 +516,25 @@
         } else {
           timerDisplay.textContent = timeString;
         }
+
+        // לוגיקה דינמית של הצ'ק-אין:
+        if (hoursRemaining <= 24) {
+          // נפתחה אפשרות הצ'ק אין
+          checkinBanner.className = "checkin-banner active";
+          checkinIcon.textContent = "🎫";
+          checkinMain.textContent = "הצ'ק-אין לטיסה פתוח עכשיו!";
+          checkinSub.textContent = "לחצו לבחירת מקומות וכרטיסי עלייה";
+          checkinBadge.textContent = "בצע צ'ק-אין ✈️";
+        } else {
+          // לפני פתיחת הצ'ק אין
+          checkinBanner.className = "checkin-banner locked";
+          checkinIcon.textContent = "⏳";
+          checkinMain.textContent = "צ'ק-אין לטיסה (ארקיע)";
+          checkinSub.textContent = "ייפתח 24 שעות לפני הטיסה";
+          checkinBadge.textContent = "בקרוב";
+        }
       } else {
+        // לאחר ההמראה
         timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
         
         const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Athens' };
@@ -498,6 +544,9 @@
         const timeStr = now.toLocaleTimeString('he-IL', timeOptions);
 
         timerDisplay.textContent = `${dateStr} | ${timeStr}`;
+
+        // מסתירים את באנר הצ'ק אין אחרי שהמראנו
+        checkinBanner.style.display = "none";
       }
     }
 
