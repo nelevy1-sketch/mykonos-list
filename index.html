@@ -516,7 +516,7 @@
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
-      max-width: 380px;
+      max-width: 390px;
       max-height: 90vh;
       overflow-y: auto;
       border-radius: 24px;
@@ -706,10 +706,11 @@
   <div class="modal-overlay" id="adminModal">
     <div class="admin-modal">
       <div class="modal-header">
-        <h2>🛠️ ניהול טיסה, מושבים והודעות</h2>
+        <h2>🛠️ ניהול טיסה, מושבים ומשפטים</h2>
         <button class="modal-close" id="closeAdminModal">✕</button>
       </div>
       
+      <!-- ניהול טיסה ועיכובים -->
       <div class="admin-field">
         <label>מועד המראה מעודכן:</label>
         <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
@@ -720,9 +721,19 @@
         <input type="text" id="adminStatusInput" placeholder="לדוגמה: עיכוב של 40 דק', שער B4" class="admin-input" style="direction: rtl;">
       </div>
 
+      <!-- ניהול מושבים -->
       <div class="admin-field">
         <label>שיבוץ מושבי החברים לפי שם:</label>
         <div class="admin-seats-grid" id="adminSeatsContainer"></div>
+      </div>
+
+      <!-- ניהול משפט יומי בלייב -->
+      <div class="admin-field">
+        <label>עריכת משפט יומי (בחר תאריך לעריכה):</label>
+        <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+          <input type="date" id="adminQuoteDate" class="admin-input" style="direction: ltr; flex: 1;">
+        </div>
+        <textarea id="adminQuoteText" class="admin-input" rows="2" placeholder="הקלד כאן משפט מעודכן לתאריך שנבחר..." style="direction: rtl; resize: none;"></textarea>
       </div>
 
       <button class="admin-btn-save" id="saveFlightAdmin">שמור ועדכן בלייב 🚀</button>
@@ -756,7 +767,7 @@
       console.warn("Firebase לא אותחל");
     }
 
-    // 2. משתני בסיס ומושבי הלוך ברירת מחדל
+    // 2. משתני בסיס, מושבים ומשפטי ברירת מחדל
     let flightOut = new Date("2026-08-20T08:15:00");
     const flightBack = new Date("2026-08-28T12:00:00");
     const checkinReturnDate = new Date("2026-08-27T00:00:00");
@@ -767,6 +778,19 @@
       "21A": "ברגה", "21D": "פוטה", "21F": "איילה", "22F": "בולבול"
     };
 
+    let defaultTripQuotes = {
+      "2026-08-20": "״יותר ממה שהעגל רוצה לינוק, הפרה רוצה להניק – אז תנו לברמן לעבוד!״ 🐮🍸",
+      "2026-08-21": "״מי ששותה מים במיקונוס, סימן שנגמר לו הוודקה.״ 🌊🍋",
+      "2026-08-22": "״אם אין לחם תאכלו גירוס, ואם אין גירוס – תזמינו עוד צ'ייסר.״ 🥙🇬🇷",
+      "2026-08-23": "״אל תדאג לגבי כסף, אתה הומו ולהומואים תמיד יש כסף!״ 💅💸",
+      "2026-08-24": "״אל תסתכל בקנקן, אלא במה ששתית ממנו עד 4 לפנות בוקר.״ 🪩🤿",
+      "2026-08-25": "״כשהשמש יורדת – הזימה עולה.״ 🌅😈",
+      "2026-08-26": "״סטרייט זה רק קו באפליקציית ניווט, במיקונוס כולם מתעקלים.״ 💅🌈",
+      "2026-08-27": "״מה שקורה במיקונוס – מתועד בווידאו ויועלה לקבוצה.״ 📸🏖️",
+      "2026-08-28": "״אל תבכו שזה נגמר, תחייכו כי מחר חוזרים למציאות.״ 🏝️💙"
+    };
+
+    let customQuotes = {};
     let seatsReturnConfigured = false;
 
     // האזנה לעדכונים בזמן אמת מ-Firebase
@@ -798,6 +822,15 @@
       db.ref("seats_return_configured").on("value", (snapshot) => {
         seatsReturnConfigured = !!snapshot.val();
         updateClock();
+      });
+
+      // האזנה לעדכון משפטים מותאמים אישית
+      db.ref("custom_quotes").on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (data && typeof data === 'object') {
+          customQuotes = data;
+          updateDailyQuote();
+        }
       });
     }
 
@@ -841,12 +874,28 @@
             document.getElementById(`seatInput_${idx}`).value = memberSeat;
           });
 
+          // אתחול שדה המשפט היומי לפי התאריך הנוכחי
+          const now = new Date();
+          const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          document.getElementById("adminQuoteDate").value = todayISO;
+          loadQuoteForAdminDate(todayISO);
+
           updateWhatsAppShareLink();
           adminModal.classList.add("open");
         } else if (pass !== null) {
           alert("סיסמה שגויה");
         }
       }
+    });
+
+    // טעינת משפט לשדה האדמין בעת החלפת תאריך
+    function loadQuoteForAdminDate(dateKey) {
+      const q = customQuotes[dateKey] || defaultTripQuotes[dateKey] || "";
+      document.getElementById("adminQuoteText").value = q;
+    }
+
+    document.getElementById("adminQuoteDate").addEventListener("change", (e) => {
+      loadQuoteForAdminDate(e.target.value);
     });
 
     document.getElementById("closeAdminModal").addEventListener("click", () => adminModal.classList.remove("open"));
@@ -867,13 +916,14 @@
     document.getElementById("adminFlightInput").addEventListener("input", updateWhatsAppShareLink);
     document.getElementById("adminStatusInput").addEventListener("input", updateWhatsAppShareLink);
 
+    // שמירת כל נתוני האדמין
     document.getElementById("saveFlightAdmin").addEventListener("click", () => {
       const newTimeVal = document.getElementById("adminFlightInput").value;
       const newStatusVal = document.getElementById("adminStatusInput").value;
 
+      // שמירת מושבים
       const newSeats = {};
       let anySeatUpdated = false;
-
       groupMembers.forEach((member, idx) => {
         const seatVal = document.getElementById(`seatInput_${idx}`).value.trim().toUpperCase();
         if (seatVal) {
@@ -881,6 +931,14 @@
           anySeatUpdated = true;
         }
       });
+
+      // שמירת משפט מותאם
+      const qDate = document.getElementById("adminQuoteDate").value;
+      const qText = document.getElementById("adminQuoteText").value.trim();
+      if (qDate && qText) {
+        customQuotes[qDate] = qText;
+        if (db) db.ref(`custom_quotes/${qDate}`).set(qText);
+      }
 
       if (newTimeVal) {
         flightOut = new Date(newTimeVal);
@@ -902,7 +960,8 @@
 
         adminModal.classList.remove("open");
         updateClock();
-        alert("הנתונים נשמרו בהצלחה וסונכרנו לכל החברים!");
+        updateDailyQuote();
+        alert("כל הנתונים (טיסה, מושבים ומשפט יומי) נשמרו וסונכרנו בהצלחה!");
       }
     });
 
@@ -964,23 +1023,13 @@
     });
     document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
 
-    // 5. מאגר משפטי העצמה יומיים מעודכן
-    const tripQuotes = {
-      "2026-08-20": "״יותר ממה שהעגל רוצה לינוק, הפרה רוצה להניק – אז תנו לברמן לעבוד!״ 🐮🍸",
-      "2026-08-21": "״מי ששותה מים במיקונוס, סימן שנגמר לו הוודקה.״ 🌊🍋",
-      "2026-08-22": "״אם אין לחם תאכלו גירוס, ואם אין גירוס – תזמינו עוד צ'ייסר.״ 🥙🇬🇷",
-      "2026-08-23": "״אל תדאג לגבי כסף, אתה הומו ולהומואים תמיד יש כסף!״ 💅💸",
-      "2026-08-24": "״אל תסתכל בקנקן, אלא במה ששתית ממנו עד 4 לפנות בוקר.״ 🪩🤿",
-      "2026-08-25": "״כשהשמש יורדת – הזימה עולה.״ 🌅😈",
-      "2026-08-26": "״סטרייט זה רק קו באפליקציית ניווט, במיקונוס כולם מתעקלים.״ 💅🌈",
-      "2026-08-27": "״מה שקורה במיקונוס – מתועד בווידאו ויועלה לקבוצה.״ 📸🏖️",
-      "2026-08-28": "״אל תבכו שזה נגמר, תחייכו כי מחר חוזרים למציאות.״ 🏝️💙"
-    };
-
+    // 5. עדכון משפט יומי (עדיפות למשפט מ-Firebase)
     function updateDailyQuote() {
       const now = new Date();
       const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      document.getElementById('dailyQuoteText').textContent = tripQuotes[todayKey] || "״הרוח במיקונוס לא מעיפה דברים, היא רק עושה להם רילוקיישן.״ 🌬️🇬🇷";
+      
+      const quote = customQuotes[todayKey] || defaultTripQuotes[todayKey] || "״הרוח במיקונוס לא מעיפה דברים, היא רק עושה להם רילוקיישן.״ 🌬️🇬🇷";
+      document.getElementById('dailyQuoteText').textContent = quote;
     }
 
     // 6. אפליקציית הוצאות
