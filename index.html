@@ -86,7 +86,7 @@
       margin-bottom: 16px;
     }
 
-    /* תיבת השעון */
+    /* שעון */
     .timer-box {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
@@ -112,11 +112,11 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* שורת מזג אוויר */
+    /* מזג אוויר */
     .weather-container {
       width: 100%;
       padding: 4px 0 14px 0;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -156,12 +156,12 @@
       flex-shrink: 0;
     }
 
-    /* באנר צ'ק-אין דו-שלבי */
+    /* באנר צ'ק-אין */
     .checkin-banner {
       width: 100%;
       border-radius: 14px;
       padding: 11px 14px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -173,7 +173,6 @@
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
       color: #64748b;
-      opacity: 0.85;
     }
     .checkin-banner.locked .checkin-badge {
       background: #94a3b8;
@@ -185,10 +184,6 @@
       border: 1.5px solid #10b981;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
       animation: pulse-border 2.5s infinite;
-    }
-    .checkin-banner.active:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.22);
     }
     .checkin-banner.active .checkin-badge {
       background: #059669;
@@ -207,27 +202,31 @@
       text-align: right;
     }
 
-    .checkin-icon {
-      font-size: 1.35rem;
-    }
+    .checkin-icon { font-size: 1.35rem; }
+    .checkin-text-main { font-size: 0.86rem; font-weight: 700; color: var(--text-main); }
+    .checkin-text-sub { font-size: 0.72rem; color: #64748b; }
+    .checkin-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; }
 
-    .checkin-text-main {
-      font-size: 0.86rem;
+    /* כפתור מפת מושבים במטוס */
+    .seats-banner-btn {
+      width: 100%;
+      background: #eff6ff;
+      border: 1.5px dashed var(--greek-blue);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--greek-blue);
       font-weight: 700;
-      color: var(--text-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-
-    .checkin-text-sub {
-      font-size: 0.72rem;
-      color: #64748b;
-    }
-
-    .checkin-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 5px 12px;
-      border-radius: 8px;
-      white-space: nowrap;
+    .seats-banner-btn:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
     }
 
     .buttons-container {
@@ -256,11 +255,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .btn svg {
-      width: 22px;
-      height: 22px;
-      fill: currentColor;
-    }
+    .btn svg { width: 22px; height: 22px; fill: currentColor; }
 
     .btn-list {
       background-color: #ffffff;
@@ -293,39 +288,18 @@
       flex: 1;
       border-bottom: 1px solid #e2e8f0;
     }
-    .section-divider:not(:empty)::before {
-      margin-left: 10px;
-    }
-    .section-divider:not(:empty)::after {
-      margin-right: 10px;
-    }
+    .section-divider:not(:empty)::before { margin-left: 10px; }
+    .section-divider:not(:empty)::after { margin-right: 10px; }
 
     .btn-expense-spliit {
       background-color: var(--spliit-color);
       color: #ffffff;
       box-shadow: 0 3px 0 var(--spliit-dark), 0 6px 12px rgba(99, 102, 241, 0.2);
     }
-    .btn-expense-spliit:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--spliit-dark), 0 8px 15px rgba(99, 102, 241, 0.25);
-    }
-    .btn-expense-spliit:active {
-      transform: translateY(3px);
-      box-shadow: 0 0 0 var(--spliit-dark), 0 2px 4px rgba(99, 102, 241, 0.1);
-    }
-
     .btn-expense-splitwise {
       background-color: var(--splitwise-color);
       color: #ffffff;
       box-shadow: 0 3px 0 var(--splitwise-dark), 0 6px 12px rgba(28, 194, 159, 0.2);
-    }
-    .btn-expense-splitwise:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 var(--splitwise-dark), 0 8px 15px rgba(28, 194, 159, 0.25);
-    }
-    .btn-expense-splitwise:active {
-      transform: translateY(3px);
-      box-shadow: 0 0 0 var(--splitwise-dark), 0 2px 4px rgba(28, 194, 159, 0.1);
     }
 
     .switch-btn {
@@ -340,12 +314,147 @@
       gap: 5px;
       padding: 4px 8px;
       border-radius: 6px;
-      transition: color 0.2s ease;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
-    .switch-btn:hover {
-      color: #334155;
+
+    /* Modal - מפת מטוס */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .plane-modal {
+      background: #ffffff;
+      width: 100%;
+      max-width: 380px;
+      max-height: 88vh;
+      border-radius: 24px;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px) scale(0.96); }
+      to { transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--greek-blue);
+    }
+    .modal-close {
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .plane-fuselage {
+      width: 100%;
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 40px 40px 20px 20px;
+      padding: 24px 12px 16px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cockpit-indicator {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .seat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 24px 1fr 1fr 1fr;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .row-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    .seat {
+      height: 42px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: #e2e8f0;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .seat.occupied {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0369a1;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+      animation: seatPulse 2.5s infinite;
+      cursor: pointer;
+    }
+
+    @keyframes seatPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.55); }
+    }
+
+    .seat.occupied .passenger-name {
+      font-size: 0.68rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      padding: 0 2px;
     }
 
     .footer-text {
@@ -400,7 +509,7 @@
       </div>
     </div>
 
-    <!-- באנר צ'ק-אין דו-שלבי חכם -->
+    <!-- באנר צ'ק-אין -->
     <a id="checkinBanner" href="https://www.arkia.co.il/he/web-checkin-login?updateType=0" target="_blank" class="checkin-banner locked">
       <div class="checkin-info">
         <span class="checkin-icon" id="checkinIcon">⏳</span>
@@ -411,6 +520,12 @@
       </div>
       <span class="checkin-badge" id="checkinBadge">בקרוב</span>
     </a>
+
+    <!-- כפתור לפתיחת מפת המטוס והמושבים -->
+    <div class="seats-banner-btn" id="openSeatsModal">
+      <span>💺 איפה כולם יושבים במטוס?</span>
+      <span style="font-size: 0.8rem; background: #dbeafe; padding: 3px 8px; border-radius: 6px;">צפה במפה 👈</span>
+    </div>
 
     <div class="buttons-container">
       <!-- קניות משותפת -->
@@ -441,8 +556,87 @@
     <div class="footer-text">Mykonos 2026 ☀️</div>
   </div>
 
+  <!-- Modal מפת המטוס והושבת החברים -->
+  <div class="modal-overlay" id="seatsModal">
+    <div class="plane-modal">
+      <div class="modal-header">
+        <div class="modal-title">✈️ מושבים בטיסה (A320/A321)</div>
+        <button class="modal-close" id="closeSeatsModal">✕</button>
+      </div>
+
+      <div class="cockpit-indicator">⬆️ תא הטייס (קדימה) ⬆️</div>
+
+      <div class="plane-fuselage" id="planeLayout">
+        <!-- השורות והמושבים מרונדרים כאן דינמית -->
+      </div>
+    </div>
+  </div>
+
   <script>
-    // 1. ניהול אפליקציית הוצאות
+    // 1. נתוני הושבת החברים במטוס
+    const seatedFriends = {
+      "20E": "ציפי",
+      "20F": "בנצה",
+      "21A": "ברגה",
+      "21F": "איילה",
+      "28C": "פוטה"
+    };
+
+    // בניית מפת המטוס סביב השורות הרלוונטיות
+    function renderPlaneSeats() {
+      const container = document.getElementById('planeLayout');
+      const rowsToDisplay = [19, 20, 21, 22, 27, 28, 29]; // שורות רלוונטיות לתצוגה ממוקדת
+
+      container.innerHTML = '';
+      rowsToDisplay.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+
+        const cols = ['A', 'B', 'C', 'AISLE', 'D', 'E', 'F'];
+        cols.forEach(col => {
+          if (col === 'AISLE') {
+            const num = document.createElement('div');
+            num.className = 'row-num';
+            num.textContent = row;
+            rowDiv.appendChild(num);
+          } else {
+            const seatKey = `${row}${col}`;
+            const seatDiv = document.createElement('div');
+            seatDiv.className = 'seat';
+
+            if (seatedFriends[seatKey]) {
+              seatDiv.classList.add('occupied');
+              seatDiv.innerHTML = `<span class="passenger-name">${seatedFriends[seatKey]}</span><span>${col}</span>`;
+              seatDiv.addEventListener('click', () => {
+                if ('vibrate' in navigator) navigator.vibrate([15, 30, 15]);
+                alert(`מושב ${seatKey}: ${seatedFriends[seatKey]}`);
+              });
+            } else {
+              seatDiv.textContent = col;
+            }
+            rowDiv.appendChild(seatDiv);
+          }
+        });
+        container.appendChild(rowDiv);
+      });
+    }
+
+    renderPlaneSeats();
+
+    // ניהול פתיחה וסגירה של המודאל
+    const seatsModal = document.getElementById('seatsModal');
+    document.getElementById('openSeatsModal').addEventListener('click', () => {
+      seatsModal.classList.add('open');
+      if ('vibrate' in navigator) navigator.vibrate(15);
+    });
+    document.getElementById('closeSeatsModal').addEventListener('click', () => {
+      seatsModal.classList.remove('open');
+    });
+    seatsModal.addEventListener('click', (e) => {
+      if (e.target === seatsModal) seatsModal.classList.remove('open');
+    });
+
+    // 2. ניהול אפליקציית הוצאות
     const appsConfig = {
       spliit: {
         name: "Spliit",
@@ -484,14 +678,13 @@
 
     renderExpenseButton();
 
-    // 2. תאריכי טיסות
-    const flightOut = new Date("2026-08-20T08:15:00");  // טיסת הלוך
-    const flightBack = new Date("2026-08-28T12:00:00"); // טיסת חזור (ניתן לעדכן שעה מדויקת)
-    const checkinReturnDate = new Date("2026-08-27T00:00:00"); // תחילת הצגת צ'ק אין חזור
+    // 3. תאריכי טיסות, שעון וצ'ק אין
+    const flightOut = new Date("2026-08-20T08:15:00");
+    const flightBack = new Date("2026-08-28T12:00:00");
+    const checkinReturnDate = new Date("2026-08-27T00:00:00");
 
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
-
     const checkinBanner = document.getElementById("checkinBanner");
     const checkinIcon = document.getElementById("checkinIcon");
     const checkinMain = document.getElementById("checkinMain");
@@ -503,7 +696,6 @@
       const diffOut = flightOut - now;
       const hoursRemainingOut = diffOut / (1000 * 60 * 60);
 
-      // שעון עליון
       if (diffOut > 0) {
         const days = Math.floor(diffOut / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diffOut / (1000 * 60 * 60)) % 24);
@@ -525,9 +717,8 @@
         timerDisplay.textContent = `${now.toLocaleDateString('he-IL', dateOptions)} | ${now.toLocaleTimeString('he-IL', timeOptions)}`;
       }
 
-      // לוגיקת הצגת באנר צ'ק-אין (הלוך, הסתרה במהלך הטיול, חזרה)
+      // לוגיקת באנר צ'ק אין
       if (now < flightOut) {
-        // שלב 1: לפני טיסת הלוך
         checkinBanner.style.display = "flex";
         if (hoursRemainingOut <= 24) {
           checkinBanner.className = "checkin-banner active";
@@ -543,10 +734,8 @@
           checkinBadge.textContent = "בקרוב";
         }
       } else if (now >= flightOut && now < checkinReturnDate) {
-        // שלב 2: בזמן השהות במיקונוס (הבאנר מוסתר לחלוטין)
         checkinBanner.style.display = "none";
       } else if (now >= checkinReturnDate && now < flightBack) {
-        // שלב 3: החל מ-27 באוגוסט (צ'ק אין חזור)
         checkinBanner.style.display = "flex";
         checkinBanner.className = "checkin-banner active";
         checkinIcon.textContent = "🎫";
@@ -554,7 +743,6 @@
         checkinSub.textContent = "פתוח לביצוע דרך ארקיע";
         checkinBadge.textContent = "צ'ק-אין חזור ✈️";
       } else {
-        // שלב 4: אחרי הטיסה חזרה
         checkinBanner.style.display = "none";
       }
     }
@@ -562,14 +750,14 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // 3. רטט בלחיצה
+    // 4. רטט בלחיצה
     document.querySelectorAll('.btn, .checkin-banner').forEach(button => {
       button.addEventListener('click', () => {
         if ('vibrate' in navigator) navigator.vibrate(15);
       });
     });
 
-    // 4. מזג אוויר חי במיקונוס
+    // 5. מזג אוויר חי במיקונוס
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
