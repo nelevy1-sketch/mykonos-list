@@ -156,7 +156,7 @@
       flex-shrink: 0;
     }
 
-    /* באנר צ'ק-אין דינמי */
+    /* באנר צ'ק-אין דו-שלבי */
     .checkin-banner {
       width: 100%;
       border-radius: 14px;
@@ -169,7 +169,6 @@
       transition: all 0.25s ease;
     }
 
-    /* מצב 1: לפני פתיחה (מעל 24 שעות) */
     .checkin-banner.locked {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
@@ -181,7 +180,6 @@
       color: #ffffff;
     }
 
-    /* מצב 2: פתוח (24 שעות לפני ההמראה) */
     .checkin-banner.active {
       background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
       border: 1.5px solid #10b981;
@@ -402,7 +400,7 @@
       </div>
     </div>
 
-    <!-- באנר צ'ק-אין חכם שמתעדכן אוטומטית -->
+    <!-- באנר צ'ק-אין דו-שלבי חכם -->
     <a id="checkinBanner" href="https://www.arkia.co.il/he/web-checkin-login?updateType=0" target="_blank" class="checkin-banner locked">
       <div class="checkin-info">
         <span class="checkin-icon" id="checkinIcon">⏳</span>
@@ -486,8 +484,11 @@
 
     renderExpenseButton();
 
-    // 2. שעון, ספירה לאחור ועדכון באנר צ'ק-אין אוטומטי
-    const targetDate = new Date("2026-08-20T08:15:00");
+    // 2. תאריכי טיסות
+    const flightOut = new Date("2026-08-20T08:15:00");  // טיסת הלוך
+    const flightBack = new Date("2026-08-28T12:00:00"); // טיסת חזור (ניתן לעדכן שעה מדויקת)
+    const checkinReturnDate = new Date("2026-08-27T00:00:00"); // תחילת הצגת צ'ק אין חזור
+
     const timerTitle = document.getElementById("timerTitle");
     const timerDisplay = document.getElementById("timerDisplay");
 
@@ -499,14 +500,15 @@
 
     function updateClock() {
       const now = new Date();
-      const diff = targetDate - now;
-      const hoursRemaining = diff / (1000 * 60 * 60);
+      const diffOut = flightOut - now;
+      const hoursRemainingOut = diffOut / (1000 * 60 * 60);
 
-      if (diff > 0) {
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
+      // שעון עליון
+      if (diffOut > 0) {
+        const days = Math.floor(diffOut / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffOut / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diffOut / 1000 / 60) % 60);
+        const seconds = Math.floor((diffOut / 1000) % 60);
 
         timerTitle.textContent = "זמן נותר להמראה ✈️";
         const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -516,36 +518,43 @@
         } else {
           timerDisplay.textContent = timeString;
         }
+      } else {
+        timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
+        const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Athens' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Athens' };
+        timerDisplay.textContent = `${now.toLocaleDateString('he-IL', dateOptions)} | ${now.toLocaleTimeString('he-IL', timeOptions)}`;
+      }
 
-        // לוגיקה דינמית של הצ'ק-אין:
-        if (hoursRemaining <= 24) {
-          // נפתחה אפשרות הצ'ק אין
+      // לוגיקת הצגת באנר צ'ק-אין (הלוך, הסתרה במהלך הטיול, חזרה)
+      if (now < flightOut) {
+        // שלב 1: לפני טיסת הלוך
+        checkinBanner.style.display = "flex";
+        if (hoursRemainingOut <= 24) {
           checkinBanner.className = "checkin-banner active";
           checkinIcon.textContent = "🎫";
-          checkinMain.textContent = "הצ'ק-אין לטיסה פתוח עכשיו!";
-          checkinSub.textContent = "לחצו לבחירת מקומות וכרטיסי עלייה";
+          checkinMain.textContent = "צ'ק-אין להמראה פתוח עכשיו!";
+          checkinSub.textContent = "בחרו מקומות וכרטיסי עלייה למטוס";
           checkinBadge.textContent = "בצע צ'ק-אין ✈️";
         } else {
-          // לפני פתיחת הצ'ק אין
           checkinBanner.className = "checkin-banner locked";
           checkinIcon.textContent = "⏳";
           checkinMain.textContent = "צ'ק-אין לטיסה (ארקיע)";
           checkinSub.textContent = "ייפתח 24 שעות לפני הטיסה";
           checkinBadge.textContent = "בקרוב";
         }
+      } else if (now >= flightOut && now < checkinReturnDate) {
+        // שלב 2: בזמן השהות במיקונוס (הבאנר מוסתר לחלוטין)
+        checkinBanner.style.display = "none";
+      } else if (now >= checkinReturnDate && now < flightBack) {
+        // שלב 3: החל מ-27 באוגוסט (צ'ק אין חזור)
+        checkinBanner.style.display = "flex";
+        checkinBanner.className = "checkin-banner active";
+        checkinIcon.textContent = "🎫";
+        checkinMain.textContent = "צ'ק-אין לטיסה חזרה לארץ 🇮🇱";
+        checkinSub.textContent = "פתוח לביצוע דרך ארקיע";
+        checkinBadge.textContent = "צ'ק-אין חזור ✈️";
       } else {
-        // לאחר ההמראה
-        timerTitle.textContent = "אנחנו במיקונוס! ☀️ זמן יוון";
-        
-        const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Athens' };
-        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Athens' };
-        
-        const dateStr = now.toLocaleDateString('he-IL', dateOptions);
-        const timeStr = now.toLocaleTimeString('he-IL', timeOptions);
-
-        timerDisplay.textContent = `${dateStr} | ${timeStr}`;
-
-        // מסתירים את באנר הצ'ק אין אחרי שהמראנו
+        // שלב 4: אחרי הטיסה חזרה
         checkinBanner.style.display = "none";
       }
     }
