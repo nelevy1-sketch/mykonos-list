@@ -516,86 +516,115 @@
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
-      max-width: 390px;
+      max-width: 400px;
       max-height: 90vh;
       overflow-y: auto;
       border-radius: 24px;
       padding: 22px 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
       text-align: right;
       box-shadow: 0 20px 40px rgba(0,0,0,0.25);
     }
-    .admin-modal h2 { font-size: 1.15rem; color: var(--greek-blue); }
+    .admin-modal h2 { font-size: 1.2rem; color: var(--greek-blue); }
+
+    /* כרטיסיות מקטעים מופרדות באדמין */
+    .admin-section-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .admin-section-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--greek-blue);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+    }
+
     .admin-field { display: flex; flex-direction: column; gap: 4px; }
     .admin-field label { font-size: 0.78rem; font-weight: 700; color: #64748b; }
     .admin-input {
-      padding: 9px 11px;
+      padding: 8px 10px;
       border-radius: 10px;
       border: 1.5px solid #cbd5e1;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-family: inherit;
+      background: #ffffff;
     }
 
     .admin-seats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 4px;
+      gap: 6px;
     }
     .admin-seat-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #f8fafc;
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
       gap: 6px;
     }
     .admin-seat-row span {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: #334155;
     }
     .admin-seat-row input {
-      width: 58px;
-      padding: 5px 6px;
-      border-radius: 8px;
-      border: 1.5px solid #cbd5e1;
-      font-size: 0.85rem;
+      width: 50px;
+      padding: 4px 4px;
+      border-radius: 6px;
+      border: 1px solid #94a3b8;
+      font-size: 0.82rem;
       font-weight: 700;
       text-align: center;
       text-transform: uppercase;
       direction: ltr;
     }
 
-    .admin-btn-save {
-      background: var(--greek-blue);
-      color: #ffffff;
+    .btn-admin-action {
       border: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 0.95rem;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 4px;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
+    .btn-admin-action:active { transform: scale(0.98); }
+
+    .btn-admin-flight { background: var(--greek-blue); color: #ffffff; }
+    .btn-admin-seats { background: #0284c7; color: #ffffff; }
+    .btn-admin-quote { background: #d97706; color: #ffffff; }
 
     .admin-btn-whatsapp {
       background: #25d366;
       color: #ffffff;
       border: none;
-      padding: 11px;
-      border-radius: 12px;
-      font-size: 0.9rem;
+      padding: 9px;
+      border-radius: 10px;
+      font-size: 0.84rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       text-decoration: none;
     }
 
@@ -706,41 +735,46 @@
   <div class="modal-overlay" id="adminModal">
     <div class="admin-modal">
       <div class="modal-header">
-        <h2>🛠️ ניהול טיסה, מושבים ומשפטים</h2>
+        <h2>🛠️ פאנל ניהול אדמין</h2>
         <button class="modal-close" id="closeAdminModal">✕</button>
       </div>
       
-      <!-- ניהול טיסה ועיכובים -->
-      <div class="admin-field">
-        <label>מועד המראה מעודכן:</label>
-        <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
-      </div>
-
-      <div class="admin-field">
-        <label>הודעת סטטוס (אם יש עיכוב/שער):</label>
-        <input type="text" id="adminStatusInput" placeholder="לדוגמה: עיכוב של 40 דק', שער B4" class="admin-input" style="direction: rtl;">
-      </div>
-
-      <!-- ניהול מושבים -->
-      <div class="admin-field">
-        <label>שיבוץ מושבי החברים לפי שם:</label>
-        <div class="admin-seats-grid" id="adminSeatsContainer"></div>
-      </div>
-
-      <!-- ניהול משפט יומי בלייב -->
-      <div class="admin-field">
-        <label>עריכת משפט יומי (בחר תאריך לעריכה):</label>
-        <div style="display: flex; gap: 6px; margin-bottom: 4px;">
-          <input type="date" id="adminQuoteDate" class="admin-input" style="direction: ltr; flex: 1;">
+      <!-- מקטע 1: ניהול טיסה, עיכובים ושיתוף -->
+      <div class="admin-section-box">
+        <div class="admin-section-title">✈️ מועד המראה ועיכובים</div>
+        <div class="admin-field">
+          <label>שעת המראה מעודכנת:</label>
+          <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
         </div>
-        <textarea id="adminQuoteText" class="admin-input" rows="2" placeholder="הקלד כאן משפט מעודכן לתאריך שנבחר..." style="direction: rtl; resize: none;"></textarea>
+        <div class="admin-field">
+          <label>הודעת סטטוס/שער (ריק = ללא הודעה):</label>
+          <input type="text" id="adminStatusInput" placeholder="לדוגמה: עיכוב של 40 דק', שער B4" class="admin-input" style="direction: rtl;">
+        </div>
+        <button class="btn-admin-action btn-admin-flight" id="saveFlightOnlyBtn">💾 שמור מועד המראה וסטטוס</button>
+        <a href="#" class="admin-btn-whatsapp" id="shareWhatsAppBtn" target="_blank">
+          <span>📲 שתף עדכון טיסה בוואטסאפ הקבוצתי</span>
+        </a>
       </div>
 
-      <button class="admin-btn-save" id="saveFlightAdmin">שמור ועדכן בלייב 🚀</button>
-      
-      <a href="#" class="admin-btn-whatsapp" id="shareWhatsAppBtn" target="_blank">
-        <span>📲 שתף עדכון טיסה בוואטסאפ הקבוצתי</span>
-      </a>
+      <!-- מקטע 2: ניהול מושבים -->
+      <div class="admin-section-box">
+        <div class="admin-section-title">💺 שיבוץ מושבי החברים</div>
+        <div class="admin-seats-grid" id="adminSeatsContainer"></div>
+        <button class="btn-admin-action btn-admin-seats" id="saveSeatsOnlyBtn">💾 שמור מושבים בלייב</button>
+      </div>
+
+      <!-- מקטע 3: ניהול משפט יומי -->
+      <div class="admin-section-box">
+        <div class="admin-section-title">✨ עריכת משפט יומי</div>
+        <div class="admin-field">
+          <label>בחר תאריך לעריכה:</label>
+          <input type="date" id="adminQuoteDate" class="admin-input" style="direction: ltr;">
+        </div>
+        <div class="admin-field">
+          <textarea id="adminQuoteText" class="admin-input" rows="2" placeholder="הקלד משפט יומי..." style="direction: rtl; resize: none;"></textarea>
+        </div>
+        <button class="btn-admin-action btn-admin-quote" id="saveQuoteOnlyBtn">💾 שמור משפט לתאריך זה</button>
+      </div>
     </div>
   </div>
 
@@ -824,7 +858,6 @@
         updateClock();
       });
 
-      // האזנה לעדכון משפטים מותאמים אישית
       db.ref("custom_quotes").on("value", (snapshot) => {
         const data = snapshot.val();
         if (data && typeof data === 'object') {
@@ -874,7 +907,6 @@
             document.getElementById(`seatInput_${idx}`).value = memberSeat;
           });
 
-          // אתחול שדה המשפט היומי לפי התאריך הנוכחי
           const now = new Date();
           const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           document.getElementById("adminQuoteDate").value = todayISO;
@@ -888,7 +920,6 @@
       }
     });
 
-    // טעינת משפט לשדה האדמין בעת החלפת תאריך
     function loadQuoteForAdminDate(dateKey) {
       const q = customQuotes[dateKey] || defaultTripQuotes[dateKey] || "";
       document.getElementById("adminQuoteText").value = q;
@@ -916,12 +947,26 @@
     document.getElementById("adminFlightInput").addEventListener("input", updateWhatsAppShareLink);
     document.getElementById("adminStatusInput").addEventListener("input", updateWhatsAppShareLink);
 
-    // שמירת כל נתוני האדמין
-    document.getElementById("saveFlightAdmin").addEventListener("click", () => {
+    // כפתור 1: שמירת טיסה ועיכובים בלבד
+    document.getElementById("saveFlightOnlyBtn").addEventListener("click", () => {
       const newTimeVal = document.getElementById("adminFlightInput").value;
       const newStatusVal = document.getElementById("adminStatusInput").value;
 
-      // שמירת מושבים
+      if (newTimeVal) {
+        flightOut = new Date(newTimeVal);
+        if (db) {
+          db.ref("flight_settings").set({
+            flightOut: newTimeVal,
+            statusMessage: newStatusVal
+          });
+        }
+        updateClock();
+        alert("מועד הטיסה והסטטוס עודכנו בהצלחה!");
+      }
+    });
+
+    // כפתור 2: שמירת מושבים בלבד
+    document.getElementById("saveSeatsOnlyBtn").addEventListener("click", () => {
       const newSeats = {};
       let anySeatUpdated = false;
       groupMembers.forEach((member, idx) => {
@@ -932,36 +977,32 @@
         }
       });
 
-      // שמירת משפט מותאם
+      if (anySeatUpdated) {
+        seatedFriends = newSeats;
+        seatsReturnConfigured = true;
+        if (db) {
+          db.ref("seats_config").set(newSeats);
+          db.ref("seats_return_configured").set(true);
+        }
+        updateClock();
+        alert("מקומות הישיבה עודכנו בהצלחה!");
+      } else {
+        alert("לא הוזנו מושבים לשמירה.");
+      }
+    });
+
+    // כפתור 3: שמירת משפט יומי בלבד
+    document.getElementById("saveQuoteOnlyBtn").addEventListener("click", () => {
       const qDate = document.getElementById("adminQuoteDate").value;
       const qText = document.getElementById("adminQuoteText").value.trim();
+
       if (qDate && qText) {
         customQuotes[qDate] = qText;
         if (db) db.ref(`custom_quotes/${qDate}`).set(qText);
-      }
-
-      if (newTimeVal) {
-        flightOut = new Date(newTimeVal);
-        if (anySeatUpdated) {
-          seatedFriends = newSeats;
-          seatsReturnConfigured = true;
-        }
-
-        if (db) {
-          db.ref("flight_settings").set({
-            flightOut: newTimeVal,
-            statusMessage: newStatusVal
-          });
-          if (anySeatUpdated) {
-            db.ref("seats_config").set(newSeats);
-            db.ref("seats_return_configured").set(true);
-          }
-        }
-
-        adminModal.classList.remove("open");
-        updateClock();
         updateDailyQuote();
-        alert("כל הנתונים (טיסה, מושבים ומשפט יומי) נשמרו וסונכרנו בהצלחה!");
+        alert(`המשפט היומי לתאריך ${qDate} עודכן בהצלחה!`);
+      } else {
+        alert("אנא בחר תאריך והזן משפט.");
       }
     });
 
@@ -1023,7 +1064,7 @@
     });
     document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
 
-    // 5. עדכון משפט יומי (עדיפות למשפט מ-Firebase)
+    // 5. עדכון משפט יומי
     function updateDailyQuote() {
       const now = new Date();
       const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
