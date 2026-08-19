@@ -319,7 +319,7 @@
       text-underline-offset: 3px;
     }
 
-    /* Modal ואנימציית המטוס המעודכנת */
+    /* Modal ואנימציית המטוס */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -389,7 +389,6 @@
       justify-content: center;
     }
 
-    /* גוף המטוס וסורק הרדאר */
     .plane-canvas-wrapper {
       width: 100%;
       background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
@@ -401,10 +400,9 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-      direction: ltr; /* שמירה על סדר עמודות A-B-C משמאל ו-D-E-F מימין */
+      direction: ltr;
     }
 
-    /* פס סריקת רדאר */
     .radar-scan-line {
       position: absolute;
       top: 0;
@@ -489,13 +487,11 @@
       transition: all 0.3s ease;
     }
 
-    /* אנימציית Pop-in בהטענה */
     .seat.reveal {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
 
-    /* מושב של חבר עם אפקט גלים פועמים */
     .seat.occupied {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: #ffffff;
@@ -506,7 +502,6 @@
       animation: friendPulse 2s infinite ease-in-out;
     }
 
-    /* גלי Sonar סביב מושבי החברים */
     .seat.occupied::before {
       content: '';
       position: absolute;
@@ -658,18 +653,22 @@
   </div>
 
   <script>
-    // 1. נתוני מושבי החברים
+    // 1. נתוני מושבי החברים המעודכנים
     const seatedFriends = {
+      "20A": "מארג׳",
+      "20B": "נירה",
       "20E": "ציפי",
       "20F": "בנצה",
       "21A": "ברגה",
+      "21D": "פוטה",
       "21F": "איילה",
-      "28C": "פוטה"
+      "22F": "בולבול"
     };
 
     function renderPlaneSeats() {
       const container = document.getElementById('planeLayout');
-      const rowsToDisplay = [19, 20, 21, 22, 27, 28, 29];
+      // שורות ממוקדות שכוללות את כל החברים שיושבים בין 20 ל-22
+      const rowsToDisplay = [19, 20, 21, 22, 23];
 
       container.innerHTML = '';
       let seatDelayCounter = 0;
@@ -706,7 +705,6 @@
 
             rowDiv.appendChild(seatDiv);
 
-            // הפעלת אפקט כניסה מדורג
             setTimeout(() => {
               seatDiv.classList.add('reveal');
             }, seatDelayCounter * 35);
@@ -721,7 +719,7 @@
     const seatsModal = document.getElementById('seatsModal');
     document.getElementById('openSeatsModal').addEventListener('click', () => {
       seatsModal.classList.add('open');
-      renderPlaneSeats(); // מפעיל מחדש את אנימציית הכניסה
+      renderPlaneSeats();
       if ('vibrate' in navigator) navigator.vibrate(15);
     });
     document.getElementById('closeSeatsModal').addEventListener('click', () => {
