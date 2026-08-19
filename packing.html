@@ -69,8 +69,9 @@
 
     .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px; scrollbar-width: none; scroll-behavior: smooth; }
     .friends-tabs::-webkit-scrollbar { display: none; }
-    .friend-tab-chip { width: auto; white-space: nowrap; padding: 6px 14px; border-radius: 20px; background: #e2e8f0; color: var(--text); font-size: 0.85rem; border: none; font-weight: 500; margin: 0; flex-shrink: 0; transition: background-color 0.2s, color 0.2s; }
+    .friend-tab-chip { width: auto; white-space: nowrap; padding: 6px 14px; border-radius: 20px; background: #e2e8f0; color: var(--text); font-size: 0.85rem; border: none; font-weight: 500; margin: 0; flex-shrink: 0; transition: background-color 0.2s, color 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .friend-tab-chip.active { background: var(--primary); color: white; }
+    .friend-tab-chip .chip-status { font-size: 0.72rem; opacity: 0.85; }
 
     .existing-names-container { margin-top: 12px; }
     .existing-names-title { font-size: 0.8rem; color: var(--gray); margin-bottom: 6px; }
@@ -196,12 +197,29 @@
     .hidden { display: none !important; }
     .friend-section { margin-bottom: 24px; position: relative; }
     
-    .friend-title {
-      position: sticky; top: 0; z-index: 10; font-weight: bold; font-size: 1.05rem; color: var(--primary);
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); padding: 8px 4px; margin-bottom: 8px;
+    .friend-header-box {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(4px); padding: 8px 4px; margin-bottom: 8px;
       border-bottom: 2px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
     }
+
+    .friend-name-title { font-weight: bold; font-size: 1.05rem; color: var(--primary); }
     
+    .friend-progress-pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: var(--gray);
+      font-weight: 500;
+    }
+    .friend-progress-pill.completed {
+      background: #dcfce7;
+      color: #166534;
+      font-weight: bold;
+    }
+
     .progress-bar { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; text-align: center; font-weight: 500; }
 
     .full-import-banner {
@@ -476,7 +494,7 @@
       <div class="card scrollable-list-card">
         <div class="sticky-top-section">
           <h3 style="font-size: 1rem;">רשימות ציבוריות של חברים</h3>
-          <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 8px;">בחר חבר לצפייה ברשימה שלו וייבוא פריטים:</p>
+          <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 8px;">בחר חבר לצפייה ברשימה שלו, קצב האריזה וייבוא פריטים:</p>
           <div id="friendsTabsContainer" class="friends-tabs"></div>
         </div>
         
@@ -484,7 +502,7 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v1.5.3</div>
+    <div class="app-version-footer">גרסה v1.5.4</div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -520,7 +538,8 @@
 
     let cachedFriendsData = {
       allUsers: [],
-      publicGrouped: {}
+      publicGrouped: {},
+      userStats: {} // שומר סטטיסטיקות אריזה (סה"כ פריטים וכמה נארזו) עבור כל חבר
     };
 
     let currentActiveSubitemDoc = null;
@@ -1671,7 +1690,7 @@
     });
 
     function renderFriendsUI() {
-      const { allUsers, publicGrouped } = cachedFriendsData;
+      const { allUsers, publicGrouped, userStats } = cachedFriendsData;
 
       if (allUsers.length === 0) {
         friendsItemsList.innerHTML = "<p style='color:var(--gray); text-align:center; padding:20px 0;'>אין חברים רשומים במערכת עדיין.</p>";
@@ -1693,9 +1712,19 @@
       friendsTabsContainer.appendChild(allBtn);
 
       allUsers.forEach(friend => {
+        const stat = userStats[friend] || { total: 0, done: 0 };
+        const isCompleted = stat.total > 0 && stat.done === stat.total;
+        const progressPercent = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0;
+
         const btn = document.createElement("button");
         btn.className = `friend-tab-chip ${selectedFriend === friend ? 'active' : ''}`;
-        btn.textContent = friend;
+        
+        let statusBadgeText = '';
+        if (stat.total > 0) {
+          statusBadgeText = isCompleted ? `✓` : `${progressPercent}%`;
+        }
+
+        btn.innerHTML = `<span>${escapeHtml(friend)}</span>${statusBadgeText ? `<span class="chip-status">(${statusBadgeText})</span>` : ''}`;
         btn.onclick = (e) => {
           triggerHaptic("light");
           selectedFriend = friend;
@@ -1710,6 +1739,10 @@
 
       displayFriends.forEach(friend => {
         const publicItems = publicGrouped[friend] || [];
+        const stat = userStats[friend] || { total: 0, done: 0 };
+        const isCompleted = stat.total > 0 && stat.done === stat.total;
+        const progressPercent = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0;
+
         publicItems.sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
         const sec = document.createElement("div");
@@ -1718,10 +1751,20 @@
         const safeFriend = escapeHtml(friend);
         const friendForHandler = escapeForInlineHandler(friend);
 
+        let progressMarkup = '';
+        if (stat.total > 0) {
+          if (isCompleted) {
+            progressMarkup = `<span class="friend-progress-pill completed">🥳 סיים/ה לארוז! (${stat.done}/${stat.total})</span>`;
+          } else {
+            progressMarkup = `<span class="friend-progress-pill">נארזו ${stat.done}/${stat.total} פריטים (${progressPercent}%)</span>`;
+          }
+        }
+
         if (publicItems.length > 0) {
           sec.innerHTML = `
-            <div class="friend-title">
-              <span>הרשימה של ${safeFriend}</span>
+            <div class="friend-header-box">
+              <span class="friend-name-title">הרשימה של ${safeFriend}</span>
+              ${progressMarkup}
             </div>
             <button class="btn-sm btn-import" style="margin-bottom:10px; width:100%;" onclick="importAll('${friendForHandler}', this)">ייבא את כל הרשימה של ${safeFriend}</button>
           `;
@@ -1772,8 +1815,9 @@
           const isRequestPending = pendingRequestsUsers.has(friend);
 
           sec.innerHTML = `
-            <div class="friend-title">
-              <span>הרשימה של ${safeFriend}</span>
+            <div class="friend-header-box">
+              <span class="friend-name-title">הרשימה של ${safeFriend}</span>
+              ${progressMarkup}
             </div>
             <div class="private-notice">
               <p>🔒 הרשימה של ${safeFriend} פרטית כרגע</p>
@@ -1816,11 +1860,21 @@
         unsubscribeFriendsItems = onSnapshot(itemsRef, (snapshot) => {
           const publicGrouped = {};
           const allUsersSet = new Set();
+          const userStats = {};
 
           snapshot.forEach((docSnap) => {
             const item = { id: docSnap.id, ...docSnap.data() };
             if (item.owner && item.owner !== currentUser) {
               allUsersSet.add(item.owner);
+
+              if (!userStats[item.owner]) {
+                userStats[item.owner] = { total: 0, done: 0 };
+              }
+              userStats[item.owner].total++;
+              if (item.isDone) {
+                userStats[item.owner].done++;
+              }
+
               if (item.isPublic) {
                 if (!publicGrouped[item.owner]) publicGrouped[item.owner] = [];
                 publicGrouped[item.owner].push(item);
@@ -1830,6 +1884,7 @@
 
           cachedFriendsData.allUsers = Array.from(allUsersSet).sort((a, b) => a.localeCompare(b, 'he'));
           cachedFriendsData.publicGrouped = publicGrouped;
+          cachedFriendsData.userStats = userStats;
 
           renderFriendsUI();
         }, (err) => {
