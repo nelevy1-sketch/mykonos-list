@@ -17,6 +17,8 @@
       --spliit-dark: #4f46e5;
       --splitwise-color: #1cc29f;
       --splitwise-dark: #149c7f;
+      --photos-color: #ea4335;
+      --photos-dark: #c5221f;
       --bg-color: #eef2f6;
       --card-bg: #ffffff;
       --text-main: #1e293b;
@@ -330,6 +332,22 @@
       box-shadow: 0 0 0 var(--greek-blue), 0 2px 4px rgba(0, 0, 0, 0.03);
     }
 
+    /* כפתור אלבום תמונות משותף */
+    .btn-photos {
+      background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+      color: #ffffff;
+      box-shadow: 0 3px 0 #c22d17, 0 6px 14px rgba(255, 65, 108, 0.25);
+      display: none;
+    }
+    .btn-photos:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 0 #c22d17, 0 8px 18px rgba(255, 65, 108, 0.35);
+    }
+    .btn-photos:active {
+      transform: translateY(3px);
+      box-shadow: 0 0 0 #c22d17, 0 2px 4px rgba(255, 65, 108, 0.2);
+    }
+
     .section-divider {
       display: flex;
       align-items: center;
@@ -529,7 +547,6 @@
     }
     .admin-modal h2 { font-size: 1.2rem; color: var(--greek-blue); }
 
-    /* כרטיסיות מקטעים מופרדות באדמין */
     .admin-section-box {
       background: #f8fafc;
       border: 1.5px solid #e2e8f0;
@@ -611,6 +628,7 @@
     .btn-admin-flight { background: var(--greek-blue); color: #ffffff; }
     .btn-admin-seats { background: #0284c7; color: #ffffff; }
     .btn-admin-quote { background: #d97706; color: #ffffff; }
+    .btn-admin-photos { background: var(--photos-color); color: #ffffff; }
 
     .admin-btn-whatsapp {
       background: #25d366;
@@ -701,6 +719,12 @@
         <span>רשימת ציוד ומה לארוז</span>
       </a>
 
+      <!-- כפתור אלבום תמונות משותף -->
+      <a id="photosAlbumBtn" href="#" target="_blank" class="btn btn-photos">
+        <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        <span>אלבום התמונות של החבורה 📸</span>
+      </a>
+
       <div class="section-divider">הוצאות ותשלומים</div>
 
       <a id="expenseBtn" href="#" target="_blank" class="btn">
@@ -756,14 +780,24 @@
         </a>
       </div>
 
-      <!-- מקטע 2: ניהול מושבים -->
+      <!-- מקטע 2: קישור לאלבום תמונות משותף -->
+      <div class="admin-section-box">
+        <div class="admin-section-title">📸 אלבום תמונות משותף</div>
+        <div class="admin-field">
+          <label>קישור לאלבום (Google Photos / iCloud / Drive):</label>
+          <input type="url" id="adminPhotosUrlInput" placeholder="https://photos.app.goo.gl/..." class="admin-input" style="direction: ltr;">
+        </div>
+        <button class="btn-admin-action btn-admin-photos" id="savePhotosUrlBtn">💾 שמור קישור לאלבום</button>
+      </div>
+
+      <!-- מקטע 3: ניהול מושבים -->
       <div class="admin-section-box">
         <div class="admin-section-title">💺 שיבוץ מושבי החברים</div>
         <div class="admin-seats-grid" id="adminSeatsContainer"></div>
         <button class="btn-admin-action btn-admin-seats" id="saveSeatsOnlyBtn">💾 שמור מושבים בלייב</button>
       </div>
 
-      <!-- מקטע 3: ניהול משפט יומי -->
+      <!-- מקטע 4: ניהול משפט יומי -->
       <div class="admin-section-box">
         <div class="admin-section-title">✨ עריכת משפט יומי</div>
         <div class="admin-field">
@@ -826,6 +860,7 @@
 
     let customQuotes = {};
     let seatsReturnConfigured = false;
+    let photosAlbumUrl = "";
 
     // האזנה לעדכונים בזמן אמת מ-Firebase
     if (db) {
@@ -865,6 +900,11 @@
           updateDailyQuote();
         }
       });
+
+      db.ref("photos_album_url").on("value", (snapshot) => {
+        photosAlbumUrl = snapshot.val() || "";
+        updatePhotosButton();
+      });
     }
 
     // יצירת שדות האדמין לכל חבר
@@ -895,6 +935,7 @@
         if (pass === "1234") {
           const tzOffset = flightOut.getTimezoneOffset() * 60000;
           document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
+          document.getElementById("adminPhotosUrlInput").value = photosAlbumUrl;
 
           groupMembers.forEach((member, idx) => {
             let memberSeat = "";
@@ -947,7 +988,7 @@
     document.getElementById("adminFlightInput").addEventListener("input", updateWhatsAppShareLink);
     document.getElementById("adminStatusInput").addEventListener("input", updateWhatsAppShareLink);
 
-    // כפתור 1: שמירת טיסה ועיכובים בלבד
+    // שמירת מועד המראה וסטטוס
     document.getElementById("saveFlightOnlyBtn").addEventListener("click", () => {
       const newTimeVal = document.getElementById("adminFlightInput").value;
       const newStatusVal = document.getElementById("adminStatusInput").value;
@@ -965,7 +1006,16 @@
       }
     });
 
-    // כפתור 2: שמירת מושבים בלבד
+    // שמירת קישור אלבום תמונות
+    document.getElementById("savePhotosUrlBtn").addEventListener("click", () => {
+      const newUrl = document.getElementById("adminPhotosUrlInput").value.trim();
+      photosAlbumUrl = newUrl;
+      if (db) db.ref("photos_album_url").set(newUrl);
+      updatePhotosButton();
+      alert("הקישור לאלבום התמונות נשמר בהצלחה!");
+    });
+
+    // שמירת מושבים בלבד
     document.getElementById("saveSeatsOnlyBtn").addEventListener("click", () => {
       const newSeats = {};
       let anySeatUpdated = false;
@@ -991,7 +1041,7 @@
       }
     });
 
-    // כפתור 3: שמירת משפט יומי בלבד
+    // שמירת משפט יומי בלבד
     document.getElementById("saveQuoteOnlyBtn").addEventListener("click", () => {
       const qDate = document.getElementById("adminQuoteDate").value;
       const qText = document.getElementById("adminQuoteText").value.trim();
@@ -1073,7 +1123,30 @@
       document.getElementById('dailyQuoteText').textContent = quote;
     }
 
-    // 6. אפליקציית הוצאות
+    // 6. עדכון כפתור תמונות משותף
+    function updatePhotosButton() {
+      const btn = document.getElementById("photosAlbumBtn");
+      const now = new Date();
+      const isTripTime = now >= flightOut;
+
+      if (photosAlbumUrl && photosAlbumUrl.trim() !== "") {
+        btn.href = photosAlbumUrl;
+        btn.style.display = "flex";
+      } else if (isTripTime) {
+        btn.href = "#";
+        btn.style.display = "flex";
+        btn.onclick = (e) => {
+          if (!photosAlbumUrl) {
+            e.preventDefault();
+            alert("קישור לאלבום טרם הוגדר בפאנל האדמין!");
+          }
+        };
+      } else {
+        btn.style.display = "none";
+      }
+    }
+
+    // 7. אפליקציית הוצאות
     const appsConfig = {
       spliit: {
         name: "Spliit",
@@ -1113,7 +1186,7 @@
 
     renderExpenseButton();
 
-    // 7. שעון, ספירה לאחור והחלפת תצוגות
+    // 8. שעון, ספירה לאחור והחלפת תצוגות
     function updateClock() {
       const now = new Date();
       const diffOut = flightOut - now;
@@ -1167,12 +1240,14 @@
       } else {
         seatsBannerBtn.style.display = "none";
       }
+
+      updatePhotosButton();
     }
 
     updateClock();
     setInterval(updateClock, 1000);
 
-    // 8. מזג אוויר
+    // 9. מזג אוויר
     async function fetchMykonosWeather() {
       try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37.4467&longitude=25.3289&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=Europe%2FAthens");
