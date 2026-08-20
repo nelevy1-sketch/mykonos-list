@@ -529,7 +529,6 @@
     }
     .admin-modal h2 { font-size: 1.2rem; color: var(--greek-blue); }
 
-    /* כרטיסיות מקטעים מופרדות באדמין */
     .admin-section-box {
       background: #f8fafc;
       border: 1.5px solid #e2e8f0;
@@ -947,7 +946,7 @@
     document.getElementById("adminFlightInput").addEventListener("input", updateWhatsAppShareLink);
     document.getElementById("adminStatusInput").addEventListener("input", updateWhatsAppShareLink);
 
-    // כפתור 1: שמירת טיסה ועיכובים בלבד
+    // שמירת מועד המראה וסטטוס
     document.getElementById("saveFlightOnlyBtn").addEventListener("click", () => {
       const newTimeVal = document.getElementById("adminFlightInput").value;
       const newStatusVal = document.getElementById("adminStatusInput").value;
@@ -960,12 +959,13 @@
             statusMessage: newStatusVal
           });
         }
+        adminModal.classList.remove("open");
         updateClock();
         alert("מועד הטיסה והסטטוס עודכנו בהצלחה!");
       }
     });
 
-    // כפתור 2: שמירת מושבים בלבד
+    // שמירת מושבים בלבד
     document.getElementById("saveSeatsOnlyBtn").addEventListener("click", () => {
       const newSeats = {};
       let anySeatUpdated = false;
@@ -984,6 +984,7 @@
           db.ref("seats_config").set(newSeats);
           db.ref("seats_return_configured").set(true);
         }
+        adminModal.classList.remove("open");
         updateClock();
         alert("מקומות הישיבה עודכנו בהצלחה!");
       } else {
@@ -991,7 +992,7 @@
       }
     });
 
-    // כפתור 3: שמירת משפט יומי בלבד
+    // שמירת משפט יומי בלבד
     document.getElementById("saveQuoteOnlyBtn").addEventListener("click", () => {
       const qDate = document.getElementById("adminQuoteDate").value;
       const qText = document.getElementById("adminQuoteText").value.trim();
@@ -1000,6 +1001,7 @@
         customQuotes[qDate] = qText;
         if (db) db.ref(`custom_quotes/${qDate}`).set(qText);
         updateDailyQuote();
+        adminModal.classList.remove("open");
         alert(`המשפט היומי לתאריך ${qDate} עודכן בהצלחה!`);
       } else {
         alert("אנא בחר תאריך והזן משפט.");
@@ -1067,7 +1069,10 @@
     // 5. עדכון משפט יומי
     function updateDailyQuote() {
       const now = new Date();
-      const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayKey = `${year}-${month}-${day}`;
       
       const quote = customQuotes[todayKey] || defaultTripQuotes[todayKey] || "״הרוח במיקונוס לא מעיפה דברים, היא רק עושה להם רילוקיישן.״ 🌬️🇬🇷";
       document.getElementById('dailyQuoteText').textContent = quote;
