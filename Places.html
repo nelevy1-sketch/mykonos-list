@@ -1,1 +1,295 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מקומות שווים במיקונוס 📍</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --greek-blue: #005bae;
+      --bg-color: #eef2f6;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at top, #e2eaf4 0%, var(--bg-color) 100%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+      direction: rtl;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .header-box {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: 22px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      text-align: center;
+      position: relative;
+    }
+
+    .back-btn {
+      position: absolute;
+      right: 14px;
+      top: 18px;
+      text-decoration: none;
+      font-size: 1.1rem;
+      color: var(--greek-blue);
+      font-weight: 700;
+    }
+
+    h1 { font-size: 1.35rem; color: var(--greek-blue); font-weight: 800; }
+    p.sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+
+    /* טופס הוספת מקום */
+    .form-box {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-row { display: flex; gap: 8px; }
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 0.88rem;
+      font-family: inherit;
+    }
+    .form-select {
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 0.88rem;
+      background: #ffffff;
+    }
+
+    .add-btn {
+      background: var(--greek-blue);
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #004585;
+      transition: all 0.15s ease;
+    }
+    .add-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #004585; }
+
+    /* רשימת המקומות */
+    .places-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .place-card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .place-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .place-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    .place-desc {
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 9px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 2px 0 #075985;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-box">
+      <a href="index.html" class="back-btn">➜</a>
+      <h1>מקומות שווים במיקונוס 📍</h1>
+      <p class="sub">חופים, ברים, מסעדות ונקודות תצפית</p>
+    </div>
+
+    <!-- טופס הוספת מקום -->
+    <div class="form-box">
+      <div class="form-row">
+        <select id="placeCategory" class="form-select">
+          <option value="🏖️">🏖️ חוף</option>
+          <option value="🍸">🍸 בר/מסיבה</option>
+          <option value="🍽️">🍽️ מסעדה</option>
+          <option value="🌅">🌅 שקיעה</option>
+          <option value="☕">☕ בית קפה</option>
+          <option value="📍">📍 כללי</option>
+        </select>
+        <input type="text" id="placeName" class="form-input" placeholder="שם המקום (למשל: Scorpios)" required>
+      </div>
+      <input type="url" id="placeLink" class="form-input" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" style="direction: ltr;" required>
+      <input type="text" id="placeDesc" class="form-input" placeholder="הערה קצרה (למשל: שקיעה, להזמין מקום מראש)">
+      <button class="add-btn" id="addPlaceBtn">➕ הוסף מקום לרשימה</button>
+    </div>
+
+    <!-- רשימת המקומות -->
+    <div class="places-list" id="placesList">
+      <div class="empty-state">טוען מקומות...</div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSy...",
+      authDomain: "mykonos-2026.firebaseapp.com",
+      databaseURL: "https://mykonos-2026-default-rtdb.firebaseio.com",
+      projectId: "mykonos-2026",
+      storageBucket: "mykonos-2026.appspot.com",
+      messagingSenderId: "...",
+      appId: "..."
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const placesRef = db.ref("places_list");
+
+    // הוספת מקום
+    document.getElementById("addPlaceBtn").addEventListener("click", () => {
+      const name = document.getElementById("placeName").value.trim();
+      let link = document.getElementById("placeLink").value.trim();
+      const desc = document.getElementById("placeDesc").value.trim();
+      const cat = document.getElementById("placeCategory").value;
+
+      if (!name || !link) {
+        alert("אנא הזן שם מקום וקישור");
+        return;
+      }
+
+      if (!link.startsWith("http://") && !link.startsWith("https://")) {
+        link = "https://" + link;
+      }
+
+      placesRef.push({
+        name: name,
+        link: link,
+        desc: desc,
+        category: cat,
+        createdAt: Date.now()
+      });
+
+      document.getElementById("placeName").value = "";
+      document.getElementById("placeLink").value = "";
+      document.getElementById("placeDesc").value = "";
+      if ('vibrate' in navigator) navigator.vibrate(15);
+    });
+
+    // האזנה ורינדור מקומות בזמן אמת
+    placesRef.on("value", (snapshot) => {
+      const listContainer = document.getElementById("placesList");
+      listContainer.innerHTML = "";
+      const data = snapshot.val();
+
+      if (!data) {
+        listContainer.innerHTML = '<div class="empty-state">עדיין לא הוספתם מקומות. הוסיפו את המקום הראשון למעלה! ✨</div>';
+        return;
+      }
+
+      Object.entries(data).reverse().forEach(([id, item]) => {
+        const card = document.createElement("div");
+        card.className = "place-card";
+        card.innerHTML = `
+          <div class="place-top">
+            <div class="place-name"><span>${item.category || "📍"}</span> <span>${item.name}</span></div>
+            <button class="delete-btn" onclick="deletePlace('${id}')">🗑️</button>
+          </div>
+          ${item.desc ? `<div class="place-desc">${item.desc}</div>` : ""}
+          <a href="${item.link}" target="_blank" class="nav-btn">
+            🧭 פתח ניווט / מיקום
+          </a>
+        `;
+        listContainer.appendChild(card);
+      });
+    });
+
+    window.deletePlace = function(id) {
+      if (confirm("למחוק את המקום מהרשימה?")) {
+        placesRef.child(id).remove();
+      }
+    };
+  </script>
+</body>
+</html>
 
