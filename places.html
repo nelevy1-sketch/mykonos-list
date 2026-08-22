@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>מקומות שווים במיקונוס 📍</title>
   
-  <!-- Firebase SDKs (Compat - עובד חלק בכל דפדפן מובייל) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
@@ -104,12 +104,55 @@
     }
     .add-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #004585; }
 
-    /* רשימת המקומות */
+    /* סרגל סינון קטגוריות */
+    .filters-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filters-bar::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-chip.active {
+      background: var(--greek-blue);
+      color: #ffffff;
+    }
+
+    /* רשימת המקומות ומקטעי קטגוריות */
     .places-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
       margin-bottom: 30px;
+    }
+
+    .category-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .category-header {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--greek-blue);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 4px;
     }
 
     .place-card {
@@ -192,13 +235,13 @@
     <div class="form-box">
       <div class="form-row">
         <select id="placeCategory" class="form-select">
-          <option value="🏖️">🏖️ חוף</option>
-          <option value="🍸">🍸 בר/מסיבה</option>
-          <option value="🍽️">🍽️ מסעדה</option>
-          <option value="🛍️">🛍️ חנות / שופינג</option>
-          <option value="🌅">🌅 שקיעה</option>
-          <option value="☕">☕ בית קפה</option>
-          <option value="📍">📍 כללי</option>
+          <option value="🏖️ חופים">🏖️ חוף</option>
+          <option value="🍸 ברים ומסיבות">🍸 בר/מסיבה</option>
+          <option value="🍽️ מסעדות ואוכל">🍽️ מסעדה</option>
+          <option value="🛍️ חנויות ושופינג">🛍️ חנות / שופינג</option>
+          <option value="🌅 שקיעה ותצפית">🌅 שקיעה</option>
+          <option value="☕ בתי קפה">☕ בית קפה</option>
+          <option value="📍 מקומות נוספים">📍 כללי</option>
         </select>
         <input type="text" id="placeName" class="form-input" placeholder="שם המקום (למשל: Scorpios)">
       </div>
@@ -207,7 +250,18 @@
       <button class="add-btn" id="addPlaceBtn">➕ הוסף מקום לרשימה</button>
     </div>
 
-    <!-- רשימת המקומות -->
+    <!-- סרגל סינון קטגוריות -->
+    <div class="filters-bar" id="filtersBar">
+      <button class="filter-chip active" onclick="filterCategory('all', this)">הכל</button>
+      <button class="filter-chip" onclick="filterCategory('🏖️ חופים', this)">🏖️ חופים</button>
+      <button class="filter-chip" onclick="filterCategory('🍸 ברים ומסיבות', this)">🍸 ברים</button>
+      <button class="filter-chip" onclick="filterCategory('🍽️ מסעדות ואוכל', this)">🍽️ מסעדות</button>
+      <button class="filter-chip" onclick="filterCategory('🛍️ חנויות ושופינג', this)">🛍️ שופינג</button>
+      <button class="filter-chip" onclick="filterCategory('🌅 שקיעה ותצפית', this)">🌅 שקיעות</button>
+      <button class="filter-chip" onclick="filterCategory('☕ בתי קפה', this)">☕ קפה</button>
+    </div>
+
+    <!-- רשימת המקומות מקובצת לפי קטגוריה -->
     <div class="places-list" id="placesList">
       <div class="empty-state">טוען מקומות...</div>
     </div>
@@ -229,6 +283,20 @@
     }
     const db = firebase.firestore();
     const placesRef = db.collection("places_items");
+
+    let allPlaces = [];
+    let selectedFilter = "all";
+
+    // סדר הקטגוריות הקבוע בתצוגה
+    const categoryOrder = [
+      "🏖️ חופים",
+      "🍸 ברים ומסיבות",
+      "🍽️ מסעדות ואוכל",
+      "🛍️ חנויות ושופינג",
+      "🌅 שקיעה ותצפית",
+      "☕ בתי קפה",
+      "📍 מקומות נוספים"
+    ];
 
     // הוספת מקום
     document.getElementById("addPlaceBtn").addEventListener("click", async () => {
@@ -285,43 +353,88 @@
       }
     });
 
-    // האזנה בזמן אמת
+    // האזנה בזמן אמת וקליטת פריטים
     placesRef.onSnapshot((snapshot) => {
-      const listContainer = document.getElementById("placesList");
-      listContainer.innerHTML = "";
-
-      if (snapshot.empty) {
-        listContainer.innerHTML = '<div class="empty-state">עדיין לא הוספתם מקומות. הוסיפו את המקום הראשון למעלה! ✨</div>';
-        return;
-      }
-
-      const items = [];
+      allPlaces = [];
       snapshot.forEach((docSnap) => {
-        items.push({ id: docSnap.id, ...docSnap.data() });
+        allPlaces.push({ id: docSnap.id, ...docSnap.data() });
       });
-
-      // מיון מקומי לפי תאריך יצירה (החדש ביותר למעלה)
-      items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-      items.forEach((item) => {
-        const card = document.createElement("div");
-        card.className = "place-card";
-        card.innerHTML = `
-          <div class="place-top">
-            <div class="place-name"><span>${item.category || "📍"}</span> <span>${escapeHtml(item.name)}</span></div>
-            <button class="delete-btn" onclick="deletePlace('${item.id}')">🗑️</button>
-          </div>
-          ${item.desc ? `<div class="place-desc">${escapeHtml(item.desc)}</div>` : ""}
-          <a href="${escapeHtml(item.link)}" target="_blank" class="nav-btn">
-            🧭 פתח ניווט / מיקום
-          </a>
-        `;
-        listContainer.appendChild(card);
-      });
+      renderPlacesGrouped();
     }, (error) => {
       console.error("Firestore Read Error:", error);
       document.getElementById("placesList").innerHTML = `<div class="empty-state">שגיאה בטעינת נתונים: ${error.message}</div>`;
     });
+
+    // רינדור הרשימה מקובצת לפי קטגוריות
+    function renderPlacesGrouped() {
+      const listContainer = document.getElementById("placesList");
+      listContainer.innerHTML = "";
+
+      if (allPlaces.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">עדיין לא הוספתם מקומות. הוסיפו את המקום הראשון למעלה! ✨</div>';
+        return;
+      }
+
+      // סינון לפי קטגוריה אם נבחר פילטר
+      let filtered = allPlaces;
+      if (selectedFilter !== "all") {
+        filtered = allPlaces.filter(p => (p.category || "📍 מקומות נוספים") === selectedFilter);
+      }
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">אין מקומות בקטגוריה זו עדיין.</div>';
+        return;
+      }
+
+      // קיבוץ לפי קטגוריה
+      const grouped = {};
+      filtered.forEach(item => {
+        const cat = item.category || "📍 מקומות נוספים";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(item);
+      });
+
+      // הצגה לפי סדר הקטגוריות המוגדר
+      categoryOrder.forEach(catKey => {
+        const items = grouped[catKey];
+        if (items && items.length > 0) {
+          // מיון פנימי לפי תאריך הוספה
+          items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+          const groupDiv = document.createElement("div");
+          groupDiv.className = "category-group";
+
+          groupDiv.innerHTML = `<div class="category-header">${catKey} (${items.length})</div>`;
+
+          items.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "place-card";
+            card.innerHTML = `
+              <div class="place-top">
+                <div class="place-name"><span>${escapeHtml(item.name)}</span></div>
+                <button class="delete-btn" onclick="deletePlace('${item.id}')">🗑️</button>
+              </div>
+              ${item.desc ? `<div class="place-desc">${escapeHtml(item.desc)}</div>` : ""}
+              <a href="${escapeHtml(item.link)}" target="_blank" class="nav-btn">
+                🧭 פתח ניווט / מיקום
+              </a>
+            `;
+            groupDiv.appendChild(card);
+          });
+
+          listContainer.appendChild(groupDiv);
+        }
+      });
+    }
+
+    // סינון בלחיצה על צ'יפ
+    window.filterCategory = function(cat, btn) {
+      selectedFilter = cat;
+      document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
+      renderPlacesGrouped();
+      if ('vibrate' in navigator) navigator.vibrate(10);
+    };
 
     window.deletePlace = async function(id) {
       if (confirm("למחוק את המקום מהרשימה?")) {
