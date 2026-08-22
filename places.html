@@ -1,110 +1,129 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מקומות שווים במיקונוס 📍</title>
-  
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מקומות שווים במיקונוס</title>
   <style>
     :root {
-      --greek-blue: #005bae;
-      --bg-color: #eef2f6;
+      --primary: #0055b3;
+      --primary-hover: #004085;
+      --bg-gradient: linear-gradient(180deg, #eaf2fb 0%, #f4f8fc 100%);
       --card-bg: #ffffff;
-      --text-main: #1e293b;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: radial-gradient(circle at top, #e2eaf4 0%, var(--bg-color) 100%);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
+      background: var(--bg-gradient);
+      color: var(--text);
       min-height: 100vh;
       padding: 16px;
-      direction: rtl;
+      display: flex;
+      justify-content: center;
     }
 
     .container {
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .header-box {
+    /* Header */
+    .header-card {
       background: var(--card-bg);
-      padding: 18px;
-      border-radius: 22px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 20px;
       text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       position: relative;
     }
 
-    .back-btn {
-      position: absolute;
-      right: 14px;
-      top: 18px;
-      text-decoration: none;
-      font-size: 1.1rem;
-      color: var(--greek-blue);
-      font-weight: 700;
+    .header-card h1 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
-    h1 { font-size: 1.35rem; color: var(--greek-blue); font-weight: 800; }
-    p.sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+    .header-card p {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
 
-    /* טופס הוספת מקום */
-    .form-box {
+    /* Form Card */
+    .form-card {
       background: var(--card-bg);
-      padding: 16px;
-      border-radius: 20px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .form-row { display: flex; gap: 8px; }
-    .form-input {
+    .row-inputs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-field, .select-field {
       width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1.5px solid #cbd5e1;
-      font-size: 0.88rem;
-      font-family: inherit;
-    }
-    .form-select {
-      padding: 10px 8px;
-      border-radius: 12px;
-      border: 1.5px solid #cbd5e1;
-      font-size: 0.88rem;
-      background: #ffffff;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
     }
 
-    .add-btn {
-      background: var(--greek-blue);
-      color: #ffffff;
-      border: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.95rem;
+    .input-field:focus, .select-field:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .select-field {
+      width: 120px;
+      flex-shrink: 0;
       cursor: pointer;
-      box-shadow: 0 3px 0 #004585;
-      transition: all 0.15s ease;
     }
-    .add-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #004585; }
 
-    /* סרגל סינון קטגוריות */
+    .btn-submit {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Filters */
     .filters-bar {
       display: flex;
       gap: 6px;
@@ -112,112 +131,107 @@
       padding-bottom: 4px;
       scrollbar-width: none;
     }
-    .filters-bar::-webkit-scrollbar { display: none; }
+
+    .filters-bar::-webkit-scrollbar {
+      display: none;
+    }
 
     .filter-chip {
       background: #e2e8f0;
       color: #475569;
       border: none;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      white-space: nowrap;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .filter-chip.active {
-      background: var(--greek-blue);
-      color: #ffffff;
+      white-space: nowrap;
+      transition: all 0.2s;
     }
 
-    /* רשימת המקומות ומקטעי קטגוריות */
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Places List */
     .places-list {
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      margin-bottom: 30px;
-    }
-
-    .category-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .category-header {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--greek-blue);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 4px;
+      gap: 10px;
     }
 
     .place-card {
       background: var(--card-bg);
       border-radius: 18px;
-      padding: 14px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.03);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      animation: fadeIn 0.25s ease;
-    }
-
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-    .place-top {
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .place-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .place-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .place-name {
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      text-decoration: none;
     }
 
-    .delete-btn {
-      background: transparent;
+    .place-name:hover {
+      color: var(--primary);
+    }
+
+    .place-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .place-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      background: #eff6ff;
+      border-radius: 8px;
+    }
+
+    .btn-delete {
+      background: none;
       border: none;
       color: #94a3b8;
-      font-size: 1.1rem;
       cursor: pointer;
-      padding: 2px 6px;
+      font-size: 1.1rem;
+      padding: 4px;
     }
 
-    .place-desc {
-      font-size: 0.85rem;
-      color: #475569;
-      line-height: 1.35;
-    }
-
-    .nav-btn {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
-      text-decoration: none;
-      border-radius: 10px;
-      padding: 9px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 2px 0 #075985;
+    .btn-delete:hover {
+      color: #ef4444;
     }
 
     .empty-state {
       text-align: center;
-      padding: 30px 10px;
-      color: #94a3b8;
+      padding: 30px;
+      color: var(--muted);
       font-size: 0.9rem;
     }
   </style>
@@ -225,236 +239,172 @@
 <body>
 
   <div class="container">
-    <div class="header-box">
-      <a href="index.html" class="back-btn">➜</a>
+    <!-- Header -->
+    <div class="header-card">
       <h1>מקומות שווים במיקונוס 📍</h1>
-      <p class="sub">חופים, ברים, מסעדות, חנויות ונקודות תצפית</p>
+      <p>חופים, ברים, מסעדות, חנויות ונקודות תצפית</p>
     </div>
 
-    <!-- טופס הוספת מקום -->
-    <div class="form-box">
-      <div class="form-row">
-        <select id="placeCategory" class="form-select">
-          <option value="🏖️ חופים">🏖️ חוף</option>
-          <option value="🍸 ברים ומסיבות">🍸 בר/מסיבה</option>
-          <option value="🍽️ מסעדות ואוכל">🍽️ מסעדה</option>
-          <option value="🛍️ חנויות ושופינג">🛍️ חנות / שופינג</option>
-          <option value="🌅 שקיעה ותצפית">🌅 שקיעה</option>
-          <option value="☕ בתי קפה">☕ בית קפה</option>
-          <option value="📍 מקומות נוספים">📍 כללי</option>
+    <!-- Form -->
+    <form class="form-card" id="placeForm">
+      <div class="row-inputs">
+        <select class="select-field" id="placeCategory">
+          <option value="חוף">חוף 🏖️</option>
+          <option value="בר">בר 🍸</option>
+          <option value="מסעדה">מסעדה 🍽️</option>
+          <option value="שופינג">שופינג 🛍️</option>
+          <option value="אחר">אחר ✨</option>
         </select>
-        <input type="text" id="placeName" class="form-input" placeholder="שם המקום (למשל: Scorpios)">
+        <input type="text" class="input-field" id="placeName" placeholder="שם המקום (למשל: Scorpios)" required />
       </div>
-      <input type="text" id="placeLink" class="form-input" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" style="direction: ltr;">
-      <input type="text" id="placeDesc" class="form-input" placeholder="הערה קצרה (למשל: שקיעה, להזמין מקום מראש)">
-      <button class="add-btn" id="addPlaceBtn">➕ הוסף מקום לרשימה</button>
-    </div>
 
-    <!-- סרגל סינון קטגוריות -->
+      <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" />
+      <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
+
+      <button type="submit" class="btn-submit">
+        <span>+</span> הוסף מקום לרשימה
+      </button>
+    </form>
+
+    <!-- Filter Chips -->
     <div class="filters-bar" id="filtersBar">
-      <button class="filter-chip active" onclick="filterCategory('all', this)">הכל</button>
-      <button class="filter-chip" onclick="filterCategory('🏖️ חופים', this)">🏖️ חופים</button>
-      <button class="filter-chip" onclick="filterCategory('🍸 ברים ומסיבות', this)">🍸 ברים</button>
-      <button class="filter-chip" onclick="filterCategory('🍽️ מסעדות ואוכל', this)">🍽️ מסעדות</button>
-      <button class="filter-chip" onclick="filterCategory('🛍️ חנויות ושופינג', this)">🛍️ שופינג</button>
-      <button class="filter-chip" onclick="filterCategory('🌅 שקיעה ותצפית', this)">🌅 שקיעות</button>
-      <button class="filter-chip" onclick="filterCategory('☕ בתי קפה', this)">☕ קפה</button>
+      <button class="filter-chip active" data-filter="all">הכל</button>
+      <button class="filter-chip" data-filter="חוף">חופים 🏖️</button>
+      <button class="filter-chip" data-filter="בר">ברים 🍸</button>
+      <button class="filter-chip" data-filter="מסעדה">מסעדות 🍽️</button>
+      <button class="filter-chip" data-filter="שופינג">שופינג 🛍️</button>
     </div>
 
-    <!-- רשימת המקומות מקובצת לפי קטגוריה -->
-    <div class="places-list" id="placesList">
-      <div class="empty-state">טוען מקומות...</div>
-    </div>
+    <!-- List -->
+    <div class="places-list" id="placesContainer"></div>
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
-      authDomain: "trip-packing-list-d4319.firebaseapp.com",
-      projectId: "trip-packing-list-d4319",
-      storageBucket: "trip-packing-list-d4319.firebasestorage.app",
-      messagingSenderId: "916037561222",
-      appId: "1:916037561222:web:fbcbe319438aeb8af59a07",
-      measurementId: "G-M0C5EZCY25"
-    };
+    const STORAGE_KEY = 'mykonos_places_v2';
+    let currentFilter = 'all';
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    // מנגנון טעינה היברידי: משחזר גם מפתחות מגרסאות קודמות אם קיימים
+    function loadSavedPlaces() {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (current) {
+        try { return JSON.parse(current); } catch (e) {}
+      }
+
+      // בדיקת מפתחות ישנים אפשריים
+      const oldKeys = ['mykonos_places', 'places', 'savedPlaces', 'mykonosPlaces'];
+      for (const key of oldKeys) {
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              // שמירה במפתח המעודכן
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+              return parsed;
+            }
+          } catch (e) {}
+        }
+      }
+      return [];
     }
-    const db = firebase.firestore();
-    const placesRef = db.collection("places_items");
 
-    let allPlaces = [];
-    let selectedFilter = "all";
+    let places = loadSavedPlaces();
 
-    // סדר הקטגוריות הקבוע בתצוגה
-    const categoryOrder = [
-      "🏖️ חופים",
-      "🍸 ברים ומסיבות",
-      "🍽️ מסעדות ואוכל",
-      "🛍️ חנויות ושופינג",
-      "🌅 שקיעה ותצפית",
-      "☕ בתי קפה",
-      "📍 מקומות נוספים"
-    ];
+    function savePlaces() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(places));
+      // גיבוי למפתח הראשי
+      localStorage.setItem('mykonos_places', JSON.stringify(places));
+    }
 
-    // הוספת מקום
-    document.getElementById("addPlaceBtn").addEventListener("click", async () => {
-      const btn = document.getElementById("addPlaceBtn");
-      const nameInput = document.getElementById("placeName");
-      const linkInput = document.getElementById("placeLink");
-      const descInput = document.getElementById("placeDesc");
-      const catSelect = document.getElementById("placeCategory");
+    function renderPlaces() {
+      const container = document.getElementById('placesContainer');
+      container.innerHTML = '';
 
-      const name = nameInput.value.trim();
-      let link = linkInput.value.trim();
-      const desc = descInput.value.trim();
-      const cat = catSelect.value;
-
-      if (!name) {
-        alert("נא להזין את שם המקום");
-        nameInput.focus();
-        return;
-      }
-
-      if (!link) {
-        alert("נא להזין קישור למיקום");
-        linkInput.focus();
-        return;
-      }
-
-      if (!link.startsWith("http://") && !link.startsWith("https://")) {
-        link = "https://" + link;
-      }
-
-      btn.textContent = "שומר... ⏳";
-      btn.disabled = true;
-
-      try {
-        await placesRef.add({
-          name: name,
-          link: link,
-          desc: desc,
-          category: cat,
-          createdAt: Date.now()
-        });
-
-        nameInput.value = "";
-        linkInput.value = "";
-        descInput.value = "";
-        btn.textContent = "➕ הוסף מקום לרשימה";
-        btn.disabled = false;
-        if ('vibrate' in navigator) navigator.vibrate(15);
-      } catch (err) {
-        console.error("Firestore Save Error:", err);
-        btn.textContent = "➕ הוסף מקום לרשימה";
-        btn.disabled = false;
-        alert("שגיאה בשמירה: " + err.message);
-      }
-    });
-
-    // האזנה בזמן אמת וקליטת פריטים
-    placesRef.onSnapshot((snapshot) => {
-      allPlaces = [];
-      snapshot.forEach((docSnap) => {
-        allPlaces.push({ id: docSnap.id, ...docSnap.data() });
+      const filtered = places.filter(p => {
+        if (currentFilter === 'all') return true;
+        const cat = p.category || '';
+        return cat.includes(currentFilter) || currentFilter.includes(cat);
       });
-      renderPlacesGrouped();
-    }, (error) => {
-      console.error("Firestore Read Error:", error);
-      document.getElementById("placesList").innerHTML = `<div class="empty-state">שגיאה בטעינת נתונים: ${error.message}</div>`;
-    });
-
-    // רינדור הרשימה מקובצת לפי קטגוריות
-    function renderPlacesGrouped() {
-      const listContainer = document.getElementById("placesList");
-      listContainer.innerHTML = "";
-
-      if (allPlaces.length === 0) {
-        listContainer.innerHTML = '<div class="empty-state">עדיין לא הוספתם מקומות. הוסיפו את המקום הראשון למעלה! ✨</div>';
-        return;
-      }
-
-      // סינון לפי קטגוריה אם נבחר פילטר
-      let filtered = allPlaces;
-      if (selectedFilter !== "all") {
-        filtered = allPlaces.filter(p => (p.category || "📍 מקומות נוספים") === selectedFilter);
-      }
 
       if (filtered.length === 0) {
-        listContainer.innerHTML = '<div class="empty-state">אין מקומות בקטגוריה זו עדיין.</div>';
+        container.innerHTML = `<div class="empty-state">אין מקומות להצגה בקטגוריה זו</div>`;
         return;
       }
 
-      // קיבוץ לפי קטגוריה
-      const grouped = {};
-      filtered.forEach(item => {
-        const cat = item.category || "📍 מקומות נוספים";
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(item);
-      });
+      filtered.forEach((p, idx) => {
+        const name = p.name || p.title || 'מקום ללא שם';
+        const note = p.note || p.description || '';
+        const link = p.link || p.url || '';
+        const category = p.category || 'אחר';
 
-      // הצגה לפי סדר הקטגוריות המוגדר
-      categoryOrder.forEach(catKey => {
-        const items = grouped[catKey];
-        if (items && items.length > 0) {
-          // מיון פנימי לפי תאריך הוספה
-          items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-          const groupDiv = document.createElement("div");
-          groupDiv.className = "category-group";
-
-          groupDiv.innerHTML = `<div class="category-header">${catKey} (${items.length})</div>`;
-
-          items.forEach(item => {
-            const card = document.createElement("div");
-            card.className = "place-card";
-            card.innerHTML = `
-              <div class="place-top">
-                <div class="place-name"><span>${escapeHtml(item.name)}</span></div>
-                <button class="delete-btn" onclick="deletePlace('${item.id}')">🗑️</button>
-              </div>
-              ${item.desc ? `<div class="place-desc">${escapeHtml(item.desc)}</div>` : ""}
-              <a href="${escapeHtml(item.link)}" target="_blank" class="nav-btn">
-                🧭 פתח ניווט / מיקום
-              </a>
-            `;
-            groupDiv.appendChild(card);
-          });
-
-          listContainer.appendChild(groupDiv);
-        }
+        const card = document.createElement('div');
+        card.className = 'place-card';
+        card.innerHTML = `
+          <div class="place-info">
+            <div class="place-title-row">
+              <strong>${name}</strong>
+              <span style="font-size:0.75rem; color:#64748b;">(${category})</span>
+            </div>
+            ${note ? `<div class="place-note">${note}</div>` : ''}
+          </div>
+          <div class="place-actions">
+            ${link ? `<a href="${link}" target="_blank" class="btn-link">ניווט 📍</a>` : ''}
+            <button class="btn-delete" onclick="deletePlace(${places.indexOf(p)})" title="מחיקה">✕</button>
+          </div>
+        `;
+        container.appendChild(card);
       });
     }
 
-    // סינון בלחיצה על צ'יפ
-    window.filterCategory = function(cat, btn) {
-      selectedFilter = cat;
-      document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
-      btn.classList.add("active");
-      renderPlacesGrouped();
-      if ('vibrate' in navigator) navigator.vibrate(10);
-    };
+    // הוספת פריט חדש
+    document.getElementById('placeForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('placeName').value.trim();
+      const category = document.getElementById('placeCategory').value;
+      const link = document.getElementById('placeLink').value.trim();
+      const note = document.getElementById('placeNote').value.trim();
 
-    window.deletePlace = async function(id) {
-      if (confirm("למחוק את המקום מהרשימה?")) {
-        try {
-          await placesRef.doc(id).delete();
-        } catch (err) {
-          alert("שגיאה במחיקה: " + err.message);
-        }
+      if (!name) return;
+
+      const newPlace = {
+        id: Date.now(),
+        name,
+        category,
+        link,
+        note
+      };
+
+      places.unshift(newPlace);
+      savePlaces();
+      renderPlaces();
+
+      // איפוס שדות
+      document.getElementById('placeName').value = '';
+      document.getElementById('placeLink').value = '';
+      document.getElementById('placeNote').value = '';
+    });
+
+    // מחיקת פריט
+    window.deletePlace = function(index) {
+      if (confirm('למחוק את המקום מהרשימה?')) {
+        places.splice(index, 1);
+        savePlaces();
+        renderPlaces();
       }
     };
 
-    function escapeHtml(str) {
-      if (!str) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
+    // סינון לפי צ'יפים
+    document.getElementById('filtersBar').addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-chip')) {
+        document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.getAttribute('data-filter');
+        renderPlaces();
+      }
+    });
+
+    // רינדור ראשוני
+    renderPlaces();
   </script>
 </body>
 </html>
