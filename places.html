@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>המדריך למיקונוס 🇬🇷</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --primary: #0055b3;
@@ -13,13 +18,10 @@
       --text: #1e293b;
       --muted: #64748b;
       --border: #e2e8f0;
-
-      /* Platform Colors */
       --spotify: #1db954;
       --soundcloud: #ff5500;
       --youtube: #ef4444;
       --apple: #fc3c44;
-      --music-default: #6366f1;
     }
 
     * {
@@ -47,9 +49,8 @@
       padding-bottom: 24px;
     }
 
-    /* Main Navigation Tabs */
     .nav-tabs {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       padding: 6px;
       border-radius: 20px;
@@ -72,7 +73,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
     .tab-btn.active {
@@ -81,7 +82,6 @@
       box-shadow: 0 4px 12px rgba(0, 85, 179, 0.25);
     }
 
-    /* Tab Content Views */
     .tab-content {
       display: none;
       flex-direction: column;
@@ -92,7 +92,6 @@
       display: flex;
     }
 
-    /* Header */
     .header-card {
       background: var(--card-bg);
       border-radius: 24px;
@@ -105,10 +104,6 @@
       font-size: 1.35rem;
       color: var(--primary);
       margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
     }
 
     .header-card p {
@@ -116,7 +111,6 @@
       font-size: 0.85rem;
     }
 
-    /* Form Card */
     .form-card {
       background: var(--card-bg);
       border-radius: 24px;
@@ -141,7 +135,6 @@
       background: #f8fafc;
       color: var(--text);
       outline: none;
-      transition: border-color 0.2s;
     }
 
     .input-field:focus, .select-field:focus {
@@ -152,7 +145,6 @@
     .select-field {
       width: 125px;
       flex-shrink: 0;
-      cursor: pointer;
     }
 
     .btn-submit {
@@ -168,28 +160,14 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: background 0.2s;
     }
 
-    .btn-submit:hover {
-      background: var(--primary-hover);
-    }
-
-    .btn-music-submit {
-      background: linear-gradient(135deg, #0284c7, #6366f1);
-    }
-
-    /* Filters Bar */
     .filters-bar {
       display: flex;
       gap: 6px;
       overflow-x: auto;
       padding-bottom: 4px;
       scrollbar-width: none;
-    }
-
-    .filters-bar::-webkit-scrollbar {
-      display: none;
     }
 
     .filter-chip {
@@ -202,7 +180,6 @@
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.2s;
     }
 
     .filter-chip.active {
@@ -210,7 +187,6 @@
       color: white;
     }
 
-    /* List & Cards */
     .items-list {
       display: flex;
       flex-direction: column;
@@ -225,8 +201,6 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-      position: relative;
-      overflow: hidden;
     }
 
     .card-info {
@@ -246,17 +220,6 @@
       font-weight: 700;
       font-size: 0.95rem;
       color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .card-subtitle {
-      font-size: 0.8rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     .badge {
@@ -265,6 +228,11 @@
       padding: 2px 7px;
       border-radius: 6px;
       background: #f1f5f9;
+      color: var(--muted);
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
       color: var(--muted);
     }
 
@@ -283,9 +251,6 @@
       background: #eff6ff;
       color: var(--primary);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
     .btn-delete {
@@ -312,13 +277,12 @@
 <body>
 
   <div class="container">
-    <!-- Top Navigation -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות שווים</button>
       <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול הטיול</button>
     </div>
 
-    <!-- ================= PLACES TAB ================= -->
+    <!-- PLACES TAB -->
     <div id="tab-places" class="tab-content active">
       <div class="header-card">
         <h1>מקומות שווים במיקונוס 📍</h1>
@@ -334,13 +298,11 @@
             <option value="שופינג">שופינג 🛍️</option>
             <option value="אחר">אחר ✨</option>
           </select>
-          <input type="text" class="input-field" id="placeName" placeholder="שם המקום (למשל: Scorpios)" required />
+          <input type="text" class="input-field" id="placeName" placeholder="שם המקום" required />
         </div>
-        <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" />
-        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
-        <button type="submit" class="btn-submit">
-          <span>+</span> הוסף מקום לרשימה
-        </button>
+        <input type="url" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות / אינסטגרם)" />
+        <input type="text" class="input-field" id="placeNote" placeholder="הערה (למשל: שקיעה, להזמין מראש)" />
+        <button type="submit" class="btn-submit">+ הוסף מקום לרשימה</button>
       </form>
 
       <div class="filters-bar" id="placesFilters">
@@ -354,7 +316,7 @@
       <div class="items-list" id="placesContainer"></div>
     </div>
 
-    <!-- ================= MUSIC TAB ================= -->
+    <!-- MUSIC TAB -->
     <div id="tab-music" class="tab-content">
       <div class="header-card">
         <h1>פסקול הטיול 🎧</h1>
@@ -366,11 +328,9 @@
           <input type="text" class="input-field" id="trackTitle" placeholder="שם הפלייליסט / השיר" required />
           <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
         </div>
-        <input type="url" class="input-field" id="trackLink" placeholder="הדבק קישור (Spotify, SoundCloud, YouTube, Apple Music)" required />
-        <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (למשל: שקיעה, הרמות, צ'יל ברכב)" />
-        <button type="submit" class="btn-submit btn-music-submit">
-          <span>+</span> הוסף לפסקול
-        </button>
+        <input type="url" class="input-field" id="trackLink" placeholder="קישור (Spotify, SoundCloud, YouTube)" required />
+        <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (שקיעה, הרמות בווילה)" />
+        <button type="submit" class="btn-submit">+ הוסף לפסקול</button>
       </form>
 
       <div class="filters-bar" id="musicFilters">
@@ -386,7 +346,27 @@
   </div>
 
   <script>
-    // --- ניהול טאבים ראשי ---
+    // -------------------------------------------------------------
+    // 1. הגדרות FIREBASE (החלף בפרטים שלך מתוך ה-Console)
+    // -------------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // אתחול Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // קולקציות בענן
+    const placesRef = db.collection('places');
+    const tracksRef = db.collection('tracks');
+
+    // ניווט טאבים
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -400,79 +380,55 @@
       }
     }
 
-    // ================= לוגיקת מקומות =================
-    const PLACES_KEY = 'mykonos_places_v2';
+    // -------------------------------------------------------------
+    // 2. מקומות בזמן אמת (Realtime Firestore)
+    // -------------------------------------------------------------
+    let placesData = [];
     let currentPlaceFilter = 'all';
 
-    function loadPlaces() {
-      const current = localStorage.getItem(PLACES_KEY);
-      if (current) {
-        try { return JSON.parse(current); } catch (e) {}
-      }
-      const oldKeys = ['mykonos_places', 'places', 'savedPlaces', 'mykonosPlaces'];
-      for (const k of oldKeys) {
-        const d = localStorage.getItem(k);
-        if (d) {
-          try {
-            const parsed = JSON.parse(d);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              localStorage.setItem(PLACES_KEY, JSON.stringify(parsed));
-              return parsed;
-            }
-          } catch (e) {}
-        }
-      }
-      return [];
-    }
-
-    let places = loadPlaces();
-
-    function savePlaces() {
-      localStorage.setItem(PLACES_KEY, JSON.stringify(places));
-      localStorage.setItem('mykonos_places', JSON.stringify(places));
-    }
+    placesRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      placesData = [];
+      snapshot.forEach(doc => {
+        placesData.push({ id: doc.id, ...doc.data() });
+      });
+      renderPlaces();
+    });
 
     function renderPlaces() {
       const container = document.getElementById('placesContainer');
       container.innerHTML = '';
 
-      const filtered = places.filter(p => {
+      const filtered = placesData.filter(p => {
         if (currentPlaceFilter === 'all') return true;
-        const cat = p.category || '';
-        return cat.includes(currentPlaceFilter) || currentPlaceFilter.includes(cat);
+        return (p.category || '').includes(currentPlaceFilter);
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state">אין מקומות להצגה בקטגוריה זו</div>`;
+        container.innerHTML = `<div class="empty-state">אין מקומות להצגה</div>`;
         return;
       }
 
       filtered.forEach(p => {
-        const name = p.name || p.title || 'מקום ללא שם';
-        const note = p.note || p.description || '';
-        const link = p.link || p.url || '';
-        const category = p.category || 'אחר';
-
         const card = document.createElement('div');
         card.className = 'card-item';
         card.innerHTML = `
           <div class="card-info">
             <div class="card-title-row">
-              <span class="card-name">${name}</span>
-              <span class="badge">${category}</span>
+              <span class="card-name">${p.name}</span>
+              <span class="badge">${p.category}</span>
             </div>
-            ${note ? `<div class="card-subtitle">${note}</div>` : ''}
+            ${p.note ? `<div class="card-subtitle">${p.note}</div>` : ''}
           </div>
           <div class="card-actions">
-            ${link ? `<a href="${link}" target="_blank" class="btn-action">ניווט 📍</a>` : ''}
-            <button class="btn-delete" onclick="deletePlace(${places.indexOf(p)})" title="מחיקה">✕</button>
+            ${p.link ? `<a href="${p.link}" target="_blank" class="btn-action">ניווט 📍</a>` : ''}
+            <button class="btn-delete" onclick="deletePlace('${p.id}')">✕</button>
           </div>
         `;
         container.appendChild(card);
       });
     }
 
-    document.getElementById('placeForm').addEventListener('submit', (e) => {
+    document.getElementById('placeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('placeName').value.trim();
       const category = document.getElementById('placeCategory').value;
@@ -481,20 +437,22 @@
 
       if (!name) return;
 
-      places.unshift({ id: Date.now(), name, category, link, note });
-      savePlaces();
-      renderPlaces();
+      await placesRef.add({
+        name,
+        category,
+        link,
+        note,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
       document.getElementById('placeName').value = '';
       document.getElementById('placeLink').value = '';
       document.getElementById('placeNote').value = '';
     });
 
-    window.deletePlace = function(index) {
-      if (confirm('למחוק את המקום מהרשימה?')) {
-        places.splice(index, 1);
-        savePlaces();
-        renderPlaces();
+    window.deletePlace = async function(id) {
+      if (confirm('למחוק את המקום לצמיתות עבור כולם?')) {
+        await placesRef.doc(id).delete();
       }
     };
 
@@ -507,8 +465,10 @@
       }
     });
 
-    // ================= לוגיקת פסקול מוזיקה =================
-    const MUSIC_KEY = 'mykonos_soundtrack_v1';
+    // -------------------------------------------------------------
+    // 3. פסקול בזמן אמת (Realtime Firestore)
+    // -------------------------------------------------------------
+    let tracksData = [];
     let currentMusicFilter = 'all';
 
     function detectPlatform(url) {
@@ -520,59 +480,53 @@
       return { name: 'לינק', icon: '🎵' };
     }
 
-    function loadTracks() {
-      const saved = localStorage.getItem(MUSIC_KEY);
-      if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
-      }
-      return [];
-    }
-
-    let tracks = loadTracks();
-
-    function saveTracks() {
-      localStorage.setItem(MUSIC_KEY, JSON.stringify(tracks));
-    }
+    tracksRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      tracksData = [];
+      snapshot.forEach(doc => {
+        tracksData.push({ id: doc.id, ...doc.data() });
+      });
+      renderTracks();
+    });
 
     function renderTracks() {
       const container = document.getElementById('musicContainer');
       container.innerHTML = '';
 
-      const filtered = tracks.filter(t => {
+      const filtered = tracksData.filter(t => {
         if (currentMusicFilter === 'all') return true;
         return t.platform === currentMusicFilter;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state">אין פלייליסטים או שירים עדיין</div>`;
+        container.innerHTML = `<div class="empty-state">אין שירים או פלייליסטים להצגה</div>`;
         return;
       }
 
-      filtered.forEach(item => {
-        const platformData = detectPlatform(item.link);
+      filtered.forEach(t => {
+        const plat = detectPlatform(t.link);
         const card = document.createElement('div');
         card.className = 'card-item';
         card.innerHTML = `
           <div class="card-info">
             <div class="card-title-row">
-              <span class="card-name">${item.title}</span>
-              <span class="badge">${platformData.icon} ${item.platform || platformData.name}</span>
+              <span class="card-name">${t.title}</span>
+              <span class="badge">${plat.icon} ${t.platform || plat.name}</span>
             </div>
             <div class="card-subtitle">
-              ${item.sharer ? `<span>👤 ${item.sharer}</span>` : ''}
-              ${item.vibe ? `<span>• ✨ ${item.vibe}</span>` : ''}
+              ${t.sharer ? `<span>👤 ${t.sharer}</span>` : ''}
+              ${t.vibe ? `<span>• ✨ ${t.vibe}</span>` : ''}
             </div>
           </div>
           <div class="card-actions">
-            <a href="${item.link}" target="_blank" class="btn-action" style="background:#eff6ff; color:#2563eb;">נגן ▶</a>
-            <button class="btn-delete" onclick="deleteTrack(${tracks.indexOf(item)})" title="מחיקה">✕</button>
+            <a href="${t.link}" target="_blank" class="btn-action">נגן ▶</a>
+            <button class="btn-delete" onclick="deleteTrack('${t.id}')">✕</button>
           </div>
         `;
         container.appendChild(card);
       });
     }
 
-    document.getElementById('musicForm').addEventListener('submit', (e) => {
+    document.getElementById('musicForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('trackTitle').value.trim();
       const sharer = document.getElementById('trackSharer').value.trim();
@@ -581,10 +535,16 @@
 
       if (!title || !link) return;
 
-      const detected = detectPlatform(link);
-      tracks.unshift({ id: Date.now(), title, sharer, link, vibe, platform: detected.name });
-      saveTracks();
-      renderTracks();
+      const plat = detectPlatform(link);
+
+      await tracksRef.add({
+        title,
+        sharer,
+        link,
+        vibe,
+        platform: plat.name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
       document.getElementById('trackTitle').value = '';
       document.getElementById('trackSharer').value = '';
@@ -592,11 +552,9 @@
       document.getElementById('trackVibe').value = '';
     });
 
-    window.deleteTrack = function(index) {
-      if (confirm('להסיר את הפלייליסט מהרשימה?')) {
-        tracks.splice(index, 1);
-        saveTracks();
-        renderTracks();
+    window.deleteTrack = async function(id) {
+      if (confirm('להסיר את הלינק מהפסקול עבור כולם?')) {
+        await tracksRef.doc(id).delete();
       }
     };
 
@@ -608,10 +566,6 @@
         renderTracks();
       }
     });
-
-    // הפעלה ראשונית
-    renderPlaces();
-    renderTracks();
   </script>
 </body>
 </html>
