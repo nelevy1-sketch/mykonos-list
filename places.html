@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>מקומות שווים במיקונוס 📍</title>
   
+  <!-- Firebase SDKs (Compat - עובד חלק בכל דפדפן מובייל) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --greek-blue: #005bae;
@@ -209,11 +213,7 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    // המפתחות האמיתיים שחולצו מקובץ הציוד
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
       authDomain: "trip-packing-list-d4319.firebaseapp.com",
@@ -224,11 +224,13 @@
       measurementId: "G-M0C5EZCY25"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const placesRef = collection(db, "places_items");
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    const placesRef = db.collection("places_items");
 
-    // הוספת מקום לרשימה
+    // הוספת מקום
     document.getElementById("addPlaceBtn").addEventListener("click", async () => {
       const btn = document.getElementById("addPlaceBtn");
       const nameInput = document.getElementById("placeName");
@@ -261,7 +263,7 @@
       btn.disabled = true;
 
       try {
-        await addDoc(placesRef, {
+        await placesRef.add({
           name: name,
           link: link,
           desc: desc,
@@ -276,16 +278,15 @@
         btn.disabled = false;
         if ('vibrate' in navigator) navigator.vibrate(15);
       } catch (err) {
-        console.error("שגיאה בשמירה ל-Firestore:", err);
+        console.error("Firestore Save Error:", err);
         btn.textContent = "➕ הוסף מקום לרשימה";
         btn.disabled = false;
         alert("שגיאה בשמירה: " + err.message);
       }
     });
 
-    // האזנה ורינדור בזמן אמת
-    const q = query(placesRef, orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
+    // האזנה בזמן אמת
+    placesRef.onSnapshot((snapshot) => {
       const listContainer = document.getElementById("placesList");
       listContainer.innerHTML = "";
 
@@ -294,16 +295,21 @@
         return;
       }
 
+      const items = [];
       snapshot.forEach((docSnap) => {
-        const item = docSnap.data();
-        const id = docSnap.id;
+        items.push({ id: docSnap.id, ...docSnap.data() });
+      });
 
+      // מיון מקומי לפי תאריך יצירה (החדש ביותר למעלה)
+      items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      items.forEach((item) => {
         const card = document.createElement("div");
         card.className = "place-card";
         card.innerHTML = `
           <div class="place-top">
             <div class="place-name"><span>${item.category || "📍"}</span> <span>${escapeHtml(item.name)}</span></div>
-            <button class="delete-btn" onclick="window.deletePlace('${id}')">🗑️</button>
+            <button class="delete-btn" onclick="deletePlace('${item.id}')">🗑️</button>
           </div>
           ${item.desc ? `<div class="place-desc">${escapeHtml(item.desc)}</div>` : ""}
           <a href="${escapeHtml(item.link)}" target="_blank" class="nav-btn">
@@ -313,14 +319,14 @@
         listContainer.appendChild(card);
       });
     }, (error) => {
-      console.error("שגיאת קריאה מ-Firestore:", error);
+      console.error("Firestore Read Error:", error);
       document.getElementById("placesList").innerHTML = `<div class="empty-state">שגיאה בטעינת נתונים: ${error.message}</div>`;
     });
 
     window.deletePlace = async function(id) {
       if (confirm("למחוק את המקום מהרשימה?")) {
         try {
-          await deleteDoc(doc(db, "places_items", id));
+          await placesRef.doc(id).delete();
         } catch (err) {
           alert("שגיאה במחיקה: " + err.message);
         }
