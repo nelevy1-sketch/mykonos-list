@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>מקומות שווים במיקונוס 📍</title>
   
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -199,9 +200,9 @@
           <option value="☕">☕ בית קפה</option>
           <option value="📍">📍 כללי</option>
         </select>
-        <input type="text" id="placeName" class="form-input" placeholder="שם המקום (למשל: Scorpios)" required>
+        <input type="text" id="placeName" class="form-input" placeholder="שם המקום (למשל: Scorpios)">
       </div>
-      <input type="url" id="placeLink" class="form-input" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" style="direction: ltr;" required>
+      <input type="text" id="placeLink" class="form-input" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" style="direction: ltr;">
       <input type="text" id="placeDesc" class="form-input" placeholder="הערה קצרה (למשל: שקיעה, להזמין מקום מראש)">
       <button class="add-btn" id="addPlaceBtn">➕ הוסף מקום לרשימה</button>
     </div>
@@ -213,38 +214,67 @@
   </div>
 
   <script>
-    // הגדרות Firebase - יש להעתיק את הערכים המדויקים מ-index.html / shopping.html
+    // הדבק כאן במקום השורות האלו את ה-firebaseConfig מ-shopping.html
     const firebaseConfig = {
       apiKey: "AIzaSy...",
       authDomain: "mykonos-2026.firebaseapp.com",
-      databaseURL: "https://mykonos-2026-default-rtdb.firebaseio.com",
+      databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
       projectId: "mykonos-2026",
       storageBucket: "mykonos-2026.appspot.com",
       messagingSenderId: "...",
       appId: "..."
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    let db = null;
+    let placesRef = null;
+
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.database();
+      placesRef = db.ref("places_list");
+    } catch (e) {
+      console.error("שגיאת אתחול Firebase:", e);
+      alert("שגיאה באתחול Firebase: " + e.message);
     }
-    const db = firebase.database();
-    const placesRef = db.ref("places_list");
 
-    // הוספת מקום עם בדיקת הצלחה מפורשת
+    // הוספת מקום לרשימה
     document.getElementById("addPlaceBtn").addEventListener("click", () => {
-      const name = document.getElementById("placeName").value.trim();
-      let link = document.getElementById("placeLink").value.trim();
-      const desc = document.getElementById("placeDesc").value.trim();
-      const cat = document.getElementById("placeCategory").value;
+      const btn = document.getElementById("addPlaceBtn");
+      const nameInput = document.getElementById("placeName");
+      const linkInput = document.getElementById("placeLink");
+      const descInput = document.getElementById("placeDesc");
+      const catSelect = document.getElementById("placeCategory");
 
-      if (!name || !link) {
-        alert("אנא הזן שם מקום וקישור");
+      const name = nameInput.value.trim();
+      let link = linkInput.value.trim();
+      const desc = descInput.value.trim();
+      const cat = catSelect.value;
+
+      if (!name) {
+        alert("נא להזין את שם המקום");
+        nameInput.focus();
+        return;
+      }
+
+      if (!link) {
+        alert("נא להזין קישור למיקום");
+        linkInput.focus();
         return;
       }
 
       if (!link.startsWith("http://") && !link.startsWith("https://")) {
         link = "https://" + link;
       }
+
+      if (!placesRef) {
+        alert("אין חיבור פעיל ל-Firebase. ודא שהמפתחות הוגדרו נכון.");
+        return;
+      }
+
+      btn.textContent = "שומר... ⏳";
+      btn.disabled = true;
 
       placesRef.push({
         name: name,
@@ -253,50 +283,56 @@
         category: cat,
         createdAt: Date.now()
       }).then(() => {
-        document.getElementById("placeName").value = "";
-        document.getElementById("placeLink").value = "";
-        document.getElementById("placeDesc").value = "";
+        nameInput.value = "";
+        linkInput.value = "";
+        descInput.value = "";
+        btn.textContent = "➕ הוסף מקום לרשימה";
+        btn.disabled = false;
         if ('vibrate' in navigator) navigator.vibrate(15);
       }).catch((err) => {
-        console.error("שגיאה בהוספת המקום ל-Firebase:", err);
-        alert("שגיאה בשמירה ל-Firebase. ודא שהגדרות ה-Firebase תקינות ושחוקי ה-Realtime Database מאפשרים כתיבה.");
+        console.error("שגיאה בשמירה ל-Firebase:", err);
+        btn.textContent = "➕ הוסף מקום לרשימה";
+        btn.disabled = false;
+        alert("שגיאה בשמירה ל-Firebase:\n" + err.message);
       });
     });
 
-    // האזנה ורינדור מקומות בזמן אמת
-    placesRef.on("value", (snapshot) => {
-      const listContainer = document.getElementById("placesList");
-      listContainer.innerHTML = "";
-      const data = snapshot.val();
+    // האזנה וסנכרון בזמן אמת
+    if (placesRef) {
+      placesRef.on("value", (snapshot) => {
+        const listContainer = document.getElementById("placesList");
+        listContainer.innerHTML = "";
+        const data = snapshot.val();
 
-      if (!data) {
-        listContainer.innerHTML = '<div class="empty-state">עדיין לא הוספתם מקומות. הוסיפו את המקום הראשון למעלה! ✨</div>';
-        return;
-      }
+        if (!data) {
+          listContainer.innerHTML = '<div class="empty-state">עדיין לא הוספתם מקומות. הוסיפו את המקום הראשון למעלה! ✨</div>';
+          return;
+        }
 
-      Object.entries(data).reverse().forEach(([id, item]) => {
-        const card = document.createElement("div");
-        card.className = "place-card";
-        card.innerHTML = `
-          <div class="place-top">
-            <div class="place-name"><span>${item.category || "📍"}</span> <span>${item.name}</span></div>
-            <button class="delete-btn" onclick="deletePlace('${id}')">🗑️</button>
-          </div>
-          ${item.desc ? `<div class="place-desc">${item.desc}</div>` : ""}
-          <a href="${item.link}" target="_blank" class="nav-btn">
-            🧭 פתח ניווט / מיקום
-          </a>
-        `;
-        listContainer.appendChild(card);
+        Object.entries(data).reverse().forEach(([id, item]) => {
+          const card = document.createElement("div");
+          card.className = "place-card";
+          card.innerHTML = `
+            <div class="place-top">
+              <div class="place-name"><span>${item.category || "📍"}</span> <span>${item.name}</span></div>
+              <button class="delete-btn" onclick="deletePlace('${id}')">🗑️</button>
+            </div>
+            ${item.desc ? `<div class="place-desc">${item.desc}</div>` : ""}
+            <a href="${item.link}" target="_blank" class="nav-btn">
+              🧭 פתח ניווט / מיקום
+            </a>
+          `;
+          listContainer.appendChild(card);
+        });
+      }, (error) => {
+        console.error("שגיאת קריאה מ-Firebase:", error);
+        document.getElementById("placesList").innerHTML = `<div class="empty-state">שגיאה בטעינת נתונים: ${error.message}</div>`;
       });
-    }, (error) => {
-      console.error("שגיאת קריאה מ-Firebase:", error);
-      document.getElementById("placesList").innerHTML = '<div class="empty-state">שגיאה בחיבור ל-Firebase. בדוק את ההרשאות.</div>';
-    });
+    }
 
     window.deletePlace = function(id) {
       if (confirm("למחוק את המקום מהרשימה?")) {
-        placesRef.child(id).remove();
+        placesRef.child(id).remove().catch(err => alert("שגיאה במחיקה: " + err.message));
       }
     };
   </script>
