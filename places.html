@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>מקומות שווים במיקונוס</title>
+  <title>המדריך למיקונוס 🇬🇷</title>
   <style>
     :root {
       --primary: #0055b3;
@@ -13,6 +13,13 @@
       --text: #1e293b;
       --muted: #64748b;
       --border: #e2e8f0;
+
+      /* Platform Colors */
+      --spotify: #1db954;
+      --soundcloud: #ff5500;
+      --youtube: #ef4444;
+      --apple: #fc3c44;
+      --music-default: #6366f1;
     }
 
     * {
@@ -33,24 +40,69 @@
 
     .container {
       width: 100%;
-      max-width: 460px;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      padding-bottom: 24px;
+    }
+
+    /* Main Navigation Tabs */
+    .nav-tabs {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 6px;
+      border-radius: 20px;
+      display: flex;
+      gap: 6px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 85, 179, 0.25);
+    }
+
+    /* Tab Content Views */
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tab-content.active {
+      display: flex;
     }
 
     /* Header */
     .header-card {
       background: var(--card-bg);
       border-radius: 24px;
-      padding: 20px;
+      padding: 18px 20px;
       text-align: center;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      position: relative;
     }
 
     .header-card h1 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--primary);
       margin-bottom: 4px;
       display: flex;
@@ -72,7 +124,7 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .row-inputs {
@@ -98,7 +150,7 @@
     }
 
     .select-field {
-      width: 120px;
+      width: 125px;
       flex-shrink: 0;
       cursor: pointer;
     }
@@ -109,8 +161,8 @@
       border: none;
       border-radius: 14px;
       padding: 12px;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -123,7 +175,11 @@
       background: var(--primary-hover);
     }
 
-    /* Filters */
+    .btn-music-submit {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+    }
+
+    /* Filters Bar */
     .filters-bar {
       display: flex;
       gap: 6px;
@@ -142,7 +198,7 @@
       border: none;
       border-radius: 20px;
       padding: 8px 14px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
@@ -154,14 +210,14 @@
       color: white;
     }
 
-    /* Places List */
-    .places-list {
+    /* List & Cards */
+    .items-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .place-card {
+    .card-item {
       background: var(--card-bg);
       border-radius: 18px;
       padding: 14px 16px;
@@ -169,50 +225,67 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      position: relative;
+      overflow: hidden;
     }
 
-    .place-info {
+    .card-info {
       display: flex;
       flex-direction: column;
       gap: 3px;
+      min-width: 0;
     }
 
-    .place-title-row {
+    .card-title-row {
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .place-name {
+    .card-name {
       font-weight: 700;
       font-size: 0.95rem;
       color: var(--text);
-      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .place-name:hover {
-      color: var(--primary);
-    }
-
-    .place-note {
+    .card-subtitle {
       font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #f1f5f9;
       color: var(--muted);
     }
 
-    .place-actions {
+    .card-actions {
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
-    .btn-link {
-      color: var(--primary);
+    .btn-action {
       text-decoration: none;
       font-size: 0.8rem;
       font-weight: 600;
-      padding: 4px 8px;
+      padding: 6px 12px;
       background: #eff6ff;
-      border-radius: 8px;
+      color: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .btn-delete {
@@ -239,67 +312,111 @@
 <body>
 
   <div class="container">
-    <!-- Header -->
-    <div class="header-card">
-      <h1>מקומות שווים במיקונוס 📍</h1>
-      <p>חופים, ברים, מסעדות, חנויות ונקודות תצפית</p>
+    <!-- Top Navigation -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות שווים</button>
+      <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול הטיול</button>
     </div>
 
-    <!-- Form -->
-    <form class="form-card" id="placeForm">
-      <div class="row-inputs">
-        <select class="select-field" id="placeCategory">
-          <option value="חוף">חוף 🏖️</option>
-          <option value="בר">בר 🍸</option>
-          <option value="מסעדה">מסעדה 🍽️</option>
-          <option value="שופינג">שופינג 🛍️</option>
-          <option value="אחר">אחר ✨</option>
-        </select>
-        <input type="text" class="input-field" id="placeName" placeholder="שם המקום (למשל: Scorpios)" required />
+    <!-- ================= PLACES TAB ================= -->
+    <div id="tab-places" class="tab-content active">
+      <div class="header-card">
+        <h1>מקומות שווים במיקונוס 📍</h1>
+        <p>חופים, ברים, מסעדות, חנויות ונקודות תצפית</p>
       </div>
 
-      <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" />
-      <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
+      <form class="form-card" id="placeForm">
+        <div class="row-inputs">
+          <select class="select-field" id="placeCategory">
+            <option value="חוף">חוף 🏖️</option>
+            <option value="בר">בר 🍸</option>
+            <option value="מסעדה">מסעדה 🍽️</option>
+            <option value="שופינג">שופינג 🛍️</option>
+            <option value="אחר">אחר ✨</option>
+          </select>
+          <input type="text" class="input-field" id="placeName" placeholder="שם המקום (למשל: Scorpios)" required />
+        </div>
+        <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" />
+        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
+        <button type="submit" class="btn-submit">
+          <span>+</span> הוסף מקום לרשימה
+        </button>
+      </form>
 
-      <button type="submit" class="btn-submit">
-        <span>+</span> הוסף מקום לרשימה
-      </button>
-    </form>
+      <div class="filters-bar" id="placesFilters">
+        <button class="filter-chip active" data-filter="all">הכל</button>
+        <button class="filter-chip" data-filter="חוף">חופים 🏖️</button>
+        <button class="filter-chip" data-filter="בר">ברים 🍸</button>
+        <button class="filter-chip" data-filter="מסעדה">מסעדות 🍽️</button>
+        <button class="filter-chip" data-filter="שופינג">שופינג 🛍️</button>
+      </div>
 
-    <!-- Filter Chips -->
-    <div class="filters-bar" id="filtersBar">
-      <button class="filter-chip active" data-filter="all">הכל</button>
-      <button class="filter-chip" data-filter="חוף">חופים 🏖️</button>
-      <button class="filter-chip" data-filter="בר">ברים 🍸</button>
-      <button class="filter-chip" data-filter="מסעדה">מסעדות 🍽️</button>
-      <button class="filter-chip" data-filter="שופינג">שופינג 🛍️</button>
+      <div class="items-list" id="placesContainer"></div>
     </div>
 
-    <!-- List -->
-    <div class="places-list" id="placesContainer"></div>
+    <!-- ================= MUSIC TAB ================= -->
+    <div id="tab-music" class="tab-content">
+      <div class="header-card">
+        <h1>פסקול הטיול 🎧</h1>
+        <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
+      </div>
+
+      <form class="form-card" id="musicForm">
+        <div class="row-inputs">
+          <input type="text" class="input-field" id="trackTitle" placeholder="שם הפלייליסט / השיר" required />
+          <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
+        </div>
+        <input type="url" class="input-field" id="trackLink" placeholder="הדבק קישור (Spotify, SoundCloud, YouTube, Apple Music)" required />
+        <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (למשל: שקיעה, הרמות, צ'יל ברכב)" />
+        <button type="submit" class="btn-submit btn-music-submit">
+          <span>+</span> הוסף לפסקול
+        </button>
+      </form>
+
+      <div class="filters-bar" id="musicFilters">
+        <button class="filter-chip active" data-platform="all">הכל 🎶</button>
+        <button class="filter-chip" data-platform="Spotify">Spotify 🟢</button>
+        <button class="filter-chip" data-platform="SoundCloud">SoundCloud 🟠</button>
+        <button class="filter-chip" data-platform="Apple Music">Apple Music 🍎</button>
+        <button class="filter-chip" data-platform="YouTube">YouTube ▶️</button>
+      </div>
+
+      <div class="items-list" id="musicContainer"></div>
+    </div>
   </div>
 
   <script>
-    const STORAGE_KEY = 'mykonos_places_v2';
-    let currentFilter = 'all';
+    // --- ניהול טאבים ראשי ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-    // מנגנון טעינה היברידי: משחזר גם מפתחות מגרסאות קודמות אם קיימים
-    function loadSavedPlaces() {
-      const current = localStorage.getItem(STORAGE_KEY);
+      if (tabId === 'places') {
+        document.querySelector('.nav-tabs button:first-child').classList.add('active');
+        document.getElementById('tab-places').classList.add('active');
+      } else {
+        document.querySelector('.nav-tabs button:last-child').classList.add('active');
+        document.getElementById('tab-music').classList.add('active');
+      }
+    }
+
+    // ================= לוגיקת מקומות =================
+    const PLACES_KEY = 'mykonos_places_v2';
+    let currentPlaceFilter = 'all';
+
+    function loadPlaces() {
+      const current = localStorage.getItem(PLACES_KEY);
       if (current) {
         try { return JSON.parse(current); } catch (e) {}
       }
-
-      // בדיקת מפתחות ישנים אפשריים
       const oldKeys = ['mykonos_places', 'places', 'savedPlaces', 'mykonosPlaces'];
-      for (const key of oldKeys) {
-        const data = localStorage.getItem(key);
-        if (data) {
+      for (const k of oldKeys) {
+        const d = localStorage.getItem(k);
+        if (d) {
           try {
-            const parsed = JSON.parse(data);
+            const parsed = JSON.parse(d);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              // שמירה במפתח המעודכן
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+              localStorage.setItem(PLACES_KEY, JSON.stringify(parsed));
               return parsed;
             }
           } catch (e) {}
@@ -308,11 +425,10 @@
       return [];
     }
 
-    let places = loadSavedPlaces();
+    let places = loadPlaces();
 
     function savePlaces() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(places));
-      // גיבוי למפתח הראשי
+      localStorage.setItem(PLACES_KEY, JSON.stringify(places));
       localStorage.setItem('mykonos_places', JSON.stringify(places));
     }
 
@@ -321,9 +437,9 @@
       container.innerHTML = '';
 
       const filtered = places.filter(p => {
-        if (currentFilter === 'all') return true;
+        if (currentPlaceFilter === 'all') return true;
         const cat = p.category || '';
-        return cat.includes(currentFilter) || currentFilter.includes(cat);
+        return cat.includes(currentPlaceFilter) || currentPlaceFilter.includes(cat);
       });
 
       if (filtered.length === 0) {
@@ -331,24 +447,24 @@
         return;
       }
 
-      filtered.forEach((p, idx) => {
+      filtered.forEach(p => {
         const name = p.name || p.title || 'מקום ללא שם';
         const note = p.note || p.description || '';
         const link = p.link || p.url || '';
         const category = p.category || 'אחר';
 
         const card = document.createElement('div');
-        card.className = 'place-card';
+        card.className = 'card-item';
         card.innerHTML = `
-          <div class="place-info">
-            <div class="place-title-row">
-              <strong>${name}</strong>
-              <span style="font-size:0.75rem; color:#64748b;">(${category})</span>
+          <div class="card-info">
+            <div class="card-title-row">
+              <span class="card-name">${name}</span>
+              <span class="badge">${category}</span>
             </div>
-            ${note ? `<div class="place-note">${note}</div>` : ''}
+            ${note ? `<div class="card-subtitle">${note}</div>` : ''}
           </div>
-          <div class="place-actions">
-            ${link ? `<a href="${link}" target="_blank" class="btn-link">ניווט 📍</a>` : ''}
+          <div class="card-actions">
+            ${link ? `<a href="${link}" target="_blank" class="btn-action">ניווט 📍</a>` : ''}
             <button class="btn-delete" onclick="deletePlace(${places.indexOf(p)})" title="מחיקה">✕</button>
           </div>
         `;
@@ -356,7 +472,6 @@
       });
     }
 
-    // הוספת פריט חדש
     document.getElementById('placeForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('placeName').value.trim();
@@ -366,25 +481,15 @@
 
       if (!name) return;
 
-      const newPlace = {
-        id: Date.now(),
-        name,
-        category,
-        link,
-        note
-      };
-
-      places.unshift(newPlace);
+      places.unshift({ id: Date.now(), name, category, link, note });
       savePlaces();
       renderPlaces();
 
-      // איפוס שדות
       document.getElementById('placeName').value = '';
       document.getElementById('placeLink').value = '';
       document.getElementById('placeNote').value = '';
     });
 
-    // מחיקת פריט
     window.deletePlace = function(index) {
       if (confirm('למחוק את המקום מהרשימה?')) {
         places.splice(index, 1);
@@ -393,18 +498,120 @@
       }
     };
 
-    // סינון לפי צ'יפים
-    document.getElementById('filtersBar').addEventListener('click', (e) => {
+    document.getElementById('placesFilters').addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-chip')) {
-        document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('#placesFilters .filter-chip').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        currentFilter = e.target.getAttribute('data-filter');
+        currentPlaceFilter = e.target.getAttribute('data-filter');
         renderPlaces();
       }
     });
 
-    // רינדור ראשוני
+    // ================= לוגיקת פסקול מוזיקה =================
+    const MUSIC_KEY = 'mykonos_soundtrack_v1';
+    let currentMusicFilter = 'all';
+
+    function detectPlatform(url) {
+      const u = url.toLowerCase();
+      if (u.includes('spotify.com')) return { name: 'Spotify', icon: '🟢' };
+      if (u.includes('soundcloud.com')) return { name: 'SoundCloud', icon: '🟠' };
+      if (u.includes('apple.com')) return { name: 'Apple Music', icon: '🍎' };
+      if (u.includes('youtube.com') || u.includes('youtu.be')) return { name: 'YouTube', icon: '▶️' };
+      return { name: 'לינק', icon: '🎵' };
+    }
+
+    function loadTracks() {
+      const saved = localStorage.getItem(MUSIC_KEY);
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return [];
+    }
+
+    let tracks = loadTracks();
+
+    function saveTracks() {
+      localStorage.setItem(MUSIC_KEY, JSON.stringify(tracks));
+    }
+
+    function renderTracks() {
+      const container = document.getElementById('musicContainer');
+      container.innerHTML = '';
+
+      const filtered = tracks.filter(t => {
+        if (currentMusicFilter === 'all') return true;
+        return t.platform === currentMusicFilter;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">אין פלייליסטים או שירים עדיין</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const platformData = detectPlatform(item.link);
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.innerHTML = `
+          <div class="card-info">
+            <div class="card-title-row">
+              <span class="card-name">${item.title}</span>
+              <span class="badge">${platformData.icon} ${item.platform || platformData.name}</span>
+            </div>
+            <div class="card-subtitle">
+              ${item.sharer ? `<span>👤 ${item.sharer}</span>` : ''}
+              ${item.vibe ? `<span>• ✨ ${item.vibe}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="${item.link}" target="_blank" class="btn-action" style="background:#eff6ff; color:#2563eb;">נגן ▶</a>
+            <button class="btn-delete" onclick="deleteTrack(${tracks.indexOf(item)})" title="מחיקה">✕</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    document.getElementById('musicForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('trackTitle').value.trim();
+      const sharer = document.getElementById('trackSharer').value.trim();
+      const link = document.getElementById('trackLink').value.trim();
+      const vibe = document.getElementById('trackVibe').value.trim();
+
+      if (!title || !link) return;
+
+      const detected = detectPlatform(link);
+      tracks.unshift({ id: Date.now(), title, sharer, link, vibe, platform: detected.name });
+      saveTracks();
+      renderTracks();
+
+      document.getElementById('trackTitle').value = '';
+      document.getElementById('trackSharer').value = '';
+      document.getElementById('trackLink').value = '';
+      document.getElementById('trackVibe').value = '';
+    });
+
+    window.deleteTrack = function(index) {
+      if (confirm('להסיר את הפלייליסט מהרשימה?')) {
+        tracks.splice(index, 1);
+        saveTracks();
+        renderTracks();
+      }
+    };
+
+    document.getElementById('musicFilters').addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-chip')) {
+        document.querySelectorAll('#musicFilters .filter-chip').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentMusicFilter = e.target.getAttribute('data-platform');
+        renderTracks();
+      }
+    });
+
+    // הפעלה ראשונית
     renderPlaces();
+    renderTracks();
   </script>
 </body>
 </html>
