@@ -184,7 +184,7 @@
     <div class="header-box">
       <a href="index.html" class="back-btn">➜</a>
       <h1>מקומות שווים במיקונוס 📍</h1>
-      <p class="sub">חופים, ברים, מסעדות ונקודות תצפית</p>
+      <p class="sub">חופים, ברים, מסעדות, חנויות ונקודות תצפית</p>
     </div>
 
     <!-- טופס הוספת מקום -->
@@ -194,6 +194,7 @@
           <option value="🏖️">🏖️ חוף</option>
           <option value="🍸">🍸 בר/מסיבה</option>
           <option value="🍽️">🍽️ מסעדה</option>
+          <option value="🛍️">🛍️ חנות / שופינג</option>
           <option value="🌅">🌅 שקיעה</option>
           <option value="☕">☕ בית קפה</option>
           <option value="📍">📍 כללי</option>
@@ -212,6 +213,7 @@
   </div>
 
   <script>
+    // הגדרות Firebase - יש להעתיק את הערכים המדויקים מ-index.html / shopping.html
     const firebaseConfig = {
       apiKey: "AIzaSy...",
       authDomain: "mykonos-2026.firebaseapp.com",
@@ -222,11 +224,13 @@
       appId: "..."
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
     const placesRef = db.ref("places_list");
 
-    // הוספת מקום
+    // הוספת מקום עם בדיקת הצלחה מפורשת
     document.getElementById("addPlaceBtn").addEventListener("click", () => {
       const name = document.getElementById("placeName").value.trim();
       let link = document.getElementById("placeLink").value.trim();
@@ -248,12 +252,15 @@
         desc: desc,
         category: cat,
         createdAt: Date.now()
+      }).then(() => {
+        document.getElementById("placeName").value = "";
+        document.getElementById("placeLink").value = "";
+        document.getElementById("placeDesc").value = "";
+        if ('vibrate' in navigator) navigator.vibrate(15);
+      }).catch((err) => {
+        console.error("שגיאה בהוספת המקום ל-Firebase:", err);
+        alert("שגיאה בשמירה ל-Firebase. ודא שהגדרות ה-Firebase תקינות ושחוקי ה-Realtime Database מאפשרים כתיבה.");
       });
-
-      document.getElementById("placeName").value = "";
-      document.getElementById("placeLink").value = "";
-      document.getElementById("placeDesc").value = "";
-      if ('vibrate' in navigator) navigator.vibrate(15);
     });
 
     // האזנה ורינדור מקומות בזמן אמת
@@ -282,6 +289,9 @@
         `;
         listContainer.appendChild(card);
       });
+    }, (error) => {
+      console.error("שגיאת קריאה מ-Firebase:", error);
+      document.getElementById("placesList").innerHTML = '<div class="empty-state">שגיאה בחיבור ל-Firebase. בדוק את ההרשאות.</div>';
     });
 
     window.deletePlace = function(id) {
@@ -292,4 +302,3 @@
   </script>
 </body>
 </html>
-
