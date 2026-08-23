@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>המדריך למיקונוס 🇬🇷</title>
 
-  <!-- Firebase SDKs (v9 Compat) -->
+  <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
@@ -45,7 +45,7 @@
       padding-bottom: 24px;
     }
 
-    /* Main Navigation Tabs */
+    /* Tabs Bar */
     .nav-tabs {
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
@@ -79,7 +79,6 @@
       box-shadow: 0 4px 12px rgba(0, 85, 179, 0.25);
     }
 
-    /* Tab Content Views */
     .tab-content {
       display: none;
       flex-direction: column;
@@ -103,10 +102,6 @@
       font-size: 1.35rem;
       color: var(--primary);
       margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
     }
 
     .header-card p {
@@ -114,7 +109,7 @@
       font-size: 0.85rem;
     }
 
-    /* Form Card */
+    /* Form */
     .form-card {
       background: var(--card-bg);
       border-radius: 24px;
@@ -178,7 +173,7 @@
       background: linear-gradient(135deg, #0284c7, #6366f1);
     }
 
-    /* Filters Bar */
+    /* Filters */
     .filters-bar {
       display: flex;
       gap: 6px;
@@ -309,13 +304,13 @@
 <body>
 
   <div class="container">
-    <!-- Top Navigation -->
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות שווים</button>
       <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול הטיול</button>
     </div>
 
-    <!-- ================= PLACES TAB ================= -->
+    <!-- PLACES TAB -->
     <div id="tab-places" class="tab-content active">
       <div class="header-card">
         <h1>מקומות שווים במיקונוס 📍</h1>
@@ -351,7 +346,7 @@
       <div class="items-list" id="placesContainer"></div>
     </div>
 
-    <!-- ================= MUSIC TAB ================= -->
+    <!-- MUSIC TAB -->
     <div id="tab-music" class="tab-content">
       <div class="header-card">
         <h1>פסקול הטיול 🎧</h1>
@@ -384,15 +379,16 @@
 
   <script>
     // -------------------------------------------------------------
-    // 1. הגדרות FIREBASE (החלף בפרטים שלך)
+    // Firebase Config (מחובר לפרויקט שלך)
     // -------------------------------------------------------------
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
+      authDomain: "places-d2918.firebaseapp.com",
+      projectId: "places-d2918",
+      storageBucket: "places-d2918.firebasestorage.app",
+      messagingSenderId: "536137064680",
+      appId: "1:536137064680:web:f211b4e761ec511a3ae95d",
+      measurementId: "G-8Y68MLY65M"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -416,7 +412,7 @@
     }
 
     // -------------------------------------------------------------
-    // 2. לוגיקת מקומות
+    // מקומות
     // -------------------------------------------------------------
     let placesData = [];
     let currentPlaceFilter = 'all';
@@ -427,6 +423,8 @@
         placesData.push({ id: doc.id, ...doc.data() });
       });
       renderPlaces();
+    }, err => {
+      console.error("Firestore Listen Error:", err);
     });
 
     function renderPlaces() {
@@ -455,7 +453,7 @@
             ${p.note ? `<div class="card-subtitle">${p.note}</div>` : ''}
           </div>
           <div class="card-actions">
-            ${p.link ? `<a href="${p.link}" target="_blank" class="btn-action">ניווט 📍</a>` : ''}
+            ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer" class="btn-action">ניווט 📍</a>` : ''}
             <button class="btn-delete" onclick="deletePlace('${p.id}')">✕</button>
           </div>
         `;
@@ -464,10 +462,9 @@
     }
 
     const placeForm = document.getElementById('placeForm');
-    placeForm.addEventListener('submit', async (e) => {
+    placeForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const submitBtn = placeForm.querySelector('button[type="submit"]');
       const name = document.getElementById('placeName').value.trim();
       const category = document.getElementById('placeCategory').value;
       const link = document.getElementById('placeLink').value.trim();
@@ -485,29 +482,21 @@
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'מוסיף...';
+      placeForm.reset();
 
-      try {
-        await placesRef.add({
-          name,
-          category,
-          link,
-          note,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        placeForm.reset();
-      } catch (err) {
-        alert('שגיאה בשמירת המקום, נסה שוב');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '+ הוסף מקום לרשימה';
-      }
+      placesRef.add({
+        name,
+        category,
+        link,
+        note,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err => {
+        alert('שגיאה בשמירת המקום בענן.');
+      });
     });
 
     window.deletePlace = async function(id) {
-      if (confirm('למחוק את המקום מהרשימה?')) {
+      if (confirm('למחוק את המקום לצמיתות עבור כולם?')) {
         await placesRef.doc(id).delete();
       }
     };
@@ -522,7 +511,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. לוגיקת פסקול מוזיקה
+    // פסקול מוזיקה
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
@@ -542,6 +531,8 @@
         tracksData.push({ id: doc.id, ...doc.data() });
       });
       renderTracks();
+    }, err => {
+      console.error("Firestore Listen Error:", err);
     });
 
     function renderTracks() {
@@ -574,7 +565,7 @@
             </div>
           </div>
           <div class="card-actions">
-            <a href="${t.link}" target="_blank" class="btn-action">נגן ▶</a>
+            <a href="${t.link}" target="_blank" rel="noopener noreferrer" class="btn-action">נגן ▶</a>
             <button class="btn-delete" onclick="deleteTrack('${t.id}')">✕</button>
           </div>
         `;
@@ -583,10 +574,9 @@
     }
 
     const musicForm = document.getElementById('musicForm');
-    musicForm.addEventListener('submit', async (e) => {
+    musicForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const submitBtn = musicForm.querySelector('button[type="submit"]');
       const title = document.getElementById('trackTitle').value.trim();
       const sharer = document.getElementById('trackSharer').value.trim();
       const link = document.getElementById('trackLink').value.trim();
@@ -604,32 +594,24 @@
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'מוסיף...';
+      musicForm.reset();
 
       const plat = detectPlatform(link);
 
-      try {
-        await tracksRef.add({
-          title,
-          sharer,
-          link,
-          vibe,
-          platform: plat.name,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        musicForm.reset();
-      } catch (err) {
-        alert('שגיאה בשמירת הפסקול, נסה שוב');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '+ הוסף לפסקול';
-      }
+      tracksRef.add({
+        title,
+        sharer,
+        link,
+        vibe,
+        platform: plat.name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err => {
+        alert('שגיאה בשמירת הפסקול בענן.');
+      });
     });
 
     window.deleteTrack = async function(id) {
-      if (confirm('להסיר את הלינק מהפסקול?')) {
+      if (confirm('להסיר את הלינק מהפסקול לצמיתות?')) {
         await tracksRef.doc(id).delete();
       }
     };
