@@ -18,6 +18,8 @@
       --text: #1e293b;
       --muted: #64748b;
       --border: #e2e8f0;
+      --edit-color: #0284c7;
+      --delete-color: #ef4444;
     }
 
     * {
@@ -118,6 +120,11 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      transition: border 0.3s;
+    }
+
+    .form-card.editing {
+      border: 2px solid var(--edit-color);
     }
 
     .row-inputs {
@@ -148,7 +155,13 @@
       cursor: pointer;
     }
 
+    .form-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
     .btn-submit {
+      flex: 1;
       background: var(--primary);
       color: white;
       border: none;
@@ -164,9 +177,20 @@
       transition: background 0.2s, opacity 0.2s;
     }
 
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .btn-submit.btn-editing {
+      background: var(--edit-color);
+    }
+
+    .btn-cancel {
+      display: none;
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     .btn-music-submit {
@@ -263,7 +287,7 @@
     .card-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
     }
 
@@ -280,17 +304,28 @@
       gap: 4px;
     }
 
-    .btn-delete {
+    .btn-icon {
       background: none;
       border: none;
       color: #94a3b8;
       cursor: pointer;
-      font-size: 1.1rem;
-      padding: 4px;
+      font-size: 1rem;
+      padding: 6px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
     }
 
-    .btn-delete:hover {
-      color: #ef4444;
+    .btn-icon.edit:hover {
+      color: var(--edit-color);
+      background: #f0f9ff;
+    }
+
+    .btn-icon.delete:hover {
+      color: var(--delete-color);
+      background: #fef2f2;
     }
 
     .empty-state {
@@ -318,6 +353,7 @@
       </div>
 
       <form class="form-card" id="placeForm">
+        <input type="hidden" id="placeEditId" value="" />
         <div class="row-inputs">
           <select class="select-field" id="placeCategory">
             <option value="חוף">חוף 🏖️</option>
@@ -330,10 +366,13 @@
           <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה" required />
         </div>
         <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום / רשימת מפות" />
-        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: כל החופים של החבר)" />
-        <button type="submit" class="btn-submit">
-          <span>+</span> הוסף לרשימה
-        </button>
+        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
+        <div class="form-buttons">
+          <button type="submit" class="btn-submit" id="placeSubmitBtn">
+            <span>+</span> הוסף לרשימה
+          </button>
+          <button type="button" class="btn-cancel" id="placeCancelBtn" onclick="cancelPlaceEdit()">ביטול</button>
+        </div>
       </form>
 
       <div class="filters-bar" id="placesFilters">
@@ -356,15 +395,19 @@
       </div>
 
       <form class="form-card" id="musicForm">
+        <input type="hidden" id="trackEditId" value="" />
         <input type="url" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)" required />
         <div class="row-inputs">
           <input type="text" class="input-field" id="trackTitle" placeholder="שם הפלייליסט / השיר (יחולץ אוטומטית)" required />
           <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
         </div>
         <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (שקיעה, הרמות, צ'יל ברכב)" />
-        <button type="submit" class="btn-submit btn-music-submit">
-          <span>+</span> הוסף לפסקול
-        </button>
+        <div class="form-buttons">
+          <button type="submit" class="btn-submit btn-music-submit" id="trackSubmitBtn">
+            <span>+</span> הוסף לפסקול
+          </button>
+          <button type="button" class="btn-cancel" id="trackCancelBtn" onclick="cancelTrackEdit()">ביטול</button>
+        </div>
       </form>
 
       <div class="filters-bar" id="musicFilters">
@@ -381,7 +424,7 @@
 
   <script>
     // -------------------------------------------------------------
-    // Firebase Config (פרויקט places-d2918)
+    // Firebase Config
     // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
@@ -457,7 +500,8 @@
           </div>
           <div class="card-actions">
             ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer" class="btn-action">${isMapList ? 'פתח מפה 🗺️' : 'ניווט 📍'}</a>` : ''}
-            <button class="btn-delete" onclick="deletePlace('${p.id}')">✕</button>
+            <button class="btn-icon edit" title="ערוך" onclick="startEditPlace('${p.id}')">✏️</button>
+            <button class="btn-icon delete" title="מחק" onclick="deletePlace('${p.id}')">✕</button>
           </div>
         `;
         container.appendChild(card);
@@ -465,9 +509,41 @@
     }
 
     const placeForm = document.getElementById('placeForm');
+    const placeEditIdInput = document.getElementById('placeEditId');
+    const placeSubmitBtn = document.getElementById('placeSubmitBtn');
+    const placeCancelBtn = document.getElementById('placeCancelBtn');
+
+    window.startEditPlace = function(id) {
+      const p = placesData.find(item => item.id === id);
+      if (!p) return;
+
+      placeEditIdInput.value = p.id;
+      document.getElementById('placeName').value = p.name || '';
+      document.getElementById('placeCategory').value = p.category || 'חוף';
+      document.getElementById('placeLink').value = p.link || '';
+      document.getElementById('placeNote').value = p.note || '';
+
+      placeForm.classList.add('editing');
+      placeSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
+      placeSubmitBtn.classList.add('btn-editing');
+      placeCancelBtn.style.display = 'block';
+
+      placeForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.cancelPlaceEdit = function() {
+      placeForm.reset();
+      placeEditIdInput.value = '';
+      placeForm.classList.remove('editing');
+      placeSubmitBtn.innerHTML = '<span>+</span> הוסף לרשימה';
+      placeSubmitBtn.classList.remove('btn-editing');
+      placeCancelBtn.style.display = 'none';
+    };
+
     placeForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
+      const editId = placeEditIdInput.value;
       const name = document.getElementById('placeName').value.trim();
       const category = document.getElementById('placeCategory').value;
       const link = document.getElementById('placeLink').value.trim();
@@ -475,32 +551,49 @@
 
       if (!name) return;
 
+      // בדיקת כפילות (מתעלמת מהרשומה עצמה בעריכה)
       const isDuplicate = placesData.some(p => 
-        p.name.toLowerCase() === name.toLowerCase() || 
-        (link && p.link && p.link.toLowerCase() === link.toLowerCase())
+        p.id !== editId &&
+        (p.name.toLowerCase() === name.toLowerCase() || 
+        (link && p.link && p.link.toLowerCase() === link.toLowerCase()))
       );
 
       if (isDuplicate) {
-        alert('הרשומה הזו כבר קיימת ברשימה!');
+        alert('המקום הזה כבר קיים ברשימה!');
         return;
       }
 
-      placeForm.reset();
-
-      placesRef.add({
-        name,
-        category,
-        link,
-        note,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(err => {
-        alert('שגיאה בשמירת המקום בענן.');
-      });
+      if (editId) {
+        // עדכון רשומה קיימת
+        placesRef.doc(editId).update({
+          name,
+          category,
+          link,
+          note
+        }).then(() => {
+          cancelPlaceEdit();
+        }).catch(err => {
+          alert('שגיאה בעדכון המקום בענן.');
+        });
+      } else {
+        // הוספת רשומה חדשה
+        placeForm.reset();
+        placesRef.add({
+          name,
+          category,
+          link,
+          note,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => {
+          alert('שגיאה בשמירת המקום בענן.');
+        });
+      }
     });
 
     window.deletePlace = async function(id) {
       if (confirm('למחוק את הרשומה לצמיתות עבור כולם?')) {
         await placesRef.doc(id).delete();
+        if (placeEditIdInput.value === id) cancelPlaceEdit();
       }
     };
 
@@ -514,7 +607,7 @@
     });
 
     // -------------------------------------------------------------
-    // פסקול מוזיקה (כולל זיהוי וחילוץ כותרת אוטומטי)
+    // פסקול מוזיקה (כולל זיהוי וחילוץ כותרת אוטומטי + עריכה)
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
@@ -573,6 +666,9 @@
 
     trackLinkInput.addEventListener('input', async () => {
       const url = trackLinkInput.value.trim();
+      // לא מחלץ מחדש אם אנחנו באמצע עריכת שיר קיים וכבר יש שם
+      if (trackEditIdInput.value) return;
+
       if (url.startsWith('http://') || url.startsWith('https://')) {
         trackTitleInput.placeholder = 'מחלץ שם שיר/סט... ⏳';
         const fetchedTitle = await fetchTrackTitle(url);
@@ -624,7 +720,8 @@
           </div>
           <div class="card-actions">
             <a href="${t.link}" target="_blank" rel="noopener noreferrer" class="btn-action">נגן ▶</a>
-            <button class="btn-delete" onclick="deleteTrack('${t.id}')">✕</button>
+            <button class="btn-icon edit" title="ערוך" onclick="startEditTrack('${t.id}')">✏️</button>
+            <button class="btn-icon delete" title="מחק" onclick="deleteTrack('${t.id}')">✕</button>
           </div>
         `;
         container.appendChild(card);
@@ -632,9 +729,41 @@
     }
 
     const musicForm = document.getElementById('musicForm');
+    const trackEditIdInput = document.getElementById('trackEditId');
+    const trackSubmitBtn = document.getElementById('trackSubmitBtn');
+    const trackCancelBtn = document.getElementById('trackCancelBtn');
+
+    window.startEditTrack = function(id) {
+      const t = tracksData.find(item => item.id === id);
+      if (!t) return;
+
+      trackEditIdInput.value = t.id;
+      document.getElementById('trackLink').value = t.link || '';
+      document.getElementById('trackTitle').value = t.title || '';
+      document.getElementById('trackSharer').value = t.sharer || '';
+      document.getElementById('trackVibe').value = t.vibe || '';
+
+      musicForm.classList.add('editing');
+      trackSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
+      trackSubmitBtn.classList.add('btn-editing');
+      trackCancelBtn.style.display = 'block';
+
+      musicForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.cancelTrackEdit = function() {
+      musicForm.reset();
+      trackEditIdInput.value = '';
+      musicForm.classList.remove('editing');
+      trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
+      trackSubmitBtn.classList.remove('btn-editing');
+      trackCancelBtn.style.display = 'none';
+    };
+
     musicForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
+      const editId = trackEditIdInput.value;
       const title = document.getElementById('trackTitle').value.trim();
       const sharer = document.getElementById('trackSharer').value.trim();
       const link = document.getElementById('trackLink').value.trim();
@@ -643,8 +772,9 @@
       if (!title || !link) return;
 
       const isDuplicate = tracksData.some(t => 
-        t.link.toLowerCase() === link.toLowerCase() || 
-        t.title.toLowerCase() === title.toLowerCase()
+        t.id !== editId &&
+        (t.link.toLowerCase() === link.toLowerCase() || 
+        t.title.toLowerCase() === title.toLowerCase())
       );
 
       if (isDuplicate) {
@@ -652,25 +782,41 @@
         return;
       }
 
-      musicForm.reset();
-
       const plat = detectPlatform(link);
 
-      tracksRef.add({
-        title,
-        sharer,
-        link,
-        vibe,
-        platform: plat.name,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(err => {
-        alert('שגיאה בשמירת הפסקול בענן.');
-      });
+      if (editId) {
+        // עדכון רשומה קיימת
+        tracksRef.doc(editId).update({
+          title,
+          sharer,
+          link,
+          vibe,
+          platform: plat.name
+        }).then(() => {
+          cancelTrackEdit();
+        }).catch(err => {
+          alert('שגיאה בעדכון הפסקול בענן.');
+        });
+      } else {
+        // הוספת רשומה חדשה
+        musicForm.reset();
+        tracksRef.add({
+          title,
+          sharer,
+          link,
+          vibe,
+          platform: plat.name,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => {
+          alert('שגיאה בשמירת הפסקול בענן.');
+        });
+      }
     });
 
     window.deleteTrack = async function(id) {
       if (confirm('להסיר את הלינק מהפסקול לצמיתות?')) {
         await tracksRef.doc(id).delete();
+        if (trackEditIdInput.value === id) cancelTrackEdit();
       }
     };
 
