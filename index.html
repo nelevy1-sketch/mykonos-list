@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הכנות לטיול למיקונוס 🇬🇷 🏳️‍🌈</title>
   
+  <!-- הגדרות PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#005bae">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mykonos">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5900/5900508.png">
+
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -685,10 +693,10 @@
         <span>רשימת ציוד ומה לארוז</span>
       </a>
 
-      <!-- כפתור מקומות שסימנו מעוצב ונקי -->
+      <!-- כפתור המלצות ומוזיקה -->
       <a href="places.html" class="btn btn-list">
         <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        <span>מקומות שסימנו 📍</span>
+        <span>המלצות ומוזיקה 📍🎧</span>
       </a>
 
       <div class="section-divider">הוצאות ותשלומים</div>
@@ -766,18 +774,25 @@
   </div>
 
   <script>
+    // רישום Service Worker עבור PWA
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      });
+    }
+
     // רשימת החברים הקבועה
     const groupMembers = ["מארג׳", "נירה", "ציפי", "בנצה", "ברגה", "פוטה", "איילה", "בולבול"];
 
     // 1. הגדרות Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSy...",
-      authDomain: "mykonos-2026.firebaseapp.com",
-      databaseURL: "https://mykonos-2026-default-rtdb.firebaseio.com",
-      projectId: "mykonos-2026",
-      storageBucket: "mykonos-2026.appspot.com",
-      messagingSenderId: "...",
-      appId: "..."
+      apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
+      authDomain: "trip-packing-list-d4319.firebaseapp.com",
+      databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
+      projectId: "trip-packing-list-d4319",
+      storageBucket: "trip-packing-list-d4319.firebasestorage.app",
+      messagingSenderId: "916037561222",
+      appId: "1:916037561222:web:fbcbe319438aeb8af59a07"
     };
 
     let db = null;
@@ -785,7 +800,7 @@
       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
       db = firebase.database();
     } catch (e) {
-      console.warn("Firebase לא אותחל");
+      console.warn("Firebase Realtime DB לא אותחל");
     }
 
     // 2. משתני בסיס, מושבים ומשפטי ברירת מחדל
