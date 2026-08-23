@@ -143,7 +143,7 @@
     }
 
     .select-field {
-      width: 125px;
+      width: 140px;
       flex-shrink: 0;
       cursor: pointer;
     }
@@ -314,7 +314,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="header-card">
         <h1>מקומות שווים במיקונוס 📍</h1>
-        <p>חופים, ברים, מסעדות, חנויות ונקודות תצפית</p>
+        <p>חופים, ברים, מסעדות, חנויות ורשימות מפות</p>
       </div>
 
       <form class="form-card" id="placeForm">
@@ -324,14 +324,15 @@
             <option value="בר">בר 🍸</option>
             <option value="מסעדה">מסעדה 🍽️</option>
             <option value="שופינג">שופינג 🛍️</option>
+            <option value="מפה / רשימה">מפה / רשימה 🗺️</option>
             <option value="אחר">אחר ✨</option>
           </select>
-          <input type="text" class="input-field" id="placeName" placeholder="שם המקום (למשל: Scorpios)" required />
+          <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה" required />
         </div>
-        <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום (גוגל מפות / אינסטגרם)" />
-        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
+        <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום / רשימת מפות" />
+        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: כל החופים של החבר)" />
         <button type="submit" class="btn-submit">
-          <span>+</span> הוסף מקום לרשימה
+          <span>+</span> הוסף לרשימה
         </button>
       </form>
 
@@ -341,6 +342,7 @@
         <button class="filter-chip" data-filter="בר">ברים 🍸</button>
         <button class="filter-chip" data-filter="מסעדה">מסעדות 🍽️</button>
         <button class="filter-chip" data-filter="שופינג">שופינג 🛍️</button>
+        <button class="filter-chip" data-filter="מפה / רשימה">מפות ורשימות 🗺️</button>
       </div>
 
       <div class="items-list" id="placesContainer"></div>
@@ -379,7 +381,7 @@
 
   <script>
     // -------------------------------------------------------------
-    // Firebase Config
+    // Firebase Config (פרויקט places-d2918)
     // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
@@ -412,7 +414,7 @@
     }
 
     // -------------------------------------------------------------
-    // מקומות שווים
+    // מקומות ורשימות
     // -------------------------------------------------------------
     let placesData = [];
     let currentPlaceFilter = 'all';
@@ -444,6 +446,7 @@
       filtered.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card-item';
+        const isMapList = p.category === 'מפה / רשימה';
         card.innerHTML = `
           <div class="card-info">
             <div class="card-title-row">
@@ -453,7 +456,7 @@
             ${p.note ? `<div class="card-subtitle">${p.note}</div>` : ''}
           </div>
           <div class="card-actions">
-            ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer" class="btn-action">ניווט 📍</a>` : ''}
+            ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer" class="btn-action">${isMapList ? 'פתח מפה 🗺️' : 'ניווט 📍'}</a>` : ''}
             <button class="btn-delete" onclick="deletePlace('${p.id}')">✕</button>
           </div>
         `;
@@ -478,7 +481,7 @@
       );
 
       if (isDuplicate) {
-        alert('המקום הזה כבר קיים ברשימה!');
+        alert('הרשומה הזו כבר קיימת ברשימה!');
         return;
       }
 
@@ -496,7 +499,7 @@
     });
 
     window.deletePlace = async function(id) {
-      if (confirm('למחוק את המקום לצמיתות עבור כולם?')) {
+      if (confirm('למחוק את הרשומה לצמיתות עבור כולם?')) {
         await placesRef.doc(id).delete();
       }
     };
