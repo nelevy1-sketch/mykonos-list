@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.3.0
+  VERSION: v3.4.0
   UPDATED: August 2026
-  CHANGELOG v3.3.0:
-    - Frosted Glass / Glassmorphism Drawer: Semi-transparent backdrop with blur.
-    - Glass-styled comment bubbles for clear contrast over background photo.
-    - Retained Swipe navigation, Action Sheets, and auto-duration extraction.
+  CHANGELOG v3.4.0:
+    - Added floating Comment Counter badge (💬 N) alongside Reactions on photo tiles.
+    - Conditional display: Badges only appear when likes or comments actually exist.
+    - Preserved Glassmorphism frosted drawer, Swipe gestures, and music metadata.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.3.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.3.0)</title>
+  <meta name="app-version" content="3.4.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.4.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -421,7 +421,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID ================= */
+    /* ================= PHOTOS GRID (WITH STATS BADGES) ================= */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -472,16 +472,28 @@
       white-space: nowrap;
     }
 
-    .photo-badge-reacts {
+    /* Floating Stats Pill (Reactions & Comments) */
+    .photo-badge-stats {
       position: absolute;
       top: 5px;
       left: 5px;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.68);
+      backdrop-filter: blur(6px);
+      color: white;
       font-size: 0.65rem;
       font-weight: 700;
-      padding: 1px 5px;
+      padding: 2px 6px;
       border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .photo-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 2px;
     }
 
     /* ================= LIGHTBOX & FROSTED GLASS DRAWER ================= */
@@ -558,14 +570,14 @@
     .btn-nav-arrow.next { left: 12px; }
     .btn-nav-arrow:active { transform: translateY(-50%) scale(0.92); }
 
-    /* Frosted Glass Bottom Drawer (iOS/Glassmorphism style) */
+    /* Frosted Glass Bottom Drawer */
     .lightbox-footer {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.78); /* Semi-transparent */
-      backdrop-filter: blur(24px) saturate(180%); /* Strong blur */
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
       border-top: 1px solid rgba(255, 255, 255, 0.6);
       border-radius: 24px 24px 0 0;
@@ -1042,7 +1054,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.3.0</span>
+          <span class="version-tag">v3.4.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1072,7 +1084,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.3.0</span>
+          <span class="version-tag">v3.4.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1100,7 +1112,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.3.0</span>
+          <span class="version-tag">v3.4.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1266,9 +1278,7 @@
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
       
       <div style="display: flex; gap: 10px; align-items: center;">
-        <!-- Single Photo Delete Button (Only visible for photo author) -->
         <button id="lightboxDeleteBtn" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">🗑️</button>
-        <!-- Single Clear Close Button -->
         <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white; width: 34px; height: 34px;" onclick="closeLightbox()">✕</button>
       </div>
     </div>
@@ -1320,7 +1330,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.3.0";
+    const APP_VERSION = "3.4.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1616,7 +1626,7 @@
     });
 
     // -------------------------------------------------------------
-    // 2. פסקול מוזיקה (כולל חילוץ משך זמן אוטומטי)
+    // 2. פסקול מוזיקה
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
@@ -1989,11 +1999,19 @@
         const fire = reacts['🔥'] || 0;
         const laugh = reacts['😂'] || 0;
         const topReact = fire > 0 ? `🔥 ${fire}` : (laugh > 0 ? `😂 ${laugh}` : '');
+        const commentCount = (p.comments || []).length;
+
+        const hasStats = topReact || commentCount > 0;
 
         tile.innerHTML = `
           <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
           <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
-          ${topReact ? `<div class="photo-badge-reacts">${topReact}</div>` : ''}
+          ${hasStats ? `
+            <div class="photo-badge-stats">
+              ${topReact ? `<span class="photo-stat-item">${topReact}</span>` : ''}
+              ${commentCount > 0 ? `<span class="photo-stat-item">💬 ${commentCount}</span>` : ''}
+            </div>
+          ` : ''}
         `;
         container.appendChild(tile);
       });
@@ -2155,7 +2173,6 @@
       }
     }
 
-    // Comment Action Sheet Triggers
     window.openCommentActionSheet = function(index) {
       selectedCommentIndexForAction = index;
       commentActionSheet.classList.add('active');
