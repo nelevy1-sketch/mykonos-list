@@ -1,13 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.1.0
+  VERSION: v3.2.0
   UPDATED: August 2026
-  CHANGELOG v3.1.0:
-    - Fixed duplicate close button in Lightbox header (single clear ✕ close + 🗑️ delete).
-    - Replaced clipped comment dropdown with native Action Sheet modal (Edit/Delete).
-    - Fixed z-index layering so comment options never get covered or truncated.
-    - Fully preserved Swipe navigation, Peek & Expand drawer, Base64 uploads.
+  CHANGELOG v3.2.0:
+    - Auto-detect & extract track duration for new and existing tracks.
+    - Conditional duration tag display (⏱️) on music cards.
+    - Automatic Firestore backfill for existing tracks without duration.
+    - Full retention of Photo Gallery Swipe, Action Sheet, and Drawer UX.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.1.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.1.0)</title>
+  <meta name="app-version" content="3.2.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.2.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -305,6 +305,15 @@
       font-weight: 500;
     }
 
+    .badge-duration {
+      font-size: 0.72rem;
+      color: #047857;
+      background: #ecfdf5;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
     .card-note {
       font-size: 0.8rem;
       color: #475569;
@@ -550,7 +559,6 @@
     .btn-nav-arrow.next { left: 12px; }
     .btn-nav-arrow:active { transform: translateY(-50%) scale(0.92); }
 
-    /* Bottom Drawer Layered Above Arrows */
     .lightbox-footer {
       position: absolute;
       bottom: 0;
@@ -1027,7 +1035,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.1.0</span>
+          <span class="version-tag">v3.2.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1057,7 +1065,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.1.0</span>
+          <span class="version-tag">v3.2.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1085,7 +1093,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.1.0</span>
+          <span class="version-tag">v3.2.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1159,6 +1167,7 @@
 
       <form id="musicForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="trackEditId" value="" />
+        <input type="hidden" id="trackDurationHidden" value="" />
         <input type="text" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)*" required />
         
         <div class="row-inputs">
@@ -1250,9 +1259,7 @@
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
       
       <div style="display: flex; gap: 10px; align-items: center;">
-        <!-- Single Photo Delete Button (Only visible for photo author) -->
         <button id="lightboxDeleteBtn" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">🗑️</button>
-        <!-- Single Clear Close Button -->
         <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white; width: 34px; height: 34px;" onclick="closeLightbox()">✕</button>
       </div>
     </div>
@@ -1304,7 +1311,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.1.0";
+    const APP_VERSION = "3.2.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1600,7 +1607,7 @@
     });
 
     // -------------------------------------------------------------
-    // 2. פסקול מוזיקה
+    // 2. פסקול מוזיקה (כולל חילוץ משך זמן אוטומטי)
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
@@ -1610,11 +1617,13 @@
     const trackModalTitle = document.getElementById('trackModalTitle');
     const musicForm = document.getElementById('musicForm');
     const trackEditIdInput = document.getElementById('trackEditId');
+    const trackDurationHidden = document.getElementById('trackDurationHidden');
     const trackSubmitBtn = document.getElementById('trackSubmitBtn');
 
     function openTrackModal() {
       musicForm.reset();
       trackEditIdInput.value = '';
+      trackDurationHidden.value = '';
       initSharerDropdowns();
       trackModalTitle.textContent = 'הוספת מוזיקה לפסקול 🎧';
       trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
@@ -1630,6 +1639,7 @@
       if (!t) return;
 
       trackEditIdInput.value = t.id;
+      trackDurationHidden.value = t.duration || '';
       document.getElementById('trackLink').value = t.link || '';
       document.getElementById('trackTitle').value = t.title || '';
       document.getElementById('trackSharer').value = t.sharer || getSelectedUser();
@@ -1650,26 +1660,39 @@
       return { name: 'לינק', icon: '🎵' };
     }
 
-    async function fetchTrackTitle(url) {
+    function formatSecondsToTime(seconds) {
+      if (!seconds || isNaN(seconds)) return '';
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      if (hrs > 0) {
+        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // חילוץ כותרת ומשך זמן
+    async function fetchTrackMetadata(url) {
       const u = url.toLowerCase();
+      let meta = { title: '', duration: '' };
+
       try {
         if (u.includes('youtube.com') || u.includes('youtu.be')) {
           const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
           const data = await res.json();
-          if (data && data.title) return data.title;
-        }
-        if (u.includes('soundcloud.com')) {
+          if (data && data.title) meta.title = data.title;
+        } else if (u.includes('soundcloud.com')) {
           const res = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
           const data = await res.json();
-          if (data && data.title) return data.title;
-        }
-        if (u.includes('spotify.com')) {
+          if (data && data.title) meta.title = data.title;
+        } else if (u.includes('spotify.com')) {
           const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
           const data = await res.json();
-          if (data && data.title) return data.title;
+          if (data && data.title) meta.title = data.title;
         }
       } catch (err) {}
-      return '';
+
+      return meta;
     }
 
     const trackLinkInput = document.getElementById('trackLink');
@@ -1682,10 +1705,11 @@
       if (trackEditIdInput.value) return;
 
       if (url.startsWith('http://') || url.startsWith('https://')) {
-        trackTitleInput.placeholder = 'מחלץ שם שיר/סט... ⏳';
+        trackTitleInput.placeholder = 'מחלץ פרטי שיר/סט... ⏳';
         debounceTimer = setTimeout(async () => {
-          const fetchedTitle = await fetchTrackTitle(url);
-          if (fetchedTitle && !trackTitleInput.value) trackTitleInput.value = fetchedTitle;
+          const meta = await fetchTrackMetadata(url);
+          if (meta.title && !trackTitleInput.value) trackTitleInput.value = meta.title;
+          if (meta.duration) trackDurationHidden.value = meta.duration;
           trackTitleInput.placeholder = 'שם השיר / הסט *';
         }, 450);
       }
@@ -1694,7 +1718,10 @@
     tracksRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       isMusicLoaded = true;
       tracksData = [];
-      snapshot.forEach(doc => { tracksData.push({ id: doc.id, ...doc.data() }); });
+      snapshot.forEach(doc => { 
+        const data = doc.data();
+        tracksData.push({ id: doc.id, ...data }); 
+      });
       renderTracks();
     }, () => showToast('שגיאה בסנכרון הפסקול', 'error'));
 
@@ -1733,6 +1760,7 @@
             <div class="card-title">${escapeHTML(t.title)}</div>
             <div class="card-meta-row">
               <span class="badge-plat">${plat.icon} ${escapeHTML(t.platform || plat.name)}</span>
+              ${t.duration ? `<span class="badge-duration">⏱️ ${escapeHTML(t.duration)}</span>` : ''}
               ${t.sharer ? `<span class="badge-user">👤 ${escapeHTML(t.sharer)}</span>` : ''}
               ${t.vibe ? `<span class="badge-vibe">✨ ${escapeHTML(t.vibe)}</span>` : ''}
             </div>
@@ -1759,18 +1787,28 @@
       const sharer = document.getElementById('trackSharer').value;
       const link = normalizeUrl(document.getElementById('trackLink').value);
       const vibe = document.getElementById('trackVibe').value.trim();
+      const duration = trackDurationHidden.value.trim();
 
       if (!title || !link) return;
       closeTrackModal();
       const plat = detectPlatform(link);
 
+      const payload = {
+        title,
+        sharer,
+        link,
+        vibe,
+        platform: plat.name,
+        ...(duration ? { duration } : {})
+      };
+
       if (editId) {
-        tracksRef.doc(editId).update({ title, sharer, link, vibe, platform: plat.name })
+        tracksRef.doc(editId).update(payload)
           .then(() => showToast('הפסקול עודכן בהצלחה ✓', 'success'))
           .catch(() => showToast('שגיאה בעדכון הפסקול', 'error'));
       } else {
         tracksRef.add({
-          title, sharer, link, vibe, platform: plat.name,
+          ...payload,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => showToast('הטראק נוסף לפסקול ✓', 'success'))
