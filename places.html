@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.5.0
+  VERSION: v3.6.0
   UPDATED: August 2026
-  CHANGELOG v3.5.0:
-    - Restored visible photo caption inside Lightbox drawer above reactions.
-    - Added subtle caption preview on grid photo tiles.
-    - Preserved Frosted Glass drawer, Comment Counter (💬 N), Action Sheet, & Swipes.
+  CHANGELOG v3.6.0:
+    - Fixed sharer dropdown default: Removed hardcoded first friend default, added required placeholder option.
+    - Cleaned up grid photo tiles to maintain a pristine, symmetrical aesthetic.
+    - Preserved Frosted Glass drawer, action sheets, and swipe interactions.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.5.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.5.0)</title>
+  <meta name="app-version" content="3.6.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.6.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -421,7 +421,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID ================= */
+    /* ================= PHOTOS GRID (CLEAN & SYMMETRICAL) ================= */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -455,40 +455,21 @@
       display: block;
     }
 
-    .photo-bottom-info {
+    .photo-badge-author {
       position: absolute;
       bottom: 5px;
       right: 5px;
-      left: 5px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      align-items: flex-start;
-      pointer-events: none;
-    }
-
-    .photo-badge-caption {
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.72);
       backdrop-filter: blur(4px);
       color: white;
       font-size: 0.65rem;
-      font-weight: 600;
-      padding: 1px 6px;
-      border-radius: 6px;
-      max-width: 100%;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 8px;
+      max-width: 85%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .photo-badge-author {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      color: #e2e8f0;
-      font-size: 0.6rem;
-      font-weight: 700;
-      padding: 1px 5px;
-      border-radius: 6px;
     }
 
     .photo-badge-stats {
@@ -514,7 +495,7 @@
       gap: 2px;
     }
 
-    /* ================= LIGHTBOX & DRAWER ================= */
+    /* ================= LIGHTBOX & FROSTED GLASS DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -549,7 +530,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 8px 130px 8px;
+      padding: 4px 8px 120px 8px;
       overflow: hidden;
       position: relative;
       user-select: none;
@@ -1080,7 +1061,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.5.0</span>
+          <span class="version-tag">v3.6.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1110,7 +1091,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.5.0</span>
+          <span class="version-tag">v3.6.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1138,7 +1119,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.5.0</span>
+          <span class="version-tag">v3.6.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1185,7 +1166,7 @@
         
         <div class="row-inputs">
           <input type="text" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות, אינסטגרם...)" />
-          <select class="select-field" id="placeSharer" style="width: 120px; flex-shrink: 0;">
+          <select class="select-field" id="placeSharer" style="width: 120px; flex-shrink: 0;" required>
             <!-- Generated dynamically -->
           </select>
         </div>
@@ -1217,7 +1198,7 @@
         
         <div class="row-inputs">
           <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר / הסט *" required />
-          <select class="select-field" id="trackSharer" style="width: 120px; flex-shrink: 0;">
+          <select class="select-field" id="trackSharer" style="width: 120px; flex-shrink: 0;" required>
             <!-- Generated dynamically -->
           </select>
         </div>
@@ -1247,7 +1228,7 @@
         <input type="text" class="input-field" id="photoCaption" placeholder="כיתוב קצר (למשל: בסקורפיוס עם כולם 🔥)" />
         
         <div class="row-inputs">
-          <select class="select-field" id="photoSharer">
+          <select class="select-field" id="photoSharer" required>
             <!-- Generated dynamically -->
           </select>
         </div>
@@ -1273,7 +1254,7 @@
       <form id="commentForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="commentEditIndex" value="" />
         <div class="row-inputs">
-          <select class="select-field" id="commentAuthorSelect" style="width: 130px; flex-shrink: 0;">
+          <select class="select-field" id="commentAuthorSelect" style="width: 130px; flex-shrink: 0;" required>
             <!-- Generated dynamically -->
           </select>
           <input type="text" class="input-field" id="commentTextInput" placeholder="כתוב משהו מצחיק..." required />
@@ -1322,7 +1303,6 @@
         <div class="drawer-handle-pill"></div>
       </div>
 
-      <!-- Restored Photo Caption Header -->
       <div id="lightboxCaption" class="lightbox-caption-text"></div>
 
       <!-- Reactions -->
@@ -1359,19 +1339,25 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.5.0";
+    const APP_VERSION = "3.6.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
 
     function initSharerDropdowns() {
-      const savedUser = localStorage.getItem('mykonos_user') || FRIENDS[0];
+      const savedUser = localStorage.getItem('mykonos_user') || '';
       const targetIds = ['placeSharer', 'trackSharer', 'photoSharer', 'commentAuthorSelect'];
       
       targetIds.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.innerHTML = FRIENDS.map(name => `<option value="${name}" ${name === savedUser ? 'selected' : ''}>${name}</option>`).join('');
+        
+        // יצירת אופציית ברירת מחדל ריקה ודורשת בחירה
+        let optionsHTML = `<option value="" disabled ${!savedUser ? 'selected' : ''}>בחר את שמך... 👤</option>`;
+        optionsHTML += FRIENDS.map(name => `<option value="${name}" ${name === savedUser ? 'selected' : ''}>${name}</option>`).join('');
+        
+        el.innerHTML = optionsHTML;
+
         el.addEventListener('change', () => {
           localStorage.setItem('mykonos_user', el.value);
           targetIds.forEach(otherId => {
@@ -1386,7 +1372,7 @@
     }
 
     function getSelectedUser() {
-      return localStorage.getItem('mykonos_user') || FRIENDS[0];
+      return localStorage.getItem('mykonos_user') || '';
     }
 
     function escapeHTML(str) {
@@ -1609,11 +1595,16 @@
 
     placeForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      const sharer = document.getElementById('placeSharer').value;
+      if (!sharer) {
+        showToast('יש לבחור שם לפני ההוספה', 'warning');
+        return;
+      }
+
       const editId = placeEditIdInput.value;
       const name = document.getElementById('placeName').value.trim();
       const category = document.getElementById('placeCategory').value;
       const link = normalizeUrl(document.getElementById('placeLink').value);
-      const sharer = document.getElementById('placeSharer').value;
       const note = document.getElementById('placeNote').value.trim();
 
       if (!name) return;
@@ -1818,9 +1809,14 @@
 
     musicForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      const sharer = document.getElementById('trackSharer').value;
+      if (!sharer) {
+        showToast('יש לבחור שם לפני ההוספה', 'warning');
+        return;
+      }
+
       const editId = trackEditIdInput.value;
       const title = document.getElementById('trackTitle').value.trim();
-      const sharer = document.getElementById('trackSharer').value;
       const link = normalizeUrl(document.getElementById('trackLink').value);
       const vibe = document.getElementById('trackVibe').value.trim();
       const duration = trackDurationHidden.value.trim();
@@ -1952,9 +1948,14 @@
 
     photoForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const sharer = document.getElementById('photoSharer').value;
+      if (!sharer) {
+        showToast('יש לבחור שם לפני העלאת תמונה', 'warning');
+        return;
+      }
+
       const file = photoFileInput.files[0];
       const caption = document.getElementById('photoCaption').value.trim();
-      const sharer = document.getElementById('photoSharer').value;
 
       if (!file) return;
 
@@ -2033,11 +2034,7 @@
 
         tile.innerHTML = `
           <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
-          
-          <div class="photo-bottom-info">
-            ${p.caption ? `<div class="photo-badge-caption">${escapeHTML(p.caption)}</div>` : ''}
-            <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
-          </div>
+          <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
 
           ${hasStats ? `
             <div class="photo-badge-stats">
@@ -2177,7 +2174,7 @@
       lightboxCaption.style.display = p.caption ? 'block' : 'none';
 
       const currentUser = getSelectedUser();
-      if (p.sharer === currentUser) {
+      if (p.sharer === currentUser && currentUser !== '') {
         lightboxDeleteBtn.style.display = 'flex';
       } else {
         lightboxDeleteBtn.style.display = 'none';
@@ -2194,7 +2191,7 @@
         lightboxCommentsList.innerHTML = `<div style="font-size: 0.78rem; color: #475569; text-align: center; padding: 6px 0;">אין תגובות עדיין. לחצו "💬 הגב" כדי להגיב ראשונים!</div>`;
       } else {
         lightboxCommentsList.innerHTML = comments.map((c, index) => {
-          const isMyComment = c.author === currentUser;
+          const isMyComment = c.author === currentUser && currentUser !== '';
           return `
             <div class="comment-item">
               <div class="comment-text-wrap">
@@ -2209,7 +2206,6 @@
       }
     }
 
-    // Comment Action Sheet Triggers
     window.openCommentActionSheet = function(index) {
       selectedCommentIndexForAction = index;
       commentActionSheet.classList.add('active');
@@ -2241,9 +2237,10 @@
     };
 
     window.openAddCommentModal = function() {
+      const currentAuthor = getSelectedUser();
       commentForm.reset();
       commentEditIndexInput.value = '';
-      commentAuthorSelect.value = getSelectedUser();
+      commentAuthorSelect.value = currentAuthor;
       commentModalTitle.textContent = 'הוספת תגובה 💬';
       document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
       commentModalOverlay.classList.add('active');
@@ -2269,8 +2266,13 @@
 
     commentForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const text = commentTextInput.value.trim();
       const author = commentAuthorSelect.value;
+      if (!author) {
+        showToast('יש לבחור שם לפני שליחת תגובה', 'warning');
+        return;
+      }
+
+      const text = commentTextInput.value.trim();
       const editIndex = commentEditIndexInput.value;
 
       if (!text || !activeLightboxPhotoId) return;
