@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.4.0
+  VERSION: v3.5.0
   UPDATED: August 2026
-  CHANGELOG v3.4.0:
-    - Added floating Comment Counter badge (💬 N) alongside Reactions on photo tiles.
-    - Conditional display: Badges only appear when likes or comments actually exist.
-    - Preserved Glassmorphism frosted drawer, Swipe gestures, and music metadata.
+  CHANGELOG v3.5.0:
+    - Restored visible photo caption inside Lightbox drawer above reactions.
+    - Added subtle caption preview on grid photo tiles.
+    - Preserved Frosted Glass drawer, Comment Counter (💬 N), Action Sheet, & Swipes.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.4.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.4.0)</title>
+  <meta name="app-version" content="3.5.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.5.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -421,7 +421,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (WITH STATS BADGES) ================= */
+    /* ================= PHOTOS GRID ================= */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -455,24 +455,42 @@
       display: block;
     }
 
-    .photo-badge-author {
+    .photo-bottom-info {
       position: absolute;
       bottom: 5px;
       right: 5px;
-      background: rgba(15, 23, 42, 0.72);
+      left: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+
+    .photo-badge-caption {
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(4px);
       color: white;
       font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 8px;
-      max-width: 85%;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 6px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    /* Floating Stats Pill (Reactions & Comments) */
+    .photo-badge-author {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      color: #e2e8f0;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 6px;
+    }
+
     .photo-badge-stats {
       position: absolute;
       top: 5px;
@@ -496,7 +514,7 @@
       gap: 2px;
     }
 
-    /* ================= LIGHTBOX & FROSTED GLASS DRAWER ================= */
+    /* ================= LIGHTBOX & DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -531,7 +549,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 8px 120px 8px;
+      padding: 4px 8px 130px 8px;
       overflow: hidden;
       position: relative;
       user-select: none;
@@ -576,7 +594,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.78);
+      background: rgba(255, 255, 255, 0.82);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
       border-top: 1px solid rgba(255, 255, 255, 0.6);
@@ -585,7 +603,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      height: 25vh;
+      height: 27vh;
       max-height: 68vh;
       box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
       transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
@@ -610,6 +628,15 @@
       height: 4px;
       background: rgba(15, 23, 42, 0.25);
       border-radius: 10px;
+    }
+
+    .lightbox-caption-text {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: center;
+      line-height: 1.25;
+      padding: 0 4px;
     }
 
     .reactions-bar {
@@ -665,7 +692,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Glass Comment Bubbles */
     .comment-item {
       background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(10px);
@@ -764,7 +790,7 @@
       margin-top: 4px;
     }
 
-    /* Modals & General Sheets */
+    /* Modals & Dialogs */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -1054,7 +1080,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.4.0</span>
+          <span class="version-tag">v3.5.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1084,7 +1110,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.4.0</span>
+          <span class="version-tag">v3.5.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1112,7 +1138,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.4.0</span>
+          <span class="version-tag">v3.5.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1296,6 +1322,9 @@
         <div class="drawer-handle-pill"></div>
       </div>
 
+      <!-- Restored Photo Caption Header -->
+      <div id="lightboxCaption" class="lightbox-caption-text"></div>
+
       <!-- Reactions -->
       <div class="reactions-bar">
         <button class="btn-react" onclick="event.stopPropagation(); addReaction('🔥');">🔥 <span id="reactCount-fire">0</span></button>
@@ -1330,7 +1359,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.4.0";
+    const APP_VERSION = "3.5.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -2000,12 +2029,16 @@
         const laugh = reacts['😂'] || 0;
         const topReact = fire > 0 ? `🔥 ${fire}` : (laugh > 0 ? `😂 ${laugh}` : '');
         const commentCount = (p.comments || []).length;
-
         const hasStats = topReact || commentCount > 0;
 
         tile.innerHTML = `
           <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
-          <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
+          
+          <div class="photo-bottom-info">
+            ${p.caption ? `<div class="photo-badge-caption">${escapeHTML(p.caption)}</div>` : ''}
+            <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
+          </div>
+
           ${hasStats ? `
             <div class="photo-badge-stats">
               ${topReact ? `<span class="photo-stat-item">${topReact}</span>` : ''}
@@ -2022,6 +2055,7 @@
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCaption = document.getElementById('lightboxCaption');
     const lightboxAuthor = document.getElementById('lightboxAuthor');
     const lightboxDeleteBtn = document.getElementById('lightboxDeleteBtn');
     const lightboxCommentsList = document.getElementById('lightboxCommentsList');
@@ -2139,6 +2173,8 @@
 
       lightboxImg.src = p.url;
       lightboxAuthor.textContent = `צילם/ה: ${p.sharer}`;
+      lightboxCaption.textContent = p.caption || '';
+      lightboxCaption.style.display = p.caption ? 'block' : 'none';
 
       const currentUser = getSelectedUser();
       if (p.sharer === currentUser) {
@@ -2173,6 +2209,7 @@
       }
     }
 
+    // Comment Action Sheet Triggers
     window.openCommentActionSheet = function(index) {
       selectedCommentIndexForAction = index;
       commentActionSheet.classList.add('active');
