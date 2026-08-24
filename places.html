@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v2.8.0
+  VERSION: v2.9.0
   UPDATED: August 2026
-  CHANGELOG v2.8.0:
-    - Tap on Drawer Footer expands it to view full comments.
-    - Tap on Photo Image collapses Drawer back to compact peek.
-    - Preserved Swipe navigation, reactions, and 3-dots moderation.
+  CHANGELOG v2.9.0:
+    - Fixed 3-dots comment menu overflow (opens upwards, bottom: 100%).
+    - Removed duplicate top close button in Lightbox header.
+    - Preserved Ultra-compact drawer, Swipe gestures, and tap interactions.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="2.8.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v2.8.0)</title>
+  <meta name="app-version" content="2.9.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v2.9.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -475,7 +475,7 @@
       border-radius: 8px;
     }
 
-    /* ================= LIGHTBOX & INTUITIVE DRAWER ================= */
+    /* ================= LIGHTBOX & DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -655,6 +655,7 @@
       border: 1px solid #edf2f7;
       line-height: 1.3;
       flex-shrink: 0;
+      position: relative;
     }
 
     .comment-item:nth-child(even) {
@@ -671,6 +672,15 @@
     .comment-author {
       font-weight: 800;
       color: var(--primary);
+    }
+
+    /* Upwards Floating Menu for Comments to prevent overflow clipping */
+    .comment-item .dropdown-menu {
+      top: auto;
+      bottom: 100%;
+      margin-bottom: 4px;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.15);
+      z-index: 1095;
     }
 
     /* Modals & Dialogs */
@@ -963,7 +973,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.8.0</span>
+          <span class="version-tag">v2.9.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -993,7 +1003,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.8.0</span>
+          <span class="version-tag">v2.9.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1021,7 +1031,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.8.0</span>
+          <span class="version-tag">v2.9.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1175,10 +1185,7 @@
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button id="lightboxDeleteBtn" class="btn-menu" style="color: white; display: none;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">✕</button>
-        <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
-      </div>
+      <button id="lightboxDeleteBtn" class="btn-menu" style="color: white; display: none;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">✕</button>
     </div>
 
     <!-- Tap on content area/image collapses the drawer -->
@@ -1228,7 +1235,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "2.8.0";
+    const APP_VERSION = "2.9.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1889,7 +1896,7 @@
     }
 
     // -------------------------------------------------------------
-    // Lightbox Logic & Tap Behaviors
+    // Lightbox Logic & Intuitive Drawer
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
@@ -1920,14 +1927,14 @@
       activeLightboxPhotoId = null;
     }
 
-    // נגיעה בתמונה מקפלת את החלונית אם היא מורחבת
     window.handlePhotoAreaTap = function(e) {
       if (lightboxFooter.classList.contains('expanded')) {
         lightboxFooter.classList.remove('expanded');
+      } else {
+        closeLightbox();
       }
     };
 
-    // נגיעה בחלונית פותחת אותה
     window.handleDrawerTap = function(e) {
       if (!lightboxFooter.classList.contains('expanded')) {
         lightboxFooter.classList.add('expanded');
