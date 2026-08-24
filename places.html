@@ -1,13 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v2.3.0
+  VERSION: v2.4.0
   UPDATED: August 2026
-  CHANGELOG v2.3.0:
-    - Replaced static comment input in Lightbox with a clean "+ הגב" trigger button.
-    - Added Comment Modal Bottom Sheet for adding and editing comments.
-    - Added 3-dots (⋮) action menu on each comment row (Edit & Delete).
-    - Author-ownership protection: Users can only edit/delete their own comments.
+  CHANGELOG v2.4.0:
+    - Redesigned photo comments thread with alternating soft background cards.
+    - Strong bold author names with clean punctuation and normal message text.
+    - Smooth internal scroll container for long comment discussions.
+    - Preserved 3-dots actions (Edit/Delete) with author ownership check.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="2.3.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v2.3.0)</title>
+  <meta name="app-version" content="2.4.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v2.4.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -528,7 +528,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 48vh;
+      max-height: 50vh;
       overflow-y: auto;
       flex-shrink: 0;
     }
@@ -560,6 +560,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 2px;
     }
 
     .comments-section {
@@ -571,32 +572,40 @@
     .comments-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      max-height: 130px;
+      gap: 5px;
+      max-height: 140px;
       overflow-y: auto;
+      padding-right: 1px;
+      scrollbar-width: thin;
     }
 
+    /* Enhanced Comment Rows with Clear Separation */
     .comment-item {
       background: #f8fafc;
-      padding: 8px 10px;
+      padding: 7px 10px;
       border-radius: 12px;
-      font-size: 0.82rem;
+      font-size: 0.83rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      border: 1px solid #f1f5f9;
-      position: relative;
+      border: 1px solid #edf2f7;
+      line-height: 1.35;
+    }
+
+    .comment-item:nth-child(even) {
+      background: #f1f5f9;
     }
 
     .comment-text-wrap {
       flex: 1;
       min-width: 0;
       word-break: break-word;
+      color: #1e293b;
     }
 
     .comment-author {
-      font-weight: 700;
+      font-weight: 800;
       color: var(--primary);
     }
 
@@ -890,7 +899,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.3.0</span>
+          <span class="version-tag">v2.4.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -920,7 +929,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.3.0</span>
+          <span class="version-tag">v2.4.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -948,7 +957,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.3.0</span>
+          <span class="version-tag">v2.4.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1147,7 +1156,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "2.3.0";
+    const APP_VERSION = "2.4.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1643,7 +1652,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות עם 3 נקודות
+    // 3. גלריית תמונות ותגובות מופרדות
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -1804,7 +1813,7 @@
     }
 
     // -------------------------------------------------------------
-    // Lightbox Logic & Comments Modal
+    // Lightbox Logic & Structured Comments
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
@@ -1855,7 +1864,7 @@
 
       const comments = p.comments || [];
       if (comments.length === 0) {
-        lightboxCommentsList.innerHTML = `<div style="font-size: 0.78rem; color: var(--muted); text-align: center; padding: 6px 0;">אין תגובות עדיין. לחצו "💬 הגב" כדי להגיב ראשונים!</div>`;
+        lightboxCommentsList.innerHTML = `<div style="font-size: 0.78rem; color: var(--muted); text-align: center; padding: 10px 0;">אין תגובות עדיין. לחצו "💬 הגב" כדי להגיב ראשונים!</div>`;
       } else {
         lightboxCommentsList.innerHTML = comments.map((c, index) => {
           const isMyComment = c.author === currentUser;
@@ -1863,7 +1872,7 @@
           return `
             <div class="comment-item">
               <div class="comment-text-wrap">
-                <span class="comment-author">${escapeHTML(c.author)}:</span> ${escapeHTML(c.text)}
+                <span class="comment-author">${escapeHTML(c.author)}:</span> <span>${escapeHTML(c.text)}</span>
               </div>
               ${isMyComment ? `
                 <div class="menu-container">
@@ -1888,7 +1897,6 @@
       });
     };
 
-    // ניהול מודאל תגובה (הוספה/עריכה)
     window.openAddCommentModal = function() {
       commentForm.reset();
       commentEditIndexInput.value = '';
