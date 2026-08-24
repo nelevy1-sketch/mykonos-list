@@ -1,13 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v2.4.0
+  VERSION: v2.5.0
   UPDATED: August 2026
-  CHANGELOG v2.4.0:
-    - Redesigned photo comments thread with alternating soft background cards.
-    - Strong bold author names with clean punctuation and normal message text.
-    - Smooth internal scroll container for long comment discussions.
-    - Preserved 3-dots actions (Edit/Delete) with author ownership check.
+  CHANGELOG v2.5.0:
+    - Expandable Bottom Sheet Drawer for Lightbox comments.
+    - Smooth gesture & scroll-triggered expansion up to mid-screen (~68vh).
+    - Added drag handle pill for intuitive swipe-up / swipe-down interaction.
+    - Preserved alternating zebra comment cards and author actions.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="2.4.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v2.4.0)</title>
+  <meta name="app-version" content="2.5.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v2.5.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -477,7 +477,7 @@
       border-radius: 8px;
     }
 
-    /* Lightbox Modal */
+    /* ================= LIGHTBOX & EXPANDABLE DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -489,6 +489,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease;
+      overflow: hidden;
     }
 
     .lightbox-overlay.active {
@@ -503,6 +504,7 @@
       justify-content: space-between;
       color: white;
       flex-shrink: 0;
+      z-index: 1055;
     }
 
     .lightbox-content {
@@ -510,41 +512,71 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 8px;
+      padding: 8px 8px 160px 8px; /* space for compact drawer */
       overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
 
     .lightbox-img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
-      border-radius: 12px;
+      border-radius: 14px;
     }
 
+    /* Expandable Bottom Drawer Sheet */
     .lightbox-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
       background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
       border-radius: 24px 24px 0 0;
-      padding: 14px;
+      padding: 8px 14px 14px 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      max-height: 50vh;
-      overflow-y: auto;
-      flex-shrink: 0;
+      gap: 8px;
+      height: 36vh; /* Compact peek state */
+      max-height: 70vh;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
+      transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1052;
+    }
+
+    .lightbox-footer.expanded {
+      height: 68vh; /* Mid-screen expanded state */
+    }
+
+    /* Pull Handle Pill */
+    .drawer-handle-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 3px 0 2px 0;
+      cursor: grab;
+    }
+
+    .drawer-handle-pill {
+      width: 36px;
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 10px;
     }
 
     .reactions-bar {
       display: flex;
       gap: 8px;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .btn-react {
       background: #f1f5f9;
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 0.9rem;
+      padding: 5px 12px;
+      font-size: 0.88rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
@@ -561,25 +593,29 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 2px;
+      flex-shrink: 0;
     }
 
     .comments-section {
       display: flex;
       flex-direction: column;
       gap: 6px;
+      flex: 1;
+      min-height: 0;
     }
 
     .comments-list {
       display: flex;
       flex-direction: column;
       gap: 5px;
-      max-height: 140px;
+      flex: 1;
       overflow-y: auto;
       padding-right: 1px;
       scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* Enhanced Comment Rows with Clear Separation */
+    /* Enhanced Comment Rows */
     .comment-item {
       background: #f8fafc;
       padding: 7px 10px;
@@ -591,6 +627,7 @@
       gap: 8px;
       border: 1px solid #edf2f7;
       line-height: 1.35;
+      flex-shrink: 0;
     }
 
     .comment-item:nth-child(even) {
@@ -899,7 +936,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.4.0</span>
+          <span class="version-tag">v2.5.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -929,7 +966,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.4.0</span>
+          <span class="version-tag">v2.5.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -957,7 +994,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.4.0</span>
+          <span class="version-tag">v2.5.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1107,7 +1144,7 @@
     </div>
   </div>
 
-  <!-- ================= LIGHTBOX MODAL ================= -->
+  <!-- ================= LIGHTBOX MODAL WITH EXPANDABLE DRAWER ================= -->
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
@@ -1116,11 +1153,18 @@
         <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
       </div>
     </div>
+
     <div class="lightbox-content">
       <img id="lightboxImg" class="lightbox-img" src="" alt="תמונה" />
     </div>
-    <div class="lightbox-footer">
-      <div id="lightboxCaption" style="font-weight: 600; font-size: 0.95rem; color: var(--text);"></div>
+
+    <!-- Expandable Bottom Drawer -->
+    <div class="lightbox-footer" id="lightboxFooter">
+      <div class="drawer-handle-bar" onclick="toggleDrawerExpand()">
+        <div class="drawer-handle-pill"></div>
+      </div>
+
+      <div id="lightboxCaption" style="font-weight: 600; font-size: 0.92rem; color: var(--text);"></div>
       
       <!-- Reactions -->
       <div class="reactions-bar">
@@ -1156,7 +1200,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "2.4.0";
+    const APP_VERSION = "2.5.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1652,7 +1696,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות מופרדות
+    // 3. גלריית תמונות ותגובות עם Expandable Drawer
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -1813,7 +1857,7 @@
     }
 
     // -------------------------------------------------------------
-    // Lightbox Logic & Structured Comments
+    // Lightbox & Expandable Bottom Drawer Logic
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
@@ -1821,6 +1865,7 @@
     const lightboxAuthor = document.getElementById('lightboxAuthor');
     const lightboxDeleteBtn = document.getElementById('lightboxDeleteBtn');
     const lightboxCommentsList = document.getElementById('lightboxCommentsList');
+    const lightboxFooter = document.getElementById('lightboxFooter');
 
     const commentModalOverlay = document.getElementById('commentModalOverlay');
     const commentModalTitle = document.getElementById('commentModalTitle');
@@ -1831,6 +1876,7 @@
 
     function openLightbox(id) {
       activeLightboxPhotoId = id;
+      lightboxFooter.classList.remove('expanded');
       updateLightboxContent(id);
       initSharerDropdowns();
       lightboxModal.classList.add('active');
@@ -1838,8 +1884,40 @@
 
     function closeLightbox() {
       lightboxModal.classList.remove('active');
+      lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
     }
+
+    window.toggleDrawerExpand = function() {
+      lightboxFooter.classList.toggle('expanded');
+    };
+
+    // Auto expand drawer when user scrolls into comments
+    lightboxCommentsList.addEventListener('scroll', () => {
+      if (lightboxCommentsList.scrollTop > 10 && !lightboxFooter.classList.contains('expanded')) {
+        lightboxFooter.classList.add('expanded');
+      }
+    });
+
+    // Touch swipe gesture for Drawer
+    let touchStartY = 0;
+    lightboxFooter.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    lightboxFooter.addEventListener('touchend', (e) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const diffY = touchStartY - touchEndY;
+
+      // Swiped Up
+      if (diffY > 40 && !lightboxFooter.classList.contains('expanded')) {
+        lightboxFooter.classList.add('expanded');
+      }
+      // Swiped Down (only when comments list is at top)
+      else if (diffY < -40 && lightboxFooter.classList.contains('expanded') && lightboxCommentsList.scrollTop <= 5) {
+        lightboxFooter.classList.remove('expanded');
+      }
+    }, { passive: true });
 
     function updateLightboxContent(id) {
       const p = photosData.find(item => item.id === id);
