@@ -1,9 +1,24 @@
+<!--
+  =============================================================
+  PROJECT: Mykonos Group Guide & Soundtrack (PWA/Web App)
+  VERSION: v1.4.0
+  UPDATED: August 2026
+  CHANGELOG v1.4.0:
+    - Added bottom-sheet/modal overlays for adding & editing items (clean screen UX).
+    - Added visually distinct version badge in footer and header meta.
+    - Security: HTML escaping (escapeHTML) on all user inputs.
+    - Added Debounce (450ms) on automatic music oEmbed resolution.
+    - Added Undo toast notifications instead of blocking confirm() / alert().
+    - Added Firestore skeletons and empty filter states.
+  =============================================================
+-->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>המדריך למיקונוס 🇬🇷</title>
+  <meta name="app-version" content="1.4.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v1.4.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -47,8 +62,8 @@
       max-width: 460px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      padding-bottom: 40px;
+      gap: 12px;
+      padding-bottom: 20px;
     }
 
     /* Tabs Bar */
@@ -88,7 +103,7 @@
     .tab-content {
       display: none;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
     .tab-content.active {
@@ -99,109 +114,47 @@
     .header-card {
       background: var(--card-bg);
       border-radius: 20px;
-      padding: 16px 18px;
+      padding: 14px 16px;
       text-align: center;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
     }
 
     .header-card h1 {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       color: var(--primary);
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .header-card p {
       color: var(--muted);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
     }
 
-    /* Forms */
-    .form-card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 2px solid transparent;
-      transition: border-color 0.25s;
-    }
-
-    .form-card.editing {
-      border-color: var(--edit-color);
-      background: #fdfefe;
-    }
-
-    .row-inputs {
-      display: flex;
-      gap: 8px;
-    }
-
-    .input-field, .select-field {
-      width: 100%;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 0.9rem;
-      background: #f8fafc;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s, background-color 0.2s;
-    }
-
-    .input-field:focus, .select-field:focus {
-      border-color: var(--primary);
-      background: #fff;
-    }
-
-    .select-field {
-      width: 130px;
-      flex-shrink: 0;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    .form-buttons {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-submit {
-      flex: 1;
+    /* Trigger Action Buttons */
+    .btn-open-modal {
       background: var(--primary);
       color: white;
       border: none;
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 16px;
+      padding: 13px 18px;
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: background 0.2s;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 102, 204, 0.2);
+      transition: transform 0.1s, background-color 0.2s;
     }
 
-    .btn-submit.btn-editing {
-      background: var(--edit-color);
+    .btn-open-modal:active {
+      transform: scale(0.98);
     }
 
-    .btn-cancel {
-      display: none;
-      background: #e2e8f0;
-      color: #475569;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-music-submit {
+    .btn-music-open {
       background: linear-gradient(135deg, #0284c7, #4f46e5);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.22);
     }
 
     /* Filters */
@@ -218,7 +171,7 @@
     }
 
     .filter-chip {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       color: #475569;
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -279,7 +232,6 @@
       flex-wrap: wrap;
     }
 
-    /* Badge Types */
     .badge-cat {
       font-size: 0.7rem;
       font-weight: 700;
@@ -343,6 +295,10 @@
       white-space: nowrap;
     }
 
+    .btn-action:active {
+      opacity: 0.8;
+    }
+
     .btn-icon {
       background: transparent;
       border: none;
@@ -360,7 +316,142 @@
     .btn-icon.edit:active { color: var(--edit-color); background: #f0f9ff; }
     .btn-icon.delete:active { color: var(--delete-color); background: #fef2f2; }
 
-    /* Empty States & Skeletons */
+    /* Bottom Sheet / Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-sheet {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 480px;
+      border-radius: 26px 26px 0 0;
+      padding: 20px;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active .modal-sheet {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 4px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .btn-close-modal {
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1rem;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .row-inputs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-field, .select-field {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .input-field:focus, .select-field:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .select-field {
+      width: 130px;
+      flex-shrink: 0;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-submit {
+      flex: 1;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-submit.btn-editing {
+      background: var(--edit-color);
+    }
+
+    .btn-cancel {
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     .empty-state {
       text-align: center;
       padding: 32px 18px;
@@ -384,13 +475,13 @@
       100% { background-position: -200% 0; }
     }
 
-    /* Toast Notifications & Undo */
+    /* Toasts */
     .toast-container {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 1000;
+      z-index: 1001;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -429,6 +520,15 @@
       cursor: pointer;
     }
 
+    /* Footer App Version Badge */
+    .app-version-badge {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0.75;
+      padding-top: 10px;
+    }
+
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
@@ -451,34 +551,10 @@
         <p>חופים, ברים, מסעדות, שופינג ורשימות מפות</p>
       </div>
 
-      <form class="form-card" id="placeForm">
-        <input type="hidden" id="placeEditId" value="" />
-        <div class="row-inputs">
-          <select class="select-field" id="placeCategory">
-            <option value="חוף">חוף 🏖️</option>
-            <option value="בר">בר 🍸</option>
-            <option value="מסעדה">מסעדה 🍽️</option>
-            <option value="שופינג">שופינג 🛍️</option>
-            <option value="מפה">מפה 🗺️</option>
-            <option value="אחר">אחר ✨</option>
-          </select>
-          <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה *" required />
-        </div>
-        
-        <div class="row-inputs">
-          <input type="text" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות, אינסטגרם...)" />
-          <input type="text" class="input-field" id="placeSharer" placeholder="מי המליץ?" style="width: 120px; flex-shrink: 0;" />
-        </div>
-
-        <input type="text" class="input-field" id="placeNote" placeholder="הערה / טיפ (שקיעה, להזמין שבועיים מראש)" />
-        
-        <div class="form-buttons">
-          <button type="submit" class="btn-submit" id="placeSubmitBtn">
-            <span>+</span> הוסף לרשימה
-          </button>
-          <button type="button" class="btn-cancel" id="placeCancelBtn" onclick="cancelPlaceEdit()">ביטול</button>
-        </div>
-      </form>
+      <!-- Action Button to open Modal -->
+      <button class="btn-open-modal" onclick="openPlaceModal()">
+        <span>+</span> הוסף מקום או רשימה חדשה
+      </button>
 
       <div class="filters-bar" id="placesFilters">
         <button class="filter-chip active" data-filter="all">הכל</button>
@@ -502,24 +578,10 @@
         <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
       </div>
 
-      <form class="form-card" id="musicForm">
-        <input type="hidden" id="trackEditId" value="" />
-        <input type="text" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)*" required />
-        
-        <div class="row-inputs">
-          <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר / הסט *" required />
-          <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
-        </div>
-        
-        <input type="text" class="input-field" id="trackVibe" placeholder="וייב? (שקיעה, הרמות, צ'יל בדרך)" />
-        
-        <div class="form-buttons">
-          <button type="submit" class="btn-submit btn-music-submit" id="trackSubmitBtn">
-            <span>+</span> הוסף לפסקול
-          </button>
-          <button type="button" class="btn-cancel" id="trackCancelBtn" onclick="cancelTrackEdit()">ביטול</button>
-        </div>
-      </form>
+      <!-- Action Button to open Modal -->
+      <button class="btn-open-modal btn-music-open" onclick="openTrackModal()">
+        <span>+</span> הוסף שיר / פלייליסט לפסקול
+      </button>
 
       <div class="filters-bar" id="musicFilters">
         <button class="filter-chip active" data-platform="all">הכל 🎶</button>
@@ -534,13 +596,92 @@
         <div class="skeleton"></div>
       </div>
     </div>
+
+    <!-- Version Tracker Badge -->
+    <div class="app-version-badge">
+      גרסה v1.4.0 • סנכרון Firebase פעיל ☁️
+    </div>
+  </div>
+
+  <!-- ================= PLACES MODAL ================= -->
+  <div class="modal-overlay" id="placeModalOverlay" onclick="handleOverlayClick(event, 'placeModalOverlay')">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="placeModalTitle">הוספת מקום חדש 📍</div>
+        <button class="btn-close-modal" onclick="closePlaceModal()">✕</button>
+      </div>
+
+      <form id="placeForm" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="hidden" id="placeEditId" value="" />
+        <div class="row-inputs">
+          <select class="select-field" id="placeCategory">
+            <option value="חוף">חוף 🏖️</option>
+            <option value="בר">בר 🍸</option>
+            <option value="מסעדה">מסעדה 🍽️</option>
+            <option value="שופינג">שופינג 🛍️</option>
+            <option value="מפה">מפה 🗺️</option>
+            <option value="אחר">אחר ✨</option>
+          </select>
+          <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה *" required />
+        </div>
+        
+        <div class="row-inputs">
+          <input type="text" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות, אינסטגרם...)" />
+          <input type="text" class="input-field" id="placeSharer" placeholder="מי המליץ?" style="width: 120px; flex-shrink: 0;" />
+        </div>
+
+        <input type="text" class="input-field" id="placeNote" placeholder="הערה / טיפ (שקיעה, להזמין מראש)" />
+        
+        <div class="modal-buttons">
+          <button type="submit" class="btn-submit" id="placeSubmitBtn">
+            <span>+</span> הוסף לרשימה
+          </button>
+          <button type="button" class="btn-cancel" onclick="closePlaceModal()">ביטול</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MUSIC MODAL ================= -->
+  <div class="modal-overlay" id="trackModalOverlay" onclick="handleOverlayClick(event, 'trackModalOverlay')">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="trackModalTitle">הוספת מוזיקה לפסקול 🎧</div>
+        <button class="btn-close-modal" onclick="closeTrackModal()">✕</button>
+      </div>
+
+      <form id="musicForm" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="hidden" id="trackEditId" value="" />
+        <input type="text" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)*" required />
+        
+        <div class="row-inputs">
+          <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר / הסט *" required />
+          <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
+        </div>
+        
+        <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (שקיעה, הרמות, צ'יל ברכב)" />
+        
+        <div class="modal-buttons">
+          <button type="submit" class="btn-submit btn-music-submit" id="trackSubmitBtn">
+            <span>+</span> הוסף לפסקול
+          </button>
+          <button type="button" class="btn-cancel" onclick="closeTrackModal()">ביטול</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
     // -------------------------------------------------------------
-    // אבטחה וסיוע (Sanitization & Normalization)
+    // App Version Metadata
+    // -------------------------------------------------------------
+    const APP_VERSION = "1.4.0";
+    console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
+
+    // -------------------------------------------------------------
+    // Helper Functions
     // -------------------------------------------------------------
     function escapeHTML(str) {
       if (!str) return '';
@@ -561,9 +702,6 @@
       return url;
     }
 
-    // -------------------------------------------------------------
-    // מערכת Toast & Undo
-    // -------------------------------------------------------------
     function showToast(msg, type = 'info', action = null) {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -591,8 +729,15 @@
       }, action ? 4500 : 3000);
     }
 
+    function handleOverlayClick(e, overlayId) {
+      if (e.target.id === overlayId) {
+        if (overlayId === 'placeModalOverlay') closePlaceModal();
+        if (overlayId === 'trackModalOverlay') closeTrackModal();
+      }
+    }
+
     // -------------------------------------------------------------
-    // Firebase Config (מחובר לפרויקט places-d2918)
+    // Firebase Config (places-d2918)
     // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
@@ -631,6 +776,42 @@
     let currentPlaceFilter = 'all';
     let isPlacesLoaded = false;
 
+    const placeModalOverlay = document.getElementById('placeModalOverlay');
+    const placeModalTitle = document.getElementById('placeModalTitle');
+    const placeForm = document.getElementById('placeForm');
+    const placeEditIdInput = document.getElementById('placeEditId');
+    const placeSubmitBtn = document.getElementById('placeSubmitBtn');
+
+    function openPlaceModal() {
+      placeForm.reset();
+      placeEditIdInput.value = '';
+      placeModalTitle.textContent = 'הוספת מקום חדש 📍';
+      placeSubmitBtn.innerHTML = '<span>+</span> הוסף לרשימה';
+      placeSubmitBtn.classList.remove('btn-editing');
+      placeModalOverlay.classList.add('active');
+    }
+
+    function closePlaceModal() {
+      placeModalOverlay.classList.remove('active');
+    }
+
+    window.startEditPlace = function(id) {
+      const p = placesData.find(item => item.id === id);
+      if (!p) return;
+
+      placeEditIdInput.value = p.id;
+      document.getElementById('placeName').value = p.name || '';
+      document.getElementById('placeCategory').value = p.category || 'חוף';
+      document.getElementById('placeLink').value = p.link || '';
+      document.getElementById('placeSharer').value = p.sharer || '';
+      document.getElementById('placeNote').value = p.note || '';
+
+      placeModalTitle.textContent = 'עריכת מקום ✏️';
+      placeSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
+      placeSubmitBtn.classList.add('btn-editing');
+      placeModalOverlay.classList.add('active');
+    };
+
     placesRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       isPlacesLoaded = true;
       placesData = [];
@@ -652,7 +833,7 @@
       }
 
       if (placesData.length === 0) {
-        container.innerHTML = `<div class="empty-state">הרשימה עדיין ריקה. זה הזמן להוסיף מקומות! 🇬🇷</div>`;
+        container.innerHTML = `<div class="empty-state">הרשימה עדיין ריקה. לחצו למעלה להוספת מקום! 🇬🇷</div>`;
         return;
       }
 
@@ -691,39 +872,6 @@
       });
     }
 
-    const placeForm = document.getElementById('placeForm');
-    const placeEditIdInput = document.getElementById('placeEditId');
-    const placeSubmitBtn = document.getElementById('placeSubmitBtn');
-    const placeCancelBtn = document.getElementById('placeCancelBtn');
-
-    window.startEditPlace = function(id) {
-      const p = placesData.find(item => item.id === id);
-      if (!p) return;
-
-      placeEditIdInput.value = p.id;
-      document.getElementById('placeName').value = p.name || '';
-      document.getElementById('placeCategory').value = p.category || 'חוף';
-      document.getElementById('placeLink').value = p.link || '';
-      document.getElementById('placeSharer').value = p.sharer || '';
-      document.getElementById('placeNote').value = p.note || '';
-
-      placeForm.classList.add('editing');
-      placeSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
-      placeSubmitBtn.classList.add('btn-editing');
-      placeCancelBtn.style.display = 'block';
-
-      placeForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    window.cancelPlaceEdit = function() {
-      placeForm.reset();
-      placeEditIdInput.value = '';
-      placeForm.classList.remove('editing');
-      placeSubmitBtn.innerHTML = '<span>+</span> הוסף לרשימה';
-      placeSubmitBtn.classList.remove('btn-editing');
-      placeCancelBtn.style.display = 'none';
-    };
-
     placeForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
@@ -747,15 +895,13 @@
         return;
       }
 
+      closePlaceModal();
+
       if (editId) {
         placesRef.doc(editId).update({ name, category, link, sharer, note })
-          .then(() => {
-            showToast('המקום עודכן בהצלחה ✓', 'success');
-            cancelPlaceEdit();
-          })
+          .then(() => showToast('המקום עודכן בהצלחה ✓', 'success'))
           .catch(() => showToast('שגיאה בעדכון המקום', 'error'));
       } else {
-        placeForm.reset();
         placesRef.add({
           name,
           category,
@@ -782,7 +928,6 @@
       setTimeout(() => {
         if (!canceled) {
           placesRef.doc(id).delete();
-          if (placeEditIdInput.value === id) cancelPlaceEdit();
         }
       }, 4000);
     };
@@ -802,6 +947,41 @@
     let tracksData = [];
     let currentMusicFilter = 'all';
     let isMusicLoaded = false;
+
+    const trackModalOverlay = document.getElementById('trackModalOverlay');
+    const trackModalTitle = document.getElementById('trackModalTitle');
+    const musicForm = document.getElementById('musicForm');
+    const trackEditIdInput = document.getElementById('trackEditId');
+    const trackSubmitBtn = document.getElementById('trackSubmitBtn');
+
+    function openTrackModal() {
+      musicForm.reset();
+      trackEditIdInput.value = '';
+      trackModalTitle.textContent = 'הוספת מוזיקה לפסקול 🎧';
+      trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
+      trackSubmitBtn.classList.remove('btn-editing');
+      trackModalOverlay.classList.add('active');
+    }
+
+    function closeTrackModal() {
+      trackModalOverlay.classList.remove('active');
+    }
+
+    window.startEditTrack = function(id) {
+      const t = tracksData.find(item => item.id === id);
+      if (!t) return;
+
+      trackEditIdInput.value = t.id;
+      document.getElementById('trackLink').value = t.link || '';
+      document.getElementById('trackTitle').value = t.title || '';
+      document.getElementById('trackSharer').value = t.sharer || '';
+      document.getElementById('trackVibe').value = t.vibe || '';
+
+      trackModalTitle.textContent = 'עריכת שיר / סט ✏️';
+      trackSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
+      trackSubmitBtn.classList.add('btn-editing');
+      trackModalOverlay.classList.add('active');
+    };
 
     function detectPlatform(url) {
       const u = url.toLowerCase();
@@ -895,7 +1075,7 @@
       }
 
       if (tracksData.length === 0) {
-        container.innerHTML = `<div class="empty-state">הפסקול ריק. הדביקו לינק ראשון! 🎧</div>`;
+        container.innerHTML = `<div class="empty-state">הפסקול ריק. לחצו למעלה להוספת טראק ראשון! 🎧</div>`;
         return;
       }
 
@@ -932,38 +1112,6 @@
       });
     }
 
-    const musicForm = document.getElementById('musicForm');
-    const trackEditIdInput = document.getElementById('trackEditId');
-    const trackSubmitBtn = document.getElementById('trackSubmitBtn');
-    const trackCancelBtn = document.getElementById('trackCancelBtn');
-
-    window.startEditTrack = function(id) {
-      const t = tracksData.find(item => item.id === id);
-      if (!t) return;
-
-      trackEditIdInput.value = t.id;
-      document.getElementById('trackLink').value = t.link || '';
-      document.getElementById('trackTitle').value = t.title || '';
-      document.getElementById('trackSharer').value = t.sharer || '';
-      document.getElementById('trackVibe').value = t.vibe || '';
-
-      musicForm.classList.add('editing');
-      trackSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
-      trackSubmitBtn.classList.add('btn-editing');
-      trackCancelBtn.style.display = 'block';
-
-      musicForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    window.cancelTrackEdit = function() {
-      musicForm.reset();
-      trackEditIdInput.value = '';
-      musicForm.classList.remove('editing');
-      trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
-      trackSubmitBtn.classList.remove('btn-editing');
-      trackCancelBtn.style.display = 'none';
-    };
-
     musicForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
@@ -986,6 +1134,7 @@
         return;
       }
 
+      closeTrackModal();
       const plat = detectPlatform(link);
 
       if (editId) {
@@ -997,10 +1146,8 @@
           platform: plat.name
         }).then(() => {
           showToast('הפסקול עודכן בהצלחה ✓', 'success');
-          cancelTrackEdit();
         }).catch(() => showToast('שגיאה בעדכון הפסקול', 'error'));
       } else {
-        musicForm.reset();
         tracksRef.add({
           title,
           sharer,
@@ -1027,7 +1174,6 @@
       setTimeout(() => {
         if (!canceled) {
           tracksRef.doc(id).delete();
-          if (trackEditIdInput.value === id) cancelTrackEdit();
         }
       }, 4000);
     };
