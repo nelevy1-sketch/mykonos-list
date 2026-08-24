@@ -1,13 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide & Soundtrack (PWA/Web App)
-  VERSION: v1.5.0
+  VERSION: v1.6.0
   UPDATED: August 2026
-  CHANGELOG v1.5.0:
-    - Replaced visible edit/delete buttons with a unified 3-dots kebab menu (⋮).
-    - Added floating action menu with smooth popover animation.
-    - Click-outside detection to dismiss active action menus.
-    - Further polished card action layout for mobile screens.
+  CHANGELOG v1.6.0:
+    - Added "קלאב 🪩" (Club) category to form selection and filter chips.
+    - Added a dedicated Confirmation Modal for deletes (replaces direct deletion).
+    - Fixed 3-dots popover z-indexing and layout.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="app-version" content="1.5.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v1.5.0)</title>
+  <meta name="app-version" content="1.6.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v1.6.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -128,7 +127,7 @@
       font-size: 0.8rem;
     }
 
-    /* Trigger Action Buttons */
+    /* Action Buttons */
     .btn-open-modal {
       background: var(--primary);
       color: white;
@@ -299,7 +298,7 @@
       opacity: 0.8;
     }
 
-    /* 3-Dots Menu Button & Dropdown */
+    /* 3-Dots Menu */
     .menu-container {
       position: relative;
     }
@@ -317,7 +316,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s, color 0.15s;
     }
 
     .btn-menu:active {
@@ -378,7 +376,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Bottom Sheet / Modal Overlay */
+    /* Modals & Overlays */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -514,6 +512,90 @@
       cursor: pointer;
     }
 
+    /* Confirm Delete Dialog (Center Modal) */
+    .confirm-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1002;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .confirm-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .confirm-dialog {
+      background: white;
+      border-radius: 20px;
+      padding: 22px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+    }
+
+    .confirm-overlay.active .confirm-dialog {
+      transform: scale(1);
+    }
+
+    .confirm-dialog h3 {
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .confirm-dialog p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .btn-confirm-delete {
+      flex: 1;
+      background: var(--delete-color);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 11px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .btn-confirm-cancel {
+      flex: 1;
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      border-radius: 12px;
+      padding: 11px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
     .empty-state {
       text-align: center;
       padding: 32px 18px;
@@ -571,18 +653,6 @@
     .toast.warning { background: #92400e; }
     .toast.error { background: #991b1b; }
 
-    .toast-undo-btn {
-      background: white;
-      color: #0f172a;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* Footer App Version Badge */
     .app-version-badge {
       text-align: center;
       font-size: 0.72rem;
@@ -610,7 +680,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="header-card">
         <h1>מקומות שווים במיקונוס 📍</h1>
-        <p>חופים, ברים, מסעדות, שופינג ורשימות מפות</p>
+        <p>חופים, ברים, קלאבים, מסעדות, שופינג ומפות</p>
       </div>
 
       <button class="btn-open-modal" onclick="openPlaceModal()">
@@ -620,6 +690,7 @@
       <div class="filters-bar" id="placesFilters">
         <button class="filter-chip active" data-filter="all">הכל</button>
         <button class="filter-chip" data-filter="חוף">חופים 🏖️</button>
+        <button class="filter-chip" data-filter="קלאב">קלאבים 🪩</button>
         <button class="filter-chip" data-filter="בר">ברים 🍸</button>
         <button class="filter-chip" data-filter="מסעדה">מסעדות 🍽️</button>
         <button class="filter-chip" data-filter="שופינג">שופינג 🛍️</button>
@@ -659,7 +730,7 @@
 
     <!-- Version Tracker Badge -->
     <div class="app-version-badge">
-      גרסה v1.5.0 • סנכרון Firebase פעיל ☁️
+      גרסה v1.6.0 • סנכרון Firebase פעיל ☁️
     </div>
   </div>
 
@@ -676,6 +747,7 @@
         <div class="row-inputs">
           <select class="select-field" id="placeCategory">
             <option value="חוף">חוף 🏖️</option>
+            <option value="קלאב">קלאב 🪩</option>
             <option value="בר">בר 🍸</option>
             <option value="מסעדה">מסעדה 🍽️</option>
             <option value="שופינג">שופינג 🛍️</option>
@@ -731,10 +803,22 @@
     </div>
   </div>
 
+  <!-- ================= CONFIRM DELETE DIALOG ================= -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-dialog">
+      <h3 id="confirmTitle">למחוק את הפריט?</h3>
+      <p id="confirmDesc">פעולה זו תמחק את הרשומה לצמיתות עבור כל חברי הקבוצה.</p>
+      <div class="confirm-buttons">
+        <button class="btn-confirm-delete" id="btnConfirmDelete">מחק לצמיתות</button>
+        <button class="btn-confirm-cancel" onclick="closeConfirmDialog()">ביטול</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "1.5.0";
+    const APP_VERSION = "1.6.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     // -------------------------------------------------------------
@@ -759,7 +843,7 @@
       return url;
     }
 
-    function showToast(msg, type = 'info', action = null) {
+    function showToast(msg, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
@@ -768,22 +852,11 @@
       span.textContent = msg;
       toast.appendChild(span);
 
-      if (action) {
-        const btn = document.createElement('button');
-        btn.className = 'toast-undo-btn';
-        btn.textContent = action.label;
-        btn.onclick = () => {
-          action.callback();
-          toast.remove();
-        };
-        toast.appendChild(btn);
-      }
-
       container.appendChild(toast);
 
       setTimeout(() => {
         if (toast.parentElement) toast.remove();
-      }, action ? 4500 : 3000);
+      }, 3000);
     }
 
     function handleOverlayClick(e, overlayId) {
@@ -792,6 +865,32 @@
         if (overlayId === 'trackModalOverlay') closeTrackModal();
       }
     }
+
+    // -------------------------------------------------------------
+    // Confirm Dialog Logic
+    // -------------------------------------------------------------
+    let pendingDeleteAction = null;
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+
+    function openConfirmDialog(titleText, deleteCallback) {
+      confirmTitle.textContent = `למחוק את "${titleText}"?`;
+      pendingDeleteAction = deleteCallback;
+      confirmOverlay.classList.add('active');
+    }
+
+    function closeConfirmDialog() {
+      confirmOverlay.classList.remove('active');
+      pendingDeleteAction = null;
+    }
+
+    btnConfirmDelete.onclick = () => {
+      if (pendingDeleteAction) {
+        pendingDeleteAction();
+      }
+      closeConfirmDialog();
+    };
 
     // -------------------------------------------------------------
     // Global Click Outside Handler (סגירת תפריטי 3 נקודות)
@@ -807,7 +906,6 @@
       const currentMenu = document.getElementById(id);
       const isAlreadyOpen = currentMenu.classList.contains('show');
       
-      // סגירת כל התפריטים האחרים
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       
       if (!isAlreadyOpen) {
@@ -952,7 +1050,7 @@
                 <button class="dropdown-item" onclick="startEditPlace('${p.id}')">
                   <span>✏️</span> ערוך
                 </button>
-                <button class="dropdown-item delete" onclick="deletePlace('${p.id}')">
+                <button class="dropdown-item delete" onclick="confirmDeletePlace('${p.id}')">
                   <span>✕</span> מחק
                 </button>
               </div>
@@ -1006,22 +1104,16 @@
       }
     });
 
-    window.deletePlace = function(id) {
+    window.confirmDeletePlace = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const itemToDelete = placesData.find(p => p.id === id);
       if (!itemToDelete) return;
 
-      let canceled = false;
-      showToast(`"${itemToDelete.name}" יוסר...`, 'info', {
-        label: 'בטל ↩',
-        callback: () => { canceled = true; }
+      openConfirmDialog(itemToDelete.name, () => {
+        placesRef.doc(id).delete()
+          .then(() => showToast(`"${itemToDelete.name}" נמחק בהצלחה`, 'success'))
+          .catch(() => showToast('שגיאה במחיקת המקום', 'error'));
       });
-
-      setTimeout(() => {
-        if (!canceled) {
-          placesRef.doc(id).delete();
-        }
-      }, 4000);
     };
 
     document.getElementById('placesFilters').addEventListener('click', (e) => {
@@ -1206,7 +1298,7 @@
                 <button class="dropdown-item" onclick="startEditTrack('${t.id}')">
                   <span>✏️</span> ערוך
                 </button>
-                <button class="dropdown-item delete" onclick="deleteTrack('${t.id}')">
+                <button class="dropdown-item delete" onclick="confirmDeleteTrack('${t.id}')">
                   <span>✕</span> מחק
                 </button>
               </div>
@@ -1266,22 +1358,16 @@
       }
     });
 
-    window.deleteTrack = function(id) {
+    window.confirmDeleteTrack = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const itemToDelete = tracksData.find(t => t.id === id);
       if (!itemToDelete) return;
 
-      let canceled = false;
-      showToast(`"${itemToDelete.title}" יוסר...`, 'info', {
-        label: 'בטל ↩',
-        callback: () => { canceled = true; }
+      openConfirmDialog(itemToDelete.title, () => {
+        tracksRef.doc(id).delete()
+          .then(() => showToast(`"${itemToDelete.title}" הוסר מהפסקול`, 'success'))
+          .catch(() => showToast('שגיאה במחיקת הטראק', 'error'));
       });
-
-      setTimeout(() => {
-        if (!canceled) {
-          tracksRef.doc(id).delete();
-        }
-      }, 4000);
     };
 
     document.getElementById('musicFilters').addEventListener('click', (e) => {
