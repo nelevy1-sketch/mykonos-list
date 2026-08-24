@@ -1,14 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v1.8.0
+  VERSION: v1.9.0
   UPDATED: August 2026
-  CHANGELOG v1.8.0:
-    - Added dedicated 3rd Tab: Live Photos Gallery (📸).
-    - Client-side image compression (max 1200px, 75% quality).
-    - Fixed Friends List Dropdown across all forms with LocalStorage caching.
-    - Added Photo Lightbox with Live Comments & Emoji Reactions (🔥 😂 🍸 ❤️).
-    - Replaced prompts with in-app notifications & bottom sheets.
+  CHANGELOG v1.9.0:
+    - Direct Firestore Base64 image compression (~80-120KB).
+    - Fully bypasses Firebase Storage (no rules/permissions needed).
+    - Instant mobile uploads directly into the 'photos' collection.
+    - Full Lightbox, Reactions & Comments support maintained.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -16,13 +15,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="1.8.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v1.8.0)</title>
+  <meta name="app-version" content="1.9.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v1.9.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
   <style>
     :root {
@@ -405,7 +403,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Photo Grid Styles */
+    /* Photos Grid Styles */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -1051,7 +1049,10 @@
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
-      <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn-menu" style="color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">✕</button>
+        <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
+      </div>
     </div>
     <div class="lightbox-content">
       <img id="lightboxImg" class="lightbox-img" src="" alt="תמונה" />
@@ -1093,13 +1094,12 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "1.8.0";
+    const APP_VERSION = "1.9.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     // רשימת החברים הקבועה
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
 
-    // אתחול רשימת השמות בתיבות הבחירה ושמירת השם המקומי
     function initSharerDropdowns() {
       const savedUser = localStorage.getItem('mykonos_user') || FRIENDS[0];
       ['placeSharer', 'trackSharer', 'photoSharer'].forEach(id => {
@@ -1108,7 +1108,6 @@
         el.innerHTML = FRIENDS.map(name => `<option value="${name}" ${name === savedUser ? 'selected' : ''}>${name}</option>`).join('');
         el.addEventListener('change', () => {
           localStorage.setItem('mykonos_user', el.value);
-          // מסנכרן את שאר ה-dropdowns
           ['placeSharer', 'trackSharer', 'photoSharer'].forEach(otherId => {
             const other = document.getElementById(otherId);
             if (other) other.value = el.value;
@@ -1177,7 +1176,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
     const placesRef = db.collection('places');
     const tracksRef = db.collection('tracks');
@@ -1592,7 +1590,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות חיה (Live Photos & Reactions)
+    // 3. גלריית תמונות חיה (Base64 דחוס ישירות ל-Firestore)
     // -------------------------------------------------------------
     let photosData = [];
     let isPhotosLoaded = false;
@@ -1611,9 +1609,9 @@
 
     function closePhotoModal() { photoModalOverlay.classList.remove('active'); }
 
-    // דחיסת תמונה מהירה צד-לקוח
-    function compressImage(file, maxWidth = 1200, quality = 0.75) {
-      return new Promise((resolve) => {
+    // דחיסת תמונה והמרה ל-DataURL קומפקטי (~80-120KB)
+    function compressToDataURL(file, maxWidth = 900, quality = 0.65) {
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
@@ -1634,11 +1632,12 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            canvas.toBlob((blob) => {
-              resolve(blob);
-            }, 'image/jpeg', quality);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
           };
+          img.onerror = (e) => reject(e);
         };
+        reader.onerror = (e) => reject(e);
       });
     }
 
@@ -1651,18 +1650,13 @@
       if (!file) return;
 
       photoSubmitBtn.disabled = true;
-      photoSubmitBtn.textContent = 'מעלה תמונה... ⏳';
+      photoSubmitBtn.textContent = 'דוחס ומעלה... ⏳';
 
       try {
-        const compressedBlob = await compressImage(file);
-        const fileName = `photos/${Date.now()}_${sharer}.jpg`;
-        const storageRef = storage.ref().child(fileName);
-        
-        await storageRef.put(compressedBlob);
-        const downloadURL = await storageRef.getDownloadURL();
+        const base64Image = await compressToDataURL(file);
 
         await photosRef.add({
-          url: downloadURL,
+          url: base64Image,
           caption,
           sharer,
           reactions: { '🔥': 0, '😂': 0, '🍸': 0, '❤️': 0 },
@@ -1673,6 +1667,7 @@
         closePhotoModal();
         showToast('התמונה שותפה בגלריה! 📸', 'success');
       } catch (err) {
+        console.error("Photo upload error:", err);
         showToast('שגיאה בהעלאת התמונה', 'error');
       } finally {
         photoSubmitBtn.disabled = false;
@@ -1798,6 +1793,17 @@
         lightboxCommentInput.value = '';
       });
     });
+
+    window.confirmDeleteCurrentPhoto = function() {
+      if (!activeLightboxPhotoId) return;
+      const currentId = activeLightboxPhotoId;
+      openConfirmDialog('התמונה הזו', () => {
+        closeLightbox();
+        photosRef.doc(currentId).delete()
+          .then(() => showToast('התמונה נמחקה בהצלחה', 'success'))
+          .catch(() => showToast('שגיאה במחיקת התמונה', 'error'));
+      });
+    };
 
     // הרצת אתחול
     initSharerDropdowns();
