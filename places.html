@@ -21,6 +21,8 @@
       --border: #e2e8f0;
       --edit-color: #0284c7;
       --delete-color: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
     }
 
     * {
@@ -46,10 +48,10 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      padding-bottom: 30px;
+      padding-bottom: 40px;
     }
 
-    /* Navigation Tabs */
+    /* Tabs Bar */
     .nav-tabs {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(12px);
@@ -106,10 +108,6 @@
       font-size: 1.3rem;
       color: var(--primary);
       margin-bottom: 3px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
     }
 
     .header-card p {
@@ -117,7 +115,7 @@
       font-size: 0.82rem;
     }
 
-    /* Form Card */
+    /* Forms */
     .form-card {
       background: var(--card-bg);
       border-radius: 20px;
@@ -239,7 +237,7 @@
       box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
     }
 
-    /* Item List & Modern Card */
+    /* List & Cards */
     .items-list {
       display: flex;
       flex-direction: column;
@@ -253,9 +251,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-      border: 1px solid rgba(226, 232, 240, 0.6);
+      border: 1px solid rgba(226, 232, 240, 0.7);
     }
 
     .card-main {
@@ -263,7 +261,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
     }
 
     .card-title {
@@ -281,29 +279,53 @@
       flex-wrap: wrap;
     }
 
-    .badge {
+    /* Badge Types */
+    .badge-cat {
       font-size: 0.7rem;
       font-weight: 700;
       padding: 2px 7px;
       border-radius: 6px;
       background: #f1f5f9;
-      color: #475569;
-      white-space: nowrap;
+      color: #334155;
+    }
+
+    .badge-plat {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #eff6ff;
+      color: #0369a1;
+    }
+
+    .badge-user {
+      font-size: 0.72rem;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .badge-vibe {
+      font-size: 0.72rem;
+      color: #d97706;
+      background: #fffbeb;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 500;
     }
 
     .card-note {
-      font-size: 0.78rem;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 170px;
+      font-size: 0.8rem;
+      color: #475569;
+      line-height: 1.25;
+      word-break: break-word;
     }
 
     .card-actions {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       flex-shrink: 0;
     }
 
@@ -321,43 +343,95 @@
       white-space: nowrap;
     }
 
-    .btn-action:active {
-      opacity: 0.8;
-    }
-
     .btn-icon {
       background: transparent;
       border: none;
       color: #94a3b8;
       cursor: pointer;
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       width: 28px;
       height: 28px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s, color 0.15s;
     }
 
-    .btn-icon.edit:active {
-      color: var(--edit-color);
-      background: #f0f9ff;
-    }
+    .btn-icon.edit:active { color: var(--edit-color); background: #f0f9ff; }
+    .btn-icon.delete:active { color: var(--delete-color); background: #fef2f2; }
 
-    .btn-icon.delete:active {
-      color: var(--delete-color);
-      background: #fef2f2;
-    }
-
+    /* Empty States & Skeletons */
     .empty-state {
       text-align: center;
-      padding: 36px 20px;
+      padding: 32px 18px;
       color: var(--muted);
       font-size: 0.88rem;
       background: rgba(255, 255, 255, 0.5);
       border-radius: 16px;
       border: 1px dashed var(--border);
+    }
+
+    .skeleton {
+      height: 60px;
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 16px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Toast Notifications & Undo */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 90%;
+      max-width: 380px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: #1e293b;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast.success { background: #065f46; }
+    .toast.warning { background: #92400e; }
+    .toast.error { background: #991b1b; }
+
+    .toast-undo-btn {
+      background: white;
+      color: #0f172a;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -388,10 +462,16 @@
             <option value="מפה">מפה 🗺️</option>
             <option value="אחר">אחר ✨</option>
           </select>
-          <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה" required />
+          <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה *" required />
         </div>
-        <input type="url" class="input-field" id="placeLink" placeholder="קישור למיקום / רשימת מפות" />
-        <input type="text" class="input-field" id="placeNote" placeholder="הערה קצרה (למשל: שקיעה, להזמין מראש)" />
+        
+        <div class="row-inputs">
+          <input type="text" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות, אינסטגרם...)" />
+          <input type="text" class="input-field" id="placeSharer" placeholder="מי המליץ?" style="width: 120px; flex-shrink: 0;" />
+        </div>
+
+        <input type="text" class="input-field" id="placeNote" placeholder="הערה / טיפ (שקיעה, להזמין שבועיים מראש)" />
+        
         <div class="form-buttons">
           <button type="submit" class="btn-submit" id="placeSubmitBtn">
             <span>+</span> הוסף לרשימה
@@ -409,7 +489,10 @@
         <button class="filter-chip" data-filter="מפה">מפות 🗺️</button>
       </div>
 
-      <div class="items-list" id="placesContainer"></div>
+      <div class="items-list" id="placesContainer">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
     </div>
 
     <!-- ================= MUSIC TAB ================= -->
@@ -421,12 +504,15 @@
 
       <form class="form-card" id="musicForm">
         <input type="hidden" id="trackEditId" value="" />
-        <input type="url" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)" required />
+        <input type="text" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)*" required />
+        
         <div class="row-inputs">
-          <input type="text" class="input-field" id="trackTitle" placeholder="שם הפלייליסט / השיר (יחולץ אוטומטית)" required />
+          <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר / הסט *" required />
           <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
         </div>
-        <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (שקיעה, הרמות, צ'יל ברכב)" />
+        
+        <input type="text" class="input-field" id="trackVibe" placeholder="וייב? (שקיעה, הרמות, צ'יל בדרך)" />
+        
         <div class="form-buttons">
           <button type="submit" class="btn-submit btn-music-submit" id="trackSubmitBtn">
             <span>+</span> הוסף לפסקול
@@ -443,13 +529,70 @@
         <button class="filter-chip" data-platform="YouTube">YouTube ▶️</button>
       </div>
 
-      <div class="items-list" id="musicContainer"></div>
+      <div class="items-list" id="musicContainer">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
     </div>
   </div>
 
+  <div class="toast-container" id="toastContainer"></div>
+
   <script>
     // -------------------------------------------------------------
-    // Firebase Config
+    // אבטחה וסיוע (Sanitization & Normalization)
+    // -------------------------------------------------------------
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function normalizeUrl(url) {
+      if (!url) return '';
+      url = url.trim();
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return 'https://' + url;
+      }
+      return url;
+    }
+
+    // -------------------------------------------------------------
+    // מערכת Toast & Undo
+    // -------------------------------------------------------------
+    function showToast(msg, type = 'info', action = null) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const span = document.createElement('span');
+      span.textContent = msg;
+      toast.appendChild(span);
+
+      if (action) {
+        const btn = document.createElement('button');
+        btn.className = 'toast-undo-btn';
+        btn.textContent = action.label;
+        btn.onclick = () => {
+          action.callback();
+          toast.remove();
+        };
+        toast.appendChild(btn);
+      }
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, action ? 4500 : 3000);
+    }
+
+    // -------------------------------------------------------------
+    // Firebase Config (מחובר לפרויקט places-d2918)
     // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
@@ -486,20 +629,32 @@
     // -------------------------------------------------------------
     let placesData = [];
     let currentPlaceFilter = 'all';
+    let isPlacesLoaded = false;
 
     placesRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      isPlacesLoaded = true;
       placesData = [];
       snapshot.forEach(doc => {
         placesData.push({ id: doc.id, ...doc.data() });
       });
       renderPlaces();
     }, err => {
-      console.error("Firestore Listen Error:", err);
+      showToast('שגיאה בסנכרון נתוני מקומות', 'error');
     });
 
     function renderPlaces() {
       const container = document.getElementById('placesContainer');
       container.innerHTML = '';
+
+      if (!isPlacesLoaded) {
+        container.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+        return;
+      }
+
+      if (placesData.length === 0) {
+        container.innerHTML = `<div class="empty-state">הרשימה עדיין ריקה. זה הזמן להוסיף מקומות! 🇬🇷</div>`;
+        return;
+      }
 
       const filtered = placesData.filter(p => {
         if (currentPlaceFilter === 'all') return true;
@@ -507,7 +662,7 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state">אין מקומות להצגה בקטגוריה זו</div>`;
+        container.innerHTML = `<div class="empty-state">אין מקומות בקטגוריית "${escapeHTML(currentPlaceFilter)}"</div>`;
         return;
       }
 
@@ -515,16 +670,19 @@
         const card = document.createElement('div');
         card.className = 'card-item';
         const isMap = (p.category || '').includes('מפה');
+        const safeLink = p.link ? escapeHTML(p.link) : '';
+
         card.innerHTML = `
           <div class="card-main">
-            <div class="card-title">${p.name}</div>
+            <div class="card-title">${escapeHTML(p.name)}</div>
             <div class="card-meta-row">
-              <span class="badge">${p.category}</span>
-              ${p.note ? `<span class="card-note">${p.note}</span>` : ''}
+              <span class="badge-cat">${escapeHTML(p.category)}</span>
+              ${p.sharer ? `<span class="badge-user">👤 ${escapeHTML(p.sharer)}</span>` : ''}
             </div>
+            ${p.note ? `<div class="card-note">${escapeHTML(p.note)}</div>` : ''}
           </div>
           <div class="card-actions">
-            ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer" class="btn-action">${isMap ? 'פתח מפה 🗺️' : 'ניווט 📍'}</a>` : ''}
+            ${safeLink ? `<a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn-action">${isMap ? 'פתח מפה 🗺️' : 'ניווט 📍'}</a>` : ''}
             <button class="btn-icon edit" title="ערוך" onclick="startEditPlace('${p.id}')">✏️</button>
             <button class="btn-icon delete" title="מחק" onclick="deletePlace('${p.id}')">✕</button>
           </div>
@@ -546,6 +704,7 @@
       document.getElementById('placeName').value = p.name || '';
       document.getElementById('placeCategory').value = p.category || 'חוף';
       document.getElementById('placeLink').value = p.link || '';
+      document.getElementById('placeSharer').value = p.sharer || '';
       document.getElementById('placeNote').value = p.note || '';
 
       placeForm.classList.add('editing');
@@ -571,7 +730,8 @@
       const editId = placeEditIdInput.value;
       const name = document.getElementById('placeName').value.trim();
       const category = document.getElementById('placeCategory').value;
-      const link = document.getElementById('placeLink').value.trim();
+      const link = normalizeUrl(document.getElementById('placeLink').value);
+      const sharer = document.getElementById('placeSharer').value.trim();
       const note = document.getElementById('placeNote').value.trim();
 
       if (!name) return;
@@ -583,40 +743,48 @@
       );
 
       if (isDuplicate) {
-        alert('המקום הזה כבר קיים ברשימה!');
+        showToast('המקום הזה כבר קיים ברשימה!', 'warning');
         return;
       }
 
       if (editId) {
-        placesRef.doc(editId).update({
-          name,
-          category,
-          link,
-          note
-        }).then(() => {
-          cancelPlaceEdit();
-        }).catch(err => {
-          alert('שגיאה בעדכון המקום בענן.');
-        });
+        placesRef.doc(editId).update({ name, category, link, sharer, note })
+          .then(() => {
+            showToast('המקום עודכן בהצלחה ✓', 'success');
+            cancelPlaceEdit();
+          })
+          .catch(() => showToast('שגיאה בעדכון המקום', 'error'));
       } else {
         placeForm.reset();
         placesRef.add({
           name,
           category,
           link,
+          sharer,
           note,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(err => {
-          alert('שגיאה בשמירת המקום בענן.');
-        });
+        })
+        .then(() => showToast('המקום נוסף לרשימה ✓', 'success'))
+        .catch(() => showToast('שגיאה בשמירת המקום', 'error'));
       }
     });
 
-    window.deletePlace = async function(id) {
-      if (confirm('למחוק את הרשומה לצמיתות עבור כולם?')) {
-        await placesRef.doc(id).delete();
-        if (placeEditIdInput.value === id) cancelPlaceEdit();
-      }
+    window.deletePlace = function(id) {
+      const itemToDelete = placesData.find(p => p.id === id);
+      if (!itemToDelete) return;
+
+      let canceled = false;
+      showToast(`"${itemToDelete.name}" יוסר...`, 'info', {
+        label: 'בטל ↩',
+        callback: () => { canceled = true; }
+      });
+
+      setTimeout(() => {
+        if (!canceled) {
+          placesRef.doc(id).delete();
+          if (placeEditIdInput.value === id) cancelPlaceEdit();
+        }
+      }, 4000);
     };
 
     document.getElementById('placesFilters').addEventListener('click', (e) => {
@@ -633,6 +801,7 @@
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
+    let isMusicLoaded = false;
 
     function detectPlatform(url) {
       const u = url.toLowerCase();
@@ -664,9 +833,7 @@
           const data = await res.json();
           if (data && data.title) return data.title;
         }
-      } catch (err) {
-        console.warn("oEmbed fetch failed, parsing URL:", err);
-      }
+      } catch (err) {}
 
       try {
         const urlObj = new URL(url);
@@ -685,34 +852,52 @@
 
     const trackLinkInput = document.getElementById('trackLink');
     const trackTitleInput = document.getElementById('trackTitle');
+    let debounceTimer = null;
 
-    trackLinkInput.addEventListener('input', async () => {
-      const url = trackLinkInput.value.trim();
+    trackLinkInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const rawUrl = trackLinkInput.value.trim();
+      const url = normalizeUrl(rawUrl);
+
       if (trackEditIdInput.value) return;
 
       if (url.startsWith('http://') || url.startsWith('https://')) {
         trackTitleInput.placeholder = 'מחלץ שם שיר/סט... ⏳';
-        const fetchedTitle = await fetchTrackTitle(url);
-        if (fetchedTitle) {
-          trackTitleInput.value = fetchedTitle;
-        }
-        trackTitleInput.placeholder = 'שם הפלייליסט / השיר (יחולץ אוטומטית)';
+        
+        debounceTimer = setTimeout(async () => {
+          const fetchedTitle = await fetchTrackTitle(url);
+          if (fetchedTitle && !trackTitleInput.value) {
+            trackTitleInput.value = fetchedTitle;
+          }
+          trackTitleInput.placeholder = 'שם השיר / הסט *';
+        }, 450);
       }
     });
 
     tracksRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      isMusicLoaded = true;
       tracksData = [];
       snapshot.forEach(doc => {
         tracksData.push({ id: doc.id, ...doc.data() });
       });
       renderTracks();
     }, err => {
-      console.error("Firestore Listen Error:", err);
+      showToast('שגיאה בסנכרון הפסקול', 'error');
     });
 
     function renderTracks() {
       const container = document.getElementById('musicContainer');
       container.innerHTML = '';
+
+      if (!isMusicLoaded) {
+        container.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+        return;
+      }
+
+      if (tracksData.length === 0) {
+        container.innerHTML = `<div class="empty-state">הפסקול ריק. הדביקו לינק ראשון! 🎧</div>`;
+        return;
+      }
 
       const filtered = tracksData.filter(t => {
         if (currentMusicFilter === 'all') return true;
@@ -720,7 +905,7 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state">אין שירים או פלייליסטים להצגה</div>`;
+        container.innerHTML = `<div class="empty-state">אין טראקים בפלטפורמת ${escapeHTML(currentMusicFilter)}</div>`;
         return;
       }
 
@@ -730,15 +915,15 @@
         card.className = 'card-item';
         card.innerHTML = `
           <div class="card-main">
-            <div class="card-title">${t.title}</div>
+            <div class="card-title">${escapeHTML(t.title)}</div>
             <div class="card-meta-row">
-              <span class="badge">${plat.icon} ${t.platform || plat.name}</span>
-              ${t.sharer ? `<span class="card-note">👤 ${t.sharer}</span>` : ''}
-              ${t.vibe ? `<span class="card-note">• ✨ ${t.vibe}</span>` : ''}
+              <span class="badge-plat">${plat.icon} ${escapeHTML(t.platform || plat.name)}</span>
+              ${t.sharer ? `<span class="badge-user">👤 ${escapeHTML(t.sharer)}</span>` : ''}
+              ${t.vibe ? `<span class="badge-vibe">✨ ${escapeHTML(t.vibe)}</span>` : ''}
             </div>
           </div>
           <div class="card-actions">
-            <a href="${t.link}" target="_blank" rel="noopener noreferrer" class="btn-action">נגן ▶</a>
+            <a href="${escapeHTML(t.link)}" target="_blank" rel="noopener noreferrer" class="btn-action">נגן ▶</a>
             <button class="btn-icon edit" title="ערוך" onclick="startEditTrack('${t.id}')">✏️</button>
             <button class="btn-icon delete" title="מחק" onclick="deleteTrack('${t.id}')">✕</button>
           </div>
@@ -785,7 +970,7 @@
       const editId = trackEditIdInput.value;
       const title = document.getElementById('trackTitle').value.trim();
       const sharer = document.getElementById('trackSharer').value.trim();
-      const link = document.getElementById('trackLink').value.trim();
+      const link = normalizeUrl(document.getElementById('trackLink').value);
       const vibe = document.getElementById('trackVibe').value.trim();
 
       if (!title || !link) return;
@@ -797,7 +982,7 @@
       );
 
       if (isDuplicate) {
-        alert('השיר או הפלייליסט הזה כבר קיים בפסקול!');
+        showToast('השיר או הפלייליסט כבר קיים!', 'warning');
         return;
       }
 
@@ -811,10 +996,9 @@
           vibe,
           platform: plat.name
         }).then(() => {
+          showToast('הפסקול עודכן בהצלחה ✓', 'success');
           cancelTrackEdit();
-        }).catch(err => {
-          alert('שגיאה בעדכון הפסקול בענן.');
-        });
+        }).catch(() => showToast('שגיאה בעדכון הפסקול', 'error'));
       } else {
         musicForm.reset();
         tracksRef.add({
@@ -824,17 +1008,28 @@
           vibe,
           platform: plat.name,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(err => {
-          alert('שגיאה בשמירת הפסקול בענן.');
-        });
+        })
+        .then(() => showToast('הטראק נוסף לפסקול ✓', 'success'))
+        .catch(() => showToast('שגיאה בשמירת הפסקול', 'error'));
       }
     });
 
-    window.deleteTrack = async function(id) {
-      if (confirm('להסיר את הלינק מהפסקול לצמיתות?')) {
-        await tracksRef.doc(id).delete();
-        if (trackEditIdInput.value === id) cancelTrackEdit();
-      }
+    window.deleteTrack = function(id) {
+      const itemToDelete = tracksData.find(t => t.id === id);
+      if (!itemToDelete) return;
+
+      let canceled = false;
+      showToast(`"${itemToDelete.title}" יוסר...`, 'info', {
+        label: 'בטל ↩',
+        callback: () => { canceled = true; }
+      });
+
+      setTimeout(() => {
+        if (!canceled) {
+          tracksRef.doc(id).delete();
+          if (trackEditIdInput.value === id) cancelTrackEdit();
+        }
+      }, 4000);
     };
 
     document.getElementById('musicFilters').addEventListener('click', (e) => {
