@@ -1,15 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide & Soundtrack (PWA/Web App)
-  VERSION: v1.4.0
+  VERSION: v1.5.0
   UPDATED: August 2026
-  CHANGELOG v1.4.0:
-    - Added bottom-sheet/modal overlays for adding & editing items (clean screen UX).
-    - Added visually distinct version badge in footer and header meta.
-    - Security: HTML escaping (escapeHTML) on all user inputs.
-    - Added Debounce (450ms) on automatic music oEmbed resolution.
-    - Added Undo toast notifications instead of blocking confirm() / alert().
-    - Added Firestore skeletons and empty filter states.
+  CHANGELOG v1.5.0:
+    - Replaced visible edit/delete buttons with a unified 3-dots kebab menu (⋮).
+    - Added floating action menu with smooth popover animation.
+    - Click-outside detection to dismiss active action menus.
+    - Further polished card action layout for mobile screens.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -17,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="app-version" content="1.4.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v1.4.0)</title>
+  <meta name="app-version" content="1.5.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v1.5.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -204,9 +202,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       border: 1px solid rgba(226, 232, 240, 0.7);
+      position: relative;
     }
 
     .card-main {
@@ -277,8 +276,9 @@
     .card-actions {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       flex-shrink: 0;
+      position: relative;
     }
 
     .btn-action {
@@ -299,22 +299,84 @@
       opacity: 0.8;
     }
 
-    .btn-icon {
+    /* 3-Dots Menu Button & Dropdown */
+    .menu-container {
+      position: relative;
+    }
+
+    .btn-menu {
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: #64748b;
       cursor: pointer;
-      font-size: 0.95rem;
-      width: 28px;
-      height: 28px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      width: 30px;
+      height: 30px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background 0.15s, color 0.15s;
     }
 
-    .btn-icon.edit:active { color: var(--edit-color); background: #f0f9ff; }
-    .btn-icon.delete:active { color: var(--delete-color); background: #fef2f2; }
+    .btn-menu:active {
+      background: #f1f5f9;
+      color: var(--text);
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      min-width: 120px;
+      z-index: 50;
+      padding: 4px;
+      animation: menuFadeIn 0.15s ease-out;
+    }
+
+    .dropdown-menu.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dropdown-item {
+      background: transparent;
+      border: none;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: right;
+    }
+
+    .dropdown-item:active {
+      background: #f8fafc;
+    }
+
+    .dropdown-item.delete {
+      color: var(--delete-color);
+    }
+
+    .dropdown-item.delete:active {
+      background: #fef2f2;
+    }
+
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     /* Bottom Sheet / Modal Overlay */
     .modal-overlay {
@@ -551,7 +613,6 @@
         <p>חופים, ברים, מסעדות, שופינג ורשימות מפות</p>
       </div>
 
-      <!-- Action Button to open Modal -->
       <button class="btn-open-modal" onclick="openPlaceModal()">
         <span>+</span> הוסף מקום או רשימה חדשה
       </button>
@@ -578,7 +639,6 @@
         <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
       </div>
 
-      <!-- Action Button to open Modal -->
       <button class="btn-open-modal btn-music-open" onclick="openTrackModal()">
         <span>+</span> הוסף שיר / פלייליסט לפסקול
       </button>
@@ -599,7 +659,7 @@
 
     <!-- Version Tracker Badge -->
     <div class="app-version-badge">
-      גרסה v1.4.0 • סנכרון Firebase פעיל ☁️
+      גרסה v1.5.0 • סנכרון Firebase פעיל ☁️
     </div>
   </div>
 
@@ -674,10 +734,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    // -------------------------------------------------------------
-    // App Version Metadata
-    // -------------------------------------------------------------
-    const APP_VERSION = "1.4.0";
+    const APP_VERSION = "1.5.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     // -------------------------------------------------------------
@@ -735,6 +792,28 @@
         if (overlayId === 'trackModalOverlay') closeTrackModal();
       }
     }
+
+    // -------------------------------------------------------------
+    // Global Click Outside Handler (סגירת תפריטי 3 נקודות)
+    // -------------------------------------------------------------
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.menu-container')) {
+        document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    window.toggleCardMenu = function(e, id) {
+      e.stopPropagation();
+      const currentMenu = document.getElementById(id);
+      const isAlreadyOpen = currentMenu.classList.contains('show');
+      
+      // סגירת כל התפריטים האחרים
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+      
+      if (!isAlreadyOpen) {
+        currentMenu.classList.add('show');
+      }
+    };
 
     // -------------------------------------------------------------
     // Firebase Config (places-d2918)
@@ -796,6 +875,7 @@
     }
 
     window.startEditPlace = function(id) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const p = placesData.find(item => item.id === id);
       if (!p) return;
 
@@ -852,6 +932,7 @@
         card.className = 'card-item';
         const isMap = (p.category || '').includes('מפה');
         const safeLink = p.link ? escapeHTML(p.link) : '';
+        const menuId = `menu-place-${p.id}`;
 
         card.innerHTML = `
           <div class="card-main">
@@ -864,8 +945,18 @@
           </div>
           <div class="card-actions">
             ${safeLink ? `<a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn-action">${isMap ? 'פתח מפה 🗺️' : 'ניווט 📍'}</a>` : ''}
-            <button class="btn-icon edit" title="ערוך" onclick="startEditPlace('${p.id}')">✏️</button>
-            <button class="btn-icon delete" title="מחק" onclick="deletePlace('${p.id}')">✕</button>
+            
+            <div class="menu-container">
+              <button class="btn-menu" onclick="toggleCardMenu(event, '${menuId}')" title="אפשרויות">⋮</button>
+              <div class="dropdown-menu" id="${menuId}">
+                <button class="dropdown-item" onclick="startEditPlace('${p.id}')">
+                  <span>✏️</span> ערוך
+                </button>
+                <button class="dropdown-item delete" onclick="deletePlace('${p.id}')">
+                  <span>✕</span> מחק
+                </button>
+              </div>
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -916,6 +1007,7 @@
     });
 
     window.deletePlace = function(id) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const itemToDelete = placesData.find(p => p.id === id);
       if (!itemToDelete) return;
 
@@ -968,6 +1060,7 @@
     }
 
     window.startEditTrack = function(id) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const t = tracksData.find(item => item.id === id);
       if (!t) return;
 
@@ -1093,6 +1186,8 @@
         const plat = detectPlatform(t.link);
         const card = document.createElement('div');
         card.className = 'card-item';
+        const menuId = `menu-track-${t.id}`;
+
         card.innerHTML = `
           <div class="card-main">
             <div class="card-title">${escapeHTML(t.title)}</div>
@@ -1104,8 +1199,18 @@
           </div>
           <div class="card-actions">
             <a href="${escapeHTML(t.link)}" target="_blank" rel="noopener noreferrer" class="btn-action">נגן ▶</a>
-            <button class="btn-icon edit" title="ערוך" onclick="startEditTrack('${t.id}')">✏️</button>
-            <button class="btn-icon delete" title="מחק" onclick="deleteTrack('${t.id}')">✕</button>
+            
+            <div class="menu-container">
+              <button class="btn-menu" onclick="toggleCardMenu(event, '${menuId}')" title="אפשרויות">⋮</button>
+              <div class="dropdown-menu" id="${menuId}">
+                <button class="dropdown-item" onclick="startEditTrack('${t.id}')">
+                  <span>✏️</span> ערוך
+                </button>
+                <button class="dropdown-item delete" onclick="deleteTrack('${t.id}')">
+                  <span>✕</span> מחק
+                </button>
+              </div>
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -1162,6 +1267,7 @@
     });
 
     window.deleteTrack = function(id) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const itemToDelete = tracksData.find(t => t.id === id);
       if (!itemToDelete) return;
 
