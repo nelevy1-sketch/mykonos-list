@@ -1,12 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v2.9.0
+  VERSION: v3.0.0
   UPDATED: August 2026
-  CHANGELOG v2.9.0:
-    - Fixed 3-dots comment menu overflow (opens upwards, bottom: 100%).
-    - Removed duplicate top close button in Lightbox header.
-    - Preserved Ultra-compact drawer, Swipe gestures, and tap interactions.
+  CHANGELOG v3.0.0:
+    - Fixed z-index layering: Comments Drawer (1065) now sits above Nav Arrows (1053).
+    - Fixed comment list visibility in default/peek state.
+    - Improved tap & expand interaction without button obstruction.
+    - High z-index priority for 3-dots comment actions menu.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="2.9.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v2.9.0)</title>
+  <meta name="app-version" content="3.0.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.0.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -475,7 +476,7 @@
       border-radius: 8px;
     }
 
-    /* ================= LIGHTBOX & DRAWER ================= */
+    /* ================= LIGHTBOX & DRAWER LAYER ARCHITECTURE ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -502,7 +503,7 @@
       justify-content: space-between;
       color: white;
       flex-shrink: 0;
-      z-index: 1055;
+      z-index: 1070;
     }
 
     .lightbox-content {
@@ -510,11 +511,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 8px 110px 8px;
+      padding: 4px 8px 120px 8px;
       overflow: hidden;
       position: relative;
       user-select: none;
       cursor: pointer;
+      z-index: 1051;
     }
 
     .lightbox-img {
@@ -525,6 +527,7 @@
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
+    /* Navigational Arrows stay below the comments drawer */
     .btn-nav-arrow {
       position: absolute;
       top: 40%;
@@ -541,14 +544,14 @@
       justify-content: center;
       font-size: 1.1rem;
       cursor: pointer;
-      z-index: 1054;
+      z-index: 1053; /* Below drawer (1065) */
     }
 
     .btn-nav-arrow.prev { right: 12px; }
     .btn-nav-arrow.next { left: 12px; }
     .btn-nav-arrow:active { transform: translateY(-50%) scale(0.92); }
 
-    /* Bottom Drawer Sheet */
+    /* Bottom Drawer Layered Above Arrows */
     .lightbox-footer {
       position: absolute;
       bottom: 0;
@@ -557,20 +560,20 @@
       background: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(16px);
       border-radius: 22px 22px 0 0;
-      padding: 6px 14px 12px 14px;
+      padding: 6px 14px 14px 14px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      height: 22vh;
-      max-height: 65vh;
-      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.25);
+      height: 25vh;
+      max-height: 68vh;
+      box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.35);
       transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 1052;
+      z-index: 1065; /* Above arrows */
       cursor: pointer;
     }
 
     .lightbox-footer.expanded {
-      height: 65vh;
+      height: 68vh;
       cursor: default;
     }
 
@@ -578,7 +581,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      padding: 2px 0;
+      padding: 3px 0;
     }
 
     .drawer-handle-pill {
@@ -616,14 +619,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 2px;
+      padding: 2px 2px;
       flex-shrink: 0;
     }
 
     .comments-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       flex: 1;
       min-height: 0;
     }
@@ -631,21 +634,17 @@
     .comments-list {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
       flex: 1;
-      overflow-y: hidden;
+      overflow-y: auto;
       padding-right: 1px;
       scrollbar-width: thin;
       -webkit-overflow-scrolling: touch;
     }
 
-    .lightbox-footer.expanded .comments-list {
-      overflow-y: auto;
-    }
-
     .comment-item {
       background: #f8fafc;
-      padding: 6px 10px;
+      padding: 7px 10px;
       border-radius: 10px;
       font-size: 0.82rem;
       display: flex;
@@ -674,13 +673,13 @@
       color: var(--primary);
     }
 
-    /* Upwards Floating Menu for Comments to prevent overflow clipping */
+    /* Floating Menu for Comments with high priority */
     .comment-item .dropdown-menu {
       top: auto;
       bottom: 100%;
       margin-bottom: 4px;
-      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.15);
-      z-index: 1095;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+      z-index: 1099;
     }
 
     /* Modals & Dialogs */
@@ -689,7 +688,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(4px);
-      z-index: 1060;
+      z-index: 1080;
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -820,7 +819,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(4px);
-      z-index: 1090;
+      z-index: 1100;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -925,7 +924,7 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 1100;
+      z-index: 1110;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -973,7 +972,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.9.0</span>
+          <span class="version-tag">v3.0.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1003,7 +1002,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.9.0</span>
+          <span class="version-tag">v3.0.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1031,7 +1030,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.9.0</span>
+          <span class="version-tag">v3.0.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1181,21 +1180,24 @@
     </div>
   </div>
 
-  <!-- ================= LIGHTBOX MODAL WITH TAP INTERACTIONS ================= -->
+  <!-- ================= LIGHTBOX MODAL ================= -->
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
-      <button id="lightboxDeleteBtn" class="btn-menu" style="color: white; display: none;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">✕</button>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="lightboxDeleteBtn" class="btn-menu" style="color: white; display: none;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">✕</button>
+        <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
+      </div>
     </div>
 
-    <!-- Tap on content area/image collapses the drawer -->
+    <!-- Main Image View Area -->
     <div class="lightbox-content" id="lightboxContentArea" onclick="handlePhotoAreaTap(event)">
       <button class="btn-nav-arrow prev" onclick="event.stopPropagation(); navigatePhoto(1);" title="תמונה קודמת">❮</button>
       <img id="lightboxImg" class="lightbox-img" src="" alt="תמונה" />
       <button class="btn-nav-arrow next" onclick="event.stopPropagation(); navigatePhoto(-1);" title="תמונה הבאה">❯</button>
     </div>
 
-    <!-- Tap on drawer expands it -->
+    <!-- Expandable Bottom Drawer -->
     <div class="lightbox-footer" id="lightboxFooter" onclick="handleDrawerTap(event)">
       <div class="drawer-handle-bar">
         <div class="drawer-handle-pill"></div>
@@ -1213,7 +1215,7 @@
       <div class="comments-section">
         <div class="comments-header-row">
           <span style="font-size: 0.82rem; font-weight: 700; color: var(--text);">תגובות</span>
-          <button class="btn-action" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openAddCommentModal();">💬 הגב</button>
+          <button class="btn-action" style="padding: 5px 12px; font-size: 0.78rem;" onclick="event.stopPropagation(); openAddCommentModal();">💬 הגב</button>
         </div>
         <div class="comments-list" id="lightboxCommentsList"></div>
       </div>
@@ -1235,7 +1237,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "2.9.0";
+    const APP_VERSION = "3.0.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1896,7 +1898,7 @@
     }
 
     // -------------------------------------------------------------
-    // Lightbox Logic & Intuitive Drawer
+    // Lightbox Logic & Layered Navigation
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
