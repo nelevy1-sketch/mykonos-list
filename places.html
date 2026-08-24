@@ -1,13 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v2.5.0
+  VERSION: v2.6.0
   UPDATED: August 2026
-  CHANGELOG v2.5.0:
-    - Expandable Bottom Sheet Drawer for Lightbox comments.
-    - Smooth gesture & scroll-triggered expansion up to mid-screen (~68vh).
-    - Added drag handle pill for intuitive swipe-up / swipe-down interaction.
-    - Preserved alternating zebra comment cards and author actions.
+  CHANGELOG v2.6.0:
+    - Added Horizontal Swipe navigation (Next/Prev) inside Photo Lightbox.
+    - Added floating Prev/Next navigational arrow buttons.
+    - Keyboard arrow keys navigation support (Desktop/Tablet).
+    - Preserved Expandable Bottom Drawer, live reactions, and comments.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="2.5.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v2.5.0)</title>
+  <meta name="app-version" content="2.6.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v2.6.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -220,7 +220,7 @@
       box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
     }
 
-    /* Scrollable Items List (Places & Music) */
+    /* Scrollable Items List */
     .items-list {
       display: flex;
       flex-direction: column;
@@ -336,7 +336,6 @@
       cursor: pointer;
     }
 
-    /* 3-Dots Menu */
     .menu-container {
       position: relative;
     }
@@ -477,7 +476,7 @@
       border-radius: 8px;
     }
 
-    /* ================= LIGHTBOX & EXPANDABLE DRAWER ================= */
+    /* ================= LIGHTBOX & SWIPE NAVIGATION ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -512,9 +511,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 8px 8px 160px 8px; /* space for compact drawer */
+      padding: 8px 8px 160px 8px;
       overflow: hidden;
-      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      position: relative;
+      user-select: none;
     }
 
     .lightbox-img {
@@ -522,7 +522,32 @@
       max-height: 100%;
       object-fit: contain;
       border-radius: 14px;
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
+
+    /* Floating Navigation Arrows */
+    .btn-nav-arrow {
+      position: absolute;
+      top: 40%;
+      transform: translateY(-50%);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(6px);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      z-index: 1054;
+    }
+
+    .btn-nav-arrow.prev { right: 12px; }
+    .btn-nav-arrow.next { left: 12px; }
+    .btn-nav-arrow:active { transform: translateY(-50%) scale(0.92); }
 
     /* Expandable Bottom Drawer Sheet */
     .lightbox-footer {
@@ -537,7 +562,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      height: 36vh; /* Compact peek state */
+      height: 36vh;
       max-height: 70vh;
       box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
       transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
@@ -545,10 +570,9 @@
     }
 
     .lightbox-footer.expanded {
-      height: 68vh; /* Mid-screen expanded state */
+      height: 68vh;
     }
 
-    /* Pull Handle Pill */
     .drawer-handle-bar {
       width: 100%;
       display: flex;
@@ -615,7 +639,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Enhanced Comment Rows */
     .comment-item {
       background: #f8fafc;
       padding: 7px 10px;
@@ -936,7 +959,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.5.0</span>
+          <span class="version-tag">v2.6.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -966,7 +989,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.5.0</span>
+          <span class="version-tag">v2.6.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -994,7 +1017,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v2.5.0</span>
+          <span class="version-tag">v2.6.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1144,7 +1167,7 @@
     </div>
   </div>
 
-  <!-- ================= LIGHTBOX MODAL WITH EXPANDABLE DRAWER ================= -->
+  <!-- ================= LIGHTBOX MODAL WITH SWIPE & EXPANDABLE DRAWER ================= -->
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
@@ -1154,8 +1177,11 @@
       </div>
     </div>
 
-    <div class="lightbox-content">
+    <div class="lightbox-content" id="lightboxContentArea">
+      <!-- Navigational Arrows -->
+      <button class="btn-nav-arrow prev" onclick="navigatePhoto(1)" title="תמונה קודמת">❮</button>
       <img id="lightboxImg" class="lightbox-img" src="" alt="תמונה" />
+      <button class="btn-nav-arrow next" onclick="navigatePhoto(-1)" title="תמונה הבאה">❯</button>
     </div>
 
     <!-- Expandable Bottom Drawer -->
@@ -1200,7 +1226,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "2.5.0";
+    const APP_VERSION = "2.6.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1696,7 +1722,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות עם Expandable Drawer
+    // 3. גלריית תמונות ותגובות
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -1814,6 +1840,13 @@
       if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
     }, () => showToast('שגיאה בסנכרון גלריה', 'error'));
 
+    function getFilteredPhotos() {
+      return photosData.filter(p => {
+        if (currentPhotoAuthorFilter === 'all') return true;
+        return p.sharer === currentPhotoAuthorFilter;
+      });
+    }
+
     function renderPhotos() {
       const container = document.getElementById('photosContainer');
       container.innerHTML = '';
@@ -1827,10 +1860,7 @@
         return;
       }
 
-      const filtered = photosData.filter(p => {
-        if (currentPhotoAuthorFilter === 'all') return true;
-        return p.sharer === currentPhotoAuthorFilter;
-      });
+      const filtered = getFilteredPhotos();
 
       if (filtered.length === 0) {
         container.innerHTML = `<div class="empty-state">${currentPhotoAuthorFilter === 'all' ? 'אין תמונות עדיין בגלריה!' : `אין תמונות ששותפו על ידי ${escapeHTML(currentPhotoAuthorFilter)}`} 📸</div>`;
@@ -1857,7 +1887,7 @@
     }
 
     // -------------------------------------------------------------
-    // Lightbox & Expandable Bottom Drawer Logic
+    // Lightbox Logic & Swipe Navigation
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
@@ -1866,6 +1896,7 @@
     const lightboxDeleteBtn = document.getElementById('lightboxDeleteBtn');
     const lightboxCommentsList = document.getElementById('lightboxCommentsList');
     const lightboxFooter = document.getElementById('lightboxFooter');
+    const lightboxContentArea = document.getElementById('lightboxContentArea');
 
     const commentModalOverlay = document.getElementById('commentModalOverlay');
     const commentModalTitle = document.getElementById('commentModalTitle');
@@ -1888,33 +1919,86 @@
       activeLightboxPhotoId = null;
     }
 
+    // דפדוף בין תמונות בתוך ה-Lightbox (קדימה/אחורה)
+    window.navigatePhoto = function(direction) {
+      const filtered = getFilteredPhotos();
+      if (filtered.length <= 1) return;
+
+      const currentIndex = filtered.findIndex(p => p.id === activeLightboxPhotoId);
+      if (currentIndex === -1) return;
+
+      let nextIndex = currentIndex + direction;
+      if (nextIndex >= filtered.length) nextIndex = 0; // Loop to start
+      if (nextIndex < 0) nextIndex = filtered.length - 1; // Loop to end
+
+      const nextPhoto = filtered[nextIndex];
+      activeLightboxPhotoId = nextPhoto.id;
+
+      // אפקט מעבר קל
+      lightboxImg.style.opacity = '0.4';
+      setTimeout(() => {
+        updateLightboxContent(nextPhoto.id);
+        lightboxImg.style.opacity = '1';
+      }, 100);
+    };
+
+    // מחוות החלקת אצבע (Touch Swipe Gesture) על אזור התמונה
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+
+    lightboxContentArea.addEventListener('touchstart', (e) => {
+      swipeStartX = e.touches[0].clientX;
+      swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    lightboxContentArea.addEventListener('touchend', (e) => {
+      const swipeEndX = e.changedTouches[0].clientX;
+      const swipeEndY = e.changedTouches[0].clientY;
+      const diffX = swipeStartX - swipeEndX;
+      const diffY = swipeStartY - swipeEndY;
+
+      // אם זו החלקה אופקית מובהקת (ימינה/שמאלה מעל 45px)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+        if (diffX > 0) {
+          // Swipe Left -> Next Photo
+          navigatePhoto(-1);
+        } else {
+          // Swipe Right -> Previous Photo
+          navigatePhoto(1);
+        }
+      }
+    }, { passive: true });
+
+    // תמיכה במקשי חיצים במקלדת (דסקטופ)
+    document.addEventListener('keydown', (e) => {
+      if (!lightboxModal.classList.contains('active')) return;
+      if (e.key === 'ArrowRight') navigatePhoto(1);
+      if (e.key === 'ArrowLeft') navigatePhoto(-1);
+      if (e.key === 'Escape') closeLightbox();
+    });
+
     window.toggleDrawerExpand = function() {
       lightboxFooter.classList.toggle('expanded');
     };
 
-    // Auto expand drawer when user scrolls into comments
     lightboxCommentsList.addEventListener('scroll', () => {
       if (lightboxCommentsList.scrollTop > 10 && !lightboxFooter.classList.contains('expanded')) {
         lightboxFooter.classList.add('expanded');
       }
     });
 
-    // Touch swipe gesture for Drawer
-    let touchStartY = 0;
+    let drawerTouchStartY = 0;
     lightboxFooter.addEventListener('touchstart', (e) => {
-      touchStartY = e.touches[0].clientY;
+      drawerTouchStartY = e.touches[0].clientY;
     }, { passive: true });
 
     lightboxFooter.addEventListener('touchend', (e) => {
-      const touchEndY = e.changedTouches[0].clientY;
-      const diffY = touchStartY - touchEndY;
+      const drawerTouchEndY = e.changedTouches[0].clientY;
+      const diffY = drawerTouchStartY - drawerTouchEndY;
 
-      // Swiped Up
       if (diffY > 40 && !lightboxFooter.classList.contains('expanded')) {
         lightboxFooter.classList.add('expanded');
-      }
-      // Swiped Down (only when comments list is at top)
-      else if (diffY < -40 && lightboxFooter.classList.contains('expanded') && lightboxCommentsList.scrollTop <= 5) {
+      } else if (diffY < -40 && lightboxFooter.classList.contains('expanded') && lightboxCommentsList.scrollTop <= 5) {
         lightboxFooter.classList.remove('expanded');
       }
     }, { passive: true });
