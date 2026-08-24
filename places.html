@@ -1,12 +1,14 @@
 <!--
   =============================================================
-  PROJECT: Mykonos Group Guide & Soundtrack (PWA/Web App)
-  VERSION: v1.7.0
+  PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
+  VERSION: v1.8.0
   UPDATED: August 2026
-  CHANGELOG v1.7.0:
-    - Fixed top container (Tabs, Header, Add Button, Filters).
-    - Scrollable list containers with iOS momentum scroll.
-    - Viewport locked to 100dvh for app-like native feel.
+  CHANGELOG v1.8.0:
+    - Added dedicated 3rd Tab: Live Photos Gallery (📸).
+    - Client-side image compression (max 1200px, 75% quality).
+    - Fixed Friends List Dropdown across all forms with LocalStorage caching.
+    - Added Photo Lightbox with Live Comments & Emoji Reactions (🔥 😂 🍸 ❤️).
+    - Replaced prompts with in-app notifications & bottom sheets.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,12 +16,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="1.7.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v1.7.0)</title>
+  <meta name="app-version" content="1.8.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v1.8.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
   <style>
     :root {
@@ -72,20 +75,20 @@
     .nav-tabs {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(12px);
-      padding: 5px;
+      padding: 4px;
       border-radius: 18px;
       display: flex;
-      gap: 6px;
+      gap: 4px;
       box-shadow: 0 4px 16px rgba(0, 70, 140, 0.06);
       flex-shrink: 0;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px;
+      padding: 9px 4px;
       border: none;
       border-radius: 14px;
-      font-size: 0.92rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--muted);
       background: transparent;
@@ -93,8 +96,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -167,6 +171,11 @@
       box-shadow: 0 4px 14px rgba(79, 70, 229, 0.22);
     }
 
+    .btn-photo-open {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      box-shadow: 0 4px 14px rgba(236, 72, 153, 0.22);
+    }
+
     .filters-bar {
       display: flex;
       gap: 6px;
@@ -200,7 +209,7 @@
       box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
     }
 
-    /* Scrollable Items Container */
+    /* Scrollable Container */
     .items-list {
       display: flex;
       flex-direction: column;
@@ -208,8 +217,6 @@
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-right: 1px;
-      padding-left: 1px;
       padding-bottom: 30px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
@@ -275,6 +282,7 @@
       display: flex;
       align-items: center;
       gap: 2px;
+      font-weight: 600;
     }
 
     .badge-vibe {
@@ -397,13 +405,188 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Photo Grid Styles */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 30px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .photo-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .photo-thumb-wrap {
+      width: 100%;
+      height: 150px;
+      background: #f1f5f9;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .photo-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-info {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .photo-caption {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.25;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .photo-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .photo-reactions-preview {
+      display: flex;
+      gap: 4px;
+      font-size: 0.75rem;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 15, 25, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1050;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .lightbox-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .lightbox-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+    }
+
+    .lightbox-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .lightbox-footer {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 24px 24px 0 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 48vh;
+      overflow-y: auto;
+    }
+
+    .reactions-bar {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn-react {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s;
+    }
+
+    .btn-react:active {
+      transform: scale(1.15);
+    }
+
+    .comments-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .comment-item {
+      background: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+    }
+
+    .comment-author {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .comment-form {
+      display: flex;
+      gap: 6px;
+    }
+
     /* Modals & Bottom Sheets */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(4px);
       z-index: 999;
@@ -490,10 +673,8 @@
     }
 
     .select-field {
-      width: 130px;
-      flex-shrink: 0;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .modal-buttons {
@@ -536,10 +717,7 @@
     /* Confirm Delete Dialog */
     .confirm-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(4px);
       z-index: 1002;
@@ -625,6 +803,7 @@
       background: rgba(255, 255, 255, 0.5);
       border-radius: 16px;
       border: 1px dashed var(--border);
+      grid-column: 1 / -1;
     }
 
     .skeleton {
@@ -647,7 +826,7 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 1001;
+      z-index: 1060;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -686,8 +865,9 @@
   <div class="container">
     <!-- Fixed Navigation Tabs -->
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות שווים</button>
-      <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול הטיול</button>
+      <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות</button>
+      <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול</button>
+      <button class="tab-btn" onclick="switchTab('photos')">📸 תמונות</button>
     </div>
 
     <!-- ================= PLACES TAB ================= -->
@@ -713,7 +893,6 @@
         </div>
       </div>
 
-      <!-- Independently Scrollable Container -->
       <div class="items-list" id="placesContainer">
         <div class="skeleton"></div>
         <div class="skeleton"></div>
@@ -741,10 +920,28 @@
         </div>
       </div>
 
-      <!-- Independently Scrollable Container -->
       <div class="items-list" id="musicContainer">
         <div class="skeleton"></div>
         <div class="skeleton"></div>
+      </div>
+    </div>
+
+    <!-- ================= PHOTOS TAB ================= -->
+    <div id="tab-photos" class="tab-content">
+      <div class="top-fixed-section">
+        <div class="header-card">
+          <h1>גלריית הרגעים 📸</h1>
+          <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
+        </div>
+
+        <button class="btn-open-modal btn-photo-open" onclick="openPhotoModal()">
+          <span>+</span> שתף תמונה מהרגע
+        </button>
+      </div>
+
+      <div class="photos-grid" id="photosContainer">
+        <div class="skeleton" style="height: 160px;"></div>
+        <div class="skeleton" style="height: 160px;"></div>
       </div>
     </div>
   </div>
@@ -760,7 +957,7 @@
       <form id="placeForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="placeEditId" value="" />
         <div class="row-inputs">
-          <select class="select-field" id="placeCategory">
+          <select class="select-field" id="placeCategory" style="width: 130px; flex-shrink: 0;">
             <option value="חוף">חוף 🏖️</option>
             <option value="קלאב">קלאב 🪩</option>
             <option value="בר">בר 🍸</option>
@@ -774,7 +971,9 @@
         
         <div class="row-inputs">
           <input type="text" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות, אינסטגרם...)" />
-          <input type="text" class="input-field" id="placeSharer" placeholder="מי המליץ?" style="width: 120px; flex-shrink: 0;" />
+          <select class="select-field" id="placeSharer" style="width: 120px; flex-shrink: 0;">
+            <!-- Generated dynamically -->
+          </select>
         </div>
 
         <input type="text" class="input-field" id="placeNote" placeholder="הערה / טיפ (שקיעה, להזמין מראש)" />
@@ -803,7 +1002,9 @@
         
         <div class="row-inputs">
           <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר / הסט *" required />
-          <input type="text" class="input-field" id="trackSharer" placeholder="מי השמיע?" style="width: 120px; flex-shrink: 0;" />
+          <select class="select-field" id="trackSharer" style="width: 120px; flex-shrink: 0;">
+            <!-- Generated dynamically -->
+          </select>
         </div>
         
         <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (שקיעה, הרמות, צ'יל ברכב)" />
@@ -815,6 +1016,65 @@
           <button type="button" class="btn-cancel" onclick="closeTrackModal()">ביטול</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ================= PHOTO UPLOAD MODAL ================= -->
+  <div class="modal-overlay" id="photoModalOverlay" onclick="handleOverlayClick(event, 'photoModalOverlay')">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">שיתוף תמונה 📸</div>
+        <button class="btn-close-modal" onclick="closePhotoModal()">✕</button>
+      </div>
+
+      <form id="photoForm" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="file" id="photoFileInput" accept="image/*" class="input-field" required />
+        <input type="text" class="input-field" id="photoCaption" placeholder="כיתוב קצר (למשל: בסקורפיוס עם כולם 🔥)" />
+        
+        <div class="row-inputs">
+          <select class="select-field" id="photoSharer">
+            <!-- Generated dynamically -->
+          </select>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="submit" class="btn-submit btn-photo-open" id="photoSubmitBtn">
+            <span>+</span> העלה תמונה
+          </button>
+          <button type="button" class="btn-cancel" onclick="closePhotoModal()">ביטול</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= LIGHTBOX MODAL ================= -->
+  <div class="lightbox-overlay" id="lightboxModal">
+    <div class="lightbox-header">
+      <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
+      <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
+    </div>
+    <div class="lightbox-content">
+      <img id="lightboxImg" class="lightbox-img" src="" alt="תמונה" />
+    </div>
+    <div class="lightbox-footer">
+      <div id="lightboxCaption" style="font-weight: 600; font-size: 0.95rem; color: var(--text);"></div>
+      
+      <!-- Reactions -->
+      <div class="reactions-bar">
+        <button class="btn-react" onclick="addReaction('🔥')">🔥 <span id="reactCount-fire">0</span></button>
+        <button class="btn-react" onclick="addReaction('😂')">😂 <span id="reactCount-laugh">0</span></button>
+        <button class="btn-react" onclick="addReaction('🍸')">🍸 <span id="reactCount-drink">0</span></button>
+        <button class="btn-react" onclick="addReaction('❤️')">❤️ <span id="reactCount-heart">0</span></button>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="comments-section">
+        <div class="comments-list" id="lightboxCommentsList"></div>
+        <form class="comment-form" id="lightboxCommentForm">
+          <input type="text" id="lightboxCommentInput" class="input-field" placeholder="הגב משהו מצחיק..." required />
+          <button type="submit" class="btn-action" style="padding: 0 16px;">שלח</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -833,11 +1093,36 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "1.7.0";
+    const APP_VERSION = "1.8.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
+    // רשימת החברים הקבועה
+    const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
+
+    // אתחול רשימת השמות בתיבות הבחירה ושמירת השם המקומי
+    function initSharerDropdowns() {
+      const savedUser = localStorage.getItem('mykonos_user') || FRIENDS[0];
+      ['placeSharer', 'trackSharer', 'photoSharer'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = FRIENDS.map(name => `<option value="${name}" ${name === savedUser ? 'selected' : ''}>${name}</option>`).join('');
+        el.addEventListener('change', () => {
+          localStorage.setItem('mykonos_user', el.value);
+          // מסנכרן את שאר ה-dropdowns
+          ['placeSharer', 'trackSharer', 'photoSharer'].forEach(otherId => {
+            const other = document.getElementById(otherId);
+            if (other) other.value = el.value;
+          });
+        });
+      });
+    }
+
+    function getSelectedUser() {
+      return localStorage.getItem('mykonos_user') || FRIENDS[0];
+    }
+
     // -------------------------------------------------------------
-    // Helper Functions
+    // Helpers
     // -------------------------------------------------------------
     function escapeHTML(str) {
       if (!str) return '';
@@ -862,27 +1147,61 @@
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      
       const span = document.createElement('span');
       span.textContent = msg;
       toast.appendChild(span);
-
       container.appendChild(toast);
-
-      setTimeout(() => {
-        if (toast.parentElement) toast.remove();
-      }, 3000);
+      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
     }
 
     function handleOverlayClick(e, overlayId) {
       if (e.target.id === overlayId) {
         if (overlayId === 'placeModalOverlay') closePlaceModal();
         if (overlayId === 'trackModalOverlay') closeTrackModal();
+        if (overlayId === 'photoModalOverlay') closePhotoModal();
       }
     }
 
     // -------------------------------------------------------------
-    // Confirm Dialog Logic
+    // Firebase Config (places-d2918)
+    // -------------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
+      authDomain: "places-d2918.firebaseapp.com",
+      projectId: "places-d2918",
+      storageBucket: "places-d2918.firebasestorage.app",
+      messagingSenderId: "536137064680",
+      appId: "1:536137064680:web:f211b4e761ec511a3ae95d",
+      measurementId: "G-8Y68MLY65M"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    const placesRef = db.collection('places');
+    const tracksRef = db.collection('tracks');
+    const photosRef = db.collection('photos');
+
+    // ניווט טאבים
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (tabId === 'places') {
+        document.querySelector('.nav-tabs button:nth-child(1)').classList.add('active');
+        document.getElementById('tab-places').classList.add('active');
+      } else if (tabId === 'music') {
+        document.querySelector('.nav-tabs button:nth-child(2)').classList.add('active');
+        document.getElementById('tab-music').classList.add('active');
+      } else {
+        document.querySelector('.nav-tabs button:nth-child(3)').classList.add('active');
+        document.getElementById('tab-photos').classList.add('active');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Confirm Delete Dialog Logic
     // -------------------------------------------------------------
     let pendingDeleteAction = null;
     const confirmOverlay = document.getElementById('confirmOverlay');
@@ -901,15 +1220,11 @@
     }
 
     btnConfirmDelete.onclick = () => {
-      if (pendingDeleteAction) {
-        pendingDeleteAction();
-      }
+      if (pendingDeleteAction) pendingDeleteAction();
       closeConfirmDialog();
     };
 
-    // -------------------------------------------------------------
-    // Global Click Outside Handler (סגירת תפריטי 3 נקודות)
-    // -------------------------------------------------------------
+    // Global Click Outside Handler
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.menu-container')) {
         document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -920,49 +1235,12 @@
       e.stopPropagation();
       const currentMenu = document.getElementById(id);
       const isAlreadyOpen = currentMenu.classList.contains('show');
-      
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
-      
-      if (!isAlreadyOpen) {
-        currentMenu.classList.add('show');
-      }
+      if (!isAlreadyOpen) currentMenu.classList.add('show');
     };
 
     // -------------------------------------------------------------
-    // Firebase Config (places-d2918)
-    // -------------------------------------------------------------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
-      authDomain: "places-d2918.firebaseapp.com",
-      projectId: "places-d2918",
-      storageBucket: "places-d2918.firebasestorage.app",
-      messagingSenderId: "536137064680",
-      appId: "1:536137064680:web:f211b4e761ec511a3ae95d",
-      measurementId: "G-8Y68MLY65M"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const placesRef = db.collection('places');
-    const tracksRef = db.collection('tracks');
-
-    // ניווט טאבים
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-      if (tabId === 'places') {
-        document.querySelector('.nav-tabs button:first-child').classList.add('active');
-        document.getElementById('tab-places').classList.add('active');
-      } else {
-        document.querySelector('.nav-tabs button:last-child').classList.add('active');
-        document.getElementById('tab-music').classList.add('active');
-      }
-    }
-
-    // -------------------------------------------------------------
-    // מקומות ורשימות
+    // 1. מקומות ורשימות
     // -------------------------------------------------------------
     let placesData = [];
     let currentPlaceFilter = 'all';
@@ -977,15 +1255,14 @@
     function openPlaceModal() {
       placeForm.reset();
       placeEditIdInput.value = '';
+      initSharerDropdowns();
       placeModalTitle.textContent = 'הוספת מקום חדש 📍';
       placeSubmitBtn.innerHTML = '<span>+</span> הוסף לרשימה';
       placeSubmitBtn.classList.remove('btn-editing');
       placeModalOverlay.classList.add('active');
     }
 
-    function closePlaceModal() {
-      placeModalOverlay.classList.remove('active');
-    }
+    function closePlaceModal() { placeModalOverlay.classList.remove('active'); }
 
     window.startEditPlace = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -996,7 +1273,7 @@
       document.getElementById('placeName').value = p.name || '';
       document.getElementById('placeCategory').value = p.category || 'חוף';
       document.getElementById('placeLink').value = p.link || '';
-      document.getElementById('placeSharer').value = p.sharer || '';
+      document.getElementById('placeSharer').value = p.sharer || getSelectedUser();
       document.getElementById('placeNote').value = p.note || '';
 
       placeModalTitle.textContent = 'עריכת מקום ✏️';
@@ -1008,13 +1285,9 @@
     placesRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       isPlacesLoaded = true;
       placesData = [];
-      snapshot.forEach(doc => {
-        placesData.push({ id: doc.id, ...doc.data() });
-      });
+      snapshot.forEach(doc => { placesData.push({ id: doc.id, ...doc.data() }); });
       renderPlaces();
-    }, err => {
-      showToast('שגיאה בסנכרון נתוני מקומות', 'error');
-    });
+    }, () => showToast('שגיאה בסנכרון מקומות', 'error'));
 
     function renderPlaces() {
       const container = document.getElementById('placesContainer');
@@ -1058,16 +1331,11 @@
           </div>
           <div class="card-actions">
             ${safeLink ? `<a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn-action">${isMap ? 'פתח מפה 🗺️' : 'ניווט 📍'}</a>` : ''}
-            
             <div class="menu-container">
               <button class="btn-menu" onclick="toggleCardMenu(event, '${menuId}')" title="אפשרויות">⋮</button>
               <div class="dropdown-menu" id="${menuId}">
-                <button class="dropdown-item" onclick="startEditPlace('${p.id}')">
-                  <span>✏️</span> ערוך
-                </button>
-                <button class="dropdown-item delete" onclick="confirmDeletePlace('${p.id}')">
-                  <span>✕</span> מחק
-                </button>
+                <button class="dropdown-item" onclick="startEditPlace('${p.id}')"><span>✏️</span> ערוך</button>
+                <button class="dropdown-item delete" onclick="confirmDeletePlace('${p.id}')"><span>✕</span> מחק</button>
               </div>
             </div>
           </div>
@@ -1078,27 +1346,14 @@
 
     placeForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
       const editId = placeEditIdInput.value;
       const name = document.getElementById('placeName').value.trim();
       const category = document.getElementById('placeCategory').value;
       const link = normalizeUrl(document.getElementById('placeLink').value);
-      const sharer = document.getElementById('placeSharer').value.trim();
+      const sharer = document.getElementById('placeSharer').value;
       const note = document.getElementById('placeNote').value.trim();
 
       if (!name) return;
-
-      const isDuplicate = placesData.some(p => 
-        p.id !== editId &&
-        (p.name.toLowerCase() === name.toLowerCase() || 
-        (link && p.link && p.link.toLowerCase() === link.toLowerCase()))
-      );
-
-      if (isDuplicate) {
-        showToast('המקום הזה כבר קיים ברשימה!', 'warning');
-        return;
-      }
-
       closePlaceModal();
 
       if (editId) {
@@ -1107,11 +1362,7 @@
           .catch(() => showToast('שגיאה בעדכון המקום', 'error'));
       } else {
         placesRef.add({
-          name,
-          category,
-          link,
-          sharer,
-          note,
+          name, category, link, sharer, note,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => showToast('המקום נוסף לרשימה ✓', 'success'))
@@ -1141,7 +1392,7 @@
     });
 
     // -------------------------------------------------------------
-    // פסקול מוזיקה
+    // 2. פסקול מוזיקה
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
@@ -1156,15 +1407,14 @@
     function openTrackModal() {
       musicForm.reset();
       trackEditIdInput.value = '';
+      initSharerDropdowns();
       trackModalTitle.textContent = 'הוספת מוזיקה לפסקול 🎧';
       trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
       trackSubmitBtn.classList.remove('btn-editing');
       trackModalOverlay.classList.add('active');
     }
 
-    function closeTrackModal() {
-      trackModalOverlay.classList.remove('active');
-    }
+    function closeTrackModal() { trackModalOverlay.classList.remove('active'); }
 
     window.startEditTrack = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -1174,7 +1424,7 @@
       trackEditIdInput.value = t.id;
       document.getElementById('trackLink').value = t.link || '';
       document.getElementById('trackTitle').value = t.title || '';
-      document.getElementById('trackSharer').value = t.sharer || '';
+      document.getElementById('trackSharer').value = t.sharer || getSelectedUser();
       document.getElementById('trackVibe').value = t.vibe || '';
 
       trackModalTitle.textContent = 'עריכת שיר / סט ✏️';
@@ -1194,39 +1444,23 @@
 
     async function fetchTrackTitle(url) {
       const u = url.toLowerCase();
-
       try {
         if (u.includes('youtube.com') || u.includes('youtu.be')) {
           const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
           const data = await res.json();
           if (data && data.title) return data.title;
         }
-
         if (u.includes('soundcloud.com')) {
           const res = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
           const data = await res.json();
           if (data && data.title) return data.title;
         }
-
         if (u.includes('spotify.com')) {
           const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
           const data = await res.json();
           if (data && data.title) return data.title;
         }
       } catch (err) {}
-
-      try {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split('/').filter(Boolean);
-        if (pathParts.length > 0) {
-          const slug = pathParts[pathParts.length - 1];
-          const cleaned = decodeURIComponent(slug).replace(/[-_]/g, ' ');
-          if (cleaned.length > 2) {
-            return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-          }
-        }
-      } catch (e) {}
-
       return '';
     }
 
@@ -1236,19 +1470,14 @@
 
     trackLinkInput.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      const rawUrl = trackLinkInput.value.trim();
-      const url = normalizeUrl(rawUrl);
-
+      const url = normalizeUrl(trackLinkInput.value.trim());
       if (trackEditIdInput.value) return;
 
       if (url.startsWith('http://') || url.startsWith('https://')) {
         trackTitleInput.placeholder = 'מחלץ שם שיר/סט... ⏳';
-        
         debounceTimer = setTimeout(async () => {
           const fetchedTitle = await fetchTrackTitle(url);
-          if (fetchedTitle && !trackTitleInput.value) {
-            trackTitleInput.value = fetchedTitle;
-          }
+          if (fetchedTitle && !trackTitleInput.value) trackTitleInput.value = fetchedTitle;
           trackTitleInput.placeholder = 'שם השיר / הסט *';
         }, 450);
       }
@@ -1257,13 +1486,9 @@
     tracksRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       isMusicLoaded = true;
       tracksData = [];
-      snapshot.forEach(doc => {
-        tracksData.push({ id: doc.id, ...doc.data() });
-      });
+      snapshot.forEach(doc => { tracksData.push({ id: doc.id, ...doc.data() }); });
       renderTracks();
-    }, err => {
-      showToast('שגיאה בסנכרון הפסקול', 'error');
-    });
+    }, () => showToast('שגיאה בסנכרון הפסקול', 'error'));
 
     function renderTracks() {
       const container = document.getElementById('musicContainer');
@@ -1306,16 +1531,11 @@
           </div>
           <div class="card-actions">
             <a href="${escapeHTML(t.link)}" target="_blank" rel="noopener noreferrer" class="btn-action">נגן ▶</a>
-            
             <div class="menu-container">
               <button class="btn-menu" onclick="toggleCardMenu(event, '${menuId}')" title="אפשרויות">⋮</button>
               <div class="dropdown-menu" id="${menuId}">
-                <button class="dropdown-item" onclick="startEditTrack('${t.id}')">
-                  <span>✏️</span> ערוך
-                </button>
-                <button class="dropdown-item delete" onclick="confirmDeleteTrack('${t.id}')">
-                  <span>✕</span> מחק
-                </button>
+                <button class="dropdown-item" onclick="startEditTrack('${t.id}')"><span>✏️</span> ערוך</button>
+                <button class="dropdown-item delete" onclick="confirmDeleteTrack('${t.id}')"><span>✕</span> מחק</button>
               </div>
             </div>
           </div>
@@ -1326,46 +1546,23 @@
 
     musicForm.addEventListener('submit', (e) => {
       e.preventDefault();
-
       const editId = trackEditIdInput.value;
       const title = document.getElementById('trackTitle').value.trim();
-      const sharer = document.getElementById('trackSharer').value.trim();
+      const sharer = document.getElementById('trackSharer').value;
       const link = normalizeUrl(document.getElementById('trackLink').value);
       const vibe = document.getElementById('trackVibe').value.trim();
 
       if (!title || !link) return;
-
-      const isDuplicate = tracksData.some(t => 
-        t.id !== editId &&
-        (t.link.toLowerCase() === link.toLowerCase() || 
-        t.title.toLowerCase() === title.toLowerCase())
-      );
-
-      if (isDuplicate) {
-        showToast('השיר או הפלייליסט כבר קיים!', 'warning');
-        return;
-      }
-
       closeTrackModal();
       const plat = detectPlatform(link);
 
       if (editId) {
-        tracksRef.doc(editId).update({
-          title,
-          sharer,
-          link,
-          vibe,
-          platform: plat.name
-        }).then(() => {
-          showToast('הפסקול עודכן בהצלחה ✓', 'success');
-        }).catch(() => showToast('שגיאה בעדכון הפסקול', 'error'));
+        tracksRef.doc(editId).update({ title, sharer, link, vibe, platform: plat.name })
+          .then(() => showToast('הפסקול עודכן בהצלחה ✓', 'success'))
+          .catch(() => showToast('שגיאה בעדכון הפסקול', 'error'));
       } else {
         tracksRef.add({
-          title,
-          sharer,
-          link,
-          vibe,
-          platform: plat.name,
+          title, sharer, link, vibe, platform: plat.name,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => showToast('הטראק נוסף לפסקול ✓', 'success'))
@@ -1393,6 +1590,217 @@
         renderTracks();
       }
     });
+
+    // -------------------------------------------------------------
+    // 3. גלריית תמונות חיה (Live Photos & Reactions)
+    // -------------------------------------------------------------
+    let photosData = [];
+    let isPhotosLoaded = false;
+    let activeLightboxPhotoId = null;
+
+    const photoModalOverlay = document.getElementById('photoModalOverlay');
+    const photoForm = document.getElementById('photoForm');
+    const photoFileInput = document.getElementById('photoFileInput');
+    const photoSubmitBtn = document.getElementById('photoSubmitBtn');
+
+    function openPhotoModal() {
+      photoForm.reset();
+      initSharerDropdowns();
+      photoModalOverlay.classList.add('active');
+    }
+
+    function closePhotoModal() { photoModalOverlay.classList.remove('active'); }
+
+    // דחיסת תמונה מהירה צד-לקוח
+    function compressImage(file, maxWidth = 1200, quality = 0.75) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              resolve(blob);
+            }, 'image/jpeg', quality);
+          };
+        };
+      });
+    }
+
+    photoForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = photoFileInput.files[0];
+      const caption = document.getElementById('photoCaption').value.trim();
+      const sharer = document.getElementById('photoSharer').value;
+
+      if (!file) return;
+
+      photoSubmitBtn.disabled = true;
+      photoSubmitBtn.textContent = 'מעלה תמונה... ⏳';
+
+      try {
+        const compressedBlob = await compressImage(file);
+        const fileName = `photos/${Date.now()}_${sharer}.jpg`;
+        const storageRef = storage.ref().child(fileName);
+        
+        await storageRef.put(compressedBlob);
+        const downloadURL = await storageRef.getDownloadURL();
+
+        await photosRef.add({
+          url: downloadURL,
+          caption,
+          sharer,
+          reactions: { '🔥': 0, '😂': 0, '🍸': 0, '❤️': 0 },
+          comments: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        closePhotoModal();
+        showToast('התמונה שותפה בגלריה! 📸', 'success');
+      } catch (err) {
+        showToast('שגיאה בהעלאת התמונה', 'error');
+      } finally {
+        photoSubmitBtn.disabled = false;
+        photoSubmitBtn.textContent = '+ העלה תמונה';
+      }
+    });
+
+    photosRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      isPhotosLoaded = true;
+      photosData = [];
+      snapshot.forEach(doc => { photosData.push({ id: doc.id, ...doc.data() }); });
+      renderPhotos();
+      if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
+    }, () => showToast('שגיאה בסנכרון גלריה', 'error'));
+
+    function renderPhotos() {
+      const container = document.getElementById('photosContainer');
+      container.innerHTML = '';
+
+      if (!isPhotosLoaded) {
+        container.innerHTML = '<div class="skeleton" style="height: 160px;"></div><div class="skeleton" style="height: 160px;"></div>';
+        return;
+      }
+
+      if (photosData.length === 0) {
+        container.innerHTML = `<div class="empty-state">אין תמונות עדיין. תהיו הראשונים להעלות! 📸</div>`;
+        return;
+      }
+
+      photosData.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'photo-card';
+        card.onclick = () => openLightbox(p.id);
+
+        const reacts = p.reactions || {};
+        const fire = reacts['🔥'] || 0;
+        const laugh = reacts['😂'] || 0;
+
+        card.innerHTML = `
+          <div class="photo-thumb-wrap">
+            <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
+          </div>
+          <div class="photo-info">
+            <div class="photo-caption">${escapeHTML(p.caption || 'תמונה')}</div>
+            <div class="photo-meta">
+              <span class="badge-user">👤 ${escapeHTML(p.sharer)}</span>
+              <div class="photo-reactions-preview">
+                ${fire > 0 ? `🔥${fire}` : ''}
+                ${laugh > 0 ? `😂${laugh}` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // Lightbox & Reactions Logic
+    // -------------------------------------------------------------
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const lightboxAuthor = document.getElementById('lightboxAuthor');
+    const lightboxCommentsList = document.getElementById('lightboxCommentsList');
+    const lightboxCommentForm = document.getElementById('lightboxCommentForm');
+    const lightboxCommentInput = document.getElementById('lightboxCommentInput');
+
+    function openLightbox(id) {
+      activeLightboxPhotoId = id;
+      updateLightboxContent(id);
+      lightboxModal.classList.add('active');
+    }
+
+    function closeLightbox() {
+      lightboxModal.classList.remove('active');
+      activeLightboxPhotoId = null;
+    }
+
+    function updateLightboxContent(id) {
+      const p = photosData.find(item => item.id === id);
+      if (!p) return;
+
+      lightboxImg.src = p.url;
+      lightboxAuthor.textContent = `צילם: ${p.sharer}`;
+      lightboxCaption.textContent = p.caption || '';
+
+      const reacts = p.reactions || {};
+      document.getElementById('reactCount-fire').textContent = reacts['🔥'] || 0;
+      document.getElementById('reactCount-laugh').textContent = reacts['😂'] || 0;
+      document.getElementById('reactCount-drink').textContent = reacts['🍸'] || 0;
+      document.getElementById('reactCount-heart').textContent = reacts['❤️'] || 0;
+
+      const comments = p.comments || [];
+      lightboxCommentsList.innerHTML = comments.map(c => `
+        <div class="comment-item">
+          <span class="comment-author">${escapeHTML(c.author)}:</span> ${escapeHTML(c.text)}
+        </div>
+      `).join('');
+    }
+
+    window.addReaction = function(emoji) {
+      if (!activeLightboxPhotoId) return;
+      const photoDoc = photosRef.doc(activeLightboxPhotoId);
+      photoDoc.update({
+        [`reactions.${emoji}`]: firebase.firestore.FieldValue.increment(1)
+      });
+    };
+
+    lightboxCommentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = lightboxCommentInput.value.trim();
+      if (!text || !activeLightboxPhotoId) return;
+
+      const author = getSelectedUser();
+      photosRef.doc(activeLightboxPhotoId).update({
+        comments: firebase.firestore.FieldValue.arrayUnion({
+          author,
+          text,
+          createdAt: Date.now()
+        })
+      }).then(() => {
+        lightboxCommentInput.value = '';
+      });
+    });
+
+    // הרצת אתחול
+    initSharerDropdowns();
   </script>
 </body>
 </html>
