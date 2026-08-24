@@ -1,13 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.2.0
+  VERSION: v3.3.0
   UPDATED: August 2026
-  CHANGELOG v3.2.0:
-    - Auto-detect & extract track duration for new and existing tracks.
-    - Conditional duration tag display (⏱️) on music cards.
-    - Automatic Firestore backfill for existing tracks without duration.
-    - Full retention of Photo Gallery Swipe, Action Sheet, and Drawer UX.
+  CHANGELOG v3.3.0:
+    - Frosted Glass / Glassmorphism Drawer: Semi-transparent backdrop with blur.
+    - Glass-styled comment bubbles for clear contrast over background photo.
+    - Retained Swipe navigation, Action Sheets, and auto-duration extraction.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.2.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.2.0)</title>
+  <meta name="app-version" content="3.3.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.3.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -485,7 +484,7 @@
       border-radius: 8px;
     }
 
-    /* ================= LIGHTBOX & DRAWER ================= */
+    /* ================= LIGHTBOX & FROSTED GLASS DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -559,22 +558,25 @@
     .btn-nav-arrow.next { left: 12px; }
     .btn-nav-arrow:active { transform: translateY(-50%) scale(0.92); }
 
+    /* Frosted Glass Bottom Drawer (iOS/Glassmorphism style) */
     .lightbox-footer {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(16px);
-      border-radius: 22px 22px 0 0;
+      background: rgba(255, 255, 255, 0.78); /* Semi-transparent */
+      backdrop-filter: blur(24px) saturate(180%); /* Strong blur */
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-top: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 24px 24px 0 0;
       padding: 6px 14px 14px 14px;
       display: flex;
       flex-direction: column;
       gap: 6px;
       height: 25vh;
       max-height: 68vh;
-      box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.35);
-      transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
+      transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 1065;
       cursor: pointer;
     }
@@ -594,7 +596,7 @@
     .drawer-handle-pill {
       width: 34px;
       height: 4px;
-      background: #cbd5e1;
+      background: rgba(15, 23, 42, 0.25);
       border-radius: 10px;
     }
 
@@ -606,8 +608,9 @@
     }
 
     .btn-react {
-      background: #f1f5f9;
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
       border-radius: 18px;
       padding: 4px 10px;
       font-size: 0.85rem;
@@ -616,6 +619,7 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     }
 
     .btn-react:active {
@@ -649,30 +653,33 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Glass Comment Bubbles */
     .comment-item {
-      background: #f8fafc;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
       padding: 7px 10px;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 0.82rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      border: 1px solid #edf2f7;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
       line-height: 1.3;
       flex-shrink: 0;
       position: relative;
     }
 
     .comment-item:nth-child(even) {
-      background: #f1f5f9;
+      background: rgba(241, 245, 249, 0.88);
     }
 
     .comment-text-wrap {
       flex: 1;
       min-width: 0;
       word-break: break-word;
-      color: #1e293b;
+      color: #0f172a;
     }
 
     .comment-author {
@@ -1035,7 +1042,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.2.0</span>
+          <span class="version-tag">v3.3.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1065,7 +1072,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.2.0</span>
+          <span class="version-tag">v3.3.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1093,7 +1100,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.2.0</span>
+          <span class="version-tag">v3.3.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1259,7 +1266,9 @@
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
       
       <div style="display: flex; gap: 10px; align-items: center;">
+        <!-- Single Photo Delete Button (Only visible for photo author) -->
         <button id="lightboxDeleteBtn" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">🗑️</button>
+        <!-- Single Clear Close Button -->
         <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white; width: 34px; height: 34px;" onclick="closeLightbox()">✕</button>
       </div>
     </div>
@@ -1271,7 +1280,7 @@
       <button class="btn-nav-arrow next" onclick="event.stopPropagation(); navigatePhoto(-1);" title="תמונה הבאה">❯</button>
     </div>
 
-    <!-- Expandable Bottom Drawer -->
+    <!-- Frosted Glass Bottom Drawer -->
     <div class="lightbox-footer" id="lightboxFooter" onclick="handleDrawerTap(event)">
       <div class="drawer-handle-bar">
         <div class="drawer-handle-pill"></div>
@@ -1288,7 +1297,7 @@
       <!-- Comments Section -->
       <div class="comments-section">
         <div class="comments-header-row">
-          <span style="font-size: 0.82rem; font-weight: 700; color: var(--text);">תגובות</span>
+          <span style="font-size: 0.82rem; font-weight: 700; color: #0f172a;">תגובות</span>
           <button class="btn-action" style="padding: 5px 12px; font-size: 0.78rem;" onclick="event.stopPropagation(); openAddCommentModal();">💬 הגב</button>
         </div>
         <div class="comments-list" id="lightboxCommentsList"></div>
@@ -1311,7 +1320,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.2.0";
+    const APP_VERSION = "3.3.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1660,18 +1669,6 @@
       return { name: 'לינק', icon: '🎵' };
     }
 
-    function formatSecondsToTime(seconds) {
-      if (!seconds || isNaN(seconds)) return '';
-      const hrs = Math.floor(seconds / 3600);
-      const mins = Math.floor((seconds % 3600) / 60);
-      const secs = Math.floor(seconds % 60);
-      if (hrs > 0) {
-        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      }
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    // חילוץ כותרת ומשך זמן
     async function fetchTrackMetadata(url) {
       const u = url.toLowerCase();
       let meta = { title: '', duration: '' };
@@ -2140,7 +2137,7 @@
 
       const comments = p.comments || [];
       if (comments.length === 0) {
-        lightboxCommentsList.innerHTML = `<div style="font-size: 0.78rem; color: var(--muted); text-align: center; padding: 6px 0;">אין תגובות עדיין. לחצו "💬 הגב" כדי להגיב ראשונים!</div>`;
+        lightboxCommentsList.innerHTML = `<div style="font-size: 0.78rem; color: #475569; text-align: center; padding: 6px 0;">אין תגובות עדיין. לחצו "💬 הגב" כדי להגיב ראשונים!</div>`;
       } else {
         lightboxCommentsList.innerHTML = comments.map((c, index) => {
           const isMyComment = c.author === currentUser;
