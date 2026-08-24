@@ -1,13 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.0.0
+  VERSION: v3.1.0
   UPDATED: August 2026
-  CHANGELOG v3.0.0:
-    - Fixed z-index layering: Comments Drawer (1065) now sits above Nav Arrows (1053).
-    - Fixed comment list visibility in default/peek state.
-    - Improved tap & expand interaction without button obstruction.
-    - High z-index priority for 3-dots comment actions menu.
+  CHANGELOG v3.1.0:
+    - Fixed duplicate close button in Lightbox header (single clear ✕ close + 🗑️ delete).
+    - Replaced clipped comment dropdown with native Action Sheet modal (Edit/Delete).
+    - Fixed z-index layering so comment options never get covered or truncated.
+    - Fully preserved Swipe navigation, Peek & Expand drawer, Base64 uploads.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -15,8 +15,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.0.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.0.0)</title>
+  <meta name="app-version" content="3.1.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.1.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -476,7 +476,7 @@
       border-radius: 8px;
     }
 
-    /* ================= LIGHTBOX & DRAWER LAYER ARCHITECTURE ================= */
+    /* ================= LIGHTBOX & DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -527,7 +527,6 @@
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
-    /* Navigational Arrows stay below the comments drawer */
     .btn-nav-arrow {
       position: absolute;
       top: 40%;
@@ -544,7 +543,7 @@
       justify-content: center;
       font-size: 1.1rem;
       cursor: pointer;
-      z-index: 1053; /* Below drawer (1065) */
+      z-index: 1053;
     }
 
     .btn-nav-arrow.prev { right: 12px; }
@@ -568,7 +567,7 @@
       max-height: 68vh;
       box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.35);
       transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 1065; /* Above arrows */
+      z-index: 1065;
       cursor: pointer;
     }
 
@@ -673,16 +672,72 @@
       color: var(--primary);
     }
 
-    /* Floating Menu for Comments with high priority */
-    .comment-item .dropdown-menu {
-      top: auto;
-      bottom: 100%;
-      margin-bottom: 4px;
-      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
-      z-index: 1099;
+    /* Comment Action Sheet Modal */
+    .comment-action-sheet {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(3px);
+      z-index: 1095;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
     }
 
-    /* Modals & Dialogs */
+    .comment-action-sheet.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .comment-action-dialog {
+      background: white;
+      width: 100%;
+      max-width: 440px;
+      border-radius: 20px 20px 0 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .comment-action-sheet.active .comment-action-dialog {
+      transform: translateY(0);
+    }
+
+    .btn-sheet-action {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .btn-sheet-action.delete {
+      color: var(--delete-color);
+      border-color: #fee2e2;
+      background: #fef2f2;
+    }
+
+    .btn-sheet-action.cancel {
+      background: #e2e8f0;
+      border: none;
+      color: #475569;
+      margin-top: 4px;
+    }
+
+    /* Modals & General Sheets */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -972,7 +1027,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.0.0</span>
+          <span class="version-tag">v3.1.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1002,7 +1057,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.0.0</span>
+          <span class="version-tag">v3.1.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1030,7 +1085,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.0.0</span>
+          <span class="version-tag">v3.1.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1180,13 +1235,25 @@
     </div>
   </div>
 
+  <!-- ================= COMMENT ACTION SHEET (EDIT/DELETE) ================= -->
+  <div class="comment-action-sheet" id="commentActionSheet" onclick="closeCommentActionSheet()">
+    <div class="comment-action-dialog" onclick="event.stopPropagation()">
+      <button class="btn-sheet-action" onclick="triggerEditFromSheet()">✏️ ערוך תגובה</button>
+      <button class="btn-sheet-action delete" onclick="triggerDeleteFromSheet()">🗑️ מחק תגובה</button>
+      <button class="btn-sheet-action cancel" onclick="closeCommentActionSheet()">ביטול</button>
+    </div>
+  </div>
+
   <!-- ================= LIGHTBOX MODAL ================= -->
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button id="lightboxDeleteBtn" class="btn-menu" style="color: white; display: none;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">✕</button>
-        <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeLightbox()">✕</button>
+      
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <!-- Single Photo Delete Button (Only visible for photo author) -->
+        <button id="lightboxDeleteBtn" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">🗑️</button>
+        <!-- Single Clear Close Button -->
+        <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white; width: 34px; height: 34px;" onclick="closeLightbox()">✕</button>
       </div>
     </div>
 
@@ -1237,7 +1304,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.0.0";
+    const APP_VERSION = "3.1.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1898,7 +1965,7 @@
     }
 
     // -------------------------------------------------------------
-    // Lightbox Logic & Layered Navigation
+    // Lightbox & Comment Actions
     // -------------------------------------------------------------
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
@@ -1914,6 +1981,9 @@
     const commentTextInput = document.getElementById('commentTextInput');
     const commentAuthorSelect = document.getElementById('commentAuthorSelect');
     const commentEditIndexInput = document.getElementById('commentEditIndex');
+
+    const commentActionSheet = document.getElementById('commentActionSheet');
+    let selectedCommentIndexForAction = null;
 
     function openLightbox(id) {
       activeLightboxPhotoId = id;
@@ -2036,26 +2106,42 @@
       } else {
         lightboxCommentsList.innerHTML = comments.map((c, index) => {
           const isMyComment = c.author === currentUser;
-          const commentMenuId = `menu-comment-${index}`;
           return `
             <div class="comment-item">
               <div class="comment-text-wrap">
                 <span class="comment-author">${escapeHTML(c.author)}:</span> <span>${escapeHTML(c.text)}</span>
               </div>
               ${isMyComment ? `
-                <div class="menu-container">
-                  <button class="btn-menu" onclick="event.stopPropagation(); toggleCardMenu(event, '${commentMenuId}');" title="אפשרויות">⋮</button>
-                  <div class="dropdown-menu" id="${commentMenuId}">
-                    <button class="dropdown-item" onclick="event.stopPropagation(); startEditComment(${index});"><span>✏️</span> ערוך</button>
-                    <button class="dropdown-item delete" onclick="event.stopPropagation(); confirmDeleteComment(${index});"><span>✕</span> מחק</button>
-                  </div>
-                </div>
+                <button class="btn-menu" style="color: #64748b; font-size: 1.1rem; width: 26px; height: 26px;" onclick="event.stopPropagation(); openCommentActionSheet(${index});" title="אפשרויות">⋮</button>
               ` : ''}
             </div>
           `;
         }).join('');
       }
     }
+
+    // Comment Action Sheet Triggers
+    window.openCommentActionSheet = function(index) {
+      selectedCommentIndexForAction = index;
+      commentActionSheet.classList.add('active');
+    };
+
+    window.closeCommentActionSheet = function() {
+      commentActionSheet.classList.remove('active');
+      selectedCommentIndexForAction = null;
+    };
+
+    window.triggerEditFromSheet = function() {
+      const idx = selectedCommentIndexForAction;
+      closeCommentActionSheet();
+      if (idx !== null) startEditComment(idx);
+    };
+
+    window.triggerDeleteFromSheet = function() {
+      const idx = selectedCommentIndexForAction;
+      closeCommentActionSheet();
+      if (idx !== null) confirmDeleteComment(idx);
+    };
 
     window.addReaction = function(emoji) {
       if (!activeLightboxPhotoId) return;
@@ -2075,7 +2161,6 @@
     };
 
     window.startEditComment = function(index) {
-      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       if (!p || !p.comments || !p.comments[index]) return;
 
@@ -2132,7 +2217,6 @@
     });
 
     window.confirmDeleteComment = function(index) {
-      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       if (!p || !p.comments || !p.comments[index]) return;
 
