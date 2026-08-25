@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.3.0
+  VERSION: v4.4.0
   UPDATED: August 2026
-  CHANGELOG v4.3.0:
-    - Added direct comment replies (threaded tagging e.g. @Name).
-    - Added like counter (❤️) for individual comments.
-    - Fully preserved vertical gallery grid, frosted glass drawer, and auto track duration.
+  CHANGELOG v4.4.0:
+    - Fixed photo grid scroll lock bug after closing Lightbox/Comments.
+    - Added explicit scroll reset and touch flow cleanup on Lightbox close.
+    - Preserved threaded comment replies, comment likes, equal squares, and frosted glass.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.3.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.3.0)</title>
+  <meta name="app-version" content="4.4.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.4.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -433,6 +433,7 @@
       padding-bottom: 24px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
+      pointer-events: auto !important;
     }
 
     .photo-tile {
@@ -1096,7 +1097,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.3.0</span>
+          <span class="version-tag">v4.4.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1126,7 +1127,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.3.0</span>
+          <span class="version-tag">v4.4.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1154,7 +1155,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.3.0</span>
+          <span class="version-tag">v4.4.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1375,7 +1376,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.3.0";
+    const APP_VERSION = "4.4.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1905,7 +1906,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות (כולל לייקים ותגובות שרשור)
+    // 3. גלריית תמונות ותגובות
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -2117,6 +2118,14 @@
       lightboxModal.classList.remove('active');
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
+
+      // איפוס מוחלט של אירועי גלילה ואינטראקציה ברקע לפתרון נעילת הגלילה
+      setTimeout(() => {
+        const gridContainer = document.getElementById('photosContainer');
+        if (gridContainer) {
+          gridContainer.style.pointerEvents = 'auto';
+        }
+      }, 50);
     }
 
     window.handlePhotoAreaTap = function(e) {
@@ -2261,7 +2270,7 @@
 
       let updatedComments = [...p.comments];
       const currentLikes = updatedComments[index].likes || 0;
-      updatedComments[index].likes = currentLikes > 0 ? 0 : 1; // Toggle like
+      updatedComments[index].likes = currentLikes > 0 ? 0 : 1;
 
       try {
         await photosRef.doc(activeLightboxPhotoId).update({ comments: updatedComments });
