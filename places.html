@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.5.0
+  VERSION: v4.6.0
   UPDATED: August 2026
-  CHANGELOG v4.5.0:
-    - Fixed scroll lock issue across all modal and drawer close events.
-    - Added global pointer-events and scroll recovery on Lightbox and comment sheet dismissals.
-    - Preserved threaded comments, comment likes, equal square tiles, and frosted glass.
+  CHANGELOG v4.6.0:
+    - Fixed scroll lock completely by enabling natural body/container vertical scrolling flow.
+    - Fixed photo grid flickering / flashing during live Firebase reactions & comments updates.
+    - Preserved equal square tiles, frosted glass drawer, threaded comments, and action sheets.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.5.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.5.0)</title>
+  <meta name="app-version" content="4.6.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.6.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -46,25 +46,22 @@
     }
 
     html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-
-    body {
+      min-height: 100%;
       background: var(--bg-gradient);
       color: var(--text);
       display: flex;
       justify-content: center;
+      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
       max-width: 460px;
-      height: 100dvh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      padding: 10px 12px 6px 12px;
-      gap: 8px;
+      padding: 10px 12px 24px 12px;
+      gap: 10px;
       position: relative;
     }
 
@@ -78,6 +75,9 @@
       gap: 4px;
       box-shadow: 0 4px 16px rgba(0, 70, 140, 0.06);
       flex-shrink: 0;
+      position: sticky;
+      top: 10px;
+      z-index: 100;
     }
 
     .tab-btn {
@@ -108,7 +108,6 @@
       display: none;
       flex-direction: column;
       flex: 1;
-      min-height: 0;
       gap: 8px;
     }
 
@@ -224,12 +223,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-bottom: 24px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
     }
 
     .card-item {
@@ -242,7 +235,6 @@
       gap: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       border: 1px solid rgba(226, 232, 240, 0.7);
-      flex-shrink: 0;
     }
 
     .card-main {
@@ -421,19 +413,12 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (EQUAL SQUARES & 6PX GAPS) ================= */
+    /* ================= PHOTOS GRID ================= */
     .photos-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      flex: 1;
-      align-content: flex-start;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-bottom: 24px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      pointer-events: auto !important;
+      width: 100%;
     }
 
     .photo-tile {
@@ -1097,7 +1082,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.5.0</span>
+          <span class="version-tag">v4.6.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1127,7 +1112,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.5.0</span>
+          <span class="version-tag">v4.6.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1155,7 +1140,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.5.0</span>
+          <span class="version-tag">v4.6.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1376,7 +1361,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.5.0";
+    const APP_VERSION = "4.6.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1906,7 +1891,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות
+    // 3. גלריית תמונות ותגובות (עם עדכון לוקאלי נגד ריצוד)
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -1949,11 +1934,7 @@
       photoModalOverlay.classList.add('active');
     }
 
-    function closePhotoModal() { 
-      photoModalOverlay.classList.remove('active');
-      const gridContainer = document.getElementById('photosContainer');
-      if (gridContainer) gridContainer.style.pointerEvents = 'auto';
-    }
+    function closePhotoModal() { photoModalOverlay.classList.remove('active'); }
 
     function compressToDataURL(file, maxWidth = 900, quality = 0.65) {
       return new Promise((resolve, reject) => {
@@ -2026,11 +2007,37 @@
 
     photosRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       isPhotosLoaded = true;
-      photosData = [];
-      snapshot.forEach(doc => { photosData.push({ id: doc.id, ...doc.data() }); });
-      updatePhotoAuthorFilters();
-      renderPhotos();
-      if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
+      let hasChanges = false;
+      
+      snapshot.docChanges().forEach(change => {
+        const docId = change.doc.id;
+        const docData = { id: docId, ...change.doc.data() };
+        
+        if (change.type === 'added') {
+          if (!photosData.some(p => p.id === docId)) {
+            photosData.push(docData);
+            hasChanges = true;
+          }
+        }
+        if (change.type === 'modified') {
+          const index = photosData.findIndex(p => p.id === docId);
+          if (index !== -1) {
+            photosData[index] = docData;
+            hasChanges = true;
+          }
+        }
+        if (change.type === 'removed') {
+          photosData = photosData.filter(p => p.id !== docId);
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges || !isPhotosLoaded) {
+        photosData.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        updatePhotoAuthorFilters();
+        renderPhotos();
+        if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
+      }
     }, () => showToast('שגיאה בסנכרון גלריה', 'error'));
 
     function getFilteredPhotos() {
@@ -2042,13 +2049,12 @@
 
     function renderPhotos() {
       const container = document.getElementById('photosContainer');
-      container.innerHTML = '';
-
+      
       if (!isPhotosLoaded) {
         container.innerHTML = `
-          <div class="skeleton" style="aspect-ratio: 1/1;"></div>
-          <div class="skeleton" style="aspect-ratio: 1/1;"></div>
-          <div class="skeleton" style="aspect-ratio: 1/1;"></div>
+          <div class="skeleton" style="aspect-ratio: 1/1; width: calc((100% - 12px) / 3);"></div>
+          <div class="skeleton" style="aspect-ratio: 1/1; width: calc((100% - 12px) / 3);"></div>
+          <div class="skeleton" style="aspect-ratio: 1/1; width: calc((100% - 12px) / 3);"></div>
         `;
         return;
       }
@@ -2060,11 +2066,7 @@
         return;
       }
 
-      filtered.forEach(p => {
-        const tile = document.createElement('div');
-        tile.className = 'photo-tile';
-        tile.onclick = () => openLightbox(p.id);
-
+      container.innerHTML = filtered.map(p => {
         const reacts = p.reactions || {};
         const activeReactionEntry = Object.entries(reacts).find(([emoji, count]) => count > 0);
         const topReact = activeReactionEntry ? `${activeReactionEntry[0]} ${activeReactionEntry[1]}` : '';
@@ -2072,19 +2074,19 @@
         const commentCount = (p.comments || []).length;
         const hasStats = topReact || commentCount > 0;
 
-        tile.innerHTML = `
-          <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
-          <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
-
-          ${hasStats ? `
-            <div class="photo-badge-stats">
-              ${topReact ? `<span class="photo-stat-item">${topReact}</span>` : ''}
-              ${commentCount > 0 ? `<span class="photo-stat-item">💬 ${commentCount}</span>` : ''}
-            </div>
-          ` : ''}
+        return `
+          <div class="photo-tile" onclick="openLightbox('${p.id}')">
+            <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
+            <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
+            ${hasStats ? `
+              <div class="photo-badge-stats">
+                ${topReact ? `<span class="photo-stat-item">${topReact}</span>` : ''}
+                ${commentCount > 0 ? `<span class="photo-stat-item">💬 ${commentCount}</span>` : ''}
+              </div>
+            ` : ''}
+          </div>
         `;
-        container.appendChild(tile);
-      });
+      }).join('');
     }
 
     // -------------------------------------------------------------
@@ -2122,16 +2124,6 @@
       lightboxModal.classList.remove('active');
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
-
-      // איפוס מוחלט של אירועי גלילה ברקע
-      setTimeout(() => {
-        const gridContainer = document.getElementById('photosContainer');
-        if (gridContainer) {
-          gridContainer.style.pointerEvents = 'auto';
-          gridContainer.style.overflowY = 'auto';
-        }
-        document.body.style.overflow = 'hidden';
-      }, 30);
     }
 
     window.handlePhotoAreaTap = function(e) {
@@ -2356,11 +2348,6 @@
 
     function closeCommentModal() {
       commentModalOverlay.classList.remove('active');
-      const gridContainer = document.getElementById('photosContainer');
-      if (gridContainer) {
-        gridContainer.style.pointerEvents = 'auto';
-        gridContainer.style.overflowY = 'auto';
-      }
     }
 
     commentForm.addEventListener('submit', async (e) => {
