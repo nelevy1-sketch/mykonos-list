@@ -1,12 +1,11 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.1.0
+  VERSION: v4.2.0
   UPDATED: August 2026
-  CHANGELOG v4.1.0:
-    - Fixed photo grid layout: Proper gap spacing (6px) between rows and columns.
-    - Guaranteed strict equal square tiles (aspect-ratio: 1/1) with clean vertical scrolling.
-    - Preserved Frosted Glass drawer, Action Sheets, and auto track duration.
+  CHANGELOG v4.2.0:
+    - Fixed photo grid spacing: Switched to Flexbox wrap with explicit 6px gap to prevent rows sticking together.
+    - Preserved equal square tiles, Frosted Glass drawer, Action Sheets, and auto track duration.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +13,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.1.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.1.0)</title>
+  <meta name="app-version" content="4.2.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.2.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -421,13 +420,13 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (CLEAN EQUAL SQUARES & VERTICAL SCROLL) ================= */
+    /* ================= PHOTOS GRID (FLEXBOX WRAP FOR PERFECT 6PX GAPS) ================= */
     .photos-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 6px;
       flex: 1;
-      align-content: start;
+      align-content: flex-start;
       overflow-y: auto;
       overflow-x: hidden;
       padding-bottom: 24px;
@@ -437,13 +436,14 @@
 
     .photo-tile {
       position: relative;
-      width: 100%;
+      width: calc((100% - 12px) / 3); /* Exactly 3 items per row with 6px gaps */
       aspect-ratio: 1 / 1;
       border-radius: 14px;
       overflow: hidden;
       background: #e2e8f0;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      flex-shrink: 0;
     }
 
     .photo-tile:active {
@@ -1063,7 +1063,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.1.0</span>
+          <span class="version-tag">v4.2.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1093,7 +1093,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.1.0</span>
+          <span class="version-tag">v4.2.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1121,7 +1121,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.1.0</span>
+          <span class="version-tag">v4.2.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1341,7 +1341,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.1.0";
+    const APP_VERSION = "4.2.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
