@@ -1,11 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.2.0
+  VERSION: v4.3.0
   UPDATED: August 2026
-  CHANGELOG v4.2.0:
-    - Fixed photo grid spacing: Switched to Flexbox wrap with explicit 6px gap to prevent rows sticking together.
-    - Preserved equal square tiles, Frosted Glass drawer, Action Sheets, and auto track duration.
+  CHANGELOG v4.3.0:
+    - Added direct comment replies (threaded tagging e.g. @Name).
+    - Added like counter (❤️) for individual comments.
+    - Fully preserved vertical gallery grid, frosted glass drawer, and auto track duration.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -13,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.2.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.2.0)</title>
+  <meta name="app-version" content="4.3.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.3.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -420,7 +421,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (FLEXBOX WRAP FOR PERFECT 6PX GAPS) ================= */
+    /* ================= PHOTOS GRID (EQUAL SQUARES & 6PX GAPS) ================= */
     .photos-grid {
       display: flex;
       flex-wrap: wrap;
@@ -436,7 +437,7 @@
 
     .photo-tile {
       position: relative;
-      width: calc((100% - 12px) / 3); /* Exactly 3 items per row with 6px gaps */
+      width: calc((100% - 12px) / 3);
       aspect-ratio: 1 / 1;
       border-radius: 14px;
       overflow: hidden;
@@ -706,6 +707,38 @@
     .comment-author {
       font-weight: 800;
       color: var(--primary);
+    }
+
+    .comment-actions-inline {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-comment-like, .btn-comment-reply {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 2px 5px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .btn-comment-like:active, .btn-comment-reply:active {
+      transform: scale(0.9);
+    }
+
+    .reply-badge {
+      font-size: 0.7rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-left: 4px;
     }
 
     /* Comment Action Sheet Modal */
@@ -1063,7 +1096,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.2.0</span>
+          <span class="version-tag">v4.3.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1093,7 +1126,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.2.0</span>
+          <span class="version-tag">v4.3.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1121,7 +1154,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.2.0</span>
+          <span class="version-tag">v4.3.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1255,6 +1288,7 @@
 
       <form id="commentForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="commentEditIndex" value="" />
+        <input type="hidden" id="commentReplyTo" value="" />
         <div class="row-inputs">
           <select class="select-field" id="commentAuthorSelect" style="width: 130px; flex-shrink: 0;" required>
             <!-- Generated dynamically -->
@@ -1341,7 +1375,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.2.0";
+    const APP_VERSION = "4.3.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1871,7 +1905,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות
+    // 3. גלריית תמונות ותגובות (כולל לייקים ותגובות שרשור)
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -2066,6 +2100,7 @@
     const commentTextInput = document.getElementById('commentTextInput');
     const commentAuthorSelect = document.getElementById('commentAuthorSelect');
     const commentEditIndexInput = document.getElementById('commentEditIndex');
+    const commentReplyToInput = document.getElementById('commentReplyTo');
 
     const commentActionSheet = document.getElementById('commentActionSheet');
     let selectedCommentIndexForAction = null;
@@ -2193,19 +2228,71 @@
       } else {
         lightboxCommentsList.innerHTML = comments.map((c, index) => {
           const isMyComment = c.author === currentUser && currentUser !== '';
+          const likeCount = c.likes || 0;
+          const replyTag = c.replyTo ? `<span class="reply-badge">@${escapeHTML(c.replyTo)}</span>` : '';
+          
           return `
             <div class="comment-item">
-              <div class="comment-text-wrap">
-                <span class="comment-author">${escapeHTML(c.author)}:</span> <span>${escapeHTML(c.text)}</span>
+              <div class="comment-text-wrap" onclick="openReplyModal('${escapeHTML(c.author)}')">
+                <span class="comment-author">${escapeHTML(c.author)}:</span> ${replyTag} <span>${escapeHTML(c.text)}</span>
               </div>
-              ${isMyComment ? `
-                <button class="btn-menu" style="color: #64748b; font-size: 1.1rem; width: 26px; height: 26px;" onclick="event.stopPropagation(); openCommentActionSheet(${index});" title="אפשרויות">⋮</button>
-              ` : ''}
+              <div class="comment-actions-inline">
+                <button class="btn-comment-like" onclick="event.stopPropagation(); toggleCommentLike(${index});" title="לייק לתגובה">
+                  ❤️ ${likeCount > 0 ? likeCount : ''}
+                </button>
+                <button class="btn-comment-reply" onclick="event.stopPropagation(); openReplyModal('${escapeHTML(c.author)}');" title="הגב">
+                  ↩️
+                </button>
+                ${isMyComment ? `
+                  <button class="btn-menu" style="color: #64748b; font-size: 1rem; width: 22px; height: 22px;" onclick="event.stopPropagation(); openCommentActionSheet(${index});" title="אפשרויות">⋮</button>
+                ` : ''}
+              </div>
             </div>
           `;
         }).join('');
       }
     }
+
+    // Comment Actions (Like, Reply, Edit, Delete)
+    window.toggleCommentLike = async function(index) {
+      if (!activeLightboxPhotoId) return;
+      const p = photosData.find(item => item.id === activeLightboxPhotoId);
+      if (!p || !p.comments || !p.comments[index]) return;
+
+      let updatedComments = [...p.comments];
+      const currentLikes = updatedComments[index].likes || 0;
+      updatedComments[index].likes = currentLikes > 0 ? 0 : 1; // Toggle like
+
+      try {
+        await photosRef.doc(activeLightboxPhotoId).update({ comments: updatedComments });
+      } catch (err) {
+        showToast('שגיאה בעדכון הלייק', 'error');
+      }
+    };
+
+    window.openReplyModal = function(targetAuthor) {
+      const currentAuthor = getSelectedUser();
+      commentForm.reset();
+      commentEditIndexInput.value = '';
+      commentReplyToInput.value = targetAuthor;
+      commentAuthorSelect.value = currentAuthor;
+      commentModalTitle.textContent = `הגבה ל- @${targetAuthor} 💬`;
+      commentTextInput.placeholder = `כתוב תגובה ל- @${targetAuthor}...`;
+      document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
+      commentModalOverlay.classList.add('active');
+    };
+
+    window.openAddCommentModal = function() {
+      const currentAuthor = getSelectedUser();
+      commentForm.reset();
+      commentEditIndexInput.value = '';
+      commentReplyToInput.value = '';
+      commentAuthorSelect.value = currentAuthor;
+      commentModalTitle.textContent = 'הוספת תגובה 💬';
+      commentTextInput.placeholder = 'כתוב משהו מצחיק...';
+      document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
+      commentModalOverlay.classList.add('active');
+    };
 
     window.openCommentActionSheet = function(index) {
       selectedCommentIndexForAction = index;
@@ -2237,22 +2324,13 @@
       });
     };
 
-    window.openAddCommentModal = function() {
-      const currentAuthor = getSelectedUser();
-      commentForm.reset();
-      commentEditIndexInput.value = '';
-      commentAuthorSelect.value = currentAuthor;
-      commentModalTitle.textContent = 'הוספת תגובה 💬';
-      document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
-      commentModalOverlay.classList.add('active');
-    };
-
     window.startEditComment = function(index) {
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       if (!p || !p.comments || !p.comments[index]) return;
 
       const c = p.comments[index];
       commentEditIndexInput.value = index;
+      commentReplyToInput.value = c.replyTo || '';
       commentAuthorSelect.value = c.author;
       commentTextInput.value = c.text;
 
@@ -2275,6 +2353,7 @@
 
       const text = commentTextInput.value.trim();
       const editIndex = commentEditIndexInput.value;
+      const replyTo = commentReplyToInput.value;
 
       if (!text || !activeLightboxPhotoId) return;
       localStorage.setItem('mykonos_user', author);
@@ -2289,11 +2368,14 @@
         if (updatedComments[idx]) {
           updatedComments[idx].text = text;
           updatedComments[idx].author = author;
+          if (replyTo) updatedComments[idx].replyTo = replyTo;
         }
       } else {
         updatedComments.push({
           author,
           text,
+          replyTo: replyTo || null,
+          likes: 0,
           createdAt: Date.now()
         });
       }
