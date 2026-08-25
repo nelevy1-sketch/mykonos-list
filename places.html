@@ -1,12 +1,11 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.6.0
+  VERSION: v3.7.0
   UPDATED: August 2026
-  CHANGELOG v3.6.0:
-    - Fixed sharer dropdown default: Removed hardcoded first friend default, added required placeholder option.
-    - Cleaned up grid photo tiles to maintain a pristine, symmetrical aesthetic.
-    - Preserved Frosted Glass drawer, action sheets, and swipe interactions.
+  CHANGELOG v3.7.0:
+    - Fixed reaction preview on photo tiles: Now supports all 4 reaction types (🔥, 😂, 🍸, ❤️).
+    - Preserved Frosted Glass drawer, action sheets, and required author selection.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +13,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.6.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.6.0)</title>
+  <meta name="app-version" content="3.7.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.7.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -421,7 +420,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (CLEAN & SYMMETRICAL) ================= */
+    /* ================= PHOTOS GRID ================= */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -455,21 +454,40 @@
       display: block;
     }
 
-    .photo-badge-author {
+    .photo-bottom-info {
       position: absolute;
       bottom: 5px;
       right: 5px;
-      background: rgba(15, 23, 42, 0.72);
+      left: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+
+    .photo-badge-caption {
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(4px);
       color: white;
       font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 8px;
-      max-width: 85%;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 6px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .photo-badge-author {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      color: #e2e8f0;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 6px;
     }
 
     .photo-badge-stats {
@@ -495,7 +513,7 @@
       gap: 2px;
     }
 
-    /* ================= LIGHTBOX & FROSTED GLASS DRAWER ================= */
+    /* ================= LIGHTBOX & DRAWER ================= */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -1061,7 +1079,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.6.0</span>
+          <span class="version-tag">v3.7.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1091,7 +1109,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.6.0</span>
+          <span class="version-tag">v3.7.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1119,7 +1137,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.6.0</span>
+          <span class="version-tag">v3.7.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1339,7 +1357,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.6.0";
+    const APP_VERSION = "3.7.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1352,7 +1370,6 @@
         const el = document.getElementById(id);
         if (!el) return;
         
-        // יצירת אופציית ברירת מחדל ריקה ודורשת בחירה
         let optionsHTML = `<option value="" disabled ${!savedUser ? 'selected' : ''}>בחר את שמך... 👤</option>`;
         optionsHTML += FRIENDS.map(name => `<option value="${name}" ${name === savedUser ? 'selected' : ''}>${name}</option>`).join('');
         
@@ -2026,9 +2043,10 @@
         tile.onclick = () => openLightbox(p.id);
 
         const reacts = p.reactions || {};
-        const fire = reacts['🔥'] || 0;
-        const laugh = reacts['😂'] || 0;
-        const topReact = fire > 0 ? `🔥 ${fire}` : (laugh > 0 ? `😂 ${laugh}` : '');
+        // מוצא את הריאקשן הראשון שיש לו לפחות סימון אחד (כולל ❤️ ו-🍸)
+        const activeReactionEntry = Object.entries(reacts).find(([emoji, count]) => count > 0);
+        const topReact = activeReactionEntry ? `${activeReactionEntry[0]} ${activeReactionEntry[1]}` : '';
+
         const commentCount = (p.comments || []).length;
         const hasStats = topReact || commentCount > 0;
 
