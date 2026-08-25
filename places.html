@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.6.0
+  VERSION: v4.7.0
   UPDATED: August 2026
-  CHANGELOG v4.6.0:
-    - Fixed scroll lock completely by enabling natural body/container vertical scrolling flow.
-    - Fixed photo grid flickering / flashing during live Firebase reactions & comments updates.
-    - Preserved equal square tiles, frosted glass drawer, threaded comments, and action sheets.
+  CHANGELOG v4.7.0:
+    - Restored fixed app shell layout (100dvh, no full-page scrolling).
+    - Fixed photo grid scroll lock cleanly on Lightbox close by forcing pointer-events and container reset.
+    - Preserved threaded comments, comment likes, equal square tiles, and frosted glass drawer.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.6.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.6.0)</title>
+  <meta name="app-version" content="4.7.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.7.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -46,22 +46,25 @@
     }
 
     html, body {
-      min-height: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
       background: var(--bg-gradient);
       color: var(--text);
       display: flex;
       justify-content: center;
-      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
       max-width: 460px;
-      min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
-      padding: 10px 12px 24px 12px;
-      gap: 10px;
+      padding: 10px 12px 6px 12px;
+      gap: 8px;
       position: relative;
     }
 
@@ -75,9 +78,6 @@
       gap: 4px;
       box-shadow: 0 4px 16px rgba(0, 70, 140, 0.06);
       flex-shrink: 0;
-      position: sticky;
-      top: 10px;
-      z-index: 100;
     }
 
     .tab-btn {
@@ -108,6 +108,7 @@
       display: none;
       flex-direction: column;
       flex: 1;
+      min-height: 0;
       gap: 8px;
     }
 
@@ -223,6 +224,12 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 24px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
 
     .card-item {
@@ -235,6 +242,7 @@
       gap: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       border: 1px solid rgba(226, 232, 240, 0.7);
+      flex-shrink: 0;
     }
 
     .card-main {
@@ -413,12 +421,18 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID ================= */
+    /* ================= PHOTOS GRID (EQUAL SQUARES & 6PX GAPS) ================= */
     .photos-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      width: 100%;
+      flex: 1;
+      align-content: flex-start;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 24px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
 
     .photo-tile {
@@ -1082,7 +1096,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.6.0</span>
+          <span class="version-tag">v4.7.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1112,7 +1126,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.6.0</span>
+          <span class="version-tag">v4.7.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1140,7 +1154,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.6.0</span>
+          <span class="version-tag">v4.7.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1361,7 +1375,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.6.0";
+    const APP_VERSION = "4.7.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1891,7 +1905,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות (עם עדכון לוקאלי נגד ריצוד)
+    // 3. גלריית תמונות ותגובות
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -2124,6 +2138,13 @@
       lightboxModal.classList.remove('active');
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
+
+      // וידוא מוחלט של שחרור הגלילה בקונטיינר התמונות
+      const gridContainer = document.getElementById('photosContainer');
+      if (gridContainer) {
+        gridContainer.style.pointerEvents = 'auto';
+        gridContainer.style.overflowY = 'auto';
+      }
     }
 
     window.handlePhotoAreaTap = function(e) {
