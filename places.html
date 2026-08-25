@@ -1,11 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v3.7.0
+  VERSION: v3.8.0
   UPDATED: August 2026
-  CHANGELOG v3.7.0:
-    - Fixed reaction preview on photo tiles: Now supports all 4 reaction types (🔥, 😂, 🍸, ❤️).
-    - Preserved Frosted Glass drawer, action sheets, and required author selection.
+  CHANGELOG v3.8.0:
+    - Updated Music track title input placeholder to clearly indicate auto-fill behavior.
+    - Allowed seamless manual fallback override for track titles if auto-fetch fails.
+    - Preserved Photo stats badges, Frosted Glass drawer, and author required validation.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -13,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="3.7.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v3.7.0)</title>
+  <meta name="app-version" content="3.8.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v3.8.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1079,7 +1080,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.7.0</span>
+          <span class="version-tag">v3.8.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1109,7 +1110,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.7.0</span>
+          <span class="version-tag">v3.8.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1137,7 +1138,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v3.7.0</span>
+          <span class="version-tag">v3.8.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1176,7 +1177,7 @@
             <option value="בר">בר 🍸</option>
             <option value="מסעדה">מסעדה 🍽️</option>
             <option value="שופינג">שופינג 🛍️</option>
-            <option value="מפה">מפה 🗺️</option>
+            <option value="מפה">מפות 🗺️</option>
             <option value="אחר">אחר ✨</option>
           </select>
           <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה *" required />
@@ -1215,7 +1216,7 @@
         <input type="text" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)*" required />
         
         <div class="row-inputs">
-          <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר / הסט *" required />
+          <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר (מתמלא אוטומטית או ידנית) *" required />
           <select class="select-field" id="trackSharer" style="width: 120px; flex-shrink: 0;" required>
             <!-- Generated dynamically -->
           </select>
@@ -1357,7 +1358,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "3.7.0";
+    const APP_VERSION = "3.8.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1754,7 +1755,7 @@
           const meta = await fetchTrackMetadata(url);
           if (meta.title && !trackTitleInput.value) trackTitleInput.value = meta.title;
           if (meta.duration) trackDurationHidden.value = meta.duration;
-          trackTitleInput.placeholder = 'שם השיר / הסט *';
+          trackTitleInput.placeholder = 'שם השיר (מתמלא אוטומטית או ידנית) *';
         }, 450);
       }
     });
@@ -2043,7 +2044,6 @@
         tile.onclick = () => openLightbox(p.id);
 
         const reacts = p.reactions || {};
-        // מוצא את הריאקשן הראשון שיש לו לפחות סימון אחד (כולל ❤️ ו-🍸)
         const activeReactionEntry = Object.entries(reacts).find(([emoji, count]) => count > 0);
         const topReact = activeReactionEntry ? `${activeReactionEntry[0]} ${activeReactionEntry[1]}` : '';
 
