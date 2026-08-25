@@ -1,11 +1,11 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.0.0
+  VERSION: v4.1.0
   UPDATED: August 2026
-  CHANGELOG v4.0.0:
-    - Restored pristine equal square photo grid (aspect-ratio: 1/1, object-fit: cover).
-    - Fixed vertical up-and-down scrolling for the photo gallery.
+  CHANGELOG v4.1.0:
+    - Fixed photo grid layout: Proper gap spacing (6px) between rows and columns.
+    - Guaranteed strict equal square tiles (aspect-ratio: 1/1) with clean vertical scrolling.
     - Preserved Frosted Glass drawer, Action Sheets, and auto track duration.
   =============================================================
 -->
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.0.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.0.0)</title>
+  <meta name="app-version" content="4.1.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.1.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -421,7 +421,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (EQUAL SQUARES & VERTICAL SCROLL) ================= */
+    /* ================= PHOTOS GRID (CLEAN EQUAL SQUARES & VERTICAL SCROLL) ================= */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1063,7 +1063,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.0.0</span>
+          <span class="version-tag">v4.1.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1093,7 +1093,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.0.0</span>
+          <span class="version-tag">v4.1.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1121,7 +1121,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.0.0</span>
+          <span class="version-tag">v4.1.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1341,7 +1341,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.0.0";
+    const APP_VERSION = "4.1.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
