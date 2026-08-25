@@ -1,12 +1,12 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.4.0
+  VERSION: v4.5.0
   UPDATED: August 2026
-  CHANGELOG v4.4.0:
-    - Fixed photo grid scroll lock bug after closing Lightbox/Comments.
-    - Added explicit scroll reset and touch flow cleanup on Lightbox close.
-    - Preserved threaded comment replies, comment likes, equal squares, and frosted glass.
+  CHANGELOG v4.5.0:
+    - Fixed scroll lock issue across all modal and drawer close events.
+    - Added global pointer-events and scroll recovery on Lightbox and comment sheet dismissals.
+    - Preserved threaded comments, comment likes, equal square tiles, and frosted glass.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -14,8 +14,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.4.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.4.0)</title>
+  <meta name="app-version" content="4.5.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.5.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1097,7 +1097,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.4.0</span>
+          <span class="version-tag">v4.5.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1127,7 +1127,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.4.0</span>
+          <span class="version-tag">v4.5.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1155,7 +1155,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.4.0</span>
+          <span class="version-tag">v4.5.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1192,7 +1192,7 @@
             <option value="חוף">חוף 🏖️</option>
             <option value="קלאב">קלאב 🪩</option>
             <option value="בר">בר 🍸</option>
-            <option value="מסעדה">מסעדה 🍽️</option>
+            <option value="מסעדה">מסעדות 🍽️</option>
             <option value="שופינג">שופינג 🛍️</option>
             <option value="מפה">מפה 🗺️</option>
             <option value="אחר">אחר ✨</option>
@@ -1376,7 +1376,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.4.0";
+    const APP_VERSION = "4.5.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1949,7 +1949,11 @@
       photoModalOverlay.classList.add('active');
     }
 
-    function closePhotoModal() { photoModalOverlay.classList.remove('active'); }
+    function closePhotoModal() { 
+      photoModalOverlay.classList.remove('active');
+      const gridContainer = document.getElementById('photosContainer');
+      if (gridContainer) gridContainer.style.pointerEvents = 'auto';
+    }
 
     function compressToDataURL(file, maxWidth = 900, quality = 0.65) {
       return new Promise((resolve, reject) => {
@@ -2119,13 +2123,15 @@
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
 
-      // איפוס מוחלט של אירועי גלילה ואינטראקציה ברקע לפתרון נעילת הגלילה
+      // איפוס מוחלט של אירועי גלילה ברקע
       setTimeout(() => {
         const gridContainer = document.getElementById('photosContainer');
         if (gridContainer) {
           gridContainer.style.pointerEvents = 'auto';
+          gridContainer.style.overflowY = 'auto';
         }
-      }, 50);
+        document.body.style.overflow = 'hidden';
+      }, 30);
     }
 
     window.handlePhotoAreaTap = function(e) {
@@ -2350,6 +2356,11 @@
 
     function closeCommentModal() {
       commentModalOverlay.classList.remove('active');
+      const gridContainer = document.getElementById('photosContainer');
+      if (gridContainer) {
+        gridContainer.style.pointerEvents = 'auto';
+        gridContainer.style.overflowY = 'auto';
+      }
     }
 
     commentForm.addEventListener('submit', async (e) => {
