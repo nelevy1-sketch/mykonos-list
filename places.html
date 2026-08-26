@@ -1,11 +1,11 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.19.0
+  VERSION: v4.20.1
   UPDATED: August 2026
-  CHANGELOG v4.19.0:
-    - Added "סופרמרקט / מכולת 🛒" category to places modal.
-    - Dynamic place category filter bar: Now filters out and hides empty categories automatically, showing only categories that actually have saved places.
+  CHANGELOG v4.20.1:
+    - Fixed slow loading bug by properly enforcing the 21-photo initial pagination limit on the live listener.
+    - Optimized gallery render cycle to prevent UI blocking on heavy Base64 documents.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -13,8 +13,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.19.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.19.0)</title>
+  <meta name="app-version" content="4.20.1" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.20.1)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -220,26 +220,6 @@
       padding: 2px 6px;
       border-radius: 6px;
       font-weight: 700;
-    }
-
-    .btn-open-modal {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      padding: 11px 16px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.18);
-    }
-
-    .btn-open-modal:active {
-      transform: scale(0.98);
     }
 
     /* Floating add button */
@@ -525,7 +505,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID (EQUAL SQUARES & 6PX GAPS) ================= */
+    /* ================= PHOTOS GRID ================= */
     .photos-grid {
       display: flex;
       flex-wrap: wrap;
@@ -1294,7 +1274,6 @@
     }
 
     .identity-chip:active {
-      body { background: var(--primary-soft); }
       background: var(--primary-soft);
       border-color: var(--primary);
       color: var(--primary);
@@ -1316,12 +1295,11 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.20.0</span>
+          <span class="version-tag">v4.20.1</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
 
-        <!-- Dynamic filters bar: only shows categories that actually exist in saved places -->
         <div class="filters-bar" id="placesFilters"></div>
       </div>
 
@@ -1335,7 +1313,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.20.0</span>
+          <span class="version-tag">v4.20.1</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1359,7 +1337,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.20.0</span>
+          <span class="version-tag">v4.20.1</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1595,7 +1573,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.20.0";
+    const APP_VERSION = "4.20.1";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1683,7 +1661,7 @@
 
     // Identity gate
     function getSelectedUser() {
-      return localStorage.getItem('mykonos_user'] || '';
+      return localStorage.getItem('mykonos_user') || '';
     }
 
     function setSelectedUser(name) {
@@ -1926,7 +1904,6 @@
       renderPlaces();
     }, () => showToast('שגיאה בסנכרון מקומות', 'error'));
 
-    // יוצר דינמית רק את פילטר הקטגוריות שקיימות בפועל במסד הנתונים
     function updatePlacesFiltersBar() {
       const bar = document.getElementById('placesFilters');
       if (!bar) return;
@@ -2314,7 +2291,7 @@
     });
 
     // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות
+    // 3. גלריית תמונות ותגובות (עם חלוקה לעמודים מוגבלת לטעינה מהירה)
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
@@ -3116,7 +3093,7 @@
 
         showToast('התמונה תימחק בעוד כמה שניות', 'warning', () => {
           clearTimeout(timerId);
-          pendingPhotoDeletes.delete(id);
+          pendingPhotoDeletes.delete(currentId);
           renderPhotos();
         });
       });
