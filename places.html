@@ -1,8 +1,13 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.14.0
+  VERSION: v4.14.1
   UPDATED: August 2026
+  CHANGELOG v4.14.1:
+    - Places form: category dropdown no longer silently defaults to
+      "חוף" (beach) - it now opens on a real placeholder that forces
+      an explicit choice, and the form blocks submission (with a
+      toast) if no category was picked.
   CHANGELOG v4.14.0:
     - Structural attempt at the recurring scroll/tap freeze after
       opening+closing a photo (confirmed to happen with no keyboard
@@ -85,8 +90,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.14.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.14.0)</title>
+  <meta name="app-version" content="4.14.1" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.14.1)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1347,7 +1352,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.14.0</span>
+          <span class="version-tag">v4.14.1</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1373,7 +1378,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.14.0</span>
+          <span class="version-tag">v4.14.1</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1397,7 +1402,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.14.0</span>
+          <span class="version-tag">v4.14.1</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1446,7 +1451,8 @@
       <form id="placeForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="placeEditId" value="" />
         <div class="row-inputs">
-          <select class="select-field" id="placeCategory" style="width: 130px; flex-shrink: 0;">
+          <select class="select-field" id="placeCategory" style="width: 130px; flex-shrink: 0;" required>
+            <option value="" disabled selected>קטגוריה *</option>
             <option value="חוף">חוף 🏖️</option>
             <option value="קלאב">קלאב 🪩</option>
             <option value="בר">בר 🍸</option>
@@ -1615,7 +1621,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.14.0";
+    const APP_VERSION = "4.14.1";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -2006,7 +2012,7 @@
 
       placeEditIdInput.value = p.id;
       document.getElementById('placeName').value = p.name || '';
-      document.getElementById('placeCategory').value = p.category || 'חוף';
+      document.getElementById('placeCategory').value = p.category || '';
       document.getElementById('placeLink').value = p.link || '';
       document.getElementById('placeNote').value = p.note || '';
 
@@ -2091,6 +2097,10 @@
       const note = document.getElementById('placeNote').value.trim();
 
       if (!name) return;
+      if (!category) {
+        showToast('יש לבחור קטגוריה', 'warning');
+        return;
+      }
       closePlaceModal();
 
       if (editId) {
