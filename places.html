@@ -1,8 +1,17 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.17.0
+  VERSION: v4.18.0
   UPDATED: August 2026
+  CHANGELOG v4.18.0:
+    - Photo captions are now editable after upload. A pencil icon next
+      to the delete button in the lightbox (owner-only, same
+      permission gate as delete) opens a small modal to change the
+      caption - or add one, if it was left blank at upload time.
+      Optimistic update with rollback on failure, like the rest of the
+      app's edit flows. Uses the same showOverlay()/hideOverlay()
+      pattern as every other modal, to stay consistent with the
+      scroll-freeze fix.
   CHANGELOG v4.17.0:
     - Photo upload now accepts multiple files at once (compatible with
       the current storage shape as-is - each photo is already its own
@@ -116,8 +125,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.17.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.17.0)</title>
+  <meta name="app-version" content="4.18.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.18.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1437,7 +1446,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.17.0</span>
+          <span class="version-tag">v4.18.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1463,7 +1472,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.17.0</span>
+          <span class="version-tag">v4.18.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1487,7 +1496,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.17.0</span>
+          <span class="version-tag">v4.18.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1637,6 +1646,27 @@
     </div>
   </div>
 
+  <!-- ================= CAPTION EDIT MODAL ================= -->
+  <div class="modal-overlay" id="captionModalOverlay" onclick="handleOverlayClick(event, 'captionModalOverlay')">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">עריכת כיתוב 📝</div>
+        <button class="btn-close-modal" onclick="closeCaptionEditModal()">✕</button>
+      </div>
+
+      <form id="captionEditForm" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="text" class="input-field" id="captionEditInput" placeholder="כיתוב לתמונה (אפשר להשאיר ריק)" maxlength="200" />
+
+        <div class="modal-buttons">
+          <button type="submit" class="btn-submit btn-editing" id="captionEditSubmitBtn">
+            <span>✓</span> שמור כיתוב
+          </button>
+          <button type="button" class="btn-cancel" onclick="closeCaptionEditModal()">ביטול</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= COMMENT ACTION SHEET (EDIT/DELETE) ================= -->
   <div class="comment-action-sheet" id="commentActionSheet" onclick="closeCommentActionSheet()">
     <div class="comment-action-dialog" onclick="event.stopPropagation()">
@@ -1652,6 +1682,7 @@
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
 
       <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="lightboxEditCaptionBtn" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="event.stopPropagation(); openCaptionEditModal();" title="ערוך כיתוב">✏️</button>
         <button id="lightboxDeleteBtn" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">🗑️</button>
         <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white; width: 34px; height: 34px;" onclick="closeLightbox()">✕</button>
       </div>
@@ -1706,7 +1737,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.17.0";
+    const APP_VERSION = "4.18.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1952,6 +1983,7 @@
         if (overlayId === 'trackModalOverlay') closeTrackModal();
         if (overlayId === 'photoModalOverlay') closePhotoModal();
         if (overlayId === 'commentModalOverlay') closeCommentModal();
+        if (overlayId === 'captionModalOverlay') closeCaptionEditModal();
       }
     }
 
@@ -2900,6 +2932,7 @@
     const lightboxCaption = document.getElementById('lightboxCaption');
     const lightboxAuthor = document.getElementById('lightboxAuthor');
     const lightboxDeleteBtn = document.getElementById('lightboxDeleteBtn');
+    const lightboxEditCaptionBtn = document.getElementById('lightboxEditCaptionBtn');
     const lightboxCommentsList = document.getElementById('lightboxCommentsList');
     const lightboxFooter = document.getElementById('lightboxFooter');
     const lightboxContentArea = document.getElementById('lightboxContentArea');
@@ -2913,6 +2946,59 @@
 
     const commentActionSheet = document.getElementById('commentActionSheet');
     let selectedCommentIndexForAction = null;
+
+    const captionModalOverlay = document.getElementById('captionModalOverlay');
+    const captionEditForm = document.getElementById('captionEditForm');
+    const captionEditInput = document.getElementById('captionEditInput');
+
+    window.openCaptionEditModal = function() {
+      if (!activeLightboxPhotoId) return;
+      const p = photosData.find(item => item.id === activeLightboxPhotoId);
+      if (!p) return;
+      if (p.sharer !== getSelectedUser()) {
+        showToast('רק מי שהעלה את התמונה יכול לערוך את הכיתוב', 'warning');
+        return;
+      }
+      captionEditInput.value = p.caption || '';
+      showOverlay(captionModalOverlay);
+    };
+
+    function closeCaptionEditModal() {
+      blurActiveInput();
+      hideOverlay(captionModalOverlay);
+    }
+    window.closeCaptionEditModal = closeCaptionEditModal;
+
+    captionEditForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!activeLightboxPhotoId) return;
+      const photoId = activeLightboxPhotoId;
+      const p = photosData.find(item => item.id === photoId);
+      if (!p) return;
+
+      const newCaption = captionEditInput.value.trim();
+      const previousCaption = p.caption || '';
+      closeCaptionEditModal();
+
+      if (newCaption === previousCaption) return; // nothing changed, skip the write
+
+      // Optimistic: update immediately, both in the open lightbox and
+      // in the grid tile behind it.
+      p.caption = newCaption;
+      updateLightboxContent(photoId);
+      const tileImg = document.querySelector(`.photo-tile[data-id="${photoId}"] .photo-thumb`);
+      if (tileImg) tileImg.setAttribute('alt', newCaption);
+
+      try {
+        await photosRef.doc(photoId).update({ caption: newCaption });
+        showToast('הכיתוב עודכן ✓', 'success');
+      } catch (err) {
+        // revert on failure
+        p.caption = previousCaption;
+        if (activeLightboxPhotoId === photoId) updateLightboxContent(photoId);
+        showToast('שגיאה בעדכון הכיתוב', 'error');
+      }
+    });
 
     function openLightbox(id) {
       activeLightboxPhotoId = id;
@@ -3032,11 +3118,9 @@
       lightboxCaption.style.display = p.caption ? 'block' : 'none';
 
       const currentUser = getSelectedUser();
-      if (p.sharer === currentUser && currentUser !== '') {
-        lightboxDeleteBtn.style.display = 'flex';
-      } else {
-        lightboxDeleteBtn.style.display = 'none';
-      }
+      const isOwner = p.sharer === currentUser && currentUser !== '';
+      lightboxDeleteBtn.style.display = isOwner ? 'flex' : 'none';
+      lightboxEditCaptionBtn.style.display = isOwner ? 'flex' : 'none';
 
       const reacts = p.reactions || {};
       document.getElementById('reactCount-fire').textContent = reacts['🔥'] || 0;
@@ -3339,7 +3423,7 @@
     // Init: make sure every overlay actually starts removed from the
     // render tree (display:none), not just invisible via opacity -
     // matches the showOverlay()/hideOverlay() contract everywhere else.
-    ['confirmOverlay', 'placeModalOverlay', 'trackModalOverlay', 'photoModalOverlay', 'commentModalOverlay', 'commentActionSheet', 'lightboxModal']
+    ['confirmOverlay', 'placeModalOverlay', 'trackModalOverlay', 'photoModalOverlay', 'commentModalOverlay', 'commentActionSheet', 'lightboxModal', 'captionModalOverlay']
       .forEach(id => {
         const el = document.getElementById(id);
         if (el && !el.classList.contains('active')) el.style.display = 'none';
