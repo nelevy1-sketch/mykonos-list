@@ -1,8 +1,32 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.11.0
+  VERSION: v4.13.1
   UPDATED: August 2026
+  CHANGELOG v4.13.1:
+    - Moved the floating add button to the bottom-right.
+  CHANGELOG v4.13.0:
+    - Replaced the per-tab pinned "add" button with a single floating
+      action button (bottom-left), always reachable one-handed without
+      scrolling back to the top. Color/icon/action switch per active
+      tab. Sits below every overlay's z-index, so modals/lightbox
+      automatically cover it - no manual show/hide needed.
+    - Bumped scroll-container bottom padding so the last row of
+      content can clear the FAB.
+  CHANGELOG v4.12.0:
+    - Root cause found: the freeze happens even with no keyboard
+      involved at all (confirmed by simply opening/closing a photo).
+      That points squarely at `-webkit-overflow-scrolling: touch` -
+      a legacy iOS property that forces its own compositing layer for
+      momentum scrolling, and is well known to get that layer "stuck"
+      when a position:fixed + backdrop-filter overlay above it
+      (the lightbox, in this app) opens and closes. Removed it from
+      all three scroll containers (.items-list, .photos-grid,
+      .comments-list). Modern iOS (13+) scrolls momentum-style on
+      overflow:auto natively without it, so this should have no
+      visual downside - just removes the thing most likely causing
+      the freeze. Kept the earlier JS reflow/blur fixes in place too,
+      since they're harmless and cover other edge cases.
   CHANGELOG v4.11.0:
     - Real cause of the "whole screen frozen after exiting a comment"
       report: most likely the iOS keyboard-dismiss + fixed 100dvh
@@ -47,8 +71,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.11.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.11.0)</title>
+  <meta name="app-version" content="4.13.1" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.13.1)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -239,6 +263,45 @@
       box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
     }
 
+    /* Floating add button - always reachable without scrolling back
+       to the top, and reachable one-handed near the bottom of the
+       screen. Color/icon/action switch per active tab via JS. */
+    .fab-add {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(0, 102, 204, 0.38);
+      z-index: 900;
+      transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    }
+
+    .fab-add:active {
+      transform: scale(0.92);
+    }
+
+    .fab-add.fab-music {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      box-shadow: 0 8px 22px rgba(79, 70, 229, 0.4);
+    }
+
+    .fab-add.fab-photo {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      box-shadow: 0 8px 22px rgba(236, 72, 153, 0.4);
+    }
+
     .filters-bar {
       display: flex;
       gap: 6px;
@@ -280,8 +343,7 @@
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-bottom: 24px;
-      -webkit-overflow-scrolling: touch;
+      padding-bottom: 84px;
       scrollbar-width: thin;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -490,8 +552,7 @@
       align-content: flex-start;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-bottom: 24px;
-      -webkit-overflow-scrolling: touch;
+      padding-bottom: 84px;
       scrollbar-width: thin;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -760,7 +821,6 @@
       overflow-y: auto;
       padding-right: 1px;
       scrollbar-width: thin;
-      -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
     }
@@ -1273,14 +1333,10 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.11.0</span>
+          <span class="version-tag">v4.13.1</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
-
-        <button class="btn-open-modal" onclick="openPlaceModal()">
-          <span>+</span> הוסף מקום או רשימה חדשה
-        </button>
 
         <div class="filters-bar" id="placesFilters">
           <button class="filter-chip active" data-filter="all">הכל</button>
@@ -1303,14 +1359,10 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.11.0</span>
+          <span class="version-tag">v4.13.1</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
-
-        <button class="btn-open-modal btn-music-open" onclick="openTrackModal()">
-          <span>+</span> הוסף שיר / פלייליסט לפסקול
-        </button>
 
         <div class="filters-bar" id="musicFilters">
           <button class="filter-chip active" data-platform="all">הכל 🎶</button>
@@ -1331,14 +1383,10 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.11.0</span>
+          <span class="version-tag">v4.13.1</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
-
-        <button class="btn-open-modal btn-photo-open" onclick="openPhotoModal()">
-          <span>+</span> שתף תמונה מהרגע
-        </button>
 
         <div class="filters-bar" id="photosAuthorFilters">
           <button class="filter-chip active" data-author="all">הכל 📸</button>
@@ -1351,6 +1399,17 @@
         <div class="skeleton" style="aspect-ratio: 1/1;"></div>
       </div>
     </div>
+
+    <!-- ================= FLOATING ADD BUTTON ================= -->
+    <!-- One FAB, always reachable regardless of scroll position.
+         Its color, icon and action switch per active tab (see
+         switchTab() in the script). Sits at a lower z-index than
+         every overlay in the app, so it's automatically covered
+         whenever a modal/lightbox/confirm dialog is open - no manual
+         show/hide bookkeeping needed. -->
+    <button class="fab-add" id="fabAddBtn" onclick="openAddForActiveTab()" aria-label="הוסף מקום חדש" title="הוסף">
+      <span id="fabAddIcon">+</span>
+    </button>
   </div>
 
   <!-- ================= IDENTITY GATE ================= -->
@@ -1542,7 +1601,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.11.0";
+    const APP_VERSION = "4.13.1";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1783,7 +1842,42 @@
         document.querySelector('.nav-tabs button:nth-child(3)').classList.add('active');
         document.getElementById('tab-photos').classList.add('active');
       }
+
+      updateFabForTab(tabId);
     }
+
+    // -------------------------------------------------------------
+    // Floating add button - one button, action/color/icon swap per
+    // active tab instead of a separate pinned button per tab.
+    // -------------------------------------------------------------
+    const FAB_CONFIG = {
+      places: { cssClass: '', icon: '+', label: 'הוסף מקום חדש' },
+      music: { cssClass: 'fab-music', icon: '+', label: 'הוסף שיר לפסקול' },
+      photos: { cssClass: 'fab-photo', icon: '+', label: 'שתף תמונה' }
+    };
+
+    function updateFabForTab(tabId) {
+      const fab = document.getElementById('fabAddBtn');
+      const icon = document.getElementById('fabAddIcon');
+      if (!fab || !icon) return;
+      const cfg = FAB_CONFIG[tabId] || FAB_CONFIG.places;
+
+      fab.classList.remove('fab-music', 'fab-photo');
+      if (cfg.cssClass) fab.classList.add(cfg.cssClass);
+      icon.textContent = cfg.icon;
+      fab.setAttribute('aria-label', cfg.label);
+      fab.setAttribute('title', cfg.label);
+    }
+
+    window.openAddForActiveTab = function() {
+      if (document.getElementById('tab-places').classList.contains('active')) {
+        openPlaceModal();
+      } else if (document.getElementById('tab-music').classList.contains('active')) {
+        openTrackModal();
+      } else {
+        openPhotoModal();
+      }
+    };
 
     // -------------------------------------------------------------
     // Confirm Delete Dialog Logic
@@ -1883,7 +1977,7 @@
       }
 
       if (placesData.length === 0) {
-        container.innerHTML = syncEmptyStateHTML(placesSync, `<div class="empty-state">הרשימה עדיין ריקה. לחצו למעלה להוספת מקום! 🇬🇷</div>`);
+        container.innerHTML = syncEmptyStateHTML(placesSync, `<div class="empty-state">הרשימה עדיין ריקה. לחצו על + להוספת מקום! 🇬🇷</div>`);
         return;
       }
 
@@ -2114,7 +2208,7 @@
       }
 
       if (tracksData.length === 0) {
-        container.innerHTML = syncEmptyStateHTML(tracksSync, `<div class="empty-state">הפסקול ריק. לחצו למעלה להוספת טראק ראשון! 🎧</div>`);
+        container.innerHTML = syncEmptyStateHTML(tracksSync, `<div class="empty-state">הפסקול ריק. לחצו על + להוספת טראק ראשון! 🎧</div>`);
         return;
       }
 
@@ -3052,6 +3146,9 @@
         if (label) label.textContent = saved;
       }
     })();
+
+    // Init: FAB matches the default active tab (places) on first paint.
+    updateFabForTab('places');
 
     // -------------------------------------------------------------
     // Global safety net for the keyboard-dismiss freeze.
