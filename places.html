@@ -1,8 +1,15 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.8.0
+  VERSION: v4.9.0
   UPDATED: August 2026
+  CHANGELOG v4.9.0:
+    - Distinguish Firestore cache-only snapshots from server-confirmed
+      ones (places/tracks/photos), so a freshly-loading device no
+      longer flashes a false "list is empty" before real data arrives.
+    - Empty states now show an honest "syncing..." message until the
+      server has actually confirmed there is nothing there, with a
+      connectivity hint if it's taking unusually long.
   CHANGELOG v4.8.0:
     - Real scroll-unstick fix (forced reflow) after Lightbox / comment modal / action sheet close.
     - Avoid full comment-list re-render on likes-only realtime updates (fixes flicker for other viewers).
@@ -23,8 +30,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.8.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.8.0)</title>
+  <meta name="app-version" content="4.9.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.9.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1230,7 +1237,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.8.0</span>
+          <span class="version-tag">v4.9.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1260,7 +1267,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.8.0</span>
+          <span class="version-tag">v4.9.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1288,7 +1295,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.8.0</span>
+          <span class="version-tag">v4.9.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1499,7 +1506,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.8.0";
+    const APP_VERSION = "4.9.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1522,6 +1529,61 @@
       el.scrollTop = st + 1;
       el.scrollTop = st;
       el.style.pointerEvents = 'auto';
+    }
+
+    // -------------------------------------------------------------
+    // Sync-state tracking.
+    //
+    // Firestore's onSnapshot() usually fires FIRST with whatever is
+    // already in the local cache (snapshot.metadata.fromCache ===
+    // true), and only afterwards with server-confirmed data. On a
+    // fresh device/session the cache is empty, so that first callback
+    // legitimately has zero documents - but it does NOT mean the
+    // real list is empty. Without tracking this, we were marking
+    // "loaded" on that first (cache) callback and immediately showing
+    // "the list is empty", which then popped to real content a moment
+    // later. That's the flash-of-empty-state bug.
+    //
+    // createSyncState() gives each collection its own tri-state:
+    //   loaded            - we've received *any* snapshot (cache or server)
+    //   serverConfirmed   - we've received a snapshot straight from the server
+    //   showSlowHint      - server confirmation is taking a while; hint at connectivity
+    // -------------------------------------------------------------
+    function createSyncState(renderFn, slowMs = 6000) {
+      const state = {
+        loaded: false,
+        serverConfirmed: false,
+        showSlowHint: false,
+        slowTimer: null,
+        // Call once per onSnapshot callback, before you touch your own
+        // data arrays. Returns true if server confirmation just arrived
+        // on THIS callback (useful to know whether to force a render
+        // even when no documents actually changed).
+        onSnapshotMeta(snapshot) {
+          state.loaded = true;
+          const justConfirmed = !state.serverConfirmed && !snapshot.metadata.fromCache;
+          if (!snapshot.metadata.fromCache) {
+            state.serverConfirmed = true;
+            state.showSlowHint = false;
+            if (state.slowTimer) { clearTimeout(state.slowTimer); state.slowTimer = null; }
+          } else if (!state.serverConfirmed && !state.slowTimer) {
+            state.slowTimer = setTimeout(() => {
+              state.slowTimer = null;
+              state.showSlowHint = true;
+              renderFn();
+            }, slowMs);
+          }
+          return justConfirmed;
+        }
+      };
+      return state;
+    }
+
+    function syncEmptyStateHTML(sync, confirmedEmptyHTML) {
+      if (!sync.serverConfirmed) {
+        return `<div class="empty-state">⏳ מסנכרן עם השרת...${sync.showSlowHint ? '<br><span style="font-size:0.72rem; opacity:0.85;">לוקח יותר זמן מהרגיל - בדקו את החיבור לרשת</span>' : ''}</div>`;
+      }
+      return confirmedEmptyHTML;
     }
 
     // -------------------------------------------------------------
@@ -1696,8 +1758,8 @@
     // -------------------------------------------------------------
     let placesData = [];
     let currentPlaceFilter = 'all';
-    let isPlacesLoaded = false;
     const pendingPlaceDeletes = new Set();
+    const placesSync = createSyncState(() => renderPlaces());
 
     const placeModalOverlay = document.getElementById('placeModalOverlay');
     const placeModalTitle = document.getElementById('placeModalTitle');
@@ -1734,8 +1796,8 @@
       placeModalOverlay.classList.add('active');
     };
 
-    placesRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-      isPlacesLoaded = true;
+    placesRef.orderBy('createdAt', 'desc').onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      placesSync.onSnapshotMeta(snapshot);
       placesData = [];
       snapshot.forEach(doc => { placesData.push({ id: doc.id, ...doc.data() }); });
       renderPlaces();
@@ -1745,13 +1807,13 @@
       const container = document.getElementById('placesContainer');
       container.innerHTML = '';
 
-      if (!isPlacesLoaded) {
+      if (!placesSync.loaded) {
         container.innerHTML = '<div class="skeleton" style="height: 60px;"></div><div class="skeleton" style="height: 60px;"></div>';
         return;
       }
 
       if (placesData.length === 0) {
-        container.innerHTML = `<div class="empty-state">הרשימה עדיין ריקה. לחצו למעלה להוספת מקום! 🇬🇷</div>`;
+        container.innerHTML = syncEmptyStateHTML(placesSync, `<div class="empty-state">הרשימה עדיין ריקה. לחצו למעלה להוספת מקום! 🇬🇷</div>`);
         return;
       }
 
@@ -1870,8 +1932,8 @@
     // -------------------------------------------------------------
     let tracksData = [];
     let currentMusicFilter = 'all';
-    let isMusicLoaded = false;
     const pendingTrackDeletes = new Set();
+    const tracksSync = createSyncState(() => renderTracks());
 
     const trackModalOverlay = document.getElementById('trackModalOverlay');
     const trackModalTitle = document.getElementById('trackModalTitle');
@@ -1962,8 +2024,8 @@
       }
     });
 
-    tracksRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-      isMusicLoaded = true;
+    tracksRef.orderBy('createdAt', 'desc').onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      tracksSync.onSnapshotMeta(snapshot);
       tracksData = [];
       snapshot.forEach(doc => {
         const data = doc.data();
@@ -1976,13 +2038,13 @@
       const container = document.getElementById('musicContainer');
       container.innerHTML = '';
 
-      if (!isMusicLoaded) {
+      if (!tracksSync.loaded) {
         container.innerHTML = '<div class="skeleton" style="height: 60px;"></div><div class="skeleton" style="height: 60px;"></div>';
         return;
       }
 
       if (tracksData.length === 0) {
-        container.innerHTML = `<div class="empty-state">הפסקול ריק. לחצו למעלה להוספת טראק ראשון! 🎧</div>`;
+        container.innerHTML = syncEmptyStateHTML(tracksSync, `<div class="empty-state">הפסקול ריק. לחצו למעלה להוספת טראק ראשון! 🎧</div>`);
         return;
       }
 
@@ -2109,9 +2171,9 @@
     // -------------------------------------------------------------
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
-    let isPhotosLoaded = false;
     let activeLightboxPhotoId = null;
     const pendingPhotoDeletes = new Set();
+    const photosSync = createSyncState(() => renderPhotos());
 
     const photoModalOverlay = document.getElementById('photoModalOverlay');
     const photoForm = document.getElementById('photoForm');
@@ -2302,8 +2364,8 @@
       // grid stats are cheap to recompute wholesale on next renderPhotos(); skip here.
     }
 
-    photosRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-      isPhotosLoaded = true;
+    photosRef.orderBy('createdAt', 'desc').onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      const justConfirmed = photosSync.onSnapshotMeta(snapshot);
       let needsFullRerender = false;
       let likesOnlyPatchDoc = null;
 
@@ -2340,6 +2402,12 @@
         if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
       } else if (likesOnlyPatchDoc) {
         patchLikesOnly(likesOnlyPatchDoc);
+      } else if (justConfirmed) {
+        // No documents actually changed on this callback, but we just
+        // moved from "cache only" to "server confirmed" - re-render so
+        // an honest "syncing..." message can flip to a confirmed
+        // "gallery is empty" message (or just stop showing the spinner).
+        renderPhotos();
       }
     }, () => showToast('שגיאה בסנכרון גלריה', 'error'));
 
@@ -2353,7 +2421,7 @@
     function renderPhotos() {
       const container = document.getElementById('photosContainer');
 
-      if (!isPhotosLoaded) {
+      if (!photosSync.loaded) {
         container.innerHTML = `
           <div class="skeleton" style="aspect-ratio: 1/1; width: calc((100% - 12px) / 3);"></div>
           <div class="skeleton" style="aspect-ratio: 1/1; width: calc((100% - 12px) / 3);"></div>
@@ -2365,7 +2433,15 @@
       const filtered = getFilteredPhotos();
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state">${currentPhotoAuthorFilter === 'all' ? 'אין תמונות עדיין בגלריה!' : `אין תמונות ששותפו על ידי ${escapeHTML(currentPhotoAuthorFilter)}`} 📸</div>`;
+        // Only apply the "still syncing" wording to the unfiltered view -
+        // an author-filtered empty result is a real, immediate fact
+        // (this person has no photos in the already-loaded set), not a
+        // sync-timing ambiguity.
+        if (currentPhotoAuthorFilter === 'all') {
+          container.innerHTML = syncEmptyStateHTML(photosSync, `<div class="empty-state">אין תמונות עדיין בגלריה! 📸</div>`);
+        } else {
+          container.innerHTML = `<div class="empty-state">אין תמונות ששותפו על ידי ${escapeHTML(currentPhotoAuthorFilter)} 📸</div>`;
+        }
         return;
       }
 
