@@ -1,8 +1,15 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.15.0
+  VERSION: v4.16.0
   UPDATED: August 2026
+  CHANGELOG v4.16.0:
+    - Places tab moved off blue entirely (was too close to music's
+      blue-violet accent) to a warm gold/bronze
+      (linear-gradient #b45309 -> #78350f) - a different color
+      temperature, not just a different shade of the same hue.
+      Applied to the active nav tab button, active filter chips,
+      header title, "navigate" card action, and the FAB.
   CHANGELOG v4.15.0:
     - Gave the places and music tabs distinct color identities instead
       of both defaulting to the same blue: places stays primary blue,
@@ -98,8 +105,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.15.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.15.0)</title>
+  <meta name="app-version" content="4.16.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.16.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -191,7 +198,16 @@
 
     /* Per-tab color identity, matching the FAB's colors below, so the
        whole tab (nav button, filters, header) reads as one visual
-       set instead of three tabs that all just turn "blue" together. */
+       set instead of three tabs that all just turn "blue" together.
+       Places gets a warm gold/bronze instead of blue specifically -
+       blue and blue-violet (music) read too close to each other at a
+       glance, so places moves to a different color temperature
+       entirely rather than just a different shade of the same one. */
+    .tab-btn-places.active {
+      background: linear-gradient(135deg, #b45309, #78350f);
+      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.32);
+    }
+
     .tab-btn-music.active {
       background: linear-gradient(135deg, #0284c7, #4f46e5);
       box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
@@ -202,8 +218,15 @@
       box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
     }
 
+    #tab-places .header-card h1 { color: #92400e; }
     #tab-music .header-card h1 { color: #4f46e5; }
     #tab-photos .header-card h1 { color: #d6399e; }
+
+    #placesFilters .filter-chip.active {
+      background: linear-gradient(135deg, #b45309, #78350f);
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(180, 83, 9, 0.32);
+    }
 
     #musicFilters .filter-chip.active {
       background: linear-gradient(135deg, #0284c7, #4f46e5);
@@ -215,6 +238,11 @@
       background: linear-gradient(135deg, #ec4899, #8b5cf6);
       border-color: transparent;
       box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+    }
+
+    #placesContainer .btn-action {
+      background: #fef3c7;
+      color: #92400e;
     }
 
     #musicContainer .btn-action {
@@ -350,6 +378,11 @@
 
     .fab-add:active {
       transform: scale(0.92);
+    }
+
+    .fab-add.fab-places {
+      background: linear-gradient(135deg, #b45309, #78350f);
+      box-shadow: 0 8px 22px rgba(180, 83, 9, 0.4);
     }
 
     .fab-add.fab-music {
@@ -1393,7 +1426,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.15.0</span>
+          <span class="version-tag">v4.16.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1419,7 +1452,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.15.0</span>
+          <span class="version-tag">v4.16.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1443,7 +1476,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.15.0</span>
+          <span class="version-tag">v4.16.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1662,7 +1695,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.15.0";
+    const APP_VERSION = "4.16.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1954,7 +1987,7 @@
     // active tab instead of a separate pinned button per tab.
     // -------------------------------------------------------------
     const FAB_CONFIG = {
-      places: { cssClass: '', icon: '+', label: 'הוסף מקום חדש' },
+      places: { cssClass: 'fab-places', icon: '+', label: 'הוסף מקום חדש' },
       music: { cssClass: 'fab-music', icon: '+', label: 'הוסף שיר לפסקול' },
       photos: { cssClass: 'fab-photo', icon: '+', label: 'שתף תמונה' }
     };
@@ -1965,7 +1998,7 @@
       if (!fab || !icon) return;
       const cfg = FAB_CONFIG[tabId] || FAB_CONFIG.places;
 
-      fab.classList.remove('fab-music', 'fab-photo');
+      fab.classList.remove('fab-places', 'fab-music', 'fab-photo');
       if (cfg.cssClass) fab.classList.add(cfg.cssClass);
       icon.textContent = cfg.icon;
       fab.setAttribute('aria-label', cfg.label);
