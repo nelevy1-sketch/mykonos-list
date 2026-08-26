@@ -1,8 +1,22 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.13.1
+  VERSION: v4.14.0
   UPDATED: August 2026
+  CHANGELOG v4.14.0:
+    - Structural attempt at the recurring scroll/tap freeze after
+      opening+closing a photo (confirmed to happen with no keyboard
+      involved at all, ruling out the earlier keyboard/100dvh theory,
+      and still happened after removing -webkit-overflow-scrolling).
+      Root theory this time: every overlay (lightbox, all modals,
+      comment action sheet, confirm dialog) stayed `display:flex` in
+      the DOM PERMANENTLY, just faded to opacity:0 - a full-viewport,
+      backdrop-filter-blurred, position:fixed layer sitting directly
+      above the scrollable grid at all times, even when "closed". Now
+      every overlay is actually removed from the render tree
+      (display:none) once its close transition finishes, via new
+      showOverlay()/hideOverlay() helpers used everywhere instead of
+      raw classList.add/remove('active').
   CHANGELOG v4.13.1:
     - Moved the floating add button to the bottom-right.
   CHANGELOG v4.13.0:
@@ -71,8 +85,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.13.1" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.13.1)</title>
+  <meta name="app-version" content="4.14.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.14.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1333,7 +1347,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.13.1</span>
+          <span class="version-tag">v4.14.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1359,7 +1373,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.13.1</span>
+          <span class="version-tag">v4.14.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1383,7 +1397,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.13.1</span>
+          <span class="version-tag">v4.14.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1601,7 +1615,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.13.1";
+    const APP_VERSION = "4.14.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -1658,6 +1672,48 @@
         forceReflow(el);
         requestAnimationFrame(() => forceReflow(el));
       });
+    }
+
+    // -------------------------------------------------------------
+    // Overlay show/hide via `display`, not just opacity.
+    //
+    // Every previous attempt (forced reflow, blur-before-close,
+    // dropping -webkit-overflow-scrolling) assumed the freeze was
+    // about a scroll-momentum compositing layer specifically. It kept
+    // recurring, including with no keyboard involved at all - which
+    // points somewhere more structural: the lightbox (and every other
+    // modal) used opacity + pointer-events to hide, but stayed
+    // `display: flex` in the DOM PERMANENTLY - a full-viewport,
+    // `position: fixed`, `backdrop-filter: blur()` layer sitting
+    // directly above the scrollable grid at all times, just made
+    // invisible. Keeping a heavy blurred compositing layer parked
+    // above a touch-scrolling container (even invisible/inert) is a
+    // known source of iOS Safari hit-testing/compositing bugs.
+    //
+    // Fix: actually remove these overlays from the render tree
+    // (`display: none`) whenever they're closed, not just fade them
+    // out. showOverlay()/hideOverlay() replace direct
+    // classList.add/remove('active') calls on every overlay in the
+    // app (lightbox, all modals, comment action sheet, confirm
+    // dialog) so the opacity transition still animates, but nothing
+    // is left parked over the content underneath once it's done.
+    // -------------------------------------------------------------
+    function showOverlay(el) {
+      if (!el) return;
+      el.style.display = 'flex';
+      // eslint-disable-next-line no-unused-expressions
+      void el.offsetHeight; // make sure "display:flex, opacity:0" paints first
+      requestAnimationFrame(() => el.classList.add('active'));
+    }
+
+    function hideOverlay(el, transitionMs = 300) {
+      if (!el) return;
+      el.classList.remove('active');
+      setTimeout(() => {
+        if (!el.classList.contains('active')) {
+          el.style.display = 'none';
+        }
+      }, transitionMs);
     }
 
     // -------------------------------------------------------------
@@ -1890,11 +1946,11 @@
     function openConfirmDialog(titleText, deleteCallback) {
       confirmTitle.textContent = `למחוק את "${titleText}"?`;
       pendingDeleteAction = deleteCallback;
-      confirmOverlay.classList.add('active');
+      showOverlay(confirmOverlay);
     }
 
     function closeConfirmDialog() {
-      confirmOverlay.classList.remove('active');
+      hideOverlay(confirmOverlay);
       pendingDeleteAction = null;
     }
 
@@ -1938,10 +1994,10 @@
       placeModalTitle.textContent = 'הוספת מקום חדש 📍';
       placeSubmitBtn.innerHTML = '<span>+</span> הוסף לרשימה';
       placeSubmitBtn.classList.remove('btn-editing');
-      placeModalOverlay.classList.add('active');
+      showOverlay(placeModalOverlay);
     }
 
-    function closePlaceModal() { blurActiveInput(); placeModalOverlay.classList.remove('active'); }
+    function closePlaceModal() { blurActiveInput(); hideOverlay(placeModalOverlay); }
 
     window.startEditPlace = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -1957,7 +2013,7 @@
       placeModalTitle.textContent = 'עריכת מקום ✏️';
       placeSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
       placeSubmitBtn.classList.add('btn-editing');
-      placeModalOverlay.classList.add('active');
+      showOverlay(placeModalOverlay);
     };
 
     placesRef.orderBy('createdAt', 'desc').onSnapshot({ includeMetadataChanges: true }, snapshot => {
@@ -2114,10 +2170,10 @@
       trackModalTitle.textContent = 'הוספת מוזיקה לפסקול 🎧';
       trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
       trackSubmitBtn.classList.remove('btn-editing');
-      trackModalOverlay.classList.add('active');
+      showOverlay(trackModalOverlay);
     }
 
-    function closeTrackModal() { blurActiveInput(); trackModalOverlay.classList.remove('active'); }
+    function closeTrackModal() { blurActiveInput(); hideOverlay(trackModalOverlay); }
 
     window.startEditTrack = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -2133,7 +2189,7 @@
       trackModalTitle.textContent = 'עריכת שיר / סט ✏️';
       trackSubmitBtn.innerHTML = '<span>✓</span> שמור שינויים';
       trackSubmitBtn.classList.add('btn-editing');
-      trackModalOverlay.classList.add('active');
+      showOverlay(trackModalOverlay);
     };
 
     function detectPlatform(url) {
@@ -2393,10 +2449,10 @@
     function openPhotoModal() {
       if (!requireIdentity()) return;
       photoForm.reset();
-      photoModalOverlay.classList.add('active');
+      showOverlay(photoModalOverlay);
     }
 
-    function closePhotoModal() { blurActiveInput(); photoModalOverlay.classList.remove('active'); }
+    function closePhotoModal() { blurActiveInput(); hideOverlay(photoModalOverlay); }
 
     // Firestore documents are capped at 1MB. We compress
     // progressively and warn (instead of silently producing a
@@ -2732,12 +2788,12 @@
       activeLightboxPhotoId = id;
       lightboxFooter.classList.remove('expanded');
       updateLightboxContent(id);
-      lightboxModal.classList.add('active');
+      showOverlay(lightboxModal);
     }
 
     function closeLightbox() {
       blurActiveInput();
-      lightboxModal.classList.remove('active');
+      hideOverlay(lightboxModal);
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
 
@@ -2931,7 +2987,7 @@
       commentModalTitle.textContent = `הגבה ל- @${targetAuthor} 💬`;
       commentTextInput.placeholder = `כתוב תגובה ל- @${targetAuthor}...`;
       document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
-      commentModalOverlay.classList.add('active');
+      showOverlay(commentModalOverlay);
     };
 
     window.openAddCommentModal = function() {
@@ -2942,17 +2998,17 @@
       commentModalTitle.textContent = 'הוספת תגובה 💬';
       commentTextInput.placeholder = 'כתוב משהו מצחיק...';
       document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
-      commentModalOverlay.classList.add('active');
+      showOverlay(commentModalOverlay);
     };
 
     window.openCommentActionSheet = function(index) {
       selectedCommentIndexForAction = index;
-      commentActionSheet.classList.add('active');
+      showOverlay(commentActionSheet);
     };
 
     window.closeCommentActionSheet = function() {
       blurActiveInput();
-      commentActionSheet.classList.remove('active');
+      hideOverlay(commentActionSheet);
       selectedCommentIndexForAction = null;
       unstickScroll(lightboxCommentsList);
     };
@@ -3006,12 +3062,12 @@
 
       commentModalTitle.textContent = 'עריכת תגובה ✏️';
       document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שמור שינוי';
-      commentModalOverlay.classList.add('active');
+      showOverlay(commentModalOverlay);
     };
 
     function closeCommentModal() {
       blurActiveInput();
-      commentModalOverlay.classList.remove('active');
+      hideOverlay(commentModalOverlay);
       unstickScroll(lightboxCommentsList);
     }
 
@@ -3149,6 +3205,15 @@
 
     // Init: FAB matches the default active tab (places) on first paint.
     updateFabForTab('places');
+
+    // Init: make sure every overlay actually starts removed from the
+    // render tree (display:none), not just invisible via opacity -
+    // matches the showOverlay()/hideOverlay() contract everywhere else.
+    ['confirmOverlay', 'placeModalOverlay', 'trackModalOverlay', 'photoModalOverlay', 'commentModalOverlay', 'commentActionSheet', 'lightboxModal']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('active')) el.style.display = 'none';
+      });
 
     // -------------------------------------------------------------
     // Global safety net for the keyboard-dismiss freeze.
