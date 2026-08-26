@@ -1,8 +1,16 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.14.1
+  VERSION: v4.15.0
   UPDATED: August 2026
+  CHANGELOG v4.15.0:
+    - Gave the places and music tabs distinct color identities instead
+      of both defaulting to the same blue: places stays primary blue,
+      music moves to an indigo/blue-violet accent (matching its FAB),
+      photos keeps its existing pink/purple accent. Applied to the
+      active nav tab button, each tab's active filter chip, header
+      title color, the music platform badge, and the music "play"
+      button.
   CHANGELOG v4.14.1:
     - Places form: category dropdown no longer silently defaults to
       "חוף" (beach) - it now opens on a real placeholder that forces
@@ -90,8 +98,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.14.1" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.14.1)</title>
+  <meta name="app-version" content="4.15.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.15.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -179,6 +187,39 @@
       background: var(--primary);
       color: white;
       box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
+    }
+
+    /* Per-tab color identity, matching the FAB's colors below, so the
+       whole tab (nav button, filters, header) reads as one visual
+       set instead of three tabs that all just turn "blue" together. */
+    .tab-btn-music.active {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .tab-btn-photos.active {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+    }
+
+    #tab-music .header-card h1 { color: #4f46e5; }
+    #tab-photos .header-card h1 { color: #d6399e; }
+
+    #musicFilters .filter-chip.active {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    #photosAuthorFilters .filter-chip.active {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+    }
+
+    #musicContainer .btn-action {
+      background: #eef2ff;
+      color: #4338ca;
     }
 
     .btn-whoami {
@@ -423,8 +464,8 @@
       font-weight: 700;
       padding: 2px 7px;
       border-radius: 6px;
-      background: #eff6ff;
-      color: #0369a1;
+      background: #eef2ff;
+      color: #4338ca;
     }
 
     .badge-user {
@@ -1342,9 +1383,9 @@
   <div class="container">
     <!-- Fixed Navigation Tabs -->
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות</button>
-      <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול</button>
-      <button class="tab-btn" onclick="switchTab('photos')">📸 תמונות</button>
+      <button class="tab-btn tab-btn-places active" onclick="switchTab('places')">📍 מקומות</button>
+      <button class="tab-btn tab-btn-music" onclick="switchTab('music')">🎧 פסקול</button>
+      <button class="tab-btn tab-btn-photos" onclick="switchTab('photos')">📸 תמונות</button>
       <button class="btn-whoami" id="whoAmIBtn" onclick="openIdentityGate(true)" title="החלף משתמש">👤 <span id="whoAmILabel">בחר שם</span></button>
     </div>
 
@@ -1352,7 +1393,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.14.1</span>
+          <span class="version-tag">v4.15.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1378,7 +1419,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.14.1</span>
+          <span class="version-tag">v4.15.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1402,7 +1443,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.14.1</span>
+          <span class="version-tag">v4.15.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1621,7 +1662,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.14.1";
+    const APP_VERSION = "4.15.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
