@@ -1,8 +1,19 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.16.0
+  VERSION: v4.17.0
   UPDATED: August 2026
+  CHANGELOG v4.17.0:
+    - Photo upload now accepts multiple files at once (compatible with
+      the current storage shape as-is - each photo is already its own
+      Firestore doc, so this is just looping the existing single-photo
+      logic, no migration needed). Uploads go sequentially (not
+      parallel) so weak island wifi doesn't get split across N
+      simultaneous transfers, with honest "X of Y" progress on the
+      submit button. One oversized/failed photo no longer blocks the
+      rest of the batch; a summary toast reports success/fail counts.
+      Soft cap of 20 photos per submit as a guardrail against an
+      accidental full camera-roll selection.
   CHANGELOG v4.16.0:
     - Places tab moved off blue entirely (was too close to music's
       blue-violet accent) to a warm gold/bronze
@@ -105,8 +116,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.16.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.16.0)</title>
+  <meta name="app-version" content="4.17.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.17.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1426,7 +1437,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.16.0</span>
+          <span class="version-tag">v4.17.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1452,7 +1463,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.16.0</span>
+          <span class="version-tag">v4.17.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1476,7 +1487,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.16.0</span>
+          <span class="version-tag">v4.17.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1585,17 +1596,17 @@
   <div class="modal-overlay" id="photoModalOverlay" onclick="handleOverlayClick(event, 'photoModalOverlay')">
     <div class="modal-sheet">
       <div class="modal-header">
-        <div class="modal-title">שיתוף תמונה 📸</div>
+        <div class="modal-title">שיתוף תמונות 📸</div>
         <button class="btn-close-modal" onclick="closePhotoModal()">✕</button>
       </div>
 
       <form id="photoForm" style="display: flex; flex-direction: column; gap: 10px;">
-        <input type="file" id="photoFileInput" accept="image/*" class="input-field" required />
-        <input type="text" class="input-field" id="photoCaption" placeholder="כיתוב קצר (למשל: בסקורפיוס עם כולם 🔥)" />
+        <input type="file" id="photoFileInput" accept="image/*" class="input-field" multiple required />
+        <input type="text" class="input-field" id="photoCaption" placeholder="כיתוב קצר (אופציונלי, יתווסף לכל התמונות שנבחרו)" />
 
         <div class="modal-buttons">
           <button type="submit" class="btn-submit btn-photo-open" id="photoSubmitBtn">
-            <span>+</span> העלה תמונה
+            <span>+</span> העלה תמונות
           </button>
           <button type="button" class="btn-cancel" onclick="closePhotoModal()">ביטול</button>
         </div>
@@ -1695,7 +1706,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.16.0";
+    const APP_VERSION = "4.17.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
@@ -2597,43 +2608,78 @@
       return lastResult;
     }
 
+    // A soft cap on how many photos one submit can push at once - not
+    // a hard technical limit (each photo is its own Firestore doc, so
+    // there's no batch-size wall here), just a guardrail against
+    // accidentally selecting an entire camera roll and hammering the
+    // group's Firestore quota / everyone's live listener with a huge
+    // burst of writes in one go.
+    const MAX_PHOTOS_PER_UPLOAD = 20;
+
     photoForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!requireIdentity()) return;
       const sharer = getSelectedUser();
 
-      const file = photoFileInput.files[0];
+      let files = Array.from(photoFileInput.files || []);
       const caption = document.getElementById('photoCaption').value.trim();
 
-      if (!file) return;
+      if (files.length === 0) return;
+
+      if (files.length > MAX_PHOTOS_PER_UPLOAD) {
+        showToast(`אפשר להעלות עד ${MAX_PHOTOS_PER_UPLOAD} תמונות בבת אחת - מעלה את ה-${MAX_PHOTOS_PER_UPLOAD} הראשונות`, 'warning');
+        files = files.slice(0, MAX_PHOTOS_PER_UPLOAD);
+      }
 
       photoSubmitBtn.disabled = true;
-      photoSubmitBtn.textContent = 'דוחס ומעלה... ⏳';
 
-      try {
-        const base64Image = await compressWithSizeGuard(file);
+      // Sequential, not Promise.all: on the kind of spotty island wifi
+      // this app was built for, firing every compress+upload at once
+      // just contends for the same thin pipe and makes ALL of them
+      // slower with no way to show real progress. One at a time is
+      // slower in theory, faster in practice, and lets the button show
+      // honest "3 of 7" progress instead of a single frozen spinner.
+      let successCount = 0;
+      let failCount = 0;
 
-        if (estimateBase64Bytes(base64Image) > 950 * 1024) {
-          showToast('התמונה גדולה מדי גם אחרי דחיסה - נסו תמונה אחרת', 'error');
-          return;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        photoSubmitBtn.textContent = files.length > 1
+          ? `מעלה תמונה ${i + 1} מתוך ${files.length}... ⏳`
+          : 'דוחס ומעלה... ⏳';
+
+        try {
+          const base64Image = await compressWithSizeGuard(file);
+
+          if (estimateBase64Bytes(base64Image) > 950 * 1024) {
+            failCount++;
+            continue; // one oversized photo shouldn't block the rest of the batch
+          }
+
+          await photosRef.add({
+            url: base64Image,
+            caption,
+            sharer,
+            reactions: { '🔥': 0, '😂': 0, '🍸': 0, '❤️': 0 },
+            comments: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          successCount++;
+        } catch (err) {
+          failCount++;
         }
+      }
 
-        await photosRef.add({
-          url: base64Image,
-          caption,
-          sharer,
-          reactions: { '🔥': 0, '😂': 0, '🍸': 0, '❤️': 0 },
-          comments: [],
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+      photoSubmitBtn.disabled = false;
+      photoSubmitBtn.textContent = '+ העלה תמונות';
+      closePhotoModal();
 
-        closePhotoModal();
-        showToast('התמונה שותפה בגלריה! 📸', 'success');
-      } catch (err) {
-        showToast('שגיאה בהעלאת התמונה', 'error');
-      } finally {
-        photoSubmitBtn.disabled = false;
-        photoSubmitBtn.textContent = '+ העלה תמונה';
+      if (successCount > 0 && failCount === 0) {
+        showToast(successCount === 1 ? 'התמונה שותפה בגלריה! 📸' : `${successCount} תמונות שותפו בגלריה! 📸`, 'success');
+      } else if (successCount > 0 && failCount > 0) {
+        showToast(`${successCount} תמונות עלו בהצלחה, ${failCount} נכשלו (כנראה גדולות מדי או בעיית רשת)`, 'warning');
+      } else {
+        showToast('העלאת התמונות נכשלה - נסו שוב', 'error');
       }
     });
 
