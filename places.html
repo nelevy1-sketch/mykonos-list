@@ -1,11 +1,10 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.20.1
+  VERSION: v4.20.2
   UPDATED: August 2026
-  CHANGELOG v4.20.1:
-    - Fixed slow loading bug by properly enforcing the 21-photo initial pagination limit on the live listener.
-    - Optimized gallery render cycle to prevent UI blocking on heavy Base64 documents.
+  CHANGELOG v4.20.2:
+    - Stable release combining lightning-fast pagination performance with all core bugfixes (scroll lock fix, dynamic categories, supermarket category, and responsive FAB).
   =============================================================
 -->
 <!DOCTYPE html>
@@ -13,8 +12,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.20.1" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.20.1)</title>
+  <meta name="app-version" content="4.20.2" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.20.2)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -505,7 +504,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= PHOTOS GRID ================= */
+    /* ================= PHOTOS GRID (EQUAL SQUARES & 6PX GAPS) ================= */
     .photos-grid {
       display: flex;
       flex-wrap: wrap;
@@ -1659,7 +1658,6 @@
       return confirmedEmptyHTML;
     }
 
-    // Identity gate
     function getSelectedUser() {
       return localStorage.getItem('mykonos_user') || '';
     }
@@ -1750,9 +1748,6 @@
       }
     }
 
-    // -------------------------------------------------------------
-    // Firebase Config (places-d2918)
-    // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyDNUB4fgqhcPOXua7GxzeUJKn5SAzFqrJ8",
       authDomain: "places-d2918.firebaseapp.com",
@@ -1817,7 +1812,6 @@
       }
     };
 
-    // Confirm Delete Dialog Logic
     let pendingDeleteAction = null;
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmTitle = document.getElementById('confirmTitle');
@@ -1853,9 +1847,7 @@
       if (!isAlreadyOpen) currentMenu.classList.add('show');
     };
 
-    // -------------------------------------------------------------
-    // 1. מקומות ורשימות (עם פילטר קטגוריות דינמי לפי מה שקיים בפועל)
-    // -------------------------------------------------------------
+    // 1. Places
     let placesData = [];
     let currentPlaceFilter = 'all';
     const pendingPlaceDeletes = new Set();
@@ -2051,9 +2043,7 @@
       });
     };
 
-    // -------------------------------------------------------------
-    // 2. פסקול מוזיקה
-    // -------------------------------------------------------------
+    // 2. Music
     let tracksData = [];
     let currentMusicFilter = 'all';
     const pendingTrackDeletes = new Set();
@@ -2290,9 +2280,7 @@
       }
     });
 
-    // -------------------------------------------------------------
-    // 3. גלריית תמונות ותגובות (עם חלוקה לעמודים מוגבלת לטעינה מהירה)
-    // -------------------------------------------------------------
+    // 3. Photos (עם מנגנון Pagination של 21 תמונות לטעינה מהירה וחלקה)
     let photosData = [];
     let currentPhotoAuthorFilter = 'all';
     let activeLightboxPhotoId = null;
@@ -2637,9 +2625,7 @@
       `;
     }
 
-    // -------------------------------------------------------------
-    // Lightbox & Comment Actions
-    // -------------------------------------------------------------
+    // Lightbox & Comments
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightboxImg');
     const lightboxCaption = document.getElementById('lightboxCaption');
@@ -2860,7 +2846,6 @@
       }
     }
 
-    // Comment Actions (Like, Reply, Edit, Delete)
     window.toggleCommentLike = async function(index) {
       if (!requireIdentity()) return;
       if (!activeLightboxPhotoId) return;
@@ -2920,7 +2905,6 @@
       blurActiveInput();
       hideOverlay(commentActionSheet);
       selectedCommentIndexForAction = null;
-      unstickScroll(lightboxCommentsList);
     };
 
     window.triggerEditFromSheet = function() {
@@ -2977,7 +2961,6 @@
     function closeCommentModal() {
       blurActiveInput();
       hideOverlay(commentModalOverlay);
-      unstickScroll(lightboxCommentsList);
     }
 
     commentForm.addEventListener('submit', async (e) => {
