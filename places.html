@@ -1,8 +1,25 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.9.0
+  VERSION: v4.11.0
   UPDATED: August 2026
+  CHANGELOG v4.11.0:
+    - Real cause of the "whole screen frozen after exiting a comment"
+      report: most likely the iOS keyboard-dismiss + fixed 100dvh
+      layout race, not just the backdrop-filter overlay issue v4.9
+      targeted. Now: blur the focused input before any modal closes
+      (so the keyboard starts dismissing immediately instead of
+      racing the close animation), and unstickScroll() re-applies its
+      fix across the next two animation frames instead of once
+      synchronously. Added a window.visualViewport resize listener as
+      an app-wide backstop for the same class of bug.
+  CHANGELOG v4.10.0:
+    - Photos grid: initial load capped to the first 21 photos, with a
+      "load more" button that pages in the next batch on demand
+      (step 1 of the slow-gallery-load fix - image bytes still live
+      inside Firestore docs for now, see note in code).
+    - Author filter now shows a note when pagination might be hiding
+      that person's older photos, instead of silently looking empty.
   CHANGELOG v4.9.0:
     - Distinguish Firestore cache-only snapshots from server-confirmed
       ones (places/tracks/photos), so a freshly-loading device no
@@ -30,8 +47,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.9.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.9.0)</title>
+  <meta name="app-version" content="4.11.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.11.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -495,6 +512,25 @@
 
     .photo-tile.is-pending-delete {
       opacity: 0.35;
+    }
+
+    .btn-load-more-photos {
+      flex-basis: 100%;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 0.83rem;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    .btn-load-more-photos:disabled {
+      opacity: 0.6;
+      cursor: default;
     }
 
     .photo-tile:active {
@@ -1237,7 +1273,7 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.9.0</span>
+          <span class="version-tag">v4.11.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1267,7 +1303,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.9.0</span>
+          <span class="version-tag">v4.11.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1295,7 +1331,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.9.0</span>
+          <span class="version-tag">v4.11.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1506,19 +1542,42 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.9.0";
+    const APP_VERSION = "4.11.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
     const UNDO_WINDOW_MS = 5000;
 
     // -------------------------------------------------------------
-    // Scroll-unstick helper (forces a real reflow, unlike a no-op
-    // style reassignment). Needed because iOS Safari can leave a
-    // -webkit-overflow-scrolling:touch container "stuck" after a
-    // fixed + backdrop-filter overlay above it disappears.
+    // Scroll-unstick helper.
+    //
+    // v4.9's version only toggled `overflow` synchronously right when
+    // a modal closed. That covered the "backdrop-filter overlay just
+    // disappeared" case, but NOT the case reported after commenting:
+    // typing in the comment input opens the on-screen keyboard, which
+    // shrinks the visual viewport; when the keyboard then dismisses
+    // (on submit / close), iOS Safari's `100dvh` recalculation for a
+    // `position: fixed` layout can land LATE - after our close
+    // handler already ran its one-shot fix - leaving the layout
+    // metrics stale and the whole screen unresponsive to taps, not
+    // just unscrollable.
+    //
+    // Two changes to actually catch that:
+    //  1. blurActiveInput() is called BEFORE closing a modal, so the
+    //     keyboard starts dismissing immediately, not racing the
+    //     close animation.
+    //  2. unstickScroll() itself now re-applies the fix on the next
+    //     two animation frames (not just synchronously), so it still
+    //     catches a viewport resize that lands slightly after close.
     // -------------------------------------------------------------
-    function unstickScroll(el) {
+    function blurActiveInput() {
+      const ae = document.activeElement;
+      if (ae && typeof ae.blur === 'function' && ae !== document.body) {
+        ae.blur();
+      }
+    }
+
+    function forceReflow(el) {
       if (!el) return;
       const prevOverflow = el.style.overflow;
       el.style.overflow = 'hidden';
@@ -1529,6 +1588,17 @@
       el.scrollTop = st + 1;
       el.scrollTop = st;
       el.style.pointerEvents = 'auto';
+    }
+
+    function unstickScroll(el) {
+      if (!el) return;
+      forceReflow(el);
+      // Re-run a beat later, and again a beat after that, to catch a
+      // keyboard-dismiss viewport resize that lands after this call.
+      requestAnimationFrame(() => {
+        forceReflow(el);
+        requestAnimationFrame(() => forceReflow(el));
+      });
     }
 
     // -------------------------------------------------------------
@@ -1777,7 +1847,7 @@
       placeModalOverlay.classList.add('active');
     }
 
-    function closePlaceModal() { placeModalOverlay.classList.remove('active'); }
+    function closePlaceModal() { blurActiveInput(); placeModalOverlay.classList.remove('active'); }
 
     window.startEditPlace = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -1953,7 +2023,7 @@
       trackModalOverlay.classList.add('active');
     }
 
-    function closeTrackModal() { trackModalOverlay.classList.remove('active'); }
+    function closeTrackModal() { blurActiveInput(); trackModalOverlay.classList.remove('active'); }
 
     window.startEditTrack = function(id) {
       document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
@@ -2175,6 +2245,27 @@
     const pendingPhotoDeletes = new Set();
     const photosSync = createSyncState(() => renderPhotos());
 
+    // -------------------------------------------------------------
+    // Pagination (step 1 of the eventual "don't load the whole
+    // gallery at once" fix). We keep everything on a single live
+    // onSnapshot listener - "load more" just re-subscribes with a
+    // bigger limit(), which keeps real-time updates (new photos,
+    // reactions, comment likes) working across the whole loaded
+    // window without juggling a second, non-live query.
+    //
+    // This is a stopgap given the current storage shape (full-size
+    // base64 images inside each Firestore doc) - it caps how many
+    // images get downloaded up front, but each image is still as
+    // heavy as before. The real fix is moving image bytes out of
+    // Firestore into Storage with a lighter thumbnail for the grid,
+    // which is a separate, bigger change.
+    // -------------------------------------------------------------
+    const PHOTOS_PAGE_SIZE = 21; // 7 rows of 3 in the grid
+    let photosLimit = PHOTOS_PAGE_SIZE;
+    let photosHasMore = true;
+    let isLoadingMorePhotos = false;
+    let photosUnsubscribe = null;
+
     const photoModalOverlay = document.getElementById('photoModalOverlay');
     const photoForm = document.getElementById('photoForm');
     const photoFileInput = document.getElementById('photoFileInput');
@@ -2211,7 +2302,7 @@
       photoModalOverlay.classList.add('active');
     }
 
-    function closePhotoModal() { photoModalOverlay.classList.remove('active'); }
+    function closePhotoModal() { blurActiveInput(); photoModalOverlay.classList.remove('active'); }
 
     // Firestore documents are capped at 1MB. We compress
     // progressively and warn (instead of silently producing a
@@ -2364,52 +2455,83 @@
       // grid stats are cheap to recompute wholesale on next renderPhotos(); skip here.
     }
 
-    photosRef.orderBy('createdAt', 'desc').onSnapshot({ includeMetadataChanges: true }, snapshot => {
-      const justConfirmed = photosSync.onSnapshotMeta(snapshot);
-      let needsFullRerender = false;
-      let likesOnlyPatchDoc = null;
+    function subscribeToPhotos() {
+      if (photosUnsubscribe) {
+        photosUnsubscribe();
+        photosUnsubscribe = null;
+      }
 
-      snapshot.docChanges().forEach(change => {
-        const docId = change.doc.id;
-        const docData = { id: docId, ...change.doc.data() };
-        const index = photosData.findIndex(p => p.id === docId);
+      photosUnsubscribe = photosRef.orderBy('createdAt', 'desc').limit(photosLimit).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+        const justConfirmed = photosSync.onSnapshotMeta(snapshot);
+        let needsFullRerender = false;
+        let likesOnlyPatchDoc = null;
 
-        if (change.type === 'added') {
-          if (index === -1) {
-            photosData.push(docData);
+        snapshot.docChanges().forEach(change => {
+          const docId = change.doc.id;
+          const index = photosData.findIndex(p => p.id === docId);
+
+          if (change.type === 'removed') {
+            photosData = photosData.filter(p => p.id !== docId);
             needsFullRerender = true;
+            return;
           }
-        } else if (change.type === 'modified') {
+
+          // 'added' and 'modified' both need an upsert: re-subscribing
+          // with a bigger limit() creates a brand-new listener, and a
+          // brand-new listener reports every doc in its result as
+          // 'added' even if we already have it locally - so we can't
+          // just skip 'added' when the doc already exists.
+          const docData = { id: docId, ...change.doc.data() };
           const oldDoc = index !== -1 ? photosData[index] : null;
-          if (docId === activeLightboxPhotoId && isLikesOnlyChange(oldDoc, docData)) {
+
+          if (docId === activeLightboxPhotoId && oldDoc && isLikesOnlyChange(oldDoc, docData)) {
             // Cheap in-place patch, no full re-render -> no flicker for other viewers.
-            if (index !== -1) photosData[index] = docData;
+            photosData[index] = docData;
             likesOnlyPatchDoc = docData;
           } else {
-            if (index !== -1) photosData[index] = docData;
+            if (index !== -1) photosData[index] = docData; else photosData.push(docData);
             needsFullRerender = true;
           }
-        } else if (change.type === 'removed') {
-          photosData = photosData.filter(p => p.id !== docId);
-          needsFullRerender = true;
-        }
-      });
+        });
 
-      if (needsFullRerender) {
-        photosData.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        updatePhotoAuthorFilters();
-        renderPhotos();
-        if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
-      } else if (likesOnlyPatchDoc) {
-        patchLikesOnly(likesOnlyPatchDoc);
-      } else if (justConfirmed) {
-        // No documents actually changed on this callback, but we just
-        // moved from "cache only" to "server confirmed" - re-render so
-        // an honest "syncing..." message can flip to a confirmed
-        // "gallery is empty" message (or just stop showing the spinner).
-        renderPhotos();
-      }
-    }, () => showToast('שגיאה בסנכרון גלריה', 'error'));
+        // We asked for `photosLimit` docs; if we got fewer than that,
+        // there is nothing older left to page in.
+        photosHasMore = snapshot.size >= photosLimit;
+
+        if (isLoadingMorePhotos) {
+          isLoadingMorePhotos = false;
+          needsFullRerender = true; // make sure the button's loading state clears
+        }
+
+        if (needsFullRerender) {
+          photosData.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+          updatePhotoAuthorFilters();
+          renderPhotos();
+          if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
+        } else if (likesOnlyPatchDoc) {
+          patchLikesOnly(likesOnlyPatchDoc);
+        } else if (justConfirmed) {
+          // No documents actually changed on this callback, but we just
+          // moved from "cache only" to "server confirmed" - re-render so
+          // an honest "syncing..." message can flip to a confirmed
+          // "gallery is empty" message (or just stop showing the spinner).
+          renderPhotos();
+        }
+      }, () => {
+        isLoadingMorePhotos = false;
+        showToast('שגיאה בסנכרון גלריה', 'error');
+      });
+    }
+
+    window.loadMorePhotos = function() {
+      if (isLoadingMorePhotos || !photosHasMore) return;
+      isLoadingMorePhotos = true;
+      photosLimit += PHOTOS_PAGE_SIZE;
+      renderPhotos(); // show the button's loading state immediately
+      subscribeToPhotos();
+    };
+
+    subscribeToPhotos();
 
     function getFilteredPhotos() {
       return photosData.filter(p => {
@@ -2466,7 +2588,28 @@
             ` : ''}
           </div>
         `;
-      }).join('');
+      }).join('') + renderPhotosFooterControl();
+    }
+
+    function renderPhotosFooterControl() {
+      if (currentPhotoAuthorFilter !== 'all') {
+        // Pagination only applies to the base (unfiltered) time-ordered
+        // query, so a per-author filter can only ever show what's
+        // already been loaded - be upfront about that instead of
+        // silently hiding older photos from that person.
+        if (photosHasMore) {
+          return `<div class="empty-state" style="padding: 14px; grid-column: unset; flex-basis: 100%; margin-top: 4px;">מציג לפי מה שכבר נטען. עברו ל"הכל" וטענו עוד כדי לראות תמונות ישנות יותר של ${escapeHTML(currentPhotoAuthorFilter)}.</div>`;
+        }
+        return '';
+      }
+
+      if (!photosHasMore) return '';
+
+      return `
+        <button type="button" class="btn-load-more-photos" onclick="loadMorePhotos()" ${isLoadingMorePhotos ? 'disabled' : ''}>
+          ${isLoadingMorePhotos ? 'טוען... ⏳' : 'טען עוד תמונות ⬇️'}
+        </button>
+      `;
     }
 
     // -------------------------------------------------------------
@@ -2499,13 +2642,15 @@
     }
 
     function closeLightbox() {
+      blurActiveInput();
       lightboxModal.classList.remove('active');
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
 
-      // Real fix: force a reflow on the grid so iOS Safari doesn't
-      // leave the scroll container "stuck" under the overlay that
-      // just disappeared (a no-op style reassignment does nothing).
+      // Force a reflow on the grid so iOS Safari doesn't leave the
+      // scroll container stuck under the overlay that just
+      // disappeared, and so a keyboard-dismiss viewport resize from
+      // whatever was typed inside the lightbox doesn't leave it stuck.
       unstickScroll(document.getElementById('photosContainer'));
     }
 
@@ -2712,6 +2857,7 @@
     };
 
     window.closeCommentActionSheet = function() {
+      blurActiveInput();
       commentActionSheet.classList.remove('active');
       selectedCommentIndexForAction = null;
       unstickScroll(lightboxCommentsList);
@@ -2770,6 +2916,7 @@
     };
 
     function closeCommentModal() {
+      blurActiveInput();
       commentModalOverlay.classList.remove('active');
       unstickScroll(lightboxCommentsList);
     }
@@ -2905,6 +3052,36 @@
         if (label) label.textContent = saved;
       }
     })();
+
+    // -------------------------------------------------------------
+    // Global safety net for the keyboard-dismiss freeze.
+    //
+    // The per-modal blurActiveInput() + unstickScroll() calls cover
+    // the flows we know about, but any focused input closing its
+    // keyboard (including ones we didn't explicitly wire) can trigger
+    // the same iOS layout-stuck symptom. window.visualViewport fires
+    // a resize event when the keyboard opens/closes, independent of
+    // which specific close handler ran - use it as a backstop so the
+    // currently visible scroll area (and the lightbox, if open) never
+    // stays stuck even if some future code path forgets to call
+    // unstickScroll itself.
+    // -------------------------------------------------------------
+    if (window.visualViewport) {
+      let vvResizeTimer = null;
+      window.visualViewport.addEventListener('resize', () => {
+        clearTimeout(vvResizeTimer);
+        vvResizeTimer = setTimeout(() => {
+          const activeTabContent = document.querySelector('.tab-content.active');
+          if (activeTabContent) {
+            const scrollEl = activeTabContent.querySelector('.items-list, .photos-grid');
+            unstickScroll(scrollEl);
+          }
+          if (lightboxModal.classList.contains('active')) {
+            unstickScroll(lightboxCommentsList);
+          }
+        }, 120);
+      });
+    }
   </script>
 </body>
 </html>
