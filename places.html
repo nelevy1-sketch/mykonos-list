@@ -1,123 +1,11 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.18.0
+  VERSION: v4.19.0
   UPDATED: August 2026
-  CHANGELOG v4.18.0:
-    - Photo captions are now editable after upload. A pencil icon next
-      to the delete button in the lightbox (owner-only, same
-      permission gate as delete) opens a small modal to change the
-      caption - or add one, if it was left blank at upload time.
-      Optimistic update with rollback on failure, like the rest of the
-      app's edit flows. Uses the same showOverlay()/hideOverlay()
-      pattern as every other modal, to stay consistent with the
-      scroll-freeze fix.
-  CHANGELOG v4.17.0:
-    - Photo upload now accepts multiple files at once (compatible with
-      the current storage shape as-is - each photo is already its own
-      Firestore doc, so this is just looping the existing single-photo
-      logic, no migration needed). Uploads go sequentially (not
-      parallel) so weak island wifi doesn't get split across N
-      simultaneous transfers, with honest "X of Y" progress on the
-      submit button. One oversized/failed photo no longer blocks the
-      rest of the batch; a summary toast reports success/fail counts.
-      Soft cap of 20 photos per submit as a guardrail against an
-      accidental full camera-roll selection.
-  CHANGELOG v4.16.0:
-    - Places tab moved off blue entirely (was too close to music's
-      blue-violet accent) to a warm gold/bronze
-      (linear-gradient #b45309 -> #78350f) - a different color
-      temperature, not just a different shade of the same hue.
-      Applied to the active nav tab button, active filter chips,
-      header title, "navigate" card action, and the FAB.
-  CHANGELOG v4.15.0:
-    - Gave the places and music tabs distinct color identities instead
-      of both defaulting to the same blue: places stays primary blue,
-      music moves to an indigo/blue-violet accent (matching its FAB),
-      photos keeps its existing pink/purple accent. Applied to the
-      active nav tab button, each tab's active filter chip, header
-      title color, the music platform badge, and the music "play"
-      button.
-  CHANGELOG v4.14.1:
-    - Places form: category dropdown no longer silently defaults to
-      "חוף" (beach) - it now opens on a real placeholder that forces
-      an explicit choice, and the form blocks submission (with a
-      toast) if no category was picked.
-  CHANGELOG v4.14.0:
-    - Structural attempt at the recurring scroll/tap freeze after
-      opening+closing a photo (confirmed to happen with no keyboard
-      involved at all, ruling out the earlier keyboard/100dvh theory,
-      and still happened after removing -webkit-overflow-scrolling).
-      Root theory this time: every overlay (lightbox, all modals,
-      comment action sheet, confirm dialog) stayed `display:flex` in
-      the DOM PERMANENTLY, just faded to opacity:0 - a full-viewport,
-      backdrop-filter-blurred, position:fixed layer sitting directly
-      above the scrollable grid at all times, even when "closed". Now
-      every overlay is actually removed from the render tree
-      (display:none) once its close transition finishes, via new
-      showOverlay()/hideOverlay() helpers used everywhere instead of
-      raw classList.add/remove('active').
-  CHANGELOG v4.13.1:
-    - Moved the floating add button to the bottom-right.
-  CHANGELOG v4.13.0:
-    - Replaced the per-tab pinned "add" button with a single floating
-      action button (bottom-left), always reachable one-handed without
-      scrolling back to the top. Color/icon/action switch per active
-      tab. Sits below every overlay's z-index, so modals/lightbox
-      automatically cover it - no manual show/hide needed.
-    - Bumped scroll-container bottom padding so the last row of
-      content can clear the FAB.
-  CHANGELOG v4.12.0:
-    - Root cause found: the freeze happens even with no keyboard
-      involved at all (confirmed by simply opening/closing a photo).
-      That points squarely at `-webkit-overflow-scrolling: touch` -
-      a legacy iOS property that forces its own compositing layer for
-      momentum scrolling, and is well known to get that layer "stuck"
-      when a position:fixed + backdrop-filter overlay above it
-      (the lightbox, in this app) opens and closes. Removed it from
-      all three scroll containers (.items-list, .photos-grid,
-      .comments-list). Modern iOS (13+) scrolls momentum-style on
-      overflow:auto natively without it, so this should have no
-      visual downside - just removes the thing most likely causing
-      the freeze. Kept the earlier JS reflow/blur fixes in place too,
-      since they're harmless and cover other edge cases.
-  CHANGELOG v4.11.0:
-    - Real cause of the "whole screen frozen after exiting a comment"
-      report: most likely the iOS keyboard-dismiss + fixed 100dvh
-      layout race, not just the backdrop-filter overlay issue v4.9
-      targeted. Now: blur the focused input before any modal closes
-      (so the keyboard starts dismissing immediately instead of
-      racing the close animation), and unstickScroll() re-applies its
-      fix across the next two animation frames instead of once
-      synchronously. Added a window.visualViewport resize listener as
-      an app-wide backstop for the same class of bug.
-  CHANGELOG v4.10.0:
-    - Photos grid: initial load capped to the first 21 photos, with a
-      "load more" button that pages in the next batch on demand
-      (step 1 of the slow-gallery-load fix - image bytes still live
-      inside Firestore docs for now, see note in code).
-    - Author filter now shows a note when pagination might be hiding
-      that person's older photos, instead of silently looking empty.
-  CHANGELOG v4.9.0:
-    - Distinguish Firestore cache-only snapshots from server-confirmed
-      ones (places/tracks/photos), so a freshly-loading device no
-      longer flashes a false "list is empty" before real data arrives.
-    - Empty states now show an honest "syncing..." message until the
-      server has actually confirmed there is nothing there, with a
-      connectivity hint if it's taking unusually long.
-  CHANGELOG v4.8.0:
-    - Real scroll-unstick fix (forced reflow) after Lightbox / comment modal / action sheet close.
-    - Avoid full comment-list re-render on likes-only realtime updates (fixes flicker for other viewers).
-    - Optimistic UI for reactions, comment like, comment add, comment delete, photo delete.
-    - Soft-delete with 5s "Undo" toast for places / tracks / photos / comments.
-    - One-time "who am I" identity gate instead of a picker embedded in every modal.
-    - Swipe direction now matches nav arrow direction (RTL-consistent).
-    - overscroll-behavior / touch-action added to scrollable containers to stop scroll-chaining glitches under blurred overlays.
-    - Image compression now guards against oversized Firestore documents.
-  CHANGELOG v4.7.0:
-    - Restored fixed app shell layout (100dvh, no full-page scrolling).
-    - Fixed photo grid scroll lock cleanly on Lightbox close by forcing pointer-events and container reset.
-    - Preserved threaded comments, comment likes, equal square tiles, and frosted glass drawer.
+  CHANGELOG v4.19.0:
+    - Added "סופרמרקט / מכולת 🛒" category to places modal.
+    - Dynamic place category filter bar: Now filters out and hides empty categories automatically, showing only categories that actually have saved places.
   =============================================================
 -->
 <!DOCTYPE html>
@@ -125,8 +13,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.18.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.18.0)</title>
+  <meta name="app-version" content="4.19.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.19.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -216,13 +104,6 @@
       box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
     }
 
-    /* Per-tab color identity, matching the FAB's colors below, so the
-       whole tab (nav button, filters, header) reads as one visual
-       set instead of three tabs that all just turn "blue" together.
-       Places gets a warm gold/bronze instead of blue specifically -
-       blue and blue-violet (music) read too close to each other at a
-       glance, so places moves to a different color temperature
-       entirely rather than just a different shade of the same one. */
     .tab-btn-places.active {
       background: linear-gradient(135deg, #b45309, #78350f);
       box-shadow: 0 4px 12px rgba(180, 83, 9, 0.32);
@@ -361,19 +242,7 @@
       transform: scale(0.98);
     }
 
-    .btn-music-open {
-      background: linear-gradient(135deg, #0284c7, #4f46e5);
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
-    }
-
-    .btn-photo-open {
-      background: linear-gradient(135deg, #ec4899, #8b5cf6);
-      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
-    }
-
-    /* Floating add button - always reachable without scrolling back
-       to the top, and reachable one-handed near the bottom of the
-       screen. Color/icon/action switch per active tab via JS. */
+    /* Floating add button */
     .fab-add {
       position: absolute;
       bottom: 18px;
@@ -1425,6 +1294,7 @@
     }
 
     .identity-chip:active {
+      body { background: var(--primary-soft); }
       background: var(--primary-soft);
       border-color: var(--primary);
       color: var(--primary);
@@ -1446,20 +1316,13 @@
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.18.0</span>
+          <span class="version-tag">v4.20.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
 
-        <div class="filters-bar" id="placesFilters">
-          <button class="filter-chip active" data-filter="all">הכל</button>
-          <button class="filter-chip" data-filter="חוף">חופים 🏖️</button>
-          <button class="filter-chip" data-filter="קלאב">קלאבים 🪩</button>
-          <button class="filter-chip" data-filter="בר">ברים 🍸</button>
-          <button class="filter-chip" data-filter="מסעדה">מסעדות 🍽️</button>
-          <button class="filter-chip" data-filter="שופינג">שופינג 🛍️</button>
-          <button class="filter-chip" data-filter="מפה">מפות 🗺️</button>
-        </div>
+        <!-- Dynamic filters bar: only shows categories that actually exist in saved places -->
+        <div class="filters-bar" id="placesFilters"></div>
       </div>
 
       <div class="items-list" id="placesContainer">
@@ -1472,7 +1335,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.18.0</span>
+          <span class="version-tag">v4.20.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1496,7 +1359,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.18.0</span>
+          <span class="version-tag">v4.20.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1514,12 +1377,6 @@
     </div>
 
     <!-- ================= FLOATING ADD BUTTON ================= -->
-    <!-- One FAB, always reachable regardless of scroll position.
-         Its color, icon and action switch per active tab (see
-         switchTab() in the script). Sits at a lower z-index than
-         every overlay in the app, so it's automatically covered
-         whenever a modal/lightbox/confirm dialog is open - no manual
-         show/hide bookkeeping needed. -->
     <button class="fab-add" id="fabAddBtn" onclick="openAddForActiveTab()" aria-label="הוסף מקום חדש" title="הוסף">
       <span id="fabAddIcon">+</span>
     </button>
@@ -1545,12 +1402,13 @@
       <form id="placeForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="placeEditId" value="" />
         <div class="row-inputs">
-          <select class="select-field" id="placeCategory" style="width: 130px; flex-shrink: 0;" required>
+          <select class="select-field" id="placeCategory" style="width: 155px; flex-shrink: 0;" required>
             <option value="" disabled selected>קטגוריה *</option>
             <option value="חוף">חוף 🏖️</option>
             <option value="קלאב">קלאב 🪩</option>
             <option value="בר">בר 🍸</option>
             <option value="מסעדה">מסעדות 🍽️</option>
+            <option value="סופרמרקט / מכולת">סופר/מכולת 🛒</option>
             <option value="שופינג">שופינג 🛍️</option>
             <option value="מפה">מפה 🗺️</option>
             <option value="אחר">אחר ✨</option>
@@ -1737,34 +1595,12 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.18.0";
+    const APP_VERSION = "4.20.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
     const UNDO_WINDOW_MS = 5000;
 
-    // -------------------------------------------------------------
-    // Scroll-unstick helper.
-    //
-    // v4.9's version only toggled `overflow` synchronously right when
-    // a modal closed. That covered the "backdrop-filter overlay just
-    // disappeared" case, but NOT the case reported after commenting:
-    // typing in the comment input opens the on-screen keyboard, which
-    // shrinks the visual viewport; when the keyboard then dismisses
-    // (on submit / close), iOS Safari's `100dvh` recalculation for a
-    // `position: fixed` layout can land LATE - after our close
-    // handler already ran its one-shot fix - leaving the layout
-    // metrics stale and the whole screen unresponsive to taps, not
-    // just unscrollable.
-    //
-    // Two changes to actually catch that:
-    //  1. blurActiveInput() is called BEFORE closing a modal, so the
-    //     keyboard starts dismissing immediately, not racing the
-    //     close animation.
-    //  2. unstickScroll() itself now re-applies the fix on the next
-    //     two animation frames (not just synchronously), so it still
-    //     catches a viewport resize that lands slightly after close.
-    // -------------------------------------------------------------
     function blurActiveInput() {
       const ae = document.activeElement;
       if (ae && typeof ae.blur === 'function' && ae !== document.body) {
@@ -1777,7 +1613,7 @@
       const prevOverflow = el.style.overflow;
       el.style.overflow = 'hidden';
       // eslint-disable-next-line no-unused-expressions
-      void el.offsetHeight; // force layout/reflow
+      void el.offsetHeight;
       el.style.overflow = prevOverflow || '';
       const st = el.scrollTop;
       el.scrollTop = st + 1;
@@ -1788,43 +1624,17 @@
     function unstickScroll(el) {
       if (!el) return;
       forceReflow(el);
-      // Re-run a beat later, and again a beat after that, to catch a
-      // keyboard-dismiss viewport resize that lands after this call.
       requestAnimationFrame(() => {
         forceReflow(el);
         requestAnimationFrame(() => forceReflow(el));
       });
     }
 
-    // -------------------------------------------------------------
-    // Overlay show/hide via `display`, not just opacity.
-    //
-    // Every previous attempt (forced reflow, blur-before-close,
-    // dropping -webkit-overflow-scrolling) assumed the freeze was
-    // about a scroll-momentum compositing layer specifically. It kept
-    // recurring, including with no keyboard involved at all - which
-    // points somewhere more structural: the lightbox (and every other
-    // modal) used opacity + pointer-events to hide, but stayed
-    // `display: flex` in the DOM PERMANENTLY - a full-viewport,
-    // `position: fixed`, `backdrop-filter: blur()` layer sitting
-    // directly above the scrollable grid at all times, just made
-    // invisible. Keeping a heavy blurred compositing layer parked
-    // above a touch-scrolling container (even invisible/inert) is a
-    // known source of iOS Safari hit-testing/compositing bugs.
-    //
-    // Fix: actually remove these overlays from the render tree
-    // (`display: none`) whenever they're closed, not just fade them
-    // out. showOverlay()/hideOverlay() replace direct
-    // classList.add/remove('active') calls on every overlay in the
-    // app (lightbox, all modals, comment action sheet, confirm
-    // dialog) so the opacity transition still animates, but nothing
-    // is left parked over the content underneath once it's done.
-    // -------------------------------------------------------------
     function showOverlay(el) {
       if (!el) return;
       el.style.display = 'flex';
       // eslint-disable-next-line no-unused-expressions
-      void el.offsetHeight; // make sure "display:flex, opacity:0" paints first
+      void el.offsetHeight;
       requestAnimationFrame(() => el.classList.add('active'));
     }
 
@@ -1838,34 +1648,12 @@
       }, transitionMs);
     }
 
-    // -------------------------------------------------------------
-    // Sync-state tracking.
-    //
-    // Firestore's onSnapshot() usually fires FIRST with whatever is
-    // already in the local cache (snapshot.metadata.fromCache ===
-    // true), and only afterwards with server-confirmed data. On a
-    // fresh device/session the cache is empty, so that first callback
-    // legitimately has zero documents - but it does NOT mean the
-    // real list is empty. Without tracking this, we were marking
-    // "loaded" on that first (cache) callback and immediately showing
-    // "the list is empty", which then popped to real content a moment
-    // later. That's the flash-of-empty-state bug.
-    //
-    // createSyncState() gives each collection its own tri-state:
-    //   loaded            - we've received *any* snapshot (cache or server)
-    //   serverConfirmed   - we've received a snapshot straight from the server
-    //   showSlowHint      - server confirmation is taking a while; hint at connectivity
-    // -------------------------------------------------------------
     function createSyncState(renderFn, slowMs = 6000) {
       const state = {
         loaded: false,
         serverConfirmed: false,
         showSlowHint: false,
         slowTimer: null,
-        // Call once per onSnapshot callback, before you touch your own
-        // data arrays. Returns true if server confirmation just arrived
-        // on THIS callback (useful to know whether to force a render
-        // even when no documents actually changed).
         onSnapshotMeta(snapshot) {
           state.loaded = true;
           const justConfirmed = !state.serverConfirmed && !snapshot.metadata.fromCache;
@@ -1893,12 +1681,9 @@
       return confirmedEmptyHTML;
     }
 
-    // -------------------------------------------------------------
-    // Identity gate - ask once per device instead of a picker
-    // embedded in every single modal.
-    // -------------------------------------------------------------
+    // Identity gate
     function getSelectedUser() {
-      return localStorage.getItem('mykonos_user') || '';
+      return localStorage.getItem('mykonos_user'] || '';
     }
 
     function setSelectedUser(name) {
@@ -2025,10 +1810,6 @@
       updateFabForTab(tabId);
     }
 
-    // -------------------------------------------------------------
-    // Floating add button - one button, action/color/icon swap per
-    // active tab instead of a separate pinned button per tab.
-    // -------------------------------------------------------------
     const FAB_CONFIG = {
       places: { cssClass: 'fab-places', icon: '+', label: 'הוסף מקום חדש' },
       music: { cssClass: 'fab-music', icon: '+', label: 'הוסף שיר לפסקול' },
@@ -2058,9 +1839,7 @@
       }
     };
 
-    // -------------------------------------------------------------
     // Confirm Delete Dialog Logic
-    // -------------------------------------------------------------
     let pendingDeleteAction = null;
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmTitle = document.getElementById('confirmTitle');
@@ -2097,7 +1876,7 @@
     };
 
     // -------------------------------------------------------------
-    // 1. מקומות ורשימות
+    // 1. מקומות ורשימות (עם פילטר קטגוריות דינמי לפי מה שקיים בפועל)
     // -------------------------------------------------------------
     let placesData = [];
     let currentPlaceFilter = 'all';
@@ -2143,8 +1922,39 @@
       placesSync.onSnapshotMeta(snapshot);
       placesData = [];
       snapshot.forEach(doc => { placesData.push({ id: doc.id, ...doc.data() }); });
+      updatePlacesFiltersBar();
       renderPlaces();
     }, () => showToast('שגיאה בסנכרון מקומות', 'error'));
+
+    // יוצר דינמית רק את פילטר הקטגוריות שקיימות בפועל במסד הנתונים
+    function updatePlacesFiltersBar() {
+      const bar = document.getElementById('placesFilters');
+      if (!bar) return;
+
+      const existingCategories = Array.from(new Set(placesData.map(p => p.category).filter(Boolean)));
+
+      if (currentPlaceFilter !== 'all' && !existingCategories.includes(currentPlaceFilter)) {
+        currentPlaceFilter = 'all';
+      }
+
+      let html = `<button class="filter-chip ${currentPlaceFilter === 'all' ? 'active' : ''}" data-filter="all">הכל</button>`;
+      
+      existingCategories.forEach(cat => {
+        const isActive = currentPlaceFilter === cat ? 'active' : '';
+        html += `<button class="filter-chip ${isActive}" data-filter="${escapeHTML(cat)}">${escapeHTML(cat)}</button>`;
+      });
+
+      bar.innerHTML = html;
+    }
+
+    document.getElementById('placesFilters').addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-chip')) {
+        document.querySelectorAll('#placesFilters .filter-chip').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentPlaceFilter = e.target.getAttribute('data-filter');
+        renderPlaces();
+      }
+    });
 
     function renderPlaces() {
       const container = document.getElementById('placesContainer');
@@ -2162,7 +1972,7 @@
 
       const filtered = placesData.filter(p => {
         if (currentPlaceFilter === 'all') return true;
-        return (p.category || '').includes(currentPlaceFilter);
+        return (p.category || '') === currentPlaceFilter;
       });
 
       if (filtered.length === 0) {
@@ -2221,10 +2031,10 @@
       closePlaceModal();
 
       if (editId) {
-        // Optimistic local patch
         const idx = placesData.findIndex(p => p.id === editId);
         if (idx !== -1) {
           placesData[idx] = { ...placesData[idx], name, category, link, note };
+          updatePlacesFiltersBar();
           renderPlaces();
         }
         placesRef.doc(editId).update({ name, category, link, sharer, note })
@@ -2246,12 +2056,11 @@
       if (!itemToDelete) return;
 
       openConfirmDialog(itemToDelete.name, () => {
-        // Optimistic: mark pending, actually delete after the undo window
         pendingPlaceDeletes.add(id);
         renderPlaces();
 
         const timerId = setTimeout(() => {
-          if (!pendingPlaceDeletes.has(id)) return; // was undone
+          if (!pendingPlaceDeletes.has(id)) return;
           pendingPlaceDeletes.delete(id);
           placesRef.doc(id).delete()
             .catch(() => showToast('שגיאה במחיקת המקום', 'error'));
@@ -2264,15 +2073,6 @@
         });
       });
     };
-
-    document.getElementById('placesFilters').addEventListener('click', (e) => {
-      if (e.target.classList.contains('filter-chip')) {
-        document.querySelectorAll('#placesFilters .filter-chip').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentPlaceFilter = e.target.getAttribute('data-filter');
-        renderPlaces();
-      }
-    });
 
     // -------------------------------------------------------------
     // 2. פסקול מוזיקה
@@ -2522,22 +2322,7 @@
     const pendingPhotoDeletes = new Set();
     const photosSync = createSyncState(() => renderPhotos());
 
-    // -------------------------------------------------------------
-    // Pagination (step 1 of the eventual "don't load the whole
-    // gallery at once" fix). We keep everything on a single live
-    // onSnapshot listener - "load more" just re-subscribes with a
-    // bigger limit(), which keeps real-time updates (new photos,
-    // reactions, comment likes) working across the whole loaded
-    // window without juggling a second, non-live query.
-    //
-    // This is a stopgap given the current storage shape (full-size
-    // base64 images inside each Firestore doc) - it caps how many
-    // images get downloaded up front, but each image is still as
-    // heavy as before. The real fix is moving image bytes out of
-    // Firestore into Storage with a lighter thumbnail for the grid,
-    // which is a separate, bigger change.
-    // -------------------------------------------------------------
-    const PHOTOS_PAGE_SIZE = 21; // 7 rows of 3 in the grid
+    const PHOTOS_PAGE_SIZE = 21;
     let photosLimit = PHOTOS_PAGE_SIZE;
     let photosHasMore = true;
     let isLoadingMorePhotos = false;
@@ -2581,10 +2366,7 @@
 
     function closePhotoModal() { blurActiveInput(); hideOverlay(photoModalOverlay); }
 
-    // Firestore documents are capped at 1MB. We compress
-    // progressively and warn (instead of silently producing a
-    // write that Firestore will reject) if we can't get small enough.
-    const MAX_IMAGE_BYTES = 700 * 1024; // leave headroom under the 1MB doc cap
+    const MAX_IMAGE_BYTES = 700 * 1024;
 
     function compressToDataURL(file, maxWidth, quality) {
       return new Promise((resolve, reject) => {
@@ -2636,16 +2418,9 @@
           return lastResult;
         }
       }
-      // Best effort even if still large - Firestore will reject if truly over 1MB.
       return lastResult;
     }
 
-    // A soft cap on how many photos one submit can push at once - not
-    // a hard technical limit (each photo is its own Firestore doc, so
-    // there's no batch-size wall here), just a guardrail against
-    // accidentally selecting an entire camera roll and hammering the
-    // group's Firestore quota / everyone's live listener with a huge
-    // burst of writes in one go.
     const MAX_PHOTOS_PER_UPLOAD = 20;
 
     photoForm.addEventListener('submit', async (e) => {
@@ -2665,12 +2440,6 @@
 
       photoSubmitBtn.disabled = true;
 
-      // Sequential, not Promise.all: on the kind of spotty island wifi
-      // this app was built for, firing every compress+upload at once
-      // just contends for the same thin pipe and makes ALL of them
-      // slower with no way to show real progress. One at a time is
-      // slower in theory, faster in practice, and lets the button show
-      // honest "3 of 7" progress instead of a single frozen spinner.
       let successCount = 0;
       let failCount = 0;
 
@@ -2685,7 +2454,7 @@
 
           if (estimateBase64Bytes(base64Image) > 950 * 1024) {
             failCount++;
-            continue; // one oversized photo shouldn't block the rest of the batch
+            continue;
           }
 
           await photosRef.add({
@@ -2715,12 +2484,6 @@
       }
     });
 
-    // Tracks whether the *only* thing that changed between the old and
-    // new version of a photo doc is reaction counts and/or comment like
-    // counts (not text/author/additions/removals of comments). When
-    // true we can patch the DOM in place instead of a full re-render,
-    // which is what was causing the flicker for every other viewer
-    // whenever someone tapped a heart.
     function isLikesOnlyChange(oldDoc, newDoc) {
       if (!oldDoc) return false;
       const oldComments = oldDoc.comments || [];
@@ -2732,7 +2495,6 @@
           return false;
         }
       }
-      // caption/sharer/url should never change post-creation in this app
       if (oldDoc.caption !== newDoc.caption || oldDoc.sharer !== newDoc.sharer || oldDoc.url !== newDoc.url) {
         return false;
       }
@@ -2740,7 +2502,6 @@
     }
 
     function patchLikesOnly(newDoc) {
-      // Reaction counters
       const reacts = newDoc.reactions || {};
       const fireEl = document.getElementById('reactCount-fire');
       const laughEl = document.getElementById('reactCount-laugh');
@@ -2751,7 +2512,6 @@
       if (drinkEl) drinkEl.textContent = reacts['🍸'] || 0;
       if (heartEl) heartEl.textContent = reacts['❤️'] || 0;
 
-      // Per-comment like counts, patched individually (no innerHTML rebuild)
       const comments = newDoc.comments || [];
       comments.forEach((c, index) => {
         const likeBtn = document.querySelector(`#lightboxCommentsList .comment-item[data-index="${index}"] .btn-comment-like`);
@@ -2761,10 +2521,6 @@
           likeBtn.classList.toggle('is-liked', likeCount > 0);
         }
       });
-
-      // Also patch the grid tile stats badge without a full grid re-render
-      const tile = document.querySelector(`.photo-tile[data-id="${newDoc.id}"] .photo-badge-stats`);
-      // grid stats are cheap to recompute wholesale on next renderPhotos(); skip here.
     }
 
     function subscribeToPhotos() {
@@ -2788,16 +2544,10 @@
             return;
           }
 
-          // 'added' and 'modified' both need an upsert: re-subscribing
-          // with a bigger limit() creates a brand-new listener, and a
-          // brand-new listener reports every doc in its result as
-          // 'added' even if we already have it locally - so we can't
-          // just skip 'added' when the doc already exists.
           const docData = { id: docId, ...change.doc.data() };
           const oldDoc = index !== -1 ? photosData[index] : null;
 
           if (docId === activeLightboxPhotoId && oldDoc && isLikesOnlyChange(oldDoc, docData)) {
-            // Cheap in-place patch, no full re-render -> no flicker for other viewers.
             photosData[index] = docData;
             likesOnlyPatchDoc = docData;
           } else {
@@ -2806,13 +2556,11 @@
           }
         });
 
-        // We asked for `photosLimit` docs; if we got fewer than that,
-        // there is nothing older left to page in.
         photosHasMore = snapshot.size >= photosLimit;
 
         if (isLoadingMorePhotos) {
           isLoadingMorePhotos = false;
-          needsFullRerender = true; // make sure the button's loading state clears
+          needsFullRerender = true;
         }
 
         if (needsFullRerender) {
@@ -2823,10 +2571,6 @@
         } else if (likesOnlyPatchDoc) {
           patchLikesOnly(likesOnlyPatchDoc);
         } else if (justConfirmed) {
-          // No documents actually changed on this callback, but we just
-          // moved from "cache only" to "server confirmed" - re-render so
-          // an honest "syncing..." message can flip to a confirmed
-          // "gallery is empty" message (or just stop showing the spinner).
           renderPhotos();
         }
       }, () => {
@@ -2839,7 +2583,7 @@
       if (isLoadingMorePhotos || !photosHasMore) return;
       isLoadingMorePhotos = true;
       photosLimit += PHOTOS_PAGE_SIZE;
-      renderPhotos(); // show the button's loading state immediately
+      renderPhotos();
       subscribeToPhotos();
     };
 
@@ -2867,10 +2611,6 @@
       const filtered = getFilteredPhotos();
 
       if (filtered.length === 0) {
-        // Only apply the "still syncing" wording to the unfiltered view -
-        // an author-filtered empty result is a real, immediate fact
-        // (this person has no photos in the already-loaded set), not a
-        // sync-timing ambiguity.
         if (currentPhotoAuthorFilter === 'all') {
           container.innerHTML = syncEmptyStateHTML(photosSync, `<div class="empty-state">אין תמונות עדיין בגלריה! 📸</div>`);
         } else {
@@ -2905,10 +2645,6 @@
 
     function renderPhotosFooterControl() {
       if (currentPhotoAuthorFilter !== 'all') {
-        // Pagination only applies to the base (unfiltered) time-ordered
-        // query, so a per-author filter can only ever show what's
-        // already been loaded - be upfront about that instead of
-        // silently hiding older photos from that person.
         if (photosHasMore) {
           return `<div class="empty-state" style="padding: 14px; grid-column: unset; flex-basis: 100%; margin-top: 4px;">מציג לפי מה שכבר נטען. עברו ל"הכל" וטענו עוד כדי לראות תמונות ישנות יותר של ${escapeHTML(currentPhotoAuthorFilter)}.</div>`;
         }
@@ -2980,10 +2716,8 @@
       const previousCaption = p.caption || '';
       closeCaptionEditModal();
 
-      if (newCaption === previousCaption) return; // nothing changed, skip the write
+      if (newCaption === previousCaption) return;
 
-      // Optimistic: update immediately, both in the open lightbox and
-      // in the grid tile behind it.
       p.caption = newCaption;
       updateLightboxContent(photoId);
       const tileImg = document.querySelector(`.photo-tile[data-id="${photoId}"] .photo-thumb`);
@@ -2993,7 +2727,6 @@
         await photosRef.doc(photoId).update({ caption: newCaption });
         showToast('הכיתוב עודכן ✓', 'success');
       } catch (err) {
-        // revert on failure
         p.caption = previousCaption;
         if (activeLightboxPhotoId === photoId) updateLightboxContent(photoId);
         showToast('שגיאה בעדכון הכיתוב', 'error');
@@ -3013,10 +2746,6 @@
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
 
-      // Force a reflow on the grid so iOS Safari doesn't leave the
-      // scroll container stuck under the overlay that just
-      // disappeared, and so a keyboard-dismiss viewport resize from
-      // whatever was typed inside the lightbox doesn't leave it stuck.
       unstickScroll(document.getElementById('photosContainer'));
     }
 
@@ -3034,9 +2763,6 @@
       }
     };
 
-    // direction: 'next' | 'prev' - kept semantic instead of +1/-1 so the
-    // swipe gesture below can be wired to match the arrow it visually
-    // agrees with, regardless of RTL/LTR arrow placement.
     window.navigatePhoto = function(direction) {
       const filtered = getFilteredPhotos();
       if (filtered.length <= 1) return;
@@ -3074,9 +2800,6 @@
       const diffY = swipeStartY - swipeEndY;
 
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
-        // RTL layout: "next" arrow (❯) sits on the left and swiping the
-        // finger to the left (content appears to move left, diffX > 0)
-        // should land on the same photo the left/next arrow points to.
         if (diffX > 0) {
           navigatePhoto('next');
         } else {
@@ -3170,9 +2893,6 @@
       const currentLikes = p.comments[index].likes || 0;
       const nextLikes = currentLikes > 0 ? 0 : 1;
 
-      // Optimistic local update so the tapper sees an instant response,
-      // without waiting on the round trip that other viewers are also
-      // subscribed to.
       p.comments[index] = { ...p.comments[index], likes: nextLikes };
       const likeBtn = document.querySelector(`#lightboxCommentsList .comment-item[data-index="${index}"] .btn-comment-like`);
       if (likeBtn) {
@@ -3186,7 +2906,6 @@
       try {
         await photosRef.doc(activeLightboxPhotoId).update({ comments: updatedComments });
       } catch (err) {
-        // revert on failure
         p.comments[index] = { ...p.comments[index], likes: currentLikes };
         updateLightboxContent(activeLightboxPhotoId);
         showToast('שגיאה בעדכון הלייק', 'error');
@@ -3243,7 +2962,6 @@
       if (!requireIdentity()) return;
       if (!activeLightboxPhotoId) return;
 
-      // Optimistic bump on the shared counter shown in this client.
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       const countEl = {
         '🔥': document.getElementById('reactCount-fire'),
@@ -3319,7 +3037,6 @@
 
       closeCommentModal();
 
-      // Optimistic: show the new/edited comment immediately.
       p.comments = updatedComments;
       updateLightboxContent(activeLightboxPhotoId);
 
@@ -3337,9 +3054,6 @@
 
       openConfirmDialog('התגובה הזו', () => {
         const photoId = activeLightboxPhotoId;
-        const originalComments = [...p.comments];
-
-        // Optimistic: mark pending immediately in the open lightbox.
         p.comments = p.comments.map((c, i) => i === index ? { ...c, __pendingDelete: true } : c);
         updateLightboxContent(photoId);
 
@@ -3347,7 +3061,7 @@
           const stillPhoto = photosData.find(item => item.id === photoId);
           if (!stillPhoto) return;
           const stillComment = (stillPhoto.comments || [])[index];
-          if (!stillComment || !stillComment.__pendingDelete) return; // undone or state moved on
+          if (!stillComment || !stillComment.__pendingDelete) return;
 
           const finalComments = stillPhoto.comments.filter((_, i) => i !== index).map(c => {
             const { __pendingDelete, ...rest } = c;
@@ -3367,7 +3081,7 @@
           if (stillPhoto) {
             stillPhoto.comments = stillPhoto.comments.map((c, i) => {
               if (i !== index) return c;
-              const { __pendingDelete, ...rest } = c;
+              const { __pendingDelete, __isPending, ...rest } = c;
               return rest;
             });
             if (activeLightboxPhotoId === photoId) updateLightboxContent(photoId);
@@ -3394,7 +3108,7 @@
         renderPhotos();
 
         const timerId = setTimeout(() => {
-          if (!pendingPhotoDeletes.has(currentId)) return; // was undone
+          if (!pendingPhotoDeletes.has(currentId)) return;
           pendingPhotoDeletes.delete(currentId);
           photosRef.doc(currentId).delete()
             .catch(() => showToast('שגיאה במחיקת התמונה', 'error'));
@@ -3402,13 +3116,13 @@
 
         showToast('התמונה תימחק בעוד כמה שניות', 'warning', () => {
           clearTimeout(timerId);
-          pendingPhotoDeletes.delete(currentId);
+          pendingPhotoDeletes.delete(id);
           renderPhotos();
         });
       });
     };
 
-    // Init: label the whoami button if a user is already saved on this device.
+    // Init identity label
     (function initIdentityLabel() {
       const saved = getSelectedUser();
       if (saved) {
@@ -3417,31 +3131,15 @@
       }
     })();
 
-    // Init: FAB matches the default active tab (places) on first paint.
     updateFabForTab('places');
 
-    // Init: make sure every overlay actually starts removed from the
-    // render tree (display:none), not just invisible via opacity -
-    // matches the showOverlay()/hideOverlay() contract everywhere else.
+    // Init overlays hidden
     ['confirmOverlay', 'placeModalOverlay', 'trackModalOverlay', 'photoModalOverlay', 'commentModalOverlay', 'commentActionSheet', 'lightboxModal', 'captionModalOverlay']
       .forEach(id => {
         const el = document.getElementById(id);
         if (el && !el.classList.contains('active')) el.style.display = 'none';
       });
 
-    // -------------------------------------------------------------
-    // Global safety net for the keyboard-dismiss freeze.
-    //
-    // The per-modal blurActiveInput() + unstickScroll() calls cover
-    // the flows we know about, but any focused input closing its
-    // keyboard (including ones we didn't explicitly wire) can trigger
-    // the same iOS layout-stuck symptom. window.visualViewport fires
-    // a resize event when the keyboard opens/closes, independent of
-    // which specific close handler ran - use it as a backstop so the
-    // currently visible scroll area (and the lightbox, if open) never
-    // stays stuck even if some future code path forgets to call
-    // unstickScroll itself.
-    // -------------------------------------------------------------
     if (window.visualViewport) {
       let vvResizeTimer = null;
       window.visualViewport.addEventListener('resize', () => {
