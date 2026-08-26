@@ -1,8 +1,17 @@
 <!--
   =============================================================
   PROJECT: Mykonos Group Guide, Soundtrack & Live Gallery
-  VERSION: v4.7.0
+  VERSION: v4.8.0
   UPDATED: August 2026
+  CHANGELOG v4.8.0:
+    - Real scroll-unstick fix (forced reflow) after Lightbox / comment modal / action sheet close.
+    - Avoid full comment-list re-render on likes-only realtime updates (fixes flicker for other viewers).
+    - Optimistic UI for reactions, comment like, comment add, comment delete, photo delete.
+    - Soft-delete with 5s "Undo" toast for places / tracks / photos / comments.
+    - One-time "who am I" identity gate instead of a picker embedded in every modal.
+    - Swipe direction now matches nav arrow direction (RTL-consistent).
+    - overscroll-behavior / touch-action added to scrollable containers to stop scroll-chaining glitches under blurred overlays.
+    - Image compression now guards against oversized Firestore documents.
   CHANGELOG v4.7.0:
     - Restored fixed app shell layout (100dvh, no full-page scrolling).
     - Fixed photo grid scroll lock cleanly on Lightbox close by forcing pointer-events and container reset.
@@ -14,8 +23,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="app-version" content="4.7.0" />
-  <title>המדריך למיקונוס 🇬🇷 (v4.7.0)</title>
+  <meta name="app-version" content="4.8.0" />
+  <title>המדריך למיקונוס 🇬🇷 (v4.8.0)</title>
 
   <!-- Firebase SDKs (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -78,6 +87,7 @@
       gap: 4px;
       box-shadow: 0 4px 16px rgba(0, 70, 140, 0.06);
       flex-shrink: 0;
+      align-items: center;
     }
 
     .tab-btn {
@@ -102,6 +112,25 @@
       background: var(--primary);
       color: white;
       box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
+    }
+
+    .btn-whoami {
+      flex-shrink: 0;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: none;
+      border-radius: 14px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      max-width: 92px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .tab-content {
@@ -230,6 +259,8 @@
       padding-bottom: 24px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
     .card-item {
@@ -243,6 +274,11 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       border: 1px solid rgba(226, 232, 240, 0.7);
       flex-shrink: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .card-item.is-pending-delete {
+      opacity: 0.4;
     }
 
     .card-main {
@@ -433,6 +469,8 @@
       padding-bottom: 24px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
     .photo-tile {
@@ -445,6 +483,11 @@
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       flex-shrink: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .photo-tile.is-pending-delete {
+      opacity: 0.35;
     }
 
     .photo-tile:active {
@@ -643,6 +686,7 @@
       align-items: center;
       gap: 4px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: transform 0.12s ease;
     }
 
     .btn-react:active {
@@ -674,6 +718,8 @@
       padding-right: 1px;
       scrollbar-width: thin;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
     .comment-item {
@@ -691,6 +737,11 @@
       line-height: 1.3;
       flex-shrink: 0;
       position: relative;
+      transition: opacity 0.2s ease;
+    }
+
+    .comment-item.is-pending-delete {
+      opacity: 0.35;
     }
 
     .comment-item:nth-child(even) {
@@ -728,6 +779,11 @@
       gap: 2px;
       color: var(--muted);
       font-weight: 600;
+      transition: transform 0.12s ease, color 0.15s ease;
+    }
+
+    .btn-comment-like.is-liked {
+      color: var(--delete-color);
     }
 
     .btn-comment-like:active, .btn-comment-reply:active {
@@ -926,6 +982,11 @@
       background: var(--edit-color);
     }
 
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
     .btn-cancel {
       background: #e2e8f0;
       color: #475569;
@@ -1076,9 +1137,81 @@
     .toast.warning { background: #92400e; }
     .toast.error { background: #991b1b; }
 
+    .toast-undo-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Identity gate */
+    .identity-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 15, 25, 0.55);
+      backdrop-filter: blur(6px);
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .identity-card {
+      background: white;
+      border-radius: 22px;
+      padding: 22px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .identity-card h2 {
+      font-size: 1.1rem;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .identity-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .identity-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .identity-chip {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 4px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .identity-chip:active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
     }
   </style>
 </head>
@@ -1090,13 +1223,14 @@
       <button class="tab-btn active" onclick="switchTab('places')">📍 מקומות</button>
       <button class="tab-btn" onclick="switchTab('music')">🎧 פסקול</button>
       <button class="tab-btn" onclick="switchTab('photos')">📸 תמונות</button>
+      <button class="btn-whoami" id="whoAmIBtn" onclick="openIdentityGate(true)" title="החלף משתמש">👤 <span id="whoAmILabel">בחר שם</span></button>
     </div>
 
     <!-- ================= PLACES TAB ================= -->
     <div id="tab-places" class="tab-content active">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.7.0</span>
+          <span class="version-tag">v4.8.0</span>
           <h1>מקומות שווים במיקונוס 📍</h1>
           <p>חופים, קלאבים, ברים, מסעדות, שופינג ומפות</p>
         </div>
@@ -1126,7 +1260,7 @@
     <div id="tab-music" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.7.0</span>
+          <span class="version-tag">v4.8.0</span>
           <h1>פסקול הטיול 🎧</h1>
           <p>הפלייליסטים, הסטים והשירים שהחברים השמיעו</p>
         </div>
@@ -1154,7 +1288,7 @@
     <div id="tab-photos" class="tab-content">
       <div class="top-fixed-section">
         <div class="header-card">
-          <span class="version-tag">v4.7.0</span>
+          <span class="version-tag">v4.8.0</span>
           <h1>גלריית הרגעים 📸</h1>
           <p>תמונות מהטיול, ריאקשנים והערות בלייב</p>
         </div>
@@ -1173,6 +1307,15 @@
         <div class="skeleton" style="aspect-ratio: 1/1;"></div>
         <div class="skeleton" style="aspect-ratio: 1/1;"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= IDENTITY GATE ================= -->
+  <div class="identity-overlay" id="identityOverlay" style="display: none;">
+    <div class="identity-card">
+      <h2>מי אתה? 👋</h2>
+      <p>בחרו את השם שלכם פעם אחת - הוא יזכר במכשיר הזה</p>
+      <div class="identity-grid" id="identityGrid"></div>
     </div>
   </div>
 
@@ -1198,16 +1341,13 @@
           </select>
           <input type="text" class="input-field" id="placeName" placeholder="שם המקום / הרשימה *" required />
         </div>
-        
+
         <div class="row-inputs">
           <input type="text" class="input-field" id="placeLink" placeholder="קישור (גוגל מפות, אינסטגרם...)" />
-          <select class="select-field" id="placeSharer" style="width: 120px; flex-shrink: 0;" required>
-            <!-- Generated dynamically -->
-          </select>
         </div>
 
         <input type="text" class="input-field" id="placeNote" placeholder="הערה / טיפ (שקיעה, להזמין מראש)" />
-        
+
         <div class="modal-buttons">
           <button type="submit" class="btn-submit" id="placeSubmitBtn">
             <span>+</span> הוסף לרשימה
@@ -1230,16 +1370,11 @@
         <input type="hidden" id="trackEditId" value="" />
         <input type="hidden" id="trackDurationHidden" value="" />
         <input type="text" class="input-field" id="trackLink" placeholder="הדבק קישור (SoundCloud, Spotify, YouTube...)*" required />
-        
-        <div class="row-inputs">
-          <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר (מתמלא אוטומטית או ידנית) *" required />
-          <select class="select-field" id="trackSharer" style="width: 120px; flex-shrink: 0;" required>
-            <!-- Generated dynamically -->
-          </select>
-        </div>
-        
+
+        <input type="text" class="input-field" id="trackTitle" placeholder="שם השיר (מתמלא אוטומטית או ידנית) *" required />
+
         <input type="text" class="input-field" id="trackVibe" placeholder="איזה וייב? (שקיעה, הרמות, צ'יל ברכב)" />
-        
+
         <div class="modal-buttons">
           <button type="submit" class="btn-submit btn-music-submit" id="trackSubmitBtn">
             <span>+</span> הוסף לפסקול
@@ -1261,12 +1396,6 @@
       <form id="photoForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="file" id="photoFileInput" accept="image/*" class="input-field" required />
         <input type="text" class="input-field" id="photoCaption" placeholder="כיתוב קצר (למשל: בסקורפיוס עם כולם 🔥)" />
-        
-        <div class="row-inputs">
-          <select class="select-field" id="photoSharer" required>
-            <!-- Generated dynamically -->
-          </select>
-        </div>
 
         <div class="modal-buttons">
           <button type="submit" class="btn-submit btn-photo-open" id="photoSubmitBtn">
@@ -1289,12 +1418,7 @@
       <form id="commentForm" style="display: flex; flex-direction: column; gap: 10px;">
         <input type="hidden" id="commentEditIndex" value="" />
         <input type="hidden" id="commentReplyTo" value="" />
-        <div class="row-inputs">
-          <select class="select-field" id="commentAuthorSelect" style="width: 130px; flex-shrink: 0;" required>
-            <!-- Generated dynamically -->
-          </select>
-          <input type="text" class="input-field" id="commentTextInput" placeholder="כתוב משהו מצחיק..." required />
-        </div>
+        <input type="text" class="input-field" id="commentTextInput" placeholder="כתוב משהו מצחיק..." required />
 
         <div class="modal-buttons">
           <button type="submit" class="btn-submit" id="commentSubmitBtn">
@@ -1319,7 +1443,7 @@
   <div class="lightbox-overlay" id="lightboxModal">
     <div class="lightbox-header">
       <span id="lightboxAuthor" style="font-weight: 700; font-size: 0.95rem;"></span>
-      
+
       <div style="display: flex; gap: 10px; align-items: center;">
         <button id="lightboxDeleteBtn" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; display: none; align-items: center; justify-content: center; color: white;" onclick="confirmDeleteCurrentPhoto()" title="מחק תמונה">🗑️</button>
         <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); color: white; width: 34px; height: 34px;" onclick="closeLightbox()">✕</button>
@@ -1328,9 +1452,9 @@
 
     <!-- Main Image View Area -->
     <div class="lightbox-content" id="lightboxContentArea" onclick="handlePhotoAreaTap(event)">
-      <button class="btn-nav-arrow prev" onclick="event.stopPropagation(); navigatePhoto(1);" title="תמונה קודמת">❮</button>
+      <button class="btn-nav-arrow prev" onclick="event.stopPropagation(); navigatePhoto('prev');" title="תמונה קודמת">❮</button>
       <img id="lightboxImg" class="lightbox-img" src="" alt="תמונה" />
-      <button class="btn-nav-arrow next" onclick="event.stopPropagation(); navigatePhoto(-1);" title="תמונה הבאה">❯</button>
+      <button class="btn-nav-arrow next" onclick="event.stopPropagation(); navigatePhoto('next');" title="תמונה הבאה">❯</button>
     </div>
 
     <!-- Frosted Glass Bottom Drawer -->
@@ -1375,39 +1499,69 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const APP_VERSION = "4.7.0";
+    const APP_VERSION = "4.8.0";
     console.log(`Mykonos Guide App initialized - Version: ${APP_VERSION}`);
 
     const FRIENDS = ["ציפי", "בנצה", "בולבול", "ברגה", "איילה", "נירה", "פוטה", "מארג׳", "מרגלית"];
+    const UNDO_WINDOW_MS = 5000;
 
-    function initSharerDropdowns() {
-      const savedUser = localStorage.getItem('mykonos_user') || '';
-      const targetIds = ['placeSharer', 'trackSharer', 'photoSharer', 'commentAuthorSelect'];
-      
-      targetIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        
-        let optionsHTML = `<option value="" disabled ${!savedUser ? 'selected' : ''}>בחר את שמך... 👤</option>`;
-        optionsHTML += FRIENDS.map(name => `<option value="${name}" ${name === savedUser ? 'selected' : ''}>${name}</option>`).join('');
-        
-        el.innerHTML = optionsHTML;
-
-        el.addEventListener('change', () => {
-          localStorage.setItem('mykonos_user', el.value);
-          targetIds.forEach(otherId => {
-            const other = document.getElementById(otherId);
-            if (other) other.value = el.value;
-          });
-          if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
-        });
-      });
-
-      updatePhotoAuthorFilters();
+    // -------------------------------------------------------------
+    // Scroll-unstick helper (forces a real reflow, unlike a no-op
+    // style reassignment). Needed because iOS Safari can leave a
+    // -webkit-overflow-scrolling:touch container "stuck" after a
+    // fixed + backdrop-filter overlay above it disappears.
+    // -------------------------------------------------------------
+    function unstickScroll(el) {
+      if (!el) return;
+      const prevOverflow = el.style.overflow;
+      el.style.overflow = 'hidden';
+      // eslint-disable-next-line no-unused-expressions
+      void el.offsetHeight; // force layout/reflow
+      el.style.overflow = prevOverflow || '';
+      const st = el.scrollTop;
+      el.scrollTop = st + 1;
+      el.scrollTop = st;
+      el.style.pointerEvents = 'auto';
     }
 
+    // -------------------------------------------------------------
+    // Identity gate - ask once per device instead of a picker
+    // embedded in every single modal.
+    // -------------------------------------------------------------
     function getSelectedUser() {
       return localStorage.getItem('mykonos_user') || '';
+    }
+
+    function setSelectedUser(name) {
+      localStorage.setItem('mykonos_user', name);
+      const label = document.getElementById('whoAmILabel');
+      if (label) label.textContent = name || 'בחר שם';
+    }
+
+    function openIdentityGate(isSwitch) {
+      const grid = document.getElementById('identityGrid');
+      grid.innerHTML = FRIENDS.map(name =>
+        `<button type="button" class="identity-chip" onclick="selectIdentity('${name}')">${name}</button>`
+      ).join('');
+      document.getElementById('identityOverlay').style.display = 'flex';
+      document.getElementById('identityOverlay').dataset.isSwitch = isSwitch ? '1' : '0';
+    }
+
+    window.openIdentityGate = openIdentityGate;
+
+    window.selectIdentity = function(name) {
+      setSelectedUser(name);
+      document.getElementById('identityOverlay').style.display = 'none';
+      if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
+    };
+
+    function requireIdentity() {
+      const u = getSelectedUser();
+      if (!u) {
+        openIdentityGate(false);
+        return false;
+      }
+      return true;
     }
 
     function escapeHTML(str) {
@@ -1429,15 +1583,29 @@
       return url;
     }
 
-    function showToast(msg, type = 'info') {
+    function showToast(msg, type = 'info', undoCallback) {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
       const span = document.createElement('span');
       span.textContent = msg;
       toast.appendChild(span);
+
+      if (undoCallback) {
+        const undoBtn = document.createElement('button');
+        undoBtn.className = 'toast-undo-btn';
+        undoBtn.textContent = 'בטל';
+        undoBtn.onclick = () => {
+          undoCallback();
+          if (toast.parentElement) toast.remove();
+        };
+        toast.appendChild(undoBtn);
+      }
+
       container.appendChild(toast);
-      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+      const life = undoCallback ? UNDO_WINDOW_MS : 3000;
+      setTimeout(() => { if (toast.parentElement) toast.remove(); }, life);
+      return toast;
     }
 
     function handleOverlayClick(e, overlayId) {
@@ -1529,6 +1697,7 @@
     let placesData = [];
     let currentPlaceFilter = 'all';
     let isPlacesLoaded = false;
+    const pendingPlaceDeletes = new Set();
 
     const placeModalOverlay = document.getElementById('placeModalOverlay');
     const placeModalTitle = document.getElementById('placeModalTitle');
@@ -1537,9 +1706,9 @@
     const placeSubmitBtn = document.getElementById('placeSubmitBtn');
 
     function openPlaceModal() {
+      if (!requireIdentity()) return;
       placeForm.reset();
       placeEditIdInput.value = '';
-      initSharerDropdowns();
       placeModalTitle.textContent = 'הוספת מקום חדש 📍';
       placeSubmitBtn.innerHTML = '<span>+</span> הוסף לרשימה';
       placeSubmitBtn.classList.remove('btn-editing');
@@ -1557,7 +1726,6 @@
       document.getElementById('placeName').value = p.name || '';
       document.getElementById('placeCategory').value = p.category || 'חוף';
       document.getElementById('placeLink').value = p.link || '';
-      document.getElementById('placeSharer').value = p.sharer || getSelectedUser();
       document.getElementById('placeNote').value = p.note || '';
 
       placeModalTitle.textContent = 'עריכת מקום ✏️';
@@ -1599,7 +1767,8 @@
 
       filtered.forEach(p => {
         const card = document.createElement('div');
-        card.className = 'card-item';
+        card.className = 'card-item' + (pendingPlaceDeletes.has(p.id) ? ' is-pending-delete' : '');
+        card.id = `place-card-${p.id}`;
         const isMap = (p.category || '').includes('מפה');
         const safeLink = p.link ? escapeHTML(p.link) : '';
         const menuId = `menu-place-${p.id}`;
@@ -1630,11 +1799,8 @@
 
     placeForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const sharer = document.getElementById('placeSharer').value;
-      if (!sharer) {
-        showToast('יש לבחור שם לפני ההוספה', 'warning');
-        return;
-      }
+      const sharer = getSelectedUser();
+      if (!requireIdentity()) return;
 
       const editId = placeEditIdInput.value;
       const name = document.getElementById('placeName').value.trim();
@@ -1646,6 +1812,12 @@
       closePlaceModal();
 
       if (editId) {
+        // Optimistic local patch
+        const idx = placesData.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          placesData[idx] = { ...placesData[idx], name, category, link, note };
+          renderPlaces();
+        }
         placesRef.doc(editId).update({ name, category, link, sharer, note })
           .then(() => showToast('המקום עודכן בהצלחה ✓', 'success'))
           .catch(() => showToast('שגיאה בעדכון המקום', 'error'));
@@ -1665,9 +1837,22 @@
       if (!itemToDelete) return;
 
       openConfirmDialog(itemToDelete.name, () => {
-        placesRef.doc(id).delete()
-          .then(() => showToast(`"${itemToDelete.name}" נמחק בהצלחה`, 'success'))
-          .catch(() => showToast('שגיאה במחיקת המקום', 'error'));
+        // Optimistic: mark pending, actually delete after the undo window
+        pendingPlaceDeletes.add(id);
+        renderPlaces();
+
+        const timerId = setTimeout(() => {
+          if (!pendingPlaceDeletes.has(id)) return; // was undone
+          pendingPlaceDeletes.delete(id);
+          placesRef.doc(id).delete()
+            .catch(() => showToast('שגיאה במחיקת המקום', 'error'));
+        }, UNDO_WINDOW_MS);
+
+        showToast(`"${itemToDelete.name}" יימחק בעוד כמה שניות`, 'warning', () => {
+          clearTimeout(timerId);
+          pendingPlaceDeletes.delete(id);
+          renderPlaces();
+        });
       });
     };
 
@@ -1686,6 +1871,7 @@
     let tracksData = [];
     let currentMusicFilter = 'all';
     let isMusicLoaded = false;
+    const pendingTrackDeletes = new Set();
 
     const trackModalOverlay = document.getElementById('trackModalOverlay');
     const trackModalTitle = document.getElementById('trackModalTitle');
@@ -1695,10 +1881,10 @@
     const trackSubmitBtn = document.getElementById('trackSubmitBtn');
 
     function openTrackModal() {
+      if (!requireIdentity()) return;
       musicForm.reset();
       trackEditIdInput.value = '';
       trackDurationHidden.value = '';
-      initSharerDropdowns();
       trackModalTitle.textContent = 'הוספת מוזיקה לפסקול 🎧';
       trackSubmitBtn.innerHTML = '<span>+</span> הוסף לפסקול';
       trackSubmitBtn.classList.remove('btn-editing');
@@ -1716,7 +1902,6 @@
       trackDurationHidden.value = t.duration || '';
       document.getElementById('trackLink').value = t.link || '';
       document.getElementById('trackTitle').value = t.title || '';
-      document.getElementById('trackSharer').value = t.sharer || getSelectedUser();
       document.getElementById('trackVibe').value = t.vibe || '';
 
       trackModalTitle.textContent = 'עריכת שיר / סט ✏️';
@@ -1780,9 +1965,9 @@
     tracksRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       isMusicLoaded = true;
       tracksData = [];
-      snapshot.forEach(doc => { 
+      snapshot.forEach(doc => {
         const data = doc.data();
-        tracksData.push({ id: doc.id, ...data }); 
+        tracksData.push({ id: doc.id, ...data });
       });
       renderTracks();
     }, () => showToast('שגיאה בסנכרון הפסקול', 'error'));
@@ -1814,7 +1999,8 @@
       filtered.forEach(t => {
         const plat = detectPlatform(t.link);
         const card = document.createElement('div');
-        card.className = 'card-item';
+        card.className = 'card-item' + (pendingTrackDeletes.has(t.id) ? ' is-pending-delete' : '');
+        card.id = `track-card-${t.id}`;
         const menuId = `menu-track-${t.id}`;
 
         card.innerHTML = `
@@ -1844,11 +2030,8 @@
 
     musicForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const sharer = document.getElementById('trackSharer').value;
-      if (!sharer) {
-        showToast('יש לבחור שם לפני ההוספה', 'warning');
-        return;
-      }
+      const sharer = getSelectedUser();
+      if (!requireIdentity()) return;
 
       const editId = trackEditIdInput.value;
       const title = document.getElementById('trackTitle').value.trim();
@@ -1870,6 +2053,11 @@
       };
 
       if (editId) {
+        const idx = tracksData.findIndex(t => t.id === editId);
+        if (idx !== -1) {
+          tracksData[idx] = { ...tracksData[idx], ...payload };
+          renderTracks();
+        }
         tracksRef.doc(editId).update(payload)
           .then(() => showToast('הפסקול עודכן בהצלחה ✓', 'success'))
           .catch(() => showToast('שגיאה בעדכון הפסקול', 'error'));
@@ -1889,9 +2077,21 @@
       if (!itemToDelete) return;
 
       openConfirmDialog(itemToDelete.title, () => {
-        tracksRef.doc(id).delete()
-          .then(() => showToast(`"${itemToDelete.title}" הוסר מהפסקול`, 'success'))
-          .catch(() => showToast('שגיאה במחיקת הטראק', 'error'));
+        pendingTrackDeletes.add(id);
+        renderTracks();
+
+        const timerId = setTimeout(() => {
+          if (!pendingTrackDeletes.has(id)) return;
+          pendingTrackDeletes.delete(id);
+          tracksRef.doc(id).delete()
+            .catch(() => showToast('שגיאה במחיקת הטראק', 'error'));
+        }, UNDO_WINDOW_MS);
+
+        showToast(`"${itemToDelete.title}" יוסר מהפסקול בעוד כמה שניות`, 'warning', () => {
+          clearTimeout(timerId);
+          pendingTrackDeletes.delete(id);
+          renderTracks();
+        });
       });
     };
 
@@ -1911,6 +2111,7 @@
     let currentPhotoAuthorFilter = 'all';
     let isPhotosLoaded = false;
     let activeLightboxPhotoId = null;
+    const pendingPhotoDeletes = new Set();
 
     const photoModalOverlay = document.getElementById('photoModalOverlay');
     const photoForm = document.getElementById('photoForm');
@@ -1943,14 +2144,19 @@
     });
 
     function openPhotoModal() {
+      if (!requireIdentity()) return;
       photoForm.reset();
-      initSharerDropdowns();
       photoModalOverlay.classList.add('active');
     }
 
     function closePhotoModal() { photoModalOverlay.classList.remove('active'); }
 
-    function compressToDataURL(file, maxWidth = 900, quality = 0.65) {
+    // Firestore documents are capped at 1MB. We compress
+    // progressively and warn (instead of silently producing a
+    // write that Firestore will reject) if we can't get small enough.
+    const MAX_IMAGE_BYTES = 700 * 1024; // leave headroom under the 1MB doc cap
+
+    function compressToDataURL(file, maxWidth, quality) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -1981,13 +2187,33 @@
       });
     }
 
+    function estimateBase64Bytes(dataUrl) {
+      const base64 = dataUrl.split(',')[1] || '';
+      return Math.round(base64.length * 0.75);
+    }
+
+    async function compressWithSizeGuard(file) {
+      const attempts = [
+        { maxWidth: 900, quality: 0.65 },
+        { maxWidth: 700, quality: 0.55 },
+        { maxWidth: 500, quality: 0.45 },
+        { maxWidth: 380, quality: 0.4 }
+      ];
+      let lastResult = null;
+      for (const attempt of attempts) {
+        lastResult = await compressToDataURL(file, attempt.maxWidth, attempt.quality);
+        if (estimateBase64Bytes(lastResult) <= MAX_IMAGE_BYTES) {
+          return lastResult;
+        }
+      }
+      // Best effort even if still large - Firestore will reject if truly over 1MB.
+      return lastResult;
+    }
+
     photoForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const sharer = document.getElementById('photoSharer').value;
-      if (!sharer) {
-        showToast('יש לבחור שם לפני העלאת תמונה', 'warning');
-        return;
-      }
+      if (!requireIdentity()) return;
+      const sharer = getSelectedUser();
 
       const file = photoFileInput.files[0];
       const caption = document.getElementById('photoCaption').value.trim();
@@ -1998,7 +2224,12 @@
       photoSubmitBtn.textContent = 'דוחס ומעלה... ⏳';
 
       try {
-        const base64Image = await compressToDataURL(file);
+        const base64Image = await compressWithSizeGuard(file);
+
+        if (estimateBase64Bytes(base64Image) > 950 * 1024) {
+          showToast('התמונה גדולה מדי גם אחרי דחיסה - נסו תמונה אחרת', 'error');
+          return;
+        }
 
         await photosRef.add({
           url: base64Image,
@@ -2019,38 +2250,96 @@
       }
     });
 
-    photosRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-      isPhotosLoaded = true;
-      let hasChanges = false;
-      
-      snapshot.docChanges().forEach(change => {
-        const docId = change.doc.id;
-        const docData = { id: docId, ...change.doc.data() };
-        
-        if (change.type === 'added') {
-          if (!photosData.some(p => p.id === docId)) {
-            photosData.push(docData);
-            hasChanges = true;
-          }
+    // Tracks whether the *only* thing that changed between the old and
+    // new version of a photo doc is reaction counts and/or comment like
+    // counts (not text/author/additions/removals of comments). When
+    // true we can patch the DOM in place instead of a full re-render,
+    // which is what was causing the flicker for every other viewer
+    // whenever someone tapped a heart.
+    function isLikesOnlyChange(oldDoc, newDoc) {
+      if (!oldDoc) return false;
+      const oldComments = oldDoc.comments || [];
+      const newComments = newDoc.comments || [];
+      if (oldComments.length !== newComments.length) return false;
+      for (let i = 0; i < oldComments.length; i++) {
+        const a = oldComments[i], b = newComments[i];
+        if (a.author !== b.author || a.text !== b.text || (a.replyTo || null) !== (b.replyTo || null)) {
+          return false;
         }
-        if (change.type === 'modified') {
-          const index = photosData.findIndex(p => p.id === docId);
-          if (index !== -1) {
-            photosData[index] = docData;
-            hasChanges = true;
-          }
-        }
-        if (change.type === 'removed') {
-          photosData = photosData.filter(p => p.id !== docId);
-          hasChanges = true;
+      }
+      // caption/sharer/url should never change post-creation in this app
+      if (oldDoc.caption !== newDoc.caption || oldDoc.sharer !== newDoc.sharer || oldDoc.url !== newDoc.url) {
+        return false;
+      }
+      return true;
+    }
+
+    function patchLikesOnly(newDoc) {
+      // Reaction counters
+      const reacts = newDoc.reactions || {};
+      const fireEl = document.getElementById('reactCount-fire');
+      const laughEl = document.getElementById('reactCount-laugh');
+      const drinkEl = document.getElementById('reactCount-drink');
+      const heartEl = document.getElementById('reactCount-heart');
+      if (fireEl) fireEl.textContent = reacts['🔥'] || 0;
+      if (laughEl) laughEl.textContent = reacts['😂'] || 0;
+      if (drinkEl) drinkEl.textContent = reacts['🍸'] || 0;
+      if (heartEl) heartEl.textContent = reacts['❤️'] || 0;
+
+      // Per-comment like counts, patched individually (no innerHTML rebuild)
+      const comments = newDoc.comments || [];
+      comments.forEach((c, index) => {
+        const likeBtn = document.querySelector(`#lightboxCommentsList .comment-item[data-index="${index}"] .btn-comment-like`);
+        if (likeBtn) {
+          const likeCount = c.likes || 0;
+          likeBtn.innerHTML = `❤️ ${likeCount > 0 ? likeCount : ''}`;
+          likeBtn.classList.toggle('is-liked', likeCount > 0);
         }
       });
 
-      if (hasChanges || !isPhotosLoaded) {
+      // Also patch the grid tile stats badge without a full grid re-render
+      const tile = document.querySelector(`.photo-tile[data-id="${newDoc.id}"] .photo-badge-stats`);
+      // grid stats are cheap to recompute wholesale on next renderPhotos(); skip here.
+    }
+
+    photosRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      isPhotosLoaded = true;
+      let needsFullRerender = false;
+      let likesOnlyPatchDoc = null;
+
+      snapshot.docChanges().forEach(change => {
+        const docId = change.doc.id;
+        const docData = { id: docId, ...change.doc.data() };
+        const index = photosData.findIndex(p => p.id === docId);
+
+        if (change.type === 'added') {
+          if (index === -1) {
+            photosData.push(docData);
+            needsFullRerender = true;
+          }
+        } else if (change.type === 'modified') {
+          const oldDoc = index !== -1 ? photosData[index] : null;
+          if (docId === activeLightboxPhotoId && isLikesOnlyChange(oldDoc, docData)) {
+            // Cheap in-place patch, no full re-render -> no flicker for other viewers.
+            if (index !== -1) photosData[index] = docData;
+            likesOnlyPatchDoc = docData;
+          } else {
+            if (index !== -1) photosData[index] = docData;
+            needsFullRerender = true;
+          }
+        } else if (change.type === 'removed') {
+          photosData = photosData.filter(p => p.id !== docId);
+          needsFullRerender = true;
+        }
+      });
+
+      if (needsFullRerender) {
         photosData.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
         updatePhotoAuthorFilters();
         renderPhotos();
         if (activeLightboxPhotoId) updateLightboxContent(activeLightboxPhotoId);
+      } else if (likesOnlyPatchDoc) {
+        patchLikesOnly(likesOnlyPatchDoc);
       }
     }, () => showToast('שגיאה בסנכרון גלריה', 'error'));
 
@@ -2063,7 +2352,7 @@
 
     function renderPhotos() {
       const container = document.getElementById('photosContainer');
-      
+
       if (!isPhotosLoaded) {
         container.innerHTML = `
           <div class="skeleton" style="aspect-ratio: 1/1; width: calc((100% - 12px) / 3);"></div>
@@ -2087,9 +2376,10 @@
 
         const commentCount = (p.comments || []).length;
         const hasStats = topReact || commentCount > 0;
+        const isPending = pendingPhotoDeletes.has(p.id);
 
         return `
-          <div class="photo-tile" onclick="openLightbox('${p.id}')">
+          <div class="photo-tile${isPending ? ' is-pending-delete' : ''}" data-id="${p.id}" onclick="${isPending ? '' : `openLightbox('${p.id}')`}">
             <img class="photo-thumb" src="${p.url}" loading="lazy" alt="${escapeHTML(p.caption)}" />
             <div class="photo-badge-author">${escapeHTML(p.sharer)}</div>
             ${hasStats ? `
@@ -2119,7 +2409,6 @@
     const commentModalTitle = document.getElementById('commentModalTitle');
     const commentForm = document.getElementById('commentForm');
     const commentTextInput = document.getElementById('commentTextInput');
-    const commentAuthorSelect = document.getElementById('commentAuthorSelect');
     const commentEditIndexInput = document.getElementById('commentEditIndex');
     const commentReplyToInput = document.getElementById('commentReplyTo');
 
@@ -2130,7 +2419,6 @@
       activeLightboxPhotoId = id;
       lightboxFooter.classList.remove('expanded');
       updateLightboxContent(id);
-      initSharerDropdowns();
       lightboxModal.classList.add('active');
     }
 
@@ -2139,12 +2427,10 @@
       lightboxFooter.classList.remove('expanded');
       activeLightboxPhotoId = null;
 
-      // וידוא מוחלט של שחרור הגלילה בקונטיינר התמונות
-      const gridContainer = document.getElementById('photosContainer');
-      if (gridContainer) {
-        gridContainer.style.pointerEvents = 'auto';
-        gridContainer.style.overflowY = 'auto';
-      }
+      // Real fix: force a reflow on the grid so iOS Safari doesn't
+      // leave the scroll container "stuck" under the overlay that
+      // just disappeared (a no-op style reassignment does nothing).
+      unstickScroll(document.getElementById('photosContainer'));
     }
 
     window.handlePhotoAreaTap = function(e) {
@@ -2161,6 +2447,9 @@
       }
     };
 
+    // direction: 'next' | 'prev' - kept semantic instead of +1/-1 so the
+    // swipe gesture below can be wired to match the arrow it visually
+    // agrees with, regardless of RTL/LTR arrow placement.
     window.navigatePhoto = function(direction) {
       const filtered = getFilteredPhotos();
       if (filtered.length <= 1) return;
@@ -2168,7 +2457,8 @@
       const currentIndex = filtered.findIndex(p => p.id === activeLightboxPhotoId);
       if (currentIndex === -1) return;
 
-      let nextIndex = currentIndex + direction;
+      const step = direction === 'next' ? -1 : 1;
+      let nextIndex = currentIndex + step;
       if (nextIndex >= filtered.length) nextIndex = 0;
       if (nextIndex < 0) nextIndex = filtered.length - 1;
 
@@ -2197,18 +2487,21 @@
       const diffY = swipeStartY - swipeEndY;
 
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+        // RTL layout: "next" arrow (❯) sits on the left and swiping the
+        // finger to the left (content appears to move left, diffX > 0)
+        // should land on the same photo the left/next arrow points to.
         if (diffX > 0) {
-          navigatePhoto(-1);
+          navigatePhoto('next');
         } else {
-          navigatePhoto(1);
+          navigatePhoto('prev');
         }
       }
     }, { passive: true });
 
     document.addEventListener('keydown', (e) => {
       if (!lightboxModal.classList.contains('active')) return;
-      if (e.key === 'ArrowRight') navigatePhoto(1);
-      if (e.key === 'ArrowLeft') navigatePhoto(-1);
+      if (e.key === 'ArrowRight') navigatePhoto('prev');
+      if (e.key === 'ArrowLeft') navigatePhoto('next');
       if (e.key === 'Escape') closeLightbox();
     });
 
@@ -2257,15 +2550,16 @@
         lightboxCommentsList.innerHTML = comments.map((c, index) => {
           const isMyComment = c.author === currentUser && currentUser !== '';
           const likeCount = c.likes || 0;
+          const isPending = c.__pendingDelete;
           const replyTag = c.replyTo ? `<span class="reply-badge">@${escapeHTML(c.replyTo)}</span>` : '';
-          
+
           return `
-            <div class="comment-item">
+            <div class="comment-item${isPending ? ' is-pending-delete' : ''}" data-index="${index}">
               <div class="comment-text-wrap" onclick="openReplyModal('${escapeHTML(c.author)}')">
                 <span class="comment-author">${escapeHTML(c.author)}:</span> ${replyTag} <span>${escapeHTML(c.text)}</span>
               </div>
               <div class="comment-actions-inline">
-                <button class="btn-comment-like" onclick="event.stopPropagation(); toggleCommentLike(${index});" title="לייק לתגובה">
+                <button class="btn-comment-like${likeCount > 0 ? ' is-liked' : ''}" onclick="event.stopPropagation(); toggleCommentLike(${index});" title="לייק לתגובה">
                   ❤️ ${likeCount > 0 ? likeCount : ''}
                 </button>
                 <button class="btn-comment-reply" onclick="event.stopPropagation(); openReplyModal('${escapeHTML(c.author)}');" title="הגב">
@@ -2283,27 +2577,42 @@
 
     // Comment Actions (Like, Reply, Edit, Delete)
     window.toggleCommentLike = async function(index) {
+      if (!requireIdentity()) return;
       if (!activeLightboxPhotoId) return;
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       if (!p || !p.comments || !p.comments[index]) return;
 
+      const currentLikes = p.comments[index].likes || 0;
+      const nextLikes = currentLikes > 0 ? 0 : 1;
+
+      // Optimistic local update so the tapper sees an instant response,
+      // without waiting on the round trip that other viewers are also
+      // subscribed to.
+      p.comments[index] = { ...p.comments[index], likes: nextLikes };
+      const likeBtn = document.querySelector(`#lightboxCommentsList .comment-item[data-index="${index}"] .btn-comment-like`);
+      if (likeBtn) {
+        likeBtn.innerHTML = `❤️ ${nextLikes > 0 ? nextLikes : ''}`;
+        likeBtn.classList.toggle('is-liked', nextLikes > 0);
+      }
+
       let updatedComments = [...p.comments];
-      const currentLikes = updatedComments[index].likes || 0;
-      updatedComments[index].likes = currentLikes > 0 ? 0 : 1;
+      updatedComments[index] = { ...updatedComments[index], likes: nextLikes };
 
       try {
         await photosRef.doc(activeLightboxPhotoId).update({ comments: updatedComments });
       } catch (err) {
+        // revert on failure
+        p.comments[index] = { ...p.comments[index], likes: currentLikes };
+        updateLightboxContent(activeLightboxPhotoId);
         showToast('שגיאה בעדכון הלייק', 'error');
       }
     };
 
     window.openReplyModal = function(targetAuthor) {
-      const currentAuthor = getSelectedUser();
+      if (!requireIdentity()) return;
       commentForm.reset();
       commentEditIndexInput.value = '';
       commentReplyToInput.value = targetAuthor;
-      commentAuthorSelect.value = currentAuthor;
       commentModalTitle.textContent = `הגבה ל- @${targetAuthor} 💬`;
       commentTextInput.placeholder = `כתוב תגובה ל- @${targetAuthor}...`;
       document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
@@ -2311,11 +2620,10 @@
     };
 
     window.openAddCommentModal = function() {
-      const currentAuthor = getSelectedUser();
+      if (!requireIdentity()) return;
       commentForm.reset();
       commentEditIndexInput.value = '';
       commentReplyToInput.value = '';
-      commentAuthorSelect.value = currentAuthor;
       commentModalTitle.textContent = 'הוספת תגובה 💬';
       commentTextInput.placeholder = 'כתוב משהו מצחיק...';
       document.getElementById('commentSubmitBtn').innerHTML = '<span>✓</span> שלח תגובה';
@@ -2330,6 +2638,7 @@
     window.closeCommentActionSheet = function() {
       commentActionSheet.classList.remove('active');
       selectedCommentIndexForAction = null;
+      unstickScroll(lightboxCommentsList);
     };
 
     window.triggerEditFromSheet = function() {
@@ -2345,10 +2654,28 @@
     };
 
     window.addReaction = function(emoji) {
+      if (!requireIdentity()) return;
       if (!activeLightboxPhotoId) return;
+
+      // Optimistic bump on the shared counter shown in this client.
+      const p = photosData.find(item => item.id === activeLightboxPhotoId);
+      const countEl = {
+        '🔥': document.getElementById('reactCount-fire'),
+        '😂': document.getElementById('reactCount-laugh'),
+        '🍸': document.getElementById('reactCount-drink'),
+        '❤️': document.getElementById('reactCount-heart')
+      }[emoji];
+      if (p) {
+        p.reactions = p.reactions || {};
+        p.reactions[emoji] = (p.reactions[emoji] || 0) + 1;
+      }
+      if (countEl) countEl.textContent = (p && p.reactions && p.reactions[emoji]) || 0;
+
       const photoDoc = photosRef.doc(activeLightboxPhotoId);
       photoDoc.update({
         [`reactions.${emoji}`]: firebase.firestore.FieldValue.increment(1)
+      }).catch(() => {
+        showToast('שגיאה בשליחת הריאקשן', 'error');
       });
     };
 
@@ -2359,7 +2686,6 @@
       const c = p.comments[index];
       commentEditIndexInput.value = index;
       commentReplyToInput.value = c.replyTo || '';
-      commentAuthorSelect.value = c.author;
       commentTextInput.value = c.text;
 
       commentModalTitle.textContent = 'עריכת תגובה ✏️';
@@ -2369,22 +2695,19 @@
 
     function closeCommentModal() {
       commentModalOverlay.classList.remove('active');
+      unstickScroll(lightboxCommentsList);
     }
 
     commentForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const author = commentAuthorSelect.value;
-      if (!author) {
-        showToast('יש לבחור שם לפני שליחת תגובה', 'warning');
-        return;
-      }
+      if (!requireIdentity()) return;
+      const author = getSelectedUser();
 
       const text = commentTextInput.value.trim();
       const editIndex = commentEditIndexInput.value;
       const replyTo = commentReplyToInput.value;
 
       if (!text || !activeLightboxPhotoId) return;
-      localStorage.setItem('mykonos_user', author);
 
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       if (!p) return;
@@ -2394,8 +2717,7 @@
       if (editIndex !== '') {
         const idx = parseInt(editIndex, 10);
         if (updatedComments[idx]) {
-          updatedComments[idx].text = text;
-          updatedComments[idx].author = author;
+          updatedComments[idx] = { ...updatedComments[idx], text, author };
           if (replyTo) updatedComments[idx].replyTo = replyTo;
         }
       } else {
@@ -2410,6 +2732,10 @@
 
       closeCommentModal();
 
+      // Optimistic: show the new/edited comment immediately.
+      p.comments = updatedComments;
+      updateLightboxContent(activeLightboxPhotoId);
+
       try {
         await photosRef.doc(activeLightboxPhotoId).update({ comments: updatedComments });
         showToast(editIndex !== '' ? 'התגובה עודכנה ✓' : 'התגובה נוספה ✓', 'success');
@@ -2422,15 +2748,44 @@
       const p = photosData.find(item => item.id === activeLightboxPhotoId);
       if (!p || !p.comments || !p.comments[index]) return;
 
-      openConfirmDialog('התגובה הזו', async () => {
-        let updatedComments = [...p.comments];
-        updatedComments.splice(index, 1);
-        try {
-          await photosRef.doc(activeLightboxPhotoId).update({ comments: updatedComments });
-          showToast('התגובה נמחקה', 'success');
-        } catch (err) {
-          showToast('שגיאה במחיקת התגובה', 'error');
-        }
+      openConfirmDialog('התגובה הזו', () => {
+        const photoId = activeLightboxPhotoId;
+        const originalComments = [...p.comments];
+
+        // Optimistic: mark pending immediately in the open lightbox.
+        p.comments = p.comments.map((c, i) => i === index ? { ...c, __pendingDelete: true } : c);
+        updateLightboxContent(photoId);
+
+        const timerId = setTimeout(async () => {
+          const stillPhoto = photosData.find(item => item.id === photoId);
+          if (!stillPhoto) return;
+          const stillComment = (stillPhoto.comments || [])[index];
+          if (!stillComment || !stillComment.__pendingDelete) return; // undone or state moved on
+
+          const finalComments = stillPhoto.comments.filter((_, i) => i !== index).map(c => {
+            const { __pendingDelete, ...rest } = c;
+            return rest;
+          });
+
+          try {
+            await photosRef.doc(photoId).update({ comments: finalComments });
+          } catch (err) {
+            showToast('שגיאה במחיקת התגובה', 'error');
+          }
+        }, UNDO_WINDOW_MS);
+
+        showToast('התגובה תימחק בעוד כמה שניות', 'warning', () => {
+          clearTimeout(timerId);
+          const stillPhoto = photosData.find(item => item.id === photoId);
+          if (stillPhoto) {
+            stillPhoto.comments = stillPhoto.comments.map((c, i) => {
+              if (i !== index) return c;
+              const { __pendingDelete, ...rest } = c;
+              return rest;
+            });
+            if (activeLightboxPhotoId === photoId) updateLightboxContent(photoId);
+          }
+        });
       });
     };
 
@@ -2447,13 +2802,33 @@
       const currentId = activeLightboxPhotoId;
       openConfirmDialog('התמונה הזו', () => {
         closeLightbox();
-        photosRef.doc(currentId).delete()
-          .then(() => showToast('התמונה נמחקה בהצלחה', 'success'))
-          .catch(() => showToast('שגיאה במחיקת התמונה', 'error'));
+
+        pendingPhotoDeletes.add(currentId);
+        renderPhotos();
+
+        const timerId = setTimeout(() => {
+          if (!pendingPhotoDeletes.has(currentId)) return; // was undone
+          pendingPhotoDeletes.delete(currentId);
+          photosRef.doc(currentId).delete()
+            .catch(() => showToast('שגיאה במחיקת התמונה', 'error'));
+        }, UNDO_WINDOW_MS);
+
+        showToast('התמונה תימחק בעוד כמה שניות', 'warning', () => {
+          clearTimeout(timerId);
+          pendingPhotoDeletes.delete(currentId);
+          renderPhotos();
+        });
       });
     };
 
-    initSharerDropdowns();
+    // Init: label the whoami button if a user is already saved on this device.
+    (function initIdentityLabel() {
+      const saved = getSelectedUser();
+      if (saved) {
+        const label = document.getElementById('whoAmILabel');
+        if (label) label.textContent = saved;
+      }
+    })();
   </script>
 </body>
 </html>
