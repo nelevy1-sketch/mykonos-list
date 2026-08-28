@@ -874,7 +874,7 @@
       adminSeatsContainer.appendChild(row);
     });
 
-    // 3. פתיחת פאנל אדמין מוסתר (3 לחיצות על דגל יוון)
+    // 3. פתיחת פאנל אדמין מוסתר (3 לחיצות על דגל יוון - סיסמה: 2105)
     let flagClickCount = 0;
     let flagClickTimer = null;
     const adminModal = document.getElementById("adminModal");
@@ -887,7 +887,7 @@
       if (flagClickCount >= 3) {
         flagClickCount = 0;
         const pass = prompt("הזן סיסמת מנהל:");
-        if (pass === "1234") {
+        if (pass === "2105") {
           const tzOffset = flightOut.getTimezoneOffset() * 60000;
           document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
 
