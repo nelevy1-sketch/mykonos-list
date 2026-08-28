@@ -242,7 +242,7 @@
     .checkin-text-sub { font-size: 0.72rem; color: #64748b; }
     .checkin-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; }
 
-    /* כפתור אנימציית מושבים */
+    /* כפתור מפת מושבים */
     .seats-banner-btn {
       width: 100%;
       background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
@@ -670,7 +670,7 @@
       <span class="checkin-badge" id="checkinBadge">צ'ק-אין ✈️</span>
     </a>
 
-    <!-- כפתור אנימציית מושבים -->
+    <!-- כפתור מפת מושבים (מוצג תמיד) -->
     <div class="seats-banner-btn" id="seatsBannerBtn">
       <span>✈️ מפת הושבה אינטראקטיבית</span>
       <span style="font-size: 0.78rem; background: #bfdbfe; color: #1e40af; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
@@ -807,7 +807,6 @@
     let flightOut = new Date("2026-08-20T08:15:00");
     const flightBack = new Date("2026-08-28T12:00:00");
     const checkinReturnDate = new Date("2026-08-27T00:00:00");
-    const seatsReturnDate = new Date("2026-08-27T12:00:00");
 
     let seatedFriends = {
       "20A": "מארג׳", "20B": "נירה", "20E": "ציפי", "20F": "בנצה",
@@ -827,7 +826,6 @@
     };
 
     let customQuotes = {};
-    let seatsReturnConfigured = false;
 
     // האזנה לעדכונים בזמן אמת מ-Firebase
     if (db) {
@@ -853,11 +851,6 @@
         if (data && typeof data === 'object') {
           seatedFriends = data;
         }
-      });
-
-      db.ref("seats_return_configured").on("value", (snapshot) => {
-        seatsReturnConfigured = !!snapshot.val();
-        updateClock();
       });
 
       db.ref("custom_quotes").on("value", (snapshot) => {
@@ -982,10 +975,8 @@
 
       if (anySeatUpdated) {
         seatedFriends = newSeats;
-        seatsReturnConfigured = true;
         if (db) {
           db.ref("seats_config").set(newSeats);
-          db.ref("seats_return_configured").set(true);
         }
         adminModal.classList.remove("open");
         updateClock();
@@ -1102,15 +1093,18 @@
         document.getElementById("timerDisplay").textContent = `${now.toLocaleDateString('he-IL', dateOptions)} | ${now.toLocaleTimeString('he-IL', timeOptions)}`;
       }
 
-      const bannerHideTime = new Date(flightOut.getTime() + 2 * 60 * 60 * 1000);
+      // באנרים ומשפט יומי
       const checkinBanner = document.getElementById("checkinBanner");
       const seatsBannerBtn = document.getElementById("seatsBannerBtn");
       const dailyQuoteCard = document.getElementById("dailyQuoteCard");
 
-      if (now < bannerHideTime) {
+      // כפתור המושבים מוצג תמיד
+      seatsBannerBtn.style.display = "flex";
+
+      if (now < flightOut) {
         checkinBanner.style.display = "flex";
         dailyQuoteCard.style.display = "none";
-      } else if (now >= bannerHideTime && now < checkinReturnDate) {
+      } else if (now >= flightOut && now < checkinReturnDate) {
         checkinBanner.style.display = "none";
         dailyQuoteCard.style.display = "flex";
         updateDailyQuote();
@@ -1123,17 +1117,8 @@
         updateDailyQuote();
       } else {
         checkinBanner.style.display = "none";
-        dailyQuoteCard.style.display = "none";
-      }
-
-      if (now < bannerHideTime) {
-        seatsBannerBtn.style.display = "flex";
-      } else if (now >= bannerHideTime && now < seatsReturnDate) {
-        seatsBannerBtn.style.display = "none";
-      } else if (now >= seatsReturnDate && now < flightBack) {
-        seatsBannerBtn.style.display = seatsReturnConfigured ? "flex" : "none";
-      } else {
-        seatsBannerBtn.style.display = "none";
+        dailyQuoteCard.style.display = "flex";
+        updateDailyQuote();
       }
     }
 
