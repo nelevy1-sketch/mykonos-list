@@ -160,6 +160,7 @@
       flex: 1;
       min-height: 0;
       overflow: hidden;
+      position: relative;
     }
 
     .tab-content {
@@ -181,6 +182,7 @@
       flex-direction: column;
       overflow: hidden;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      position: relative;
     }
 
     .list-header-row {
@@ -194,7 +196,6 @@
       gap: 6px;
     }
 
-    /* בורר רשימות מובנה ומעוצב בתוך הכותרת */
     .list-title-select-pill {
       appearance: none;
       -webkit-appearance: none;
@@ -209,13 +210,13 @@
       cursor: pointer;
       width: auto;
       margin: 0;
-      max-width: 220px;
+      max-width: 190px;
       text-overflow: ellipsis;
       white-space: nowrap;
       outline: none;
     }
 
-    .btn-settings-gear {
+    .btn-header-action {
       background: #f1f5f9;
       border: 1px solid var(--border);
       color: var(--text);
@@ -229,6 +230,11 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+    }
+    .btn-header-action.active {
+      background: #dbeafe;
+      color: var(--primary);
+      border-color: #bfdbfe;
     }
 
     .scrollable-items-container {
@@ -247,11 +253,16 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 2px;
+      padding: 8px 4px;
       border-bottom: 1px solid #f1f5f9;
       gap: 8px;
+      border-radius: 8px;
+      transition: background-color 0.15s;
     }
     .item:last-child { border-bottom: none; }
+    .item.selected-row {
+      background-color: #eff6ff;
+    }
 
     .item-main {
       display: flex;
@@ -265,6 +276,7 @@
       width: 18px;
       height: 18px;
       flex-shrink: 0;
+      accent-color: var(--primary);
     }
 
     .item-text-box {
@@ -342,6 +354,48 @@
       border-radius: 4px;
     }
     .icon-btn svg { width: 16px; height: 16px; }
+
+    /* סרגל פעולות מרובות צף (Bottom Action Bar) */
+    .selection-action-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 10px;
+      right: 10px;
+      background: #0f172a;
+      color: white;
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      z-index: 100;
+      animation: popIn 0.25s ease-out;
+      gap: 6px;
+    }
+    .selection-count-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .selection-action-buttons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .btn-action-pill {
+      background: #334155;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: auto;
+      margin: 0;
+    }
+    .btn-action-pill.danger { background: #dc2626; }
 
     .friends-tabs { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 6px; scrollbar-width: none; flex-shrink: 0; }
     .friends-tabs::-webkit-scrollbar { display: none; }
@@ -441,6 +495,8 @@
       padding-top: 3px;
     }
 
+    @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
     #toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: white;
       padding: 8px 16px; border-radius: 20px; font-size: 0.82rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 3000;
@@ -527,13 +583,16 @@
       <div class="list-card">
         
         <div class="list-header-row">
-          <!-- בורר רשימות מובנה ונפתח במקום השם -->
           <select id="activeListSelect" class="list-title-select-pill" title="בחר רשימה לצפייה"></select>
           
-          <!-- כפתור אפשרויות וניהול לרשימה הנוכחית -->
-          <button id="openSettingsModalBtn" class="btn-settings-gear">
-            ⚙️ אפשרויות
-          </button>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <button id="toggleSelectModeBtn" class="btn-header-action" title="בחר מספר פריטים להעברה/מחיקה">
+              ✓ בחר
+            </button>
+            <button id="openSettingsModalBtn" class="btn-header-action" title="אפשרויות הרשימה">
+              ⚙️
+            </button>
+          </div>
         </div>
 
         <div id="finishBanner" class="finish-banner hidden">
@@ -542,6 +601,18 @@
 
         <div id="progressText" class="progress-bar"></div>
         <div id="myItemsList" class="scrollable-items-container">טוען...</div>
+
+        <!-- סרגל פעולות מרובות צף (מופיע רק במצב בחירה מרובה) -->
+        <div id="selectionActionBar" class="selection-action-bar hidden">
+          <span id="selectionCountLabel" class="selection-count-text">נבחרו 0 פריטים</span>
+          <div class="selection-action-buttons">
+            <button id="bulkMoveBtn" class="btn-action-pill">📦 העבר</button>
+            <button id="bulkCopyBtn" class="btn-action-pill">📄 העתק</button>
+            <button id="bulkDeleteBtn" class="btn-action-pill danger">🗑️</button>
+            <button id="cancelSelectModeBtn" class="btn-action-pill" style="background:#475569;">ביטול</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -553,7 +624,7 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v2.3.1</div>
+    <div class="app-version-footer">גרסה v2.4.0</div>
   </div>
 
   <!-- חלונית אפשרויות וניהול רשימה (נפתחת מכפתור ⚙️) -->
@@ -562,7 +633,6 @@
       <div class="modal-title">⚙️ אפשרויות הרשימה</div>
       <div class="modal-desc">ניהול עבור: <strong id="settingsActiveListNameLabel" style="color:var(--primary);"></strong></div>
 
-      <!-- כפתור יצירת רשימה חדשה במקום בולט -->
       <button id="modalBtnCreateNewList" style="background: var(--success); color:white; border:none; padding: 9px; font-size:0.88rem; border-radius:8px; cursor:pointer; margin-bottom:8px;">+ פתח רשימה חדשה</button>
 
       <div style="display:flex; gap:6px; margin-bottom:6px;">
@@ -575,6 +645,18 @@
       <button id="modalBtnDeleteList" class="menu-btn-item danger-text">🗑️ מחק רשימה זו</button>
 
       <button id="closeListSettingsBtn" style="margin-top: 10px; background: #e2e8f0; color: var(--text); border:none; border-radius:8px; padding:7px; cursor:pointer;">סגור</button>
+    </div>
+  </div>
+
+  <!-- מודאל בחירת רשימת יעד (להעברה או העתקה - לפריט יחיד או לפריטים מרובים) -->
+  <div id="crossListActionModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="crossListModalTitle">לאיזו רשימה להעביר?</div>
+      <div class="modal-desc" id="crossListModalDesc">בחר את רשימת היעד:</div>
+      <div id="crossListChoiceContainer" class="subitems-list"></div>
+      
+      <button id="crossListCreateNewBtn" style="background: var(--success); color:white; border:none; margin-top:6px; padding:8px; font-size:0.82rem; border-radius:8px; cursor:pointer;">+ העבר לרשימה חדשה...</button>
+      <button id="closeCrossListBtn" style="margin-top: 8px; background: #e2e8f0; color: var(--text); border:none; border-radius:8px; padding:7px; cursor:pointer;">ביטול</button>
     </div>
   </div>
 
@@ -601,7 +683,7 @@
     </div>
   </div>
 
-  <!-- תפריט פעולות לפריט -->
+  <!-- תפריט פעולות לפריט בודד -->
   <div id="itemActionMenuModal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-title" id="actionMenuTitle">אפשרויות פריט</div>
@@ -615,16 +697,6 @@
       <button id="menuDeleteBtn" class="menu-btn-item danger-text">🗑️ מחק פריט</button>
       
       <button id="closeActionMenuBtn" style="margin-top: 10px; background: #e2e8f0; color: var(--text); border:none; border-radius:8px; padding:7px; cursor:pointer;">סגור</button>
-    </div>
-  </div>
-
-  <!-- מודאל העתקה/העברה בין רשימות אישיות -->
-  <div id="crossListActionModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-title" id="crossListModalTitle">📄 העתק לרשימה אחרת</div>
-      <div class="modal-desc" id="crossListModalDesc">בחר את רשימת היעד:</div>
-      <div id="crossListChoiceContainer" class="subitems-list"></div>
-      <button id="closeCrossListBtn" style="margin-top: 8px; background: #e2e8f0; color: var(--text); border:none; border-radius:8px; padding:7px; cursor:pointer;">ביטול</button>
     </div>
   </div>
 
@@ -680,7 +752,7 @@
 
       <div style="display:flex; gap:8px; margin-top:8px;">
         <button id="confirmImportPickerBtn" style="background: var(--success); color:white; border:none; padding:8px; border-radius:8px; flex:1; cursor:pointer;">ייבא נבחרים</button>
-        <button id="cancelImportPickerBtn" style="background: #e2e8f0; color: var(--text); border:none; border-radius:8px; flex:1; cursor:pointer;">ביטול</button>
+        <button id="cancelImportPickerBtn" style="background: #e2e8f0; color: var(--text); border:none; padding:8px; border-radius:8px; flex:1; cursor:pointer;">ביטול</button>
       </div>
     </div>
   </div>
@@ -725,6 +797,10 @@
     let myItems = [];
     let myDistinctLists = [];
 
+    // משתני מצב בחירה מרובה (Selection Mode)
+    let isSelectionMode = false;
+    let selectedItemIds = new Set();
+
     let cachedFriendsData = {
       allUsers: [],
       friendGroupedLists: {}
@@ -733,7 +809,8 @@
     let currentActiveSubitemDoc = null;
     let currentSelectedMenuItem = null;
     let pendingImportContext = null;
-    let pendingCrossListMode = "copy";
+    let pendingCrossListMode = "copy"; // "copy" | "move"
+    let pendingCrossListItems = []; // פריטים להעברה/העתקה
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -753,6 +830,15 @@
 
     const activeListSelect = document.getElementById("activeListSelect");
     const openSettingsModalBtn = document.getElementById("openSettingsModalBtn");
+    const toggleSelectModeBtn = document.getElementById("toggleSelectModeBtn");
+
+    // רכיבי סרגל הבחירה המרובה
+    const selectionActionBar = document.getElementById("selectionActionBar");
+    const selectionCountLabel = document.getElementById("selectionCountLabel");
+    const bulkMoveBtn = document.getElementById("bulkMoveBtn");
+    const bulkCopyBtn = document.getElementById("bulkCopyBtn");
+    const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
+    const cancelSelectModeBtn = document.getElementById("cancelSelectModeBtn");
 
     const listSettingsModal = document.getElementById("listSettingsModal");
     const settingsActiveListNameLabel = document.getElementById("settingsActiveListNameLabel");
@@ -799,6 +885,7 @@
     const crossListModalTitle = document.getElementById("crossListModalTitle");
     const crossListModalDesc = document.getElementById("crossListModalDesc");
     const crossListChoiceContainer = document.getElementById("crossListChoiceContainer");
+    const crossListCreateNewBtn = document.getElementById("crossListCreateNewBtn");
     const closeCrossListBtn = document.getElementById("closeCrossListBtn");
 
     const moveToParentModal = document.getElementById("moveToParentModal");
@@ -1259,12 +1346,171 @@
       myListTab.classList.add("hidden");
     });
 
-    // שינוי רשימה פעילה דרך ה-Dropdown המובנה
+    // שינוי רשימה פעילה
     activeListSelect.addEventListener("change", () => {
       triggerHaptic("light");
       currentActiveList = activeListSelect.value;
       localStorage.setItem("packing_app_active_list", currentActiveList);
+      exitSelectionMode();
       filterAndRenderCurrentList();
+    });
+
+    // ניהול מצב בחירה מרובה (Selection Mode)
+    function enterSelectionMode() {
+      isSelectionMode = true;
+      selectedItemIds.clear();
+      toggleSelectModeBtn.classList.add("active");
+      toggleSelectModeBtn.textContent = "ביטול";
+      selectionActionBar.classList.remove("hidden");
+      updateSelectionUI();
+      filterAndRenderCurrentList();
+    }
+
+    function exitSelectionMode() {
+      isSelectionMode = false;
+      selectedItemIds.clear();
+      toggleSelectModeBtn.classList.remove("active");
+      toggleSelectModeBtn.textContent = "✓ בחר";
+      selectionActionBar.classList.add("hidden");
+      filterAndRenderCurrentList();
+    }
+
+    toggleSelectModeBtn.addEventListener("click", () => {
+      triggerHaptic("light");
+      if (isSelectionMode) exitSelectionMode();
+      else enterSelectionMode();
+    });
+
+    cancelSelectModeBtn.addEventListener("click", () => {
+      triggerHaptic("light");
+      exitSelectionMode();
+    });
+
+    function updateSelectionUI() {
+      const count = selectedItemIds.size;
+      selectionCountLabel.textContent = `נבחרו ${count} פריטים`;
+      bulkMoveBtn.textContent = `📦 העבר (${count})`;
+      bulkCopyBtn.textContent = `📄 העתק (${count})`;
+      bulkDeleteBtn.textContent = `🗑️ (${count})`;
+      
+      const hasSelection = count > 0;
+      bulkMoveBtn.disabled = !hasSelection;
+      bulkCopyBtn.disabled = !hasSelection;
+      bulkDeleteBtn.disabled = !hasSelection;
+      bulkMoveBtn.style.opacity = hasSelection ? "1" : "0.5";
+      bulkCopyBtn.style.opacity = hasSelection ? "1" : "0.5";
+      bulkDeleteBtn.style.opacity = hasSelection ? "1" : "0.5";
+    }
+
+    window.toggleRowSelection = (id) => {
+      triggerHaptic("light");
+      if (selectedItemIds.has(id)) selectedItemIds.delete(id);
+      else selectedItemIds.add(id);
+
+      updateSelectionUI();
+      const row = document.getElementById(`item_row_${id}`);
+      if (row) {
+        if (selectedItemIds.has(id)) row.classList.add("selected-row");
+        else row.classList.remove("selected-row");
+      }
+    };
+
+    // פעולות מרובות (העברה / העתקה / מחיקה)
+    bulkMoveBtn.addEventListener("click", () => {
+      if (selectedItemIds.size === 0) return;
+      const items = myItems.filter(i => selectedItemIds.has(i.id));
+      openCrossListModal("move", items);
+    });
+
+    bulkCopyBtn.addEventListener("click", () => {
+      if (selectedItemIds.size === 0) return;
+      const items = myItems.filter(i => selectedItemIds.has(i.id));
+      openCrossListModal("copy", items);
+    });
+
+    bulkDeleteBtn.addEventListener("click", async () => {
+      if (selectedItemIds.size === 0) return;
+      const count = selectedItemIds.size;
+      if (confirm(`האם למחוק ${count} פריטים שנבחרו?`)) {
+        triggerHaptic("medium");
+        for (const id of selectedItemIds) {
+          await deleteDoc(doc(db, "packing_items", id));
+        }
+        showToast(`🗑️ ${count} פריטים נמחקו`);
+        exitSelectionMode();
+      }
+    });
+
+    // פתיחת מודאל בחירת רשימת יעד (עובד לפריט בודד או לפריטים מרובים)
+    function openCrossListModal(mode, items) {
+      pendingCrossListMode = mode;
+      pendingCrossListItems = items;
+      itemActionMenuModal.classList.add("hidden");
+
+      const count = items.length;
+      crossListModalTitle.textContent = mode === "copy" ? `📄 העתק (${count}) לרשימה:` : `📦 העבר (${count}) לרשימה:`;
+      crossListChoiceContainer.innerHTML = "";
+
+      const otherLists = myDistinctLists.filter(l => l !== currentActiveList);
+
+      if (otherLists.length > 0) {
+        otherLists.forEach(listName => {
+          const btn = document.createElement("button");
+          btn.className = "menu-btn-item";
+          btn.innerHTML = `📋 <strong>${escapeHtml(listName)}</strong>`;
+          btn.onclick = async () => {
+            triggerHaptic("medium");
+            crossListActionModal.classList.add("hidden");
+            await executeCrossListAction(listName);
+          };
+          crossListChoiceContainer.appendChild(btn);
+        });
+      } else {
+        crossListChoiceContainer.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות נוספות. תוכל לפתוח רשימה חדשה למטה.</p>";
+      }
+
+      crossListActionModal.classList.remove("hidden");
+    }
+
+    crossListCreateNewBtn.addEventListener("click", () => {
+      crossListActionModal.classList.add("hidden");
+      newListNameInput.value = "";
+      createListModal.classList.remove("hidden");
+      setTimeout(() => newListNameInput.focus(), 150);
+    });
+
+    async function executeCrossListAction(targetListName) {
+      const items = pendingCrossListItems;
+      const count = items.length;
+
+      for (const item of items) {
+        if (pendingCrossListMode === "copy") {
+          await addDoc(itemsRef, {
+            name: item.name,
+            owner: currentUser,
+            listName: targetListName,
+            isPublic: item.isPublic || false,
+            isDone: false,
+            hasSubitems: !!item.hasSubitems,
+            subitems: (item.subitems || []).map(s => ({ name: s.name, isDone: false })),
+            createdAt: Date.now()
+          });
+        } else {
+          await updateDoc(doc(db, "packing_items", item.id), { listName: targetListName });
+        }
+      }
+
+      showToast(pendingCrossListMode === "copy" 
+        ? `📄 ${count} פריטים הועתקו ל-"${targetListName}"!`
+        : `📦 ${count} פריטים הועברו ל-"${targetListName}"!`);
+
+      pendingCrossListItems = [];
+      if (isSelectionMode) exitSelectionMode();
+    }
+
+    closeCrossListBtn.addEventListener("click", () => {
+      crossListActionModal.classList.add("hidden");
+      pendingCrossListItems = [];
     });
 
     // פתיחת חלונית אפשרויות לרשימה הנוכחית
@@ -1306,7 +1552,13 @@
       
       triggerHaptic("medium");
       showToast(`✨ נוצרה הרשימה "${name}"!`);
-      filterAndRenderCurrentList();
+
+      // אם הגענו מתוך העברה מרובה לרשימה חדשה
+      if (pendingCrossListItems.length > 0) {
+        await executeCrossListAction(name);
+      } else {
+        filterAndRenderCurrentList();
+      }
     }
 
     confirmCreateListBtn.addEventListener("click", handleCreateNewList);
@@ -1468,6 +1720,7 @@
         progressText.textContent = "";
         finishBanner.classList.add("hidden");
         wasAllDoneBefore = false;
+        if (isSelectionMode) exitSelectionMode();
         return;
       }
 
@@ -1479,9 +1732,11 @@
       const doneCount = myItems.filter(i => i.isDone).length;
       const isAllDone = myItems.length > 0 && doneCount === myItems.length;
 
-      progressText.textContent = `נארזו ${doneCount} מתוך ${myItems.length} פריטים (${Math.round((doneCount/myItems.length)*100)}%)`;
+      progressText.textContent = isSelectionMode 
+        ? `מצב בחירה פעיל: סמן פריטים להעברה או מחיקה`
+        : `נארזו ${doneCount} מתוך ${myItems.length} פריטים (${Math.round((doneCount/myItems.length)*100)}%)`;
 
-      if (isAllDone) {
+      if (isAllDone && !isSelectionMode) {
         finishBanner.classList.remove("hidden");
         if (!wasAllDoneBefore) {
           triggerConfetti();
@@ -1549,7 +1804,9 @@
 
     function renderMyItem(item) {
       const div = document.createElement("div");
-      div.className = `item ${item.isDone ? 'done' : ''}`;
+      const isSelected = selectedItemIds.has(item.id);
+      div.id = `item_row_${item.id}`;
+      div.className = `item ${item.isDone && !isSelectionMode ? 'done' : ''} ${isSelected ? 'selected-row' : ''}`;
 
       const safeName = escapeHtml(item.name);
       const importSubtitleMarkup = item.importedFrom 
@@ -1569,19 +1826,14 @@
         `;
       }
 
-      div.innerHTML = `
-        <div class="item-main">
-          <input type="checkbox" ${item.isDone ? 'checked' : ''} onchange="handleItemCheck('${item.id}', ${!item.isDone}, ${item.hasSubitems ? 'true' : 'false'})">
-          <div class="item-text-box">
-            <div class="item-title-row">
-              <span class="item-title">${safeName}</span>
-              ${subitemsBtnMarkup}
-            </div>
-            ${importSubtitleMarkup}
-          </div>
-        </div>
-        
-        <div class="item-actions" style="display:flex; align-items:center; gap:4px;">
+      // במצב בחירה מרובה - הצ'קבוקס משמש לבחירת שורה
+      let checkboxMarkup = isSelectionMode
+        ? `<input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection('${item.id}')">`
+        : `<input type="checkbox" ${item.isDone ? 'checked' : ''} onchange="handleItemCheck('${item.id}', ${!item.isDone}, ${item.hasSubitems ? 'true' : 'false'})">`;
+
+      let actionButtonsMarkup = isSelectionMode
+        ? `<span style="font-size:0.75rem; color:var(--gray);">${isSelected ? '✓ נבחר' : ''}</span>`
+        : `
           <button class="badge ${item.isPublic ? 'public' : ''}" onclick="toggleVisibility('${item.id}', ${!item.isPublic})">
             ${item.isPublic ? '🌐' : '🔒'}
           </button>
@@ -1593,6 +1845,22 @@
               <circle cx="5" cy="12" r="1.5"></circle>
             </svg>
           </button>
+        `;
+
+      div.innerHTML = `
+        <div class="item-main">
+          ${checkboxMarkup}
+          <div class="item-text-box">
+            <div class="item-title-row">
+              <span class="item-title">${safeName}</span>
+              ${subitemsBtnMarkup}
+            </div>
+            ${importSubtitleMarkup}
+          </div>
+        </div>
+        
+        <div class="item-actions" style="display:flex; align-items:center; gap:4px;">
+          ${actionButtonsMarkup}
         </div>
       `;
       myItemsList.appendChild(div);
@@ -1645,61 +1913,11 @@
       }
     });
 
-    function openCrossListModal(mode) {
-      if (!currentSelectedMenuItem) return;
-      pendingCrossListMode = mode;
-      itemActionMenuModal.classList.add("hidden");
-
-      crossListModalTitle.textContent = mode === "copy" ? "📄 העתק לרשימה אישית אחרת" : "📦 העבר לרשימה אישית אחרת";
-      crossListModalDesc.textContent = `בחר רשימת יעד עבור "${currentSelectedMenuItem.name}":`;
-      crossListChoiceContainer.innerHTML = "";
-
-      const otherLists = myDistinctLists.filter(l => l !== currentActiveList);
-
-      if (otherLists.length > 0) {
-        otherLists.forEach(listName => {
-          const btn = document.createElement("button");
-          btn.className = "menu-btn-item";
-          btn.innerHTML = `📋 <strong>${escapeHtml(listName)}</strong>`;
-          btn.onclick = async () => {
-            triggerHaptic("medium");
-            crossListActionModal.classList.add("hidden");
-
-            const item = currentSelectedMenuItem;
-
-            if (pendingCrossListMode === "copy") {
-              await addDoc(itemsRef, {
-                name: item.name,
-                owner: currentUser,
-                listName: listName,
-                isPublic: item.isPublic || false,
-                isDone: false,
-                hasSubitems: !!item.hasSubitems,
-                subitems: (item.subitems || []).map(s => ({ name: s.name, isDone: false })),
-                createdAt: Date.now()
-              });
-              showToast(`📄 הועתק ל-"${listName}"!`);
-            } else {
-              await updateDoc(doc(db, "packing_items", item.id), { listName: listName });
-              showToast(`📦 הועבר ל-"${listName}"!`);
-            }
-            currentSelectedMenuItem = null;
-          };
-          crossListChoiceContainer.appendChild(btn);
-        });
-      } else {
-        crossListChoiceContainer.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות אישיות נוספות. צור רשימה חדשה מתפריט האפשרויות (⚙️).</p>";
-      }
-
-      crossListActionModal.classList.remove("hidden");
-    }
-
-    menuCrossListCopyBtn.addEventListener("click", () => openCrossListModal("copy"));
-    menuCrossListMoveBtn.addEventListener("click", () => openCrossListModal("move"));
-
-    closeCrossListBtn.addEventListener("click", () => {
-      crossListActionModal.classList.add("hidden");
-      currentSelectedMenuItem = null;
+    menuCrossListCopyBtn.addEventListener("click", () => {
+      if (currentSelectedMenuItem) openCrossListModal("copy", [currentSelectedMenuItem]);
+    });
+    menuCrossListMoveBtn.addEventListener("click", () => {
+      if (currentSelectedMenuItem) openCrossListModal("move", [currentSelectedMenuItem]);
     });
 
     menuMoveToParentBtn.addEventListener("click", () => {
@@ -2403,6 +2621,7 @@
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
           overlay.classList.add('hidden');
+          pendingCrossListItems = [];
         }
       });
     });
