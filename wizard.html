@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>יצירת טיול חדש | Trip Wizard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #005bae;
+            --primary-light: #eef2f6;
+            --accent: #ff6b6b;
+            --text: #333;
+            --gray: #6c757d;
+            --border: #ced4da;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Heebo', sans-serif; }
+        body { background: var(--primary-light); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+
+        .wizard-container {
+            background: #fff;
+            width: 100%;
+            max-width: 600px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; text-align: center; }
+        p.subtitle { text-align: center; color: var(--gray); margin-bottom: 25px; font-size: 0.95rem; }
+
+        /* Steps indicator */
+        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; }
+        .steps-indicator::before { content: ''; position: absolute; top: 15px; right: 0; left: 0; height: 3px; background: var(--border); z-index: 1; }
+        .step-dot { position: relative; z-index: 2; background: #fff; border: 2px solid var(--border); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: var(--gray); transition: 0.3s; }
+        .step-dot.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+        .step-dot.completed { border-color: var(--primary); color: var(--primary); background: #fff; }
+
+        /* Form sections */
+        .form-step { display: none; }
+        .form-step.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
+        input[type="text"], input[type="date"], select {
+            width: 100%; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,91,174,0.15); }
+
+        /* Feature Flags Checkboxes */
+        .feature-card {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--primary-light); padding: 12px 15px; border-radius: var(--radius); margin-bottom: 12px;
+            border: 1px solid transparent; transition: 0.2s;
+        }
+        .feature-card:hover { border-color: var(--primary); }
+        .feature-info { display: flex; align-items: center; gap: 12px; }
+        .feature-info input { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
+        .preview-btn {
+            background: none; border: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline;
+        }
+
+        /* Participants List */
+        .participant-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .participants-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .participant-tag {
+            background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; font-weight: 500;
+        }
+        .participant-tag span { cursor: pointer; color: var(--accent); font-weight: bold; }
+
+        /* Buttons */
+        .wizard-buttons { display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; }
+        .btn { padding: 12px 25px; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-prev { background: #e9ecef; color: var(--gray); }
+        .btn-prev:hover { background: #dee2e6; }
+        .btn-next, .btn-submit { background: var(--primary); color: #fff; flex: 1; }
+        .btn-next:hover, .btn-submit:hover { background: #00458a; }
+
+        /* Success Box */
+        .success-box { text-align: center; padding: 20px 0; }
+        .success-box h3 { color: #2b8a3e; margin-bottom: 10px; font-size: 1.4rem; }
+        .share-link-box { display: flex; gap: 10px; margin-top: 20px; }
+        .share-link-box input { background: #f8f9fa; color: var(--gray); }
+
+        /* Modal for Preview */
+        .modal-overlay {
+            position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content { background: #fff; width: 100%; max-width: 450px; padding: 25px; border-radius: var(--radius); text-align: center; }
+        .modal-content h3 { margin-bottom: 12px; color: var(--primary); }
+        .modal-content p { color: var(--gray); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="wizard-container">
+    <h1>יוצרים טיול חדש ✈️</h1>
+    <p class="subtitle">הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך</p>
+
+    <!-- Steps Indicator -->
+    <div class="steps-indicator" id="stepsIndicator">
+        <div class="step-dot active" data-step="1">1</div>
+        <div class="step-dot" data-step="2">2</div>
+        <div class="step-dot" data-step="3">3</div>
+        <div class="step-dot" data-step="4">4</div>
+    </div>
+
+    <!-- Form Wizard -->
+    <form id="tripWizardForm">
+        
+        <!-- STEP 1: General Info -->
+        <div class="form-step active" data-step="1">
+            <div class="form-group">
+                <label>שם הטיול / היעד 🌍</label>
+                <input type="text" id="tripDestination" placeholder="למשל: מיקונוס 2026, ברלין, מילואים צוק..." required>
+            </div>
+            <div class="form-group">
+                <label>סוג הטיול (משפיע על קטגוריות ומבנה)</label>
+                <select id="tripType">
+                    <option value="island">חופשת אי / בטן-גב 🏖️</option>
+                    <option value="metro">מטרופולין / עיר גדולה 🏙️</option>
+                    <option value="reserve">שירות מילואים / גיבוש 🪖</option>
+                    <option value="nature">טיול טבע / שטח 🏕️</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>שפת ממשק ראשונית</label>
+                <select id="tripLanguage">
+                    <option value="he">עברית (HE)</option>
+                    <option value="en">אנגלית (EN)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- STEP 2: Participants -->
+        <div class="form-step" data-step="2">
+            <label>הוספת חברי הקבוצה (שם ואימייל לאבטחה) 👥</label>
+            <div class="participant-input-row">
+                <input type="text" id="participantName" placeholder="שם המשתתף (למשל: נירה)">
+                <input type="text" id="participantEmail" placeholder="אימייל (اختياري / לבדיקה)">
+                <button type="button" class="btn" id="addParticipantBtn" style="background: #e9ecef; color: var(--text); padding: 0 15px;">הוסף</button>
+            </div>
+            <div class="participants-list" id="participantsContainer">
+                <!-- Dynamic tags will appear here -->
+            </div>
+        </div>
+
+        <!-- STEP 3: Modular Features with Preview -->
+        <div class="form-step" data-step="3">
+            <label>בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️</label>
+            
+            <div class="feature-card">
+                <div class="feature-info">
+                    <input type="checkbox" id="featPacking" checked>
+                    <label for="featPacking" style="margin:0; cursor:pointer;">רשימת ציוד ומה לארוז 🎒</label>
+                </div>
+                <button type="button" class="preview-btn" onclick="openPreview('packing')">צפה בדוגמה</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-info">
+                    <input type="checkbox" id="featShopping" checked>
+                    <label for="featShopping" style="margin:0; cursor:pointer;">רשימת קניות קבוצתית 🛒</label>
+                </div>
+                <button type="button" class="preview-btn" onclick="openPreview('shopping')">צפה בדוגמה</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-info">
+                    <input type="checkbox" id="featSpots" checked>
+                    <label for="featSpots" style="margin:0; cursor:pointer;">מקומות והמלצות דינמיים 📍</label>
+                </div>
+                <button type="button" class="preview-btn" onclick="openPreview('spots')">צפה בדוגמה</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-info">
+                    <input type="checkbox" id="featMusic" checked>
+                    <label for="featMusic" style="margin:0; cursor:pointer;">פסקול מוזיקלי קבוצתי 🎵</label>
+                </div>
+                <button type="button" class="preview-btn" onclick="openPreview('music')">צפה בדוגמה</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-info">
+                    <input type="checkbox" id="featPhotos" checked>
+                    <label for="featPhotos" style="margin:0; cursor:pointer;">גלריית רגעים חיה 📸</label>
+                </div>
+                <button type="button" class="preview-btn" onclick="openPreview('photos')">צפה בדוגמה</button>
+            </div>
+        </div>
+
+        <!-- STEP 4: Summary & Finish -->
+        <div class="form-step" data-step="4">
+            <div class="success-box" id="summaryBox">
+                <h3>הכל מוכן ליצירת הטיול! 🎉</h3>
+                <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ב-Firebase ולקבל לינק שיתוף לקבוצה.</p>
+            </div>
+            <div class="share-link-box" id="resultLinkBox" style="display:none;">
+                <input type="text" id="finalTripLink" readonly>
+                <button type="button" class="btn btn-submit" onclick="copyLink()" style="flex: 0 0 100px;">העתק לינק</button>
+            </div>
+        </div>
+
+        <!-- Wizard Navigation Buttons -->
+        <div class="wizard-buttons">
+            <button type="button" class="btn btn-prev" id="prevBtn" style="display: none;" onclick="changeStep(-1)">הקודם</button>
+            <button type="button" class="btn btn-next" id="nextBtn" onclick="changeStep(1)">הבא</button>
+        </div>
+
+    </form>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-content">
+        <h3 id="modalTitle">תצוגה מקדימה</h3>
+        <p id="modalDesc">כאן תוכל לראות הדגמה קצרה או הסבר על מה שהמודול הזה עושה עבור משתמשי הטיול.</p>
+        <button type="button" class="btn btn-next" onclick="closePreview()">הבנתי, סגור</button>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
+    let participants = [];
+
+    // Participants Management
+    document.getElementById('addParticipantBtn').addEventListener('click', () => {
+        const nameInput = document.getElementById('participantName');
+        const name = nameInput.value.trim();
+        if (name && !participants.includes(name)) {
+            participants.push(name);
+            renderParticipants();
+            nameInput.value = '';
+        }
+    });
+
+    function renderParticipants() {
+        const container = document.getElementById('participantsContainer');
+        container.innerHTML = participants.map((p, index) => `
+            <div class="participant-tag">
+                ${p} <span onclick="removeParticipant(${index})">&times;</span>
+            </div>
+        `).join('');
+    }
+
+    function removeParticipant(index) {
+        participants.splice(index, 1);
+        renderParticipants();
+    }
+
+    // Step Navigation logic
+    function changeStep(direction) {
+        if (direction === 1 && !validateStep(currentStep)) return;
+
+        currentStep += direction;
+        if (currentStep > totalSteps) currentStep = totalSteps;
+        if (currentStep < 1) currentStep = 1;
+
+        updateWizardView();
+    }
+
+    function validateStep(step) {
+        if (step === 1) {
+            const dest = document.getElementById('tripDestination').value.trim();
+            if (!dest) {
+                alert('נא להזין את שם היעד או הטיול');
+                return false;
+            }
+        }
+        if (step === 2 && participants.length === 0) {
+            alert('מומלץ להוסיף לפחות משתתף אחד לקבוצה');
+            // Can be optional, but good to warn
+        }
+        return true;
+    }
+
+    function updateWizardView() {
+        // Update form steps
+        document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.add('active');
+
+        // Update indicators
+        document.querySelectorAll('.step-dot').forEach(dot => {
+            const s = parseInt(dot.getAttribute('data-step'));
+            dot.classList.remove('active', 'completed');
+            if (s === currentStep) dot.classList.add('active');
+            else if (s < currentStep) dot.classList.add('completed');
+        });
+
+        // Update buttons
+        document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'block';
+        const nextBtn = document.getElementById('nextBtn');
+        
+        if (currentStep === totalSteps) {
+            nextBtn.textContent = 'צור טיול ב-Firebase 🚀';
+            nextBtn.onclick = generateTripAndSave;
+        } else {
+            nextBtn.textContent = 'הבא';
+            nextBtn.onclick = () => changeStep(1);
+        }
+    }
+
+    // Preview Modals
+    const previews = {
+        packing: { title: 'רשימת ציוד ומה לארוז 🎒', desc: 'מאפשר לכל משתמש לנהל רשימת פריטים אישית או ציבורית, לסמן מה נארז ולבקש פריטים מחברים בקבוצה.' },
+        shopping: { title: 'רשימת קניות קבוצתית 🛒', desc: 'מרכז את כל מה שצריך לקנות בסופר או להביא מהארץ, כולל מנגנון כמויות אישיות ("גם אני רוצה") ומצב בדיקה לסופר (Audit).' },
+        spots: { title: 'מקומות והמלצות דינמיים 📍', desc: 'מותאם אישית לסוג הטיול (חופים באיים מול מוזיאונים בעיר), עם קישורי ניווט ישירים וקטגוריות מסודרות.' },
+        music: { title: 'פסקול מוזיקלי קבוצתי 🎵', desc: 'הוספת שירים מ-YouTube, Spotify ו-Apple Music כדי שכולם יוכלו להשמיע ולהאזין יחד בנסיעה.' },
+        photos: { title: 'גלריית רגעים חיה 📸', desc: 'העלאת תמונות מהירה עם דחיסה אוטומטית, לייקים ותגובות בזמן אמת בלי לפוצץ את הזיכרון בטלפון.' }
+    };
+
+    function openPreview(featureKey) {
+        const p = previews[featureKey];
+        document.getElementById('modalTitle').textContent = p.title;
+        document.getElementById('modalDesc').textContent = p.desc;
+        document.getElementById('previewModal').style.display = 'flex';
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').style.display = 'none';
+    }
+
+    // Final Generation Simulation / Integration point with Firebase
+    function generateTripAndSave() {
+        const tripId = 'trip_' + Math.random().toString(36).substring(2, 9);
+        const tripData = {
+            destination: document.getElementById('tripDestination').value,
+            tripType: document.getElementById('tripType').value,
+            language: document.getElementById('tripLanguage').value,
+            participants: participants,
+            features: {
+                packing: document.getElementById('featPacking').checked,
+                shopping: document.getElementById('featShopping').checked,
+                spots: document.getElementById('featSpots').checked,
+                music: document.getElementById('featMusic').checked,
+                photos: document.getElementById('featPhotos').checked
+            },
+            createdAt: Date.now()
+        };
+
+        console.SavingToFirebase: tripData;
+
+        // Hide next button, show success link
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('prevBtn').style.display = 'none';
+        document.getElementById('summaryBox').innerHTML = '<h3>הטיול נוצר בהצלחה! 🥳</h3><p>הנה הקישור הייחודי לקבוצה שלך:</p>';
+        
+        const shareUrl = window.location.origin + window.location.pathname.replace('wizard.html', '') + `index.html?tripId=${tripId}`;
+        document.getElementById('finalTripLink').value = shareUrl;
+        document.getElementById('resultLinkBox').style.display = 'flex';
+    }
+
+    function copyLink() {
+        const linkInput = document.getElementById('finalTripLink');
+        linkInput.select();
+        navigator.clipboard.writeText(linkInput.value);
+        alert('הקישור הועתק ללוח! 📋');
+    }
+</script>
+
+</body>
+</html>
