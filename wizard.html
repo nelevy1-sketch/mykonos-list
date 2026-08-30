@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>יצירת טיול חדש | Trip Wizard</title>
+    <title>יוצרים טיול חדש | Trip Wizard</title>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -58,8 +58,8 @@
         h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; text-align: center; }
         p.subtitle { text-align: center; color: var(--gray); margin-bottom: 25px; font-size: 0.95rem; }
 
-        /* Steps indicator */
-        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; }
+        /* Steps indicator (מקוצר ל-3 שלבים) */
+        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; max-width: 300px; margin-left: auto; margin-right: auto; }
         .steps-indicator::before { content: ''; position: absolute; top: 15px; right: 0; left: 0; height: 3px; background: var(--border); z-index: 1; }
         .step-dot { position: relative; z-index: 2; background: #fff; border: 2px solid var(--border); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: var(--gray); transition: 0.3s; }
         .step-dot.active { border-color: var(--primary); background: var(--primary); color: #fff; }
@@ -73,7 +73,7 @@
 
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
-        input[type="text"], input[type="date"], select {
+        input[type="text"], select {
             width: 100%; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s;
         }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,91,174,0.15); }
@@ -90,14 +90,6 @@
         .preview-btn {
             background: none; border: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline;
         }
-
-        /* Participants List */
-        .participant-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .participants-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-        .participant-tag {
-            background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; font-weight: 500;
-        }
-        .participant-tag span { cursor: pointer; color: var(--accent); font-weight: bold; }
 
         /* Buttons */
         .wizard-buttons { display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; }
@@ -135,12 +127,11 @@
     <h1 id="uiTitle">יוצרים טיול חדש ✈️</h1>
     <p class="subtitle" id="uiSubtitle">הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך</p>
 
-    <!-- Steps Indicator -->
+    <!-- Steps Indicator (3 steps total) -->
     <div class="steps-indicator" id="stepsIndicator">
         <div class="step-dot active" data-step="1">1</div>
         <div class="step-dot" data-step="2">2</div>
         <div class="step-dot" data-step="3">3</div>
-        <div class="step-dot" data-step="4">4</div>
     </div>
 
     <!-- Form Wizard -->
@@ -163,21 +154,8 @@
             </div>
         </div>
 
-        <!-- STEP 2: Participants -->
+        <!-- STEP 2: Modular Features with Preview -->
         <div class="form-step" data-step="2">
-            <label id="lblParticipants">הוספת חברי הקבוצה (שם ואימייל לאבטחה) 👥</label>
-            <div class="participant-input-row">
-                <input type="text" id="participantName" placeholder="שם המשתתף (למשל: נירה)">
-                <input type="text" id="participantEmail" placeholder="אימייל">
-                <button type="button" class="btn" id="addParticipantBtn" style="background: #e9ecef; color: var(--text); padding: 0 15px;">הוסף</button>
-            </div>
-            <div class="participants-list" id="participantsContainer">
-                <!-- Dynamic tags will appear here -->
-            </div>
-        </div>
-
-        <!-- STEP 3: Modular Features with Preview -->
-        <div class="form-step" data-step="3">
             <label id="lblModules">בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️</label>
             
             <div class="feature-card">
@@ -221,8 +199,8 @@
             </div>
         </div>
 
-        <!-- STEP 4: Summary & Finish -->
-        <div class="form-step" data-step="4">
+        <!-- STEP 3: Summary & Finish -->
+        <div class="form-step" data-step="3">
             <div class="success-box" id="summaryBox">
                 <h3 id="summaryTitle">הכל מוכן ליצירת הטיול! 🎉</h3>
                 <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.</p>
@@ -253,8 +231,7 @@
 
 <script>
     let currentStep = 1;
-    const totalSteps = 4;
-    let participants = [];
+    const totalSteps = 3; // מעודכן ל-3 שלבים
     let currentLanguage = 'he';
 
     const translations = {
@@ -268,10 +245,6 @@
             optMetro: "מטרופולין / עיר גדולה 🏙️",
             optReserve: "שירות מילואים / גיבוש 🪖",
             optNature: "טיול טבע / שטח 🏕️",
-            partLabel: "הוספת חברי הקבוצה (שם ואימייל לאבטחה) 👥",
-            partNamePlaceholder: "שם המשתתף (למשל: נירה)",
-            partEmailPlaceholder: "אימייל",
-            addBtn: "הוסף",
             modLabel: "בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️",
             packLabel: "רשימת ציוד ומה לארוז 🎒",
             shopLabel: "רשימת קניות קבוצתית 🛒",
@@ -301,10 +274,6 @@
             optMetro: "Metropolis / Big City 🏙️",
             optReserve: "Reserve Duty / Team Building 🪖",
             optNature: "Nature / Outdoor Trip 🏕️",
-            partLabel: "Group Participants (Name & Email) 👥",
-            partNamePlaceholder: "Participant Name (e.g., Nira)",
-            partEmailPlaceholder: "Email",
-            addBtn: "Add",
             modLabel: "Modular Features (Which tabs will appear?) 🛠️",
             packLabel: "Packing List & Essentials 🎒",
             shopLabel: "Group Shopping List 🛒",
@@ -349,7 +318,6 @@
         htmlTag.setAttribute('lang', lang);
         htmlTag.setAttribute('dir', lang === 'en' ? 'ltr' : 'rtl');
 
-        // Update active class on buttons
         document.getElementById('langHeBtn').classList.toggle('active', lang === 'he');
         document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
 
@@ -364,11 +332,6 @@
         document.getElementById('optMetro').textContent = t.optMetro;
         document.getElementById('optReserve').textContent = t.optReserve;
         document.getElementById('optNature').textContent = t.optNature;
-
-        document.getElementById('lblParticipants').textContent = t.partLabel;
-        document.getElementById('participantName').placeholder = t.partNamePlaceholder;
-        document.getElementById('participantEmail').placeholder = t.partEmailPlaceholder;
-        document.getElementById('addParticipantBtn').textContent = t.addBtn;
 
         document.getElementById('lblModules').textContent = t.modLabel;
         document.getElementById('lblFeatPacking').textContent = t.packLabel;
@@ -393,32 +356,6 @@
         }
     }
 
-    // Participants Management
-    document.getElementById('addParticipantBtn').addEventListener('click', () => {
-        const nameInput = document.getElementById('participantName');
-        const name = nameInput.value.trim();
-        if (name && !participants.includes(name)) {
-            participants.push(name);
-            renderParticipants();
-            nameInput.value = '';
-        }
-    });
-
-    function renderParticipants() {
-        const container = document.getElementById('participantsContainer');
-        container.innerHTML = participants.map((p, index) => `
-            <div class="participant-tag">
-                ${p} <span onclick="removeParticipant(${index})">&times;</span>
-            </div>
-        `).join('');
-    }
-
-    function removeParticipant(index) {
-        participants.splice(index, 1);
-        renderParticipants();
-    }
-
-    // Step Navigation logic
     window.changeStep = function(direction) {
         if (direction === 1 && !validateStep(currentStep)) return;
 
@@ -481,7 +418,6 @@
             destination: document.getElementById('tripDestination').value,
             tripType: document.getElementById('tripType').value,
             language: currentLanguage,
-            participants: participants,
             features: {
                 packing: document.getElementById('featPacking').checked,
                 shopping: document.getElementById('featShopping').checked,
