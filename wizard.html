@@ -19,22 +19,30 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Heebo', sans-serif; }
         body { background: var(--primary-light); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
 
-        /* Top Language Selector Bar */
+        /* Top Language Toggle Bar */
         .top-bar {
             width: 100%;
             max-width: 600px;
             display: flex;
             justify-content: flex-end;
             margin-bottom: 15px;
+            gap: 8px;
         }
-        .lang-selector {
-            padding: 8px 12px;
-            border-radius: var(--radius);
-            border: 1.5px solid var(--border);
+        .lang-btn {
             background: #fff;
+            border: 1.5px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
             font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
-            outline: none;
+            transition: 0.2s;
+            color: var(--gray);
+        }
+        .lang-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
         }
 
         .wizard-container {
@@ -117,13 +125,10 @@
 </head>
 <body>
 
-<!-- Top Bar with Global Language Selector -->
+<!-- Top Bar with Language Buttons -->
 <div class="top-bar">
-    <select id="globalLangSelector" class="lang-selector" onchange="changeGlobalLanguage(this.value)">
-        <option value="he">🇮🇱 עברית</option>
-        <option value="en">🇺🇸 English</option>
-        <option value="el">🇬🇷 Ελληνικά</option>
-    </select>
+    <button type="button" class="lang-btn active" id="langHeBtn" onclick="changeGlobalLanguage('he')">🇮🇱 עברית</button>
+    <button type="button" class="lang-btn" id="langEnBtn" onclick="changeGlobalLanguage('en')">🇺🇸 English</button>
 </div>
 
 <div class="wizard-container">
@@ -150,10 +155,10 @@
             <div class="form-group">
                 <label id="lblTripType">סוג הטיול (משפיע על קטגוריות ומבנה)</label>
                 <select id="tripType">
-                    <option value="island">חופשת אי / בטן-גב 🏖️</option>
-                    <option value="metro">מטרופולין / עיר גדולה 🏙️</option>
-                    <option value="reserve">שירות מילואים / גיבוש 🪖</option>
-                    <option value="nature">טיול טבע / שטח 🏕️</option>
+                    <option value="island" id="optIsland">חופשת אי / בטן-גב 🏖️</option>
+                    <option value="metro" id="optMetro">מטרופולין / עיר גדולה 🏙️</option>
+                    <option value="reserve" id="optReserve">שירות מילואים / גיבוש 🪖</option>
+                    <option value="nature" id="optNature">טיול טבע / שטח 🏕️</option>
                 </select>
             </div>
         </div>
@@ -178,53 +183,53 @@
             <div class="feature-card">
                 <div class="feature-info">
                     <input type="checkbox" id="featPacking" checked>
-                    <label for="featPacking" style="margin:0; cursor:pointer;">רשימת ציוד ומה לארוז 🎒</label>
+                    <label for="featPacking" id="lblFeatPacking" style="margin:0; cursor:pointer;">רשימת ציוד ומה לארוז 🎒</label>
                 </div>
-                <button type="button" class="preview-btn" onclick="openPreview('packing')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnPacking" onclick="openPreview('packing')">צפה בדוגמה</button>
             </div>
 
             <div class="feature-card">
                 <div class="feature-info">
                     <input type="checkbox" id="featShopping" checked>
-                    <label for="featShopping" style="margin:0; cursor:pointer;">רשימת קניות קבוצתית 🛒</label>
+                    <label for="featShopping" id="lblFeatShopping" style="margin:0; cursor:pointer;">רשימת קניות קבוצתית 🛒</label>
                 </div>
-                <button type="button" class="preview-btn" onclick="openPreview('shopping')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnShopping" onclick="openPreview('shopping')">צפה בדוגמה</button>
             </div>
 
             <div class="feature-card">
                 <div class="feature-info">
                     <input type="checkbox" id="featSpots" checked>
-                    <label for="featSpots" style="margin:0; cursor:pointer;">מקומות והמלצות דינמיים 📍</label>
+                    <label for="featSpots" id="lblFeatSpots" style="margin:0; cursor:pointer;">מקומות והמלצות דינמיים 📍</label>
                 </div>
-                <button type="button" class="preview-btn" onclick="openPreview('spots')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnSpots" onclick="openPreview('spots')">צפה בדוגמה</button>
             </div>
 
             <div class="feature-card">
                 <div class="feature-info">
                     <input type="checkbox" id="featMusic" checked>
-                    <label for="featMusic" style="margin:0; cursor:pointer;">פסקול מוזיקלי קבוצתי 🎵</label>
+                    <label for="featMusic" id="lblFeatMusic" style="margin:0; cursor:pointer;">פסקול מוזיקלי קבוצתי 🎵</label>
                 </div>
-                <button type="button" class="preview-btn" onclick="openPreview('music')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnMusic" onclick="openPreview('music')">צפה בדוגמה</button>
             </div>
 
             <div class="feature-card">
                 <div class="feature-info">
                     <input type="checkbox" id="featPhotos" checked>
-                    <label for="featPhotos" style="margin:0; cursor:pointer;">גלריית רגעים חיה 📸</label>
+                    <label for="featPhotos" id="lblFeatPhotos" style="margin:0; cursor:pointer;">גלריית רגעים חיה 📸</label>
                 </div>
-                <button type="button" class="preview-btn" onclick="openPreview('photos')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnPhotos" onclick="openPreview('photos')">צפה בדוגמה</button>
             </div>
         </div>
 
         <!-- STEP 4: Summary & Finish -->
         <div class="form-step" data-step="4">
             <div class="success-box" id="summaryBox">
-                <h3>הכל מוכן ליצירת הטיול! 🎉</h3>
+                <h3 id="summaryTitle">הכל מוכן ליצירת הטיול! 🎉</h3>
                 <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.</p>
             </div>
             <div class="share-link-box" id="resultLinkBox" style="display:none;">
                 <input type="text" id="finalTripLink" readonly>
-                <button type="button" class="btn btn-submit" onclick="copyLink()" style="flex: 0 0 100px;">העתק לינק</button>
+                <button type="button" class="btn btn-submit" id="copyLinkBtn" onclick="copyLink()" style="flex: 0 0 100px;">העתק לינק</button>
             </div>
         </div>
 
@@ -242,7 +247,7 @@
     <div class="modal-content">
         <h3 id="modalTitle">תצוגה מקדימה</h3>
         <p id="modalDesc">כאן תוכל לראות הדגמה קצרה או הסבר על מה שהמודול הזה עושה עבור משתמשי הטיול.</p>
-        <button type="button" class="btn btn-next" onclick="closePreview()">הבנתי, סגור</button>
+        <button type="button" class="btn btn-next" id="modalCloseBtn" onclick="closePreview()">הבנתי, סגור</button>
     </div>
 </div>
 
@@ -252,27 +257,139 @@
     let participants = [];
     let currentLanguage = 'he';
 
+    const translations = {
+        he: {
+            title: "יוצרים טיול חדש ✈️",
+            subtitle: "הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך",
+            destLabel: "שם הטיול / היעד 🌍",
+            destPlaceholder: "למשל: מיקונוס 2026, ברלין, מילואים צוק...",
+            typeLabel: "סוג הטיול (משפיע על קטגוריות ומבנה)",
+            optIsland: "חופשת אי / בטן-גב 🏖️",
+            optMetro: "מטרופולין / עיר גדולה 🏙️",
+            optReserve: "שירות מילואים / גיבוש 🪖",
+            optNature: "טיול טבע / שטח 🏕️",
+            partLabel: "הוספת חברי הקבוצה (שם ואימייל לאבטחה) 👥",
+            partNamePlaceholder: "שם המשתתף (למשל: נירה)",
+            partEmailPlaceholder: "אימייל",
+            addBtn: "הוסף",
+            modLabel: "בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️",
+            packLabel: "רשימת ציוד ומה לארוז 🎒",
+            shopLabel: "רשימת קניות קבוצתית 🛒",
+            spotsLabel: "מקומות והמלצות דינמיים 📍",
+            musicLabel: "פסקול מוזיקלי קבוצתי 🎵",
+            photosLabel: "גלריית רגעים חיה 📸",
+            previewBtn: "צפה בדוגמה",
+            sumTitle: "הכל מוכן ליצירת הטיול! 🎉",
+            sumText: "לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.",
+            copyBtn: "העתק לינק",
+            prevBtn: "הקודם",
+            nextBtn: "הבא",
+            createBtn: "צור טיול ב-Firebase 🚀",
+            modalClose: "הבנתי, סגור",
+            alertDest: "נא להזין את שם היעד או הטיול",
+            linkCopied: "הקישור הועתק ללוח! 📋",
+            successHeader: "הטיול נוצר בהצלחה! 🥳",
+            successText: "הנה הקישור הייחודי לקבוצה שלך:"
+        },
+        en: {
+            title: "Create New Trip ✈️",
+            subtitle: "Configure options, select modules and get a custom app link for your group",
+            destLabel: "Trip Destination / Name 🌍",
+            destPlaceholder: "e.g., Mykonos 2026, Berlin, Camping...",
+            typeLabel: "Trip Type (Affects categories & structure)",
+            optIsland: "Island / Beach Vacation 🏖️",
+            optMetro: "Metropolis / Big City 🏙️",
+            optReserve: "Reserve Duty / Team Building 🪖",
+            optNature: "Nature / Outdoor Trip 🏕️",
+            partLabel: "Group Participants (Name & Email) 👥",
+            partNamePlaceholder: "Participant Name (e.g., Nira)",
+            partEmailPlaceholder: "Email",
+            addBtn: "Add",
+            modLabel: "Modular Features (Which tabs will appear?) 🛠️",
+            packLabel: "Packing List & Essentials 🎒",
+            shopLabel: "Group Shopping List 🛒",
+            spotsLabel: "Dynamic Places & Recommendations 📍",
+            musicLabel: "Group Soundtrack 🎵",
+            photosLabel: "Live Moments Gallery 📸",
+            previewBtn: "Preview",
+            sumTitle: "All set to create your trip! 🎉",
+            sumText: "Click the finish button below to generate your custom app and get a sharing link.",
+            copyBtn: "Copy Link",
+            prevBtn: "Back",
+            nextBtn: "Next",
+            createBtn: "Create Trip in Firebase 🚀",
+            modalClose: "Got it, close",
+            alertDest: "Please enter a trip destination or name",
+            linkCopied: "Link copied to clipboard! 📋",
+            successHeader: "Trip created successfully! 🥳",
+            successText: "Here is the unique link for your group:"
+        }
+    };
+
+    const previewsData = {
+        he: {
+            packing: { title: 'רשימת ציוד ומה לארוז 🎒', desc: 'מאפשר לכל משתמש לנהל רשימת פריטים אישית או ציבורית, לסמן מה נארז ולבקש פריטים מחברים בקבוצה.' },
+            shopping: { title: 'רשימת קניות קבוצתית 🛒', desc: 'מרכז את כל מה שצריך לקנות בסופר או להביא מהארץ, כולל מנגנון כמויות אישיות ומצב בדיקה לסופר.' },
+            spots: { title: 'מקומות והמלצות דינמיים 📍', desc: 'מותאם אישית לסוג הטיול, עם קישורי ניווט ישירים וקטגוריות מסודרות.' },
+            music: { title: 'פסקול מוזיקלי קבוצתי 🎵', desc: 'הוספת שירים מפלייליסטים שונים כדי שכולם יוכלו להשמיע ולהאזין יחד.' },
+            photos: { title: 'גלריית רגעים חיה 📸', desc: 'העלאת תמונות מהירה עם דחיסה אוטומטית, לייקים ותגובות בזמן אמת.' }
+        },
+        en: {
+            packing: { title: 'Packing List & Essentials 🎒', desc: 'Allows each user to manage personal or public items, check off what is packed, and request items from friends.' },
+            shopping: { title: 'Group Shopping List 🛒', desc: 'Centralizes everything needed for the supermarket or from home, including personal quantities and audit mode.' },
+            spots: { title: 'Dynamic Places & Recommendations 📍', desc: 'Customized to the trip type with direct navigation links and organized categories.' },
+            music: { title: 'Group Soundtrack 🎵', desc: 'Add songs from various playlists so everyone can listen together.' },
+            photos: { title: 'Live Moments Gallery 📸', desc: 'Fast photo uploads with automatic compression, real-time likes, and comments.' }
+        }
+    };
+
     function changeGlobalLanguage(lang) {
         currentLanguage = lang;
         const htmlTag = document.documentElement;
         htmlTag.setAttribute('lang', lang);
         htmlTag.setAttribute('dir', lang === 'en' ? 'ltr' : 'rtl');
+
+        // Update active class on buttons
+        document.getElementById('langHeBtn').classList.toggle('active', lang === 'he');
+        document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+
+        const t = translations[lang];
+        document.getElementById('uiTitle').textContent = t.title;
+        document.getElementById('uiSubtitle').textContent = t.subtitle;
+        document.getElementById('lblDestination').textContent = t.destLabel;
+        document.getElementById('tripDestination').placeholder = t.destPlaceholder;
+        document.getElementById('lblTripType').textContent = t.typeLabel;
         
-        // Simple UI localization dictionary for wizard
-        if (lang === 'en') {
-            document.getElementById('uiTitle').textContent = 'Create New Trip ✈️';
-            document.getElementById('uiSubtitle').textContent = 'Configure options, select modules and get a custom app link';
-            document.getElementById('lblDestination').textContent = 'Trip Destination / Name 🌍';
-            document.getElementById('lblTripType').textContent = 'Trip Type';
-            document.getElementById('lblParticipants').textContent = 'Group Participants (Name & Email) 👥';
-            document.getElementById('lblModules').textContent = 'Modular Features (Which tabs to show?) 🛠️';
+        document.getElementById('optIsland').textContent = t.optIsland;
+        document.getElementById('optMetro').textContent = t.optMetro;
+        document.getElementById('optReserve').textContent = t.optReserve;
+        document.getElementById('optNature').textContent = t.optNature;
+
+        document.getElementById('lblParticipants').textContent = t.partLabel;
+        document.getElementById('participantName').placeholder = t.partNamePlaceholder;
+        document.getElementById('participantEmail').placeholder = t.partEmailPlaceholder;
+        document.getElementById('addParticipantBtn').textContent = t.addBtn;
+
+        document.getElementById('lblModules').textContent = t.modLabel;
+        document.getElementById('lblFeatPacking').textContent = t.packLabel;
+        document.getElementById('lblFeatShopping').textContent = t.shopLabel;
+        document.getElementById('lblFeatSpots').textContent = t.spotsLabel;
+        document.getElementById('lblFeatMusic').textContent = t.musicLabel;
+        document.getElementById('lblFeatPhotos').textContent = t.photosLabel;
+
+        document.querySelectorAll('.preview-btn').forEach(btn => btn.textContent = t.previewBtn);
+
+        document.getElementById('summaryTitle').textContent = t.sumTitle;
+        document.getElementById('summaryText').textContent = t.sumText;
+        document.getElementById('copyLinkBtn').textContent = t.copyBtn;
+        document.getElementById('prevBtn').textContent = t.prevBtn;
+        document.getElementById('modalCloseBtn').textContent = t.modalClose;
+
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentStep === totalSteps) {
+            nextBtn.textContent = t.createBtn;
         } else {
-            document.getElementById('uiTitle').textContent = 'יוצרים טיול חדש ✈️';
-            document.getElementById('uiSubtitle').textContent = 'הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך';
-            document.getElementById('lblDestination').textContent = 'שם הטיול / היעד 🌍';
-            document.getElementById('lblTripType').textContent = 'סוג הטיול (משפיע על קטגוריות ומבנה)';
-            document.getElementById('lblParticipants').textContent = 'הוספת חברי הקבוצה (שם ואימייל לאבטחה) 👥';
-            document.getElementById('lblModules').textContent = 'בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️';
+            nextBtn.textContent = t.nextBtn;
         }
     }
 
@@ -316,7 +433,7 @@
         if (step === 1) {
             const dest = document.getElementById('tripDestination').value.trim();
             if (!dest) {
-                alert(currentLanguage === 'en' ? 'Please enter a trip destination' : 'נא להזין את שם היעד או הטיול');
+                alert(translations[currentLanguage].alertDest);
                 return false;
             }
         }
@@ -334,28 +451,21 @@
             else if (s < currentStep) dot.classList.add('completed');
         });
 
+        const t = translations[currentLanguage];
         document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'block';
         const nextBtn = document.getElementById('nextBtn');
         
         if (currentStep === totalSteps) {
-            nextBtn.textContent = currentLanguage === 'en' ? 'Create Trip in Firebase 🚀' : 'צור טיול ב-Firebase 🚀';
+            nextBtn.textContent = t.createBtn;
             nextBtn.onclick = generateTripAndSave;
         } else {
-            nextBtn.textContent = currentLanguage === 'en' ? 'Next' : 'הבא';
+            nextBtn.textContent = t.nextBtn;
             nextBtn.onclick = () => changeStep(1);
         }
     }
 
-    const previews = {
-        packing: { title: 'רשימת ציוד ומה לארוז 🎒', desc: 'מאפשר לכל משתמש לנהל רשימת פריטים אישית או ציבורית, לסמן מה נארז ולבקש פריטים מחברים בקבוצה.' },
-        shopping: { title: 'רשימת קניות קבוצתית 🛒', desc: 'מרכז את כל מה שצריך לקנות בסופר או להביא מהארץ, כולל מנגנון כמויות אישיות ומצב בדיקה לסופר.' },
-        spots: { title: 'מקומות והמלצות דינמיים 📍', desc: 'מותאם אישית לסוג הטיול, עם קישורי ניווט ישירים וקטגוריות מסודרות.' },
-        music: { title: 'פסקול מוזיקלי קבוצתי 🎵', desc: 'הוספת שירים מפלייליסטים שונים כדי שכולם יוכלו להשמיע ולהאזין יחד.' },
-        photos: { title: 'גלריית רגעים חיה 📸', desc: 'העלאת תמונות מהירה עם דחיסה אוטומטית, לייקים ותגובות בזמן אמת.' }
-    };
-
     window.openPreview = function(featureKey) {
-        const p = previews[featureKey];
+        const p = previewsData[currentLanguage][featureKey];
         document.getElementById('modalTitle').textContent = p.title;
         document.getElementById('modalDesc').textContent = p.desc;
         document.getElementById('previewModal').style.display = 'flex';
@@ -384,9 +494,10 @@
 
         console.log("Trip Created:", tripData);
 
+        const t = translations[currentLanguage];
         document.getElementById('nextBtn').style.display = 'none';
         document.getElementById('prevBtn').style.display = 'none';
-        document.getElementById('summaryBox').innerHTML = '<h3>הטיול נוצר בהצלחה! 🥳</h3><p>הנה הקישור הייחודי לקבוצה שלך:</p>';
+        document.getElementById('summaryBox').innerHTML = `<h3>${t.successHeader}</h3><p>${t.successText}</p>`;
         
         const shareUrl = window.location.origin + window.location.pathname.replace('wizard.html', '') + `index.html?tripId=${tripId}`;
         document.getElementById('finalTripLink').value = shareUrl;
@@ -397,7 +508,7 @@
         const linkInput = document.getElementById('finalTripLink');
         linkInput.select();
         navigator.clipboard.writeText(linkInput.value);
-        alert('הקישור הועתק ללוח! 📋');
+        alert(translations[currentLanguage].linkCopied);
     }
 </script>
 
