@@ -191,31 +191,28 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 6px;
       flex-shrink: 0;
-    }
-    .list-title-badge {
-      display: inline-flex;
-      align-items: center;
       gap: 6px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text);
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      margin: 0;
-      width: auto;
     }
-    .list-title-badge span.pill {
-      background: #eff6ff;
+
+    /* בורר רשימות מובנה ומעוצב בתוך הכותרת */
+    .list-title-select-pill {
+      appearance: none;
+      -webkit-appearance: none;
+      background: #eff6ff url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat left 8px center;
+      background-size: 14px;
       color: var(--primary);
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid #dbeafe;
-      font-size: 0.85rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      border: 1px solid #bfdbfe;
+      padding: 4px 10px 4px 26px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: auto;
+      margin: 0;
+      max-width: 220px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      outline: none;
     }
 
     .btn-settings-gear {
@@ -419,18 +416,16 @@
       gap: 8px;
     }
     .menu-btn-item:active { background: #e2e8f0; }
-    .menu-btn-item.active-item { background: #eff6ff; border-color: var(--primary); color: var(--primary); font-weight: bold; }
     .menu-btn-item.danger-text { color: var(--danger); }
 
     .subitems-list {
       text-align: right;
       overflow-y: auto;
-      max-height: 260px;
+      max-height: 220px;
       margin: 6px 0;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 4px;
-      -webkit-overflow-scrolling: touch;
     }
 
     .existing-names-container { margin-top: 12px; }
@@ -532,12 +527,10 @@
       <div class="list-card">
         
         <div class="list-header-row">
-          <!-- לחיצה כאן פותחת את חלונית הגלילה לבחירת רשימה -->
-          <button id="openActiveListBadgeBtn" class="list-title-badge" title="בחר רשימה לצפייה">
-            <span class="pill">📋 <span id="activeListNameText">...</span> ▾</span>
-          </button>
+          <!-- בורר רשימות מובנה ונפתח במקום השם -->
+          <select id="activeListSelect" class="list-title-select-pill" title="בחר רשימה לצפייה"></select>
           
-          <!-- לחיצה כאן פותחת אך ורק את אפשרויות הרשימה הנוכחית -->
+          <!-- כפתור אפשרויות וניהול לרשימה הנוכחית -->
           <button id="openSettingsModalBtn" class="btn-settings-gear">
             ⚙️ אפשרויות
           </button>
@@ -560,29 +553,19 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v2.3.0</div>
+    <div class="app-version-footer">גרסה v2.3.1</div>
   </div>
 
-  <!-- 1. חלונית גלילה ייעודית לבחירת רשימה (נפתחת מלחיצה על שם הרשימה) -->
-  <div id="listPickerModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-title">📋 בחר רשימה לצפייה</div>
-      <div class="modal-desc">בחר באחת הרשימות שלך או פתח רשימה חדשה:</div>
-
-      <div id="pickerListsContainer" class="subitems-list"></div>
-
-      <button id="pickerBtnCreateNewList" style="background: var(--success); color:white; border:none; margin-top: 8px; padding: 8px; font-size:0.85rem; border-radius:8px; cursor:pointer;">+ פתח רשימה חדשה</button>
-      <button id="closeListPickerBtn" style="margin-top: 8px; background: #e2e8f0; color: var(--text); border:none; border-radius:8px; padding:7px; cursor:pointer;">סגור</button>
-    </div>
-  </div>
-
-  <!-- 2. חלונית אפשרויות ממוקדת לרשימה הנוכחית (נפתחת מכפתור ⚙️) -->
+  <!-- חלונית אפשרויות וניהול רשימה (נפתחת מכפתור ⚙️) -->
   <div id="listSettingsModal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-title">⚙️ אפשרויות הרשימה</div>
       <div class="modal-desc">ניהול עבור: <strong id="settingsActiveListNameLabel" style="color:var(--primary);"></strong></div>
 
-      <div style="display:flex; gap:6px; margin-bottom:8px;">
+      <!-- כפתור יצירת רשימה חדשה במקום בולט -->
+      <button id="modalBtnCreateNewList" style="background: var(--success); color:white; border:none; padding: 9px; font-size:0.88rem; border-radius:8px; cursor:pointer; margin-bottom:8px;">+ פתח רשימה חדשה</button>
+
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
         <button id="bulkPublicBtn" style="background:#dbeafe; color:#1e40af; border:none; padding:8px; font-size:0.82rem; border-radius:8px; cursor:pointer; flex:1;">🌐 שתף הכל</button>
         <button id="bulkPrivateBtn" style="background:#f1f5f9; color:var(--text); padding:8px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border); cursor:pointer; flex:1;">🔒 הפוך לפרטי</button>
       </div>
@@ -697,7 +680,7 @@
 
       <div style="display:flex; gap:8px; margin-top:8px;">
         <button id="confirmImportPickerBtn" style="background: var(--success); color:white; border:none; padding:8px; border-radius:8px; flex:1; cursor:pointer;">ייבא נבחרים</button>
-        <button id="cancelImportPickerBtn" style="background: #e2e8f0; color: var(--text); border:none; padding:8px; border-radius:8px; flex:1; cursor:pointer;">ביטול</button>
+        <button id="cancelImportPickerBtn" style="background: #e2e8f0; color: var(--text); border:none; border-radius:8px; flex:1; cursor:pointer;">ביטול</button>
       </div>
     </div>
   </div>
@@ -768,19 +751,12 @@
     const myListTab = document.getElementById("myListTab");
     const friendsListTab = document.getElementById("friendsListTab");
 
-    const activeListNameText = document.getElementById("activeListNameText");
-    const openActiveListBadgeBtn = document.getElementById("openActiveListBadgeBtn");
+    const activeListSelect = document.getElementById("activeListSelect");
     const openSettingsModalBtn = document.getElementById("openSettingsModalBtn");
 
-    // מודאל 1: בורר רשימות
-    const listPickerModal = document.getElementById("listPickerModal");
-    const pickerListsContainer = document.getElementById("pickerListsContainer");
-    const pickerBtnCreateNewList = document.getElementById("pickerBtnCreateNewList");
-    const closeListPickerBtn = document.getElementById("closeListPickerBtn");
-
-    // מודאל 2: אפשרויות רשימה נוכחית
     const listSettingsModal = document.getElementById("listSettingsModal");
     const settingsActiveListNameLabel = document.getElementById("settingsActiveListNameLabel");
+    const modalBtnCreateNewList = document.getElementById("modalBtnCreateNewList");
     const modalBtnDuplicateList = document.getElementById("modalBtnDuplicateList");
     const modalBtnRenameList = document.getElementById("modalBtnRenameList");
     const modalBtnDeleteList = document.getElementById("modalBtnDeleteList");
@@ -1283,49 +1259,15 @@
       myListTab.classList.add("hidden");
     });
 
-    // 1. פתיחת חלונית הגלילה לבחירת רשימה
-    openActiveListBadgeBtn.addEventListener("click", () => {
+    // שינוי רשימה פעילה דרך ה-Dropdown המובנה
+    activeListSelect.addEventListener("change", () => {
       triggerHaptic("light");
-      renderPickerLists();
-      listPickerModal.classList.remove("hidden");
+      currentActiveList = activeListSelect.value;
+      localStorage.setItem("packing_app_active_list", currentActiveList);
+      filterAndRenderCurrentList();
     });
 
-    closeListPickerBtn.addEventListener("click", () => {
-      listPickerModal.classList.add("hidden");
-    });
-
-    function renderPickerLists() {
-      pickerListsContainer.innerHTML = "";
-      myDistinctLists.forEach(lName => {
-        const row = document.createElement("button");
-        row.className = `menu-btn-item ${lName === currentActiveList ? 'active-item' : ''}`;
-        
-        const count = allUserItems.filter(i => (i.listName || DEFAULT_LIST_NAME) === lName).length;
-        row.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-            <span>📋 <strong>${escapeHtml(lName)}</strong></span>
-            <span style="font-size:0.75rem; opacity:0.8;">(${count} פריטים) ${lName === currentActiveList ? '• פעיל' : ''}</span>
-          </div>
-        `;
-        row.onclick = () => {
-          triggerHaptic("light");
-          currentActiveList = lName;
-          localStorage.setItem("packing_app_active_list", currentActiveList);
-          listPickerModal.classList.add("hidden");
-          filterAndRenderCurrentList();
-        };
-        pickerListsContainer.appendChild(row);
-      });
-    }
-
-    pickerBtnCreateNewList.addEventListener("click", () => {
-      listPickerModal.classList.add("hidden");
-      newListNameInput.value = "";
-      createListModal.classList.remove("hidden");
-      setTimeout(() => newListNameInput.focus(), 150);
-    });
-
-    // 2. פתיחת חלונית האפשרויות לרשימה הנוכחית
+    // פתיחת חלונית אפשרויות לרשימה הנוכחית
     openSettingsModalBtn.addEventListener("click", () => {
       triggerHaptic("light");
       settingsActiveListNameLabel.textContent = currentActiveList;
@@ -1334,6 +1276,13 @@
 
     closeListSettingsBtn.addEventListener("click", () => {
       listSettingsModal.classList.add("hidden");
+    });
+
+    modalBtnCreateNewList.addEventListener("click", () => {
+      listSettingsModal.classList.add("hidden");
+      newListNameInput.value = "";
+      createListModal.classList.remove("hidden");
+      setTimeout(() => newListNameInput.focus(), 150);
     });
 
     cancelCreateListBtn.addEventListener("click", () => {
@@ -1497,8 +1446,19 @@
       }
     });
 
+    function updateActiveListSelect() {
+      activeListSelect.innerHTML = "";
+      myDistinctLists.forEach(lName => {
+        const opt = document.createElement("option");
+        opt.value = lName;
+        opt.textContent = `📋 ${lName}`;
+        if (lName === currentActiveList) opt.selected = true;
+        activeListSelect.appendChild(opt);
+      });
+    }
+
     function filterAndRenderCurrentList() {
-      activeListNameText.textContent = currentActiveList || DEFAULT_LIST_NAME;
+      updateActiveListSelect();
       myItems = allUserItems.filter(i => (i.listName || DEFAULT_LIST_NAME) === currentActiveList);
 
       myItemsList.innerHTML = "";
@@ -1728,7 +1688,7 @@
           crossListChoiceContainer.appendChild(btn);
         });
       } else {
-        crossListChoiceContainer.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות אישיות נוספות. צור רשימה חדשה תחילה.</p>";
+        crossListChoiceContainer.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות אישיות נוספות. צור רשימה חדשה מתפריט האפשרויות (⚙️).</p>";
       }
 
       crossListActionModal.classList.remove("hidden");
@@ -2437,6 +2397,15 @@
         btnElement.textContent = "ייבא רשימה זו";
       }
     };
+
+    // סגירת כל החלוניות בלחיצה מחוץ למסגרת (Backdrop Click)
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.add('hidden');
+        }
+      });
+    });
   </script>
 </body>
 </html>
