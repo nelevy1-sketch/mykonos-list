@@ -254,7 +254,7 @@
 
 <script>
     let currentStep = 1;
-    const totalSteps = 4; // מעודכן ל-4 שלבים
+    const totalSteps = 4;
     let currentLanguage = 'he';
     let participants = [];
 
@@ -390,14 +390,23 @@
         }
     }
 
-    // Participants handling
-    document.getElementById('addParticipantBtn').addEventListener('click', () => {
+    // Participants handling with Enter key support
+    function addParticipant() {
         const input = document.getElementById('participantName');
         const name = input.value.trim();
         if (name && !participants.includes(name)) {
             participants.push(name);
             renderParticipants();
             input.value = '';
+        }
+    }
+
+    document.getElementById('addParticipantBtn').addEventListener('click', addParticipant);
+    
+    document.getElementById('participantName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // מונע שליחה בטוחה של הטופס
+            addParticipant();
         }
     });
 
