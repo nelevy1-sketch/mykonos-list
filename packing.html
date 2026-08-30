@@ -68,35 +68,30 @@
     .tab-btn { flex: 1; background: #e2e8f0; color: var(--text); padding: 9px; border-radius: 8px; border: none; font-weight: bold; margin: 0; }
     .tab-btn.active { background: var(--primary); color: white; }
 
-    /* בורר רשימות עליון */
-    .list-switcher-bar {
+    /* כותרת רשימה פעילה עם כפתור ניהול קומפקטי */
+    .list-header-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
       margin-bottom: 6px;
-      background: #f1f5f9;
-      padding: 6px 8px;
-      border-radius: 10px;
+      flex-shrink: 0;
+      gap: 6px;
     }
-    .list-switcher-bar select {
-      margin-top: 0;
-      flex: 1;
-      font-weight: 600;
+    .list-title-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eff6ff;
       color: var(--primary);
-      background: white;
-      padding: 7px 10px;
-      font-size: 0.9rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: 1px solid #bfdbfe;
+      transition: background-color 0.2s;
     }
-    .list-switcher-bar .btn-icon-sm {
-      width: auto;
-      margin-top: 0;
-      padding: 7px 10px;
-      font-size: 0.85rem;
-      white-space: nowrap;
-      background: white;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
+    .list-title-badge:active { background: #dbeafe; }
 
     .friends-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px; scrollbar-width: none; scroll-behavior: smooth; }
     .friends-tabs::-webkit-scrollbar { display: none; }
@@ -358,28 +353,37 @@
 
   <div id="toast"></div>
 
-  <!-- מודאל יצירה / ניהול רשימה -->
+  <!-- מודאל הגדרות וניהול רשימות מרכזי -->
+  <div id="listsSettingsModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">⚙️ ניהול רשימות</div>
+      <div class="modal-desc">בחר רשימה לצפייה, צור חדשה או נהל את הנוכחית:</div>
+
+      <label style="text-align:right; display:block; font-size:0.85rem; font-weight:bold; color:var(--gray);">החלף לרשימה:</label>
+      <select id="settingsListSwitcher" style="margin-top:2px; margin-bottom:12px; font-weight:bold; color:var(--primary);"></select>
+
+      <button id="btnSettingsCreateList" style="background: var(--success); margin-bottom: 8px;">+ צור רשימה חדשה</button>
+      
+      <div style="margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px;">
+        <button id="btnSettingsDuplicate" class="menu-btn-item">📋 שכפל רשימה זו</button>
+        <button id="btnSettingsRename" class="menu-btn-item">✏️ שנה שם לרשימה זו</button>
+        <button id="btnSettingsDelete" class="menu-btn-item danger-text">🗑️ מחק רשימה זו</button>
+      </div>
+
+      <button id="closeListsSettingsBtn" style="margin-top: 14px; background: #e2e8f0; color: var(--text);">סגור</button>
+    </div>
+  </div>
+
+  <!-- מודאל יצירת רשימה חדשה -->
   <div id="createListModal" class="modal-overlay hidden">
     <div class="modal-box">
-      <div class="modal-title" id="createListModalTitle">✨ פתיחת רשימה חדשה</div>
-      <div class="modal-desc" id="createListModalDesc">הזן שם עבור הרשימה החדשה:</div>
+      <div class="modal-title">✨ פתיחת רשימה חדשה</div>
+      <div class="modal-desc">הזן שם עבור הרשימה החדשה:</div>
       <input type="text" id="newListNameInput" placeholder="למשל: סופש באילת, פקל מילואים...">
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button id="confirmCreateListBtn" style="background: var(--success); flex:1;">צור רשימה</button>
         <button id="cancelCreateListBtn" style="background: #e2e8f0; color: var(--text); flex:1;">ביטול</button>
       </div>
-    </div>
-  </div>
-
-  <!-- מודאל פעולות על רשימה פעילה (עריכת שם / שכפול / מחיקה) -->
-  <div id="manageActiveListModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-title" id="manageActiveListTitle">⚙️ ניהול רשימה</div>
-      <div class="modal-desc" id="manageActiveListDesc">פעולות על הרשימה הפעילה:</div>
-      <button id="btnDuplicateActiveList" class="menu-btn-item">📋 שכפל רשימה זו כרשימה חדשה</button>
-      <button id="btnRenameActiveList" class="menu-btn-item">✏️ שנה שם לרשימה זו</button>
-      <button id="btnDeleteActiveList" class="menu-btn-item danger-text">🗑️ מחק רשימה זו לחלוטין</button>
-      <button id="closeManageActiveListBtn" style="margin-top: 14px; background: #e2e8f0; color: var(--text);">סגור</button>
     </div>
   </div>
 
@@ -517,13 +521,6 @@
 
     <!-- לשונית רשימה אישית -->
     <div id="myListTab" class="tab-content">
-      
-      <!-- בורר רשימות אישיות עליון -->
-      <div class="list-switcher-bar sticky-top-section">
-        <select id="activeListSelect"></select>
-        <button id="openManageListBtn" class="btn-icon-sm" title="ניהול רשימה נוכחית">⚙️</button>
-        <button id="openCreateListBtn" class="btn-icon-sm" style="background:var(--primary); color:white; border:none;" title="צור רשימה חדשה">+ חדשה</button>
-      </div>
 
       <div class="card sticky-top-section" style="padding: 10px 14px; margin-bottom: 8px;">
         <div style="display:flex; gap:8px; align-items:center;">
@@ -557,10 +554,15 @@
       </div>
 
       <div class="card scrollable-list-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0; flex-wrap: wrap; gap: 4px;">
-          <h3 id="currentListHeading" style="font-size: 1rem;">הרשימה הראשית</h3>
+        <div class="list-header-row">
+          <div id="currentListBadge" class="list-title-badge" title="לחץ להחלפה או ניהול רשימות">
+            <span>📋</span>
+            <span id="currentListHeading">הרשימה הראשית</span>
+            <span style="font-size:0.75rem; color:var(--gray);">▼</span>
+          </div>
           
           <div style="display: flex; gap: 4px;">
+            <button id="openListsSettingsBtn" class="btn-sm btn-secondary" style="padding: 4px 8px;" title="הגדרות וניהול רשימות">⚙️ רשימות</button>
             <button id="bulkPublicBtn" class="btn-sm btn-secondary" title="הפוך את כל הפריטים ברשימה זו לציבוריים">🌐 שתף הכל</button>
             <button id="bulkPrivateBtn" class="btn-sm btn-secondary" title="הפוך את כל הפריטים ברשימה זו לפרטיים">🔒 הסתר הכל</button>
             <button id="clearAllBtn" class="btn-sm btn-danger" style="display:none; padding: 2px 6px; font-size: 0.75rem;">מחק רשימה</button>
@@ -591,7 +593,7 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v2.0.0</div>
+    <div class="app-version-footer">גרסה v2.1.0</div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -628,9 +630,9 @@
     let unsubscribeFriendsItems = null;
     let pendingRequestsUsers = new Set();
 
-    let allUserItems = []; // כל הפריטים של המשתמש מכל הרשימות
-    let myItems = []; // פריטים ברשימה הפעילה בלבד
-    let myDistinctLists = [DEFAULT_LIST_NAME];
+    let allUserItems = [];
+    let myItems = [];
+    let myDistinctLists = [];
 
     let cachedFriendsData = {
       allUsers: [],
@@ -641,7 +643,7 @@
     let currentActiveSubitemDoc = null;
     let currentSelectedMenuItem = null;
     let pendingImportContext = null;
-    let pendingCrossListMode = "copy"; // "copy" | "move"
+    let pendingCrossListMode = "copy";
 
     const loginCard = document.getElementById("loginCard");
     const appContent = document.getElementById("appContent");
@@ -660,22 +662,22 @@
     const myListTab = document.getElementById("myListTab");
     const friendsListTab = document.getElementById("friendsListTab");
 
-    const activeListSelect = document.getElementById("activeListSelect");
-    const openCreateListBtn = document.getElementById("openCreateListBtn");
-    const openManageListBtn = document.getElementById("openManageListBtn");
+    const currentListBadge = document.getElementById("currentListBadge");
     const currentListHeading = document.getElementById("currentListHeading");
+    const openListsSettingsBtn = document.getElementById("openListsSettingsBtn");
+
+    const listsSettingsModal = document.getElementById("listsSettingsModal");
+    const settingsListSwitcher = document.getElementById("settingsListSwitcher");
+    const btnSettingsCreateList = document.getElementById("btnSettingsCreateList");
+    const btnSettingsDuplicate = document.getElementById("btnSettingsDuplicate");
+    const btnSettingsRename = document.getElementById("btnSettingsRename");
+    const btnSettingsDelete = document.getElementById("btnSettingsDelete");
+    const closeListsSettingsBtn = document.getElementById("closeListsSettingsBtn");
 
     const createListModal = document.getElementById("createListModal");
     const newListNameInput = document.getElementById("newListNameInput");
     const confirmCreateListBtn = document.getElementById("confirmCreateListBtn");
     const cancelCreateListBtn = document.getElementById("cancelCreateListBtn");
-
-    const manageActiveListModal = document.getElementById("manageActiveListModal");
-    const manageActiveListTitle = document.getElementById("manageActiveListTitle");
-    const btnDuplicateActiveList = document.getElementById("btnDuplicateActiveList");
-    const btnRenameActiveList = document.getElementById("btnRenameActiveList");
-    const btnDeleteActiveList = document.getElementById("btnDeleteActiveList");
-    const closeManageActiveListBtn = document.getElementById("closeManageActiveListBtn");
 
     const newItemName = document.getElementById("newItemName");
     const newItemVisibility = document.getElementById("newItemVisibility");
@@ -1248,15 +1250,30 @@
       myListTab.classList.add("hidden");
     });
 
-    // בורר רשימות
-    activeListSelect.addEventListener("change", () => {
-      currentActiveList = activeListSelect.value;
+    // פתיחת מודאל הגדרות רשימות
+    function openListsSettings() {
+      triggerHaptic("light");
+      updateSettingsDropdown();
+      listsSettingsModal.classList.remove("hidden");
+    }
+
+    currentListBadge.addEventListener("click", openListsSettings);
+    openListsSettingsBtn.addEventListener("click", openListsSettings);
+
+    closeListsSettingsBtn.addEventListener("click", () => {
+      listsSettingsModal.classList.add("hidden");
+    });
+
+    settingsListSwitcher.addEventListener("change", () => {
+      currentActiveList = settingsListSwitcher.value;
       localStorage.setItem("packing_app_active_list", currentActiveList);
       triggerHaptic("light");
+      listsSettingsModal.classList.add("hidden");
       filterAndRenderCurrentList();
     });
 
-    openCreateListBtn.addEventListener("click", () => {
+    btnSettingsCreateList.addEventListener("click", () => {
+      listsSettingsModal.classList.add("hidden");
       triggerHaptic("light");
       newListNameInput.value = "";
       createListModal.classList.remove("hidden");
@@ -1280,7 +1297,6 @@
       
       if (!myDistinctLists.includes(name)) {
         myDistinctLists.push(name);
-        updateListsDropdown();
       }
       
       triggerHaptic("medium");
@@ -1296,20 +1312,9 @@
       }
     });
 
-    // ניהול רשימה נוכחית (שכפול / שינוי שם / מחיקה)
-    openManageListBtn.addEventListener("click", () => {
-      triggerHaptic("light");
-      manageActiveListTitle.textContent = `⚙️ ניהול: ${currentActiveList}`;
-      manageActiveListModal.classList.remove("hidden");
-    });
-
-    closeManageActiveListBtn.addEventListener("click", () => {
-      manageActiveListModal.classList.add("hidden");
-    });
-
     // שכפול רשימה
-    btnDuplicateActiveList.addEventListener("click", async () => {
-      manageActiveListModal.classList.add("hidden");
+    btnSettingsDuplicate.addEventListener("click", async () => {
+      listsSettingsModal.classList.add("hidden");
       const targetName = prompt("בחר שם עבור הרשימה המשוכפלת:", `${currentActiveList} (העתק)`);
       if (!targetName || !targetName.trim()) return;
 
@@ -1323,7 +1328,7 @@
           owner: currentUser,
           listName: trimmedName,
           isPublic: item.isPublic || false,
-          isDone: false, // איפוס וי לאריזה מחדש
+          isDone: false,
           hasSubitems: !!item.hasSubitems,
           subitems: (item.subitems || []).map(s => ({ name: s.name, isDone: false })),
           createdAt: Date.now()
@@ -1335,9 +1340,9 @@
       showToast(`📋 הרשימה שוכפלה בהצלחה תחת "${trimmedName}"!`);
     });
 
-    // שינוי שם לרשימה
-    btnRenameActiveList.addEventListener("click", async () => {
-      manageActiveListModal.classList.add("hidden");
+    // שינוי שם לרשימה (מתקן ישירות במסד הנתונים את כל הפריטים)
+    btnSettingsRename.addEventListener("click", async () => {
+      listsSettingsModal.classList.add("hidden");
       const newName = prompt("הזן שם חדש לרשימה זו:", currentActiveList);
       if (!newName || !newName.trim() || newName.trim() === currentActiveList) return;
 
@@ -1355,8 +1360,8 @@
     });
 
     // מחיקת רשימה נוכחית
-    btnDeleteActiveList.addEventListener("click", async () => {
-      manageActiveListModal.classList.add("hidden");
+    btnSettingsDelete.addEventListener("click", async () => {
+      listsSettingsModal.classList.add("hidden");
       if (myDistinctLists.length <= 1) {
         if (!confirm(`האם למחוק את כל הפריטים ברשימה "${currentActiveList}"?`)) return;
       } else {
@@ -1369,8 +1374,6 @@
         await deleteDoc(doc(db, "packing_items", item.id));
       }
 
-      currentActiveList = DEFAULT_LIST_NAME;
-      localStorage.setItem("packing_app_active_list", currentActiveList);
       showToast(`🗑️ הרשימה נמחקה בהצלחה`);
     });
 
@@ -1439,14 +1442,14 @@
       }
     });
 
-    function updateListsDropdown() {
-      activeListSelect.innerHTML = "";
+    function updateSettingsDropdown() {
+      settingsListSwitcher.innerHTML = "";
       myDistinctLists.forEach(lname => {
         const opt = document.createElement("option");
         opt.value = lname;
         opt.textContent = `📋 ${lname}`;
         if (lname === currentActiveList) opt.selected = true;
-        activeListSelect.appendChild(opt);
+        settingsListSwitcher.appendChild(opt);
       });
     }
 
@@ -1519,7 +1522,7 @@
       
       unsubscribeMyItems = onSnapshot(q, (snapshot) => {
         allUserItems = [];
-        const listsSet = new Set([DEFAULT_LIST_NAME]);
+        const listsSet = new Set();
 
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
@@ -1546,6 +1549,11 @@
           allUserItems.push(itemObj);
         });
 
+        // רשימות נגזרות דינמית בלבד
+        if (listsSet.size === 0) {
+          listsSet.add(DEFAULT_LIST_NAME);
+        }
+
         myDistinctLists = Array.from(listsSet).sort((a, b) => a.localeCompare(b, 'he'));
         
         if (!myDistinctLists.includes(currentActiveList)) {
@@ -1553,7 +1561,6 @@
           localStorage.setItem("packing_app_active_list", currentActiveList);
         }
 
-        updateListsDropdown();
         filterAndRenderCurrentList();
       }, (err) => {
         console.error("Firestore myItems snapshot error:", err);
@@ -1659,7 +1666,7 @@
       }
     });
 
-    // פתיחת מודאל העתקה / העברה לרשימה אישית אחרת
+    // העתקה/העברה לרשימה אישית אחרת
     function openCrossListModal(mode) {
       if (!currentSelectedMenuItem) return;
       pendingCrossListMode = mode;
@@ -1703,7 +1710,7 @@
           crossListChoiceContainer.appendChild(btn);
         });
       } else {
-        crossListChoiceContainer.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות אישיות נוספות. צור רשימה חדשה תחילה באמצעות כפתור '+ חדשה'.</p>";
+        crossListChoiceContainer.innerHTML = "<p style='color:var(--gray); text-align:center; padding:10px 0; font-size:0.85rem;'>אין עדיין רשימות אישיות נוספות. צור רשימה חדשה תחילה דרך תפריט הגדרות הרשימות.</p>";
       }
 
       crossListActionModal.classList.remove("hidden");
@@ -2126,7 +2133,7 @@
             listSubSec.innerHTML = `
               <div class="friend-list-heading">
                 <span>📋 ${safeListName}</span>
-                <button class="btn-sm btn-import" style="width:auto; padding:2px 8px; font-size:0.75rem;" onclick="importAllFromFriendList('${friendForHandler}', '${listForHandler}', this)">ייבא רשימה זו</button>
+                <button class="btn-sm btn-import" style="width:auto; padding:2px 8px; font-size:0.75rem;" onclick="importAllFromFriendList('${friendForHandler}', '${listForHandler}', this)">ייבא לרשימה שלי</button>
               </div>
             `;
 
@@ -2415,7 +2422,7 @@
       
       if (btnElement) {
         btnElement.disabled = false;
-        btnElement.textContent = "ייבא רשימה זו";
+        btnElement.textContent = "ייבא לרשימה שלי";
         btnElement.style.background = "var(--success)";
       }
     };
