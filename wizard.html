@@ -58,8 +58,8 @@
         h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; text-align: center; }
         p.subtitle { text-align: center; color: var(--gray); margin-bottom: 25px; font-size: 0.95rem; }
 
-        /* Steps indicator (מקוצר ל-3 שלבים) */
-        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; max-width: 300px; margin-left: auto; margin-right: auto; }
+        /* Steps indicator (4 שלבים) */
+        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; max-width: 350px; margin-left: auto; margin-right: auto; }
         .steps-indicator::before { content: ''; position: absolute; top: 15px; right: 0; left: 0; height: 3px; background: var(--border); z-index: 1; }
         .step-dot { position: relative; z-index: 2; background: #fff; border: 2px solid var(--border); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: var(--gray); transition: 0.3s; }
         .step-dot.active { border-color: var(--primary); background: var(--primary); color: #fff; }
@@ -77,6 +77,14 @@
             width: 100%; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s;
         }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,91,174,0.15); }
+
+        /* Participants List Tags */
+        .participant-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .participants-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .participant-tag {
+            background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; font-weight: 500;
+        }
+        .participant-tag span { cursor: pointer; color: var(--accent); font-weight: bold; }
 
         /* Feature Flags Checkboxes */
         .feature-card {
@@ -127,11 +135,12 @@
     <h1 id="uiTitle">יוצרים טיול חדש ✈️</h1>
     <p class="subtitle" id="uiSubtitle">הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך</p>
 
-    <!-- Steps Indicator (3 steps total) -->
+    <!-- Steps Indicator (4 steps total) -->
     <div class="steps-indicator" id="stepsIndicator">
         <div class="step-dot active" data-step="1">1</div>
         <div class="step-dot" data-step="2">2</div>
         <div class="step-dot" data-step="3">3</div>
+        <div class="step-dot" data-step="4">4</div>
     </div>
 
     <!-- Form Wizard -->
@@ -154,8 +163,22 @@
             </div>
         </div>
 
-        <!-- STEP 2: Modular Features with Preview -->
+        <!-- STEP 2: Participants (Names for Split & Lists) -->
         <div class="form-step" data-step="2">
+            <div class="form-group">
+                <label id="lblParticipants">שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥</label>
+                <div class="participant-input-row">
+                    <input type="text" id="participantName" placeholder="שם חבר (למשל: נירה, ברגה...)">
+                    <button type="button" class="btn" id="addParticipantBtn" style="background: #e9ecef; color: var(--text); padding: 0 15px;">הוסף</button>
+                </div>
+                <div class="participants-list" id="participantsContainer">
+                    <!-- Dynamic tags will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Modular Features with Preview -->
+        <div class="form-step" data-step="3">
             <label id="lblModules">בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️</label>
             
             <div class="feature-card">
@@ -199,8 +222,8 @@
             </div>
         </div>
 
-        <!-- STEP 3: Summary & Finish -->
-        <div class="form-step" data-step="3">
+        <!-- STEP 4: Summary & Finish -->
+        <div class="form-step" data-step="4">
             <div class="success-box" id="summaryBox">
                 <h3 id="summaryTitle">הכל מוכן ליצירת הטיול! 🎉</h3>
                 <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.</p>
@@ -231,8 +254,9 @@
 
 <script>
     let currentStep = 1;
-    const totalSteps = 3; // מעודכן ל-3 שלבים
+    const totalSteps = 4; // מעודכן ל-4 שלבים
     let currentLanguage = 'he';
+    let participants = [];
 
     const translations = {
         he: {
@@ -245,6 +269,9 @@
             optMetro: "מטרופולין / עיר גדולה 🏙️",
             optReserve: "שירות מילואים / גיבוש 🪖",
             optNature: "טיול טבע / שטח 🏕️",
+            partLabel: "שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥",
+            partPlaceholder: "שם חבר (למשל: נירה, ברגה...)",
+            addBtn: "הוסף",
             modLabel: "בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️",
             packLabel: "רשימת ציוד ומה לארוז 🎒",
             shopLabel: "רשימת קניות קבוצתית 🛒",
@@ -274,6 +301,9 @@
             optMetro: "Metropolis / Big City 🏙️",
             optReserve: "Reserve Duty / Team Building 🪖",
             optNature: "Nature / Outdoor Trip 🏕️",
+            partLabel: "Group Participant Names (For Split & Lists) 👥",
+            partPlaceholder: "Member name (e.g., Nira, Berga...)",
+            addBtn: "Add",
             modLabel: "Modular Features (Which tabs will appear?) 🛠️",
             packLabel: "Packing List & Essentials 🎒",
             shopLabel: "Group Shopping List 🛒",
@@ -333,6 +363,10 @@
         document.getElementById('optReserve').textContent = t.optReserve;
         document.getElementById('optNature').textContent = t.optNature;
 
+        document.getElementById('lblParticipants').textContent = t.partLabel;
+        document.getElementById('participantName').placeholder = t.partPlaceholder;
+        document.getElementById('addParticipantBtn').textContent = t.addBtn;
+
         document.getElementById('lblModules').textContent = t.modLabel;
         document.getElementById('lblFeatPacking').textContent = t.packLabel;
         document.getElementById('lblFeatShopping').textContent = t.shopLabel;
@@ -354,6 +388,31 @@
         } else {
             nextBtn.textContent = t.nextBtn;
         }
+    }
+
+    // Participants handling
+    document.getElementById('addParticipantBtn').addEventListener('click', () => {
+        const input = document.getElementById('participantName');
+        const name = input.value.trim();
+        if (name && !participants.includes(name)) {
+            participants.push(name);
+            renderParticipants();
+            input.value = '';
+        }
+    });
+
+    function renderParticipants() {
+        const container = document.getElementById('participantsContainer');
+        container.innerHTML = participants.map((p, index) => `
+            <div class="participant-tag">
+                ${p} <span onclick="removeParticipant(${index})">&times;</span>
+            </div>
+        `).join('');
+    }
+
+    function removeParticipant(index) {
+        participants.splice(index, 1);
+        renderParticipants();
     }
 
     window.changeStep = function(direction) {
@@ -418,6 +477,7 @@
             destination: document.getElementById('tripDestination').value,
             tripType: document.getElementById('tripType').value,
             language: currentLanguage,
+            participants: participants,
             features: {
                 packing: document.getElementById('featPacking').checked,
                 shopping: document.getElementById('featShopping').checked,
@@ -428,7 +488,7 @@
             createdAt: Date.now()
         };
 
-        console.log("Trip Created:", tripData);
+        console.log("Trip Created with Participants:", tripData);
 
         const t = translations[currentLanguage];
         document.getElementById('nextBtn').style.display = 'none';
