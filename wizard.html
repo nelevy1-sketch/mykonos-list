@@ -112,7 +112,7 @@
     </div>
 
     <!-- Form Wizard -->
-    <form id="tripWizardForm">
+    <div id="tripWizardForm">
         
         <!-- STEP 1: General Info -->
         <div class="form-step active" data-step="1">
@@ -143,7 +143,7 @@
             <label>הוספת חברי הקבוצה (שם ואימייל לאבטחה) 👥</label>
             <div class="participant-input-row">
                 <input type="text" id="participantName" placeholder="שם המשתתף (למשל: נירה)">
-                <input type="text" id="participantEmail" placeholder="אימייל (اختياري / לבדיקה)">
+                <input type="text" id="participantEmail" placeholder="אימייל">
                 <button type="button" class="btn" id="addParticipantBtn" style="background: #e9ecef; color: var(--text); padding: 0 15px;">הוסף</button>
             </div>
             <div class="participants-list" id="participantsContainer">
@@ -200,7 +200,7 @@
         <div class="form-step" data-step="4">
             <div class="success-box" id="summaryBox">
                 <h3>הכל מוכן ליצירת הטיול! 🎉</h3>
-                <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ב-Firebase ולקבל לינק שיתוף לקבוצה.</p>
+                <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.</p>
             </div>
             <div class="share-link-box" id="resultLinkBox" style="display:none;">
                 <input type="text" id="finalTripLink" readonly>
@@ -214,7 +214,7 @@
             <button type="button" class="btn btn-next" id="nextBtn" onclick="changeStep(1)">הבא</button>
         </div>
 
-    </form>
+    </div>
 </div>
 
 <!-- Preview Modal -->
@@ -257,7 +257,7 @@
     }
 
     // Step Navigation logic
-    function changeStep(direction) {
+    window.changeStep = function(direction) {
         if (direction === 1 && !validateStep(currentStep)) return;
 
         currentStep += direction;
@@ -274,10 +274,6 @@
                 alert('נא להזין את שם היעד או הטיול');
                 return false;
             }
-        }
-        if (step === 2 && participants.length === 0) {
-            alert('מומלץ להוסיף לפחות משתתף אחד לקבוצה');
-            // Can be optional, but good to warn
         }
         return true;
     }
@@ -317,14 +313,14 @@
         photos: { title: 'גלריית רגעים חיה 📸', desc: 'העלאת תמונות מהירה עם דחיסה אוטומטית, לייקים ותגובות בזמן אמת בלי לפוצץ את הזיכרון בטלפון.' }
     };
 
-    function openPreview(featureKey) {
+    window.openPreview = function(featureKey) {
         const p = previews[featureKey];
         document.getElementById('modalTitle').textContent = p.title;
         document.getElementById('modalDesc').textContent = p.desc;
         document.getElementById('previewModal').style.display = 'flex';
     }
 
-    function closePreview() {
+    window.closePreview = function() {
         document.getElementById('previewModal').style.display = 'none';
     }
 
@@ -346,7 +342,7 @@
             createdAt: Date.now()
         };
 
-        console.SavingToFirebase: tripData;
+        console.log("Trip Created:", tripData);
 
         // Hide next button, show success link
         document.getElementById('nextBtn').style.display = 'none';
@@ -358,7 +354,7 @@
         document.getElementById('resultLinkBox').style.display = 'flex';
     }
 
-    function copyLink() {
+    window.copyLink = function() {
         const linkInput = document.getElementById('finalTripLink');
         linkInput.select();
         navigator.clipboard.writeText(linkInput.value);
