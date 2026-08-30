@@ -252,7 +252,26 @@
     </div>
 </div>
 
-<script>
+<!-- Firebase SDK & Wizard Logic -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // נתוני ההתחברות האמיתיים של הפרויקט שלך מתוך Firebase Console
+    const firebaseConfig = {
+        apiKey: "AIzaSyDHtTqVrBiKfKLxdOVmd_XwBEJm5oh_vMg",
+        authDomain: "mykonos-list.firebaseapp.com",
+        databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
+        projectId: "mykonos-list",
+        storageBucket: "mykonos-list.firebasestorage.app",
+        messagingSenderId: "471388041921",
+        appId: "1:471388041921:web:c0100252c6397f67dc1a40",
+        measurementId: "G-0VXCEZ117S"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     let currentStep = 1;
     const totalSteps = 4;
     let currentLanguage = 'he';
@@ -342,7 +361,7 @@
         }
     };
 
-    function changeGlobalLanguage(lang) {
+    window.changeGlobalLanguage = function(lang) {
         currentLanguage = lang;
         const htmlTag = document.documentElement;
         htmlTag.setAttribute('lang', lang);
@@ -405,7 +424,7 @@
     
     document.getElementById('participantName').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // מונע שליחה בטוחה של הטופס
+            e.preventDefault();
             addParticipant();
         }
     });
@@ -419,7 +438,7 @@
         `).join('');
     }
 
-    function removeParticipant(index) {
+    window.removeParticipant = function(index) {
         participants.splice(index, 1);
         renderParticipants();
     }
@@ -480,10 +499,16 @@
         document.getElementById('previewModal').style.display = 'none';
     }
 
-    function generateTripAndSave() {
+    async function generateTripAndSave() {
+        const destination = document.getElementById('tripDestination').value.trim();
+        if (!destination) {
+            alert(translations[currentLanguage].alertDest);
+            return;
+        }
+
         const tripId = 'trip_' + Math.random().toString(36).substring(2, 9);
         const tripData = {
-            destination: document.getElementById('tripDestination').value,
+            destination: destination,
             tripType: document.getElementById('tripType').value,
             language: currentLanguage,
             participants: participants,
@@ -497,16 +522,22 @@
             createdAt: Date.now()
         };
 
-        console.log("Trip Created with Participants:", tripData);
+        try {
+            await setDoc(doc(db, "trips", tripId), tripData);
+            console.log("Trip saved successfully to Firestore:", tripId);
 
-        const t = translations[currentLanguage];
-        document.getElementById('nextBtn').style.display = 'none';
-        document.getElementById('prevBtn').style.display = 'none';
-        document.getElementById('summaryBox').innerHTML = `<h3>${t.successHeader}</h3><p>${t.successText}</p>`;
-        
-        const shareUrl = window.location.origin + window.location.pathname.replace('wizard.html', '') + `index.html?tripId=${tripId}`;
-        document.getElementById('finalTripLink').value = shareUrl;
-        document.getElementById('resultLinkBox').style.display = 'flex';
+            const t = translations[currentLanguage];
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('prevBtn').style.display = 'none';
+            document.getElementById('summaryBox').innerHTML = `<h3>${t.successHeader}</h3><p>${t.successText}</p>`;
+            
+            const shareUrl = window.location.origin + window.location.pathname.replace('wizard.html', '') + `index.html?tripId=${tripId}`;
+            document.getElementById('finalTripLink').value = shareUrl;
+            document.getElementById('resultLinkBox').style.display = 'flex';
+        } catch (error) {
+            console.error("Error saving trip:", error);
+            alert("שגיאה בשמירת הטיול במסד הנתונים. נסה שוב.");
+        }
     }
 
     window.copyLink = function() {
