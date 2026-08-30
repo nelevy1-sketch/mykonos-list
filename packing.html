@@ -557,7 +557,7 @@
       </div>
     </div>
 
-    <div class="app-version-footer">גרסה v2.2.2</div>
+    <div class="app-version-footer">גרסה v2.2.3</div>
   </div>
 
   <!-- מודאל מרכזי להגדרות, שיתוף וניהול רשימות -->
@@ -724,6 +724,7 @@
     let unsubscribeMyItems = null;
     let unsubscribeFriendsItems = null;
     let unsubscribeRequests = null;
+    let unsubscribeUsers = null;
     let pendingRequestsUsers = new Set();
 
     let allUserItems = [];
@@ -983,7 +984,6 @@
       return true;
     }
 
-    // שליפה קלה של שמות משתמשים בלבד לצורך מסך הלוגין
     async function fetchExistingUsers() {
       if (currentUser) return;
       try {
@@ -1051,7 +1051,6 @@
       return "📦";
     }
 
-    // בדיקה מקומית ומהירה למיזוג חכם
     function checkForSmartMergesLocal(skipCategories = []) {
       const activeItems = myItems;
       if (!skipCategories.includes('med')) {
@@ -1237,6 +1236,7 @@
       if (unsubscribeMyItems) unsubscribeMyItems();
       if (unsubscribeFriendsItems) unsubscribeFriendsItems();
       if (unsubscribeRequests) unsubscribeRequests();
+      if (unsubscribeUsers) unsubscribeUsers();
       localStorage.removeItem("packing_app_user");
       localStorage.removeItem("packing_app_expiry");
       location.reload();
@@ -1510,7 +1510,6 @@
       myItems.forEach(renderMyItem);
     }
 
-    // טעינת הרשימות והפריטים של המשתמש בזמן אמת בצורה יעילה ומהירה
     function loadMyItems() {
       if (unsubscribeMyItems) unsubscribeMyItems();
 
@@ -2159,11 +2158,11 @@
               <span class="friend-name-title">הרשימה של ${safeFriend}</span>
             </div>
             <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:10px; text-align:center;">
-              <p style="font-size:0.8rem; color:var(--gray); margin-bottom:6px;">🔒 הרשימות של ${safeFriend} פרטיות</p>
-              <button style="background: ${isRequestPending ? '#94a3b8' : '#3b82f6'}; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:0.8rem; cursor:pointer;" 
+              <p style="font-size:0.8rem; color:var(--gray); margin-bottom:6px;">🔒 הרשימות של ${safeFriend} פרטיות כרגע</p>
+              <button style="background: ${isRequestPending ? '#94a3b8' : '#3b82f6'}; color:white; border:none; padding:5px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer;" 
                       ${isRequestPending ? 'disabled' : ''} 
                       onclick="sendShareRequest('${friendForHandler}', this)">
-                ${isRequestPending ? 'נשלחה בקשה' : '📩 בקש שיתוף'}
+                ${isRequestPending ? 'נשלחה בקשה' : '📩 בקש שיתוף רשימה'}
               </button>
             </div>
           `;
@@ -2186,18 +2185,19 @@
       }
     };
 
-    // טעינת רשימות חברים יעילה וממוקדת בפריטים ציבוריים בלבד
+    // טעינת רשימת חברים מהירה: מאזין לרשימת המשתמשים וממזג פריטים ציבוריים
     function loadFriendsItems() {
       if (unsubscribeFriendsItems) unsubscribeFriendsItems();
+      if (unsubscribeUsers) unsubscribeUsers();
 
-      const q = query(itemsRef, where("isPublic", "==", true));
+      let knownUsersList = [];
+      let publicItemsList = [];
 
-      unsubscribeFriendsItems = onSnapshot(q, (snapshot) => {
+      function updateAndRenderFriends() {
         const friendGroupedLists = {};
-        const allUsersSet = new Set();
+        const allUsersSet = new Set(knownUsersList.filter(u => u !== currentUser));
 
-        snapshot.forEach((docSnap) => {
-          const item = { id: docSnap.id, ...docSnap.data() };
+        publicItemsList.forEach((item) => {
           if (item.owner && item.owner !== currentUser) {
             allUsersSet.add(item.owner);
             const listName = item.listName || DEFAULT_LIST_NAME;
@@ -2210,8 +2210,20 @@
 
         cachedFriendsData.allUsers = Array.from(allUsersSet).sort((a, b) => a.localeCompare(b, 'he'));
         cachedFriendsData.friendGroupedLists = friendGroupedLists;
-
         renderFriendsUI();
+      }
+
+      // האזנה לקולקציית המשתמשים (רשימת כל השמות הרשומים)
+      unsubscribeUsers = onSnapshot(usersRef, (snap) => {
+        knownUsersList = snap.docs.map(d => d.data().name).filter(Boolean);
+        updateAndRenderFriends();
+      });
+
+      // האזנה לפריטים ציבוריים בלבד
+      const q = query(itemsRef, where("isPublic", "==", true));
+      unsubscribeFriendsItems = onSnapshot(q, (snapshot) => {
+        publicItemsList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateAndRenderFriends();
       }, (err) => {
         console.error("Firestore friendsItems error:", err);
       });
