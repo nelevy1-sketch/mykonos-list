@@ -2,12 +2,12 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הכנות לטיול | Trip Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>הכנות לטיול | Trip Companion App</title>
   
   <!-- הגדרות PWA -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#005bae">
+  <meta name="theme-color" content="#0284c7">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="TripApp">
@@ -23,13 +23,13 @@
       --primary-dark: #0369a1;
       --accent: #f59e0b;
       --expense: #6366f1;
-      --bg-gradient: radial-gradient(circle at top, #f0f9ff 0%, #e0f2fe 100%);
-      --card-bg: rgba(255, 255, 255, 0.88);
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --border-color: #cbd5e1;
-      --radius-lg: 24px;
-      --radius-md: 16px;
+      --border-color: #e2e8f0;
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
 
     * {
@@ -37,419 +37,408 @@
       margin: 0;
       padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: var(--bg-gradient);
+      background: var(--bg-color);
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      padding: 16px;
+      min-height: 100dvh;
+      padding: 0;
       direction: rtl;
+      overflow-x: hidden;
     }
 
+    /* Edge-to-Edge במובייל */
     .app-container {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      padding: 28px 20px;
-      border-radius: var(--radius-lg);
-      box-shadow: 0 20px 40px -15px rgba(2, 132, 199, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: var(--bg-color);
       width: 100%;
-      max-width: 440px;
-      text-align: center;
+      max-width: 480px;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      padding: env(safe-area-inset-top, 16px) 16px calc(80px + env(safe-area-inset-bottom, 16px)) 16px;
       position: relative;
     }
 
-    .header-section { margin-bottom: 16px; }
-    h1 {
-      font-size: 1.65rem;
-      font-weight: 800;
-      color: var(--primary-dark);
-      margin-bottom: 4px;
-      letter-spacing: -0.5px;
-      cursor: pointer;
-    }
-    p.subtitle { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
-
-    .phase-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      margin-bottom: 14px;
-      border: 1px solid #bae6fd;
+    @media (min-width: 600px) {
+      body { background: #cbd5e1; padding: 20px; }
+      .app-container {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        min-height: auto;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 24px 20px 90px 20px;
+      }
     }
 
-    .timer-box {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
+    /* Hero קומפקטי עליון */
+    .hero-card {
+      background: var(--card-bg);
       border-radius: var(--radius-md);
-      padding: 12px 16px;
-      width: 100%;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      padding: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border-color);
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .timer-title { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
-    .timer-display { font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
 
-    .weather-container {
-      width: 100%;
-      padding: 8px 4px 14px 4px;
-      margin-bottom: 14px;
+    .hero-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #e2e8f0;
     }
-    .weather-item { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
-    .weather-val { font-size: 0.88rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
-    .weather-lbl { font-size: 0.68rem; color: var(--text-muted); font-weight: 500; }
-    .weather-divider { width: 1px; height: 18px; background: #cbd5e1; flex-shrink: 0; }
 
-    /* כספת כרטיסי טיסה אישית */
-    .locker-card {
-      width: 100%;
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.5px;
+      cursor: pointer;
+    }
+
+    .phase-chip {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid #bae6fd;
+    }
+
+    .hero-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: #f8fafc;
-      border: 1.5px dashed var(--primary);
-      border-radius: var(--radius-md);
-      padding: 12px;
-      margin-bottom: 14px;
-      text-align: right;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary-dark);
     }
-    .locker-title { font-size: 0.82rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .locker-grid { display: flex; flex-direction: column; gap: 6px; max-height: 130px; overflow-y: auto; }
-    .locker-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem; }
 
-    .checkin-banner {
-      width: 100%;
+    /* מזג אוויר שורה קומפקטית */
+    .weather-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding-top: 4px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    /* כרטיסייה חכמה לפי מצב עכשיו */
+    .smart-context-card {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1.5px solid #86efac;
       border-radius: var(--radius-md);
-      padding: 12px 16px;
+      padding: 14px 16px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       text-decoration: none;
-      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-      border: 1.5px solid #34d399;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+      box-shadow: 0 4px 12px rgba(22, 101, 52, 0.05);
     }
-    .checkin-info { display: flex; align-items: center; gap: 10px; text-align: right; }
-    .checkin-icon { font-size: 1.35rem; }
-    .checkin-text-main { font-size: 0.86rem; font-weight: 700; color: #065f46; }
-    .checkin-text-sub { font-size: 0.72rem; color: #047857; }
-    .checkin-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; background: #059669; color: #ffffff; }
+    .context-info { display: flex; align-items: center; gap: 10px; text-align: right; }
+    .context-title { font-size: 0.88rem; font-weight: 800; color: #166534; }
+    .context-sub { font-size: 0.75rem; color: #15803d; }
+    .context-action-btn { background: #166534; color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; }
 
-    .seats-banner-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      border: 1.5px solid #7dd3fc;
+    /* כספת כרטיסים קומפקטית */
+    .compact-locker {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 12px 16px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      color: var(--primary-dark);
-      font-weight: 800;
-      font-size: 0.9rem;
-      cursor: pointer;
-      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.06);
-    }
-    .seats-banner-btn:hover { background: #bae6fd; }
-
-    .buttons-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-
-    .btn {
-      display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .locker-info-text { font-size: 0.85rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+    .btn-sm-action {
+      background: #eff6ff; color: var(--primary); border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* אזור גריד פעולות מהירות */
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .action-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: right;
       text-decoration: none;
-      font-weight: 700;
-      font-size: 1.02rem;
-      cursor: pointer;
-      user-select: none;
-    }
-    .btn svg { width: 22px; height: 22px; fill: currentColor; }
-
-    .btn-list {
-      background-color: #ffffff;
-      color: var(--primary-dark);
-      border: 2px solid var(--primary);
-      box-shadow: 0 4px 0 #0284c7, 0 8px 16px rgba(2, 132, 199, 0.08);
-    }
-    .btn-list:hover { background-color: #f0f9ff; transform: translateY(-1px); }
-
-    .section-divider {
+      color: var(--text-main);
       display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      transition: transform 0.1s ease;
+    }
+    .action-card:active { transform: scale(0.98); }
+    .action-card svg { width: 24px; height: 24px; fill: var(--primary); }
+    .action-card-title { font-size: 0.92rem; font-weight: 800; }
+    .action-card-desc { font-size: 0.72rem; color: var(--text-muted); }
+
+    /* Bottom Navigation קבוע למטה */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
       align-items: center;
-      width: 100%;
-      margin: 8px 0;
+      padding: 10px 8px calc(10px + env(safe-area-inset-bottom, 12px)) 8px;
+      z-index: 1000;
+    }
+
+    @media (min-width: 600px) {
+      .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); border-radius: 20px 20px 0 0; }
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
       color: var(--text-muted);
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 0.68rem;
+      font-weight: 700;
+      transition: color 0.2s;
     }
-    .section-divider::before, .section-divider::after { content: ""; flex: 1; border-bottom: 1px solid var(--border-color); }
-    .section-divider:not(:empty)::before { margin-left: 10px; }
-    .section-divider:not(:empty)::after { margin-right: 10px; }
+    .nav-item.active, .nav-item:hover { color: var(--primary); }
+    .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
 
-    .btn-expense {
-      background: linear-gradient(135deg, var(--expense) 0%, #4338ca 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 0 #4f46e5, 0 8px 18px rgba(99, 102, 241, 0.25);
-      border: none;
-    }
-
+    /* Bottom Sheet במקום Modals רגילים למובייל */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
       display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
+      justify-content: flex-end;
+      align-items: flex-end;
       z-index: 9999;
       opacity: 0;
       transition: opacity 0.3s ease;
     }
     .modal-overlay.open { display: flex; opacity: 1; }
 
-    .plane-modal, .admin-modal {
+    .bottom-sheet {
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
-      max-width: 410px;
-      max-height: 90vh;
+      max-width: 480px;
+      max-height: 85vh;
       overflow-y: auto;
-      border-radius: var(--radius-lg);
-      padding: 20px 16px;
+      border-radius: 24px 24px 0 0;
+      padding: 20px 16px calc(24px + env(safe-area-inset-bottom, 16px)) 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
       text-align: right;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .plane-modal { background: #0b132b; color: #f8fafc; border: 1px solid #1e293b; }
 
-    .modal-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .modal-title { font-size: 1.1rem; font-weight: 800; color: #38bdf8; }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .sheet-handle {
+      width: 40px; height: 4px; background: #cbd5e1; border-radius: 2px; align-self: center; margin-bottom: 4px;
+    }
+
+    .modal-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 1.1rem; font-weight: 800; color: var(--primary-dark); }
     .modal-close {
-      background: #1e293b; border: 1px solid #475569; width: 32px; height: 32px;
-      border-radius: 50%; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      background: #f1f5f9; border: none; width: 30px; height: 30px;
+      border-radius: 50%; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;
     }
 
-    /* עיצוב מפת מטוס עם רדאר וניאון */
+    /* מפת מטוס מיוחדת ל-Bottom Sheet */
+    .plane-modal-sheet { background: #0b132b !important; color: #f8fafc !important; }
     .plane-canvas-wrapper {
-      width: 100%;
-      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
-      border: 1px solid #334155;
-      border-radius: 22px;
-      padding: 16px 8px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      direction: ltr;
+      width: 100%; background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+      border: 1px solid #334155; border-radius: 18px; padding: 14px 6px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; position: relative; direction: ltr;
     }
-
     .radar-scan-line {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 60px;
+      position: absolute; top: 0; left: 0; width: 100%; height: 50px;
       background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.6));
-      border-bottom: 2px solid #38bdf8;
-      pointer-events: none;
-      animation: radarScan 3s ease-in-out infinite;
-      z-index: 10;
+      border-bottom: 2px solid #38bdf8; pointer-events: none; animation: radarScan 3s ease-in-out infinite; z-index: 10;
     }
-
-    @keyframes radarScan {
-      0% { top: -60px; opacity: 0; }
-      20% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-
-    .plane-nose {
-      width: 80px; height: 36px;
-      border: 2px solid #38bdf8;
-      border-bottom: none;
-      border-radius: 40px 40px 0 0;
-      background: rgba(56, 189, 248, 0.1);
-      margin-bottom: 14px;
-      position: relative;
-    }
-    .plane-nose::after {
-      content: "✈️ כיוון הטיסה";
-      position: absolute; bottom: -18px; left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.65rem; color: #94a3b8; font-weight: 700; direction: rtl;
-    }
-
-    .seat-grid { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; z-index: 5; }
-    .seat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 22px 1fr 1fr 1fr; gap: 6px; align-items: center; }
-    .row-num { font-size: 0.7rem; font-weight: 800; color: #64748b; text-align: center; }
+    @keyframes radarScan { 0% { top: -50px; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+    .plane-nose { width: 70px; height: 30px; border: 2px solid #38bdf8; border-bottom: none; border-radius: 35px 35px 0 0; background: rgba(56, 189, 248, 0.1); margin-bottom: 12px; position: relative; }
+    .seat-grid { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; z-index: 5; }
+    .seat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 20px 1fr 1fr 1fr; gap: 5px; align-items: center; }
+    .row-num { font-size: 0.65rem; font-weight: 800; color: #64748b; text-align: center; }
     .seat {
-      height: 48px; border-radius: 10px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 700;
-      background: rgba(30, 41, 59, 0.7); color: #64748b; border: 1px solid #334155;
-      opacity: 0; transform: translateY(15px) scale(0.9); transition: all 0.3s ease;
-      position: relative;
+      height: 42px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 700; background: rgba(30, 41, 59, 0.7); color: #64748b; border: 1px solid #334155; position: relative;
     }
-    .seat.reveal { opacity: 1; transform: translateY(0) scale(1); }
     .seat.occupied {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff; border: 1.5px solid #38bdf8;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); z-index: 6;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1.5px solid #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); z-index: 6;
     }
-    .passenger-tag { font-size: 0.72rem; font-weight: 900; color: #ffffff; line-height: 1.1; direction: rtl; text-shadow: 0 0 8px rgba(56, 189, 248, 0.8); }
-    .seat-letter { font-size: 0.58rem; color: #bae6fd; opacity: 0.9; }
+    .passenger-tag { font-size: 0.68rem; font-weight: 900; color: #fff; direction: rtl; }
+    .seat-letter { font-size: 0.52rem; color: #bae6fd; }
 
-    .admin-section-box {
-      background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;
-    }
-    .admin-section-title { font-size: 0.88rem; font-weight: 800; color: var(--primary-dark); border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
-    .admin-field { display: flex; flex-direction: column; gap: 4px; }
-    .admin-field label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
-    .admin-input, select.admin-input { padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border-color); font-size: 0.88rem; font-family: inherit; background: #fff; }
+    .admin-section-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .admin-section-title { font-size: 0.85rem; font-weight: 800; color: var(--primary-dark); border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .admin-field { display: flex; flex-direction: column; gap: 3px; }
+    .admin-field label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+    .admin-input, select.admin-input { padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.85rem; background: #fff; }
 
-    /* תגיות חברים עם אנטר באדמין */
     .tags-input-container {
-      display: flex; flex-wrap: wrap; gap: 6px; background: #fff; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 6px; min-height: 42px; align-items: center;
+      display: flex; flex-wrap: wrap; gap: 5px; background: #fff; border: 1.5px solid var(--border-color); border-radius: 8px; padding: 5px; min-height: 40px; align-items: center;
     }
-    .member-tag {
-      background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
-    }
+    .member-tag { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 14px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
     .member-tag span { cursor: pointer; color: var(--accent); font-weight: bold; }
-    .tags-input-container input { border: none; outline: none; font-size: 0.88rem; flex: 1; min-width: 90px; background: transparent; padding: 4px; }
+    .tags-input-container input { border: none; outline: none; font-size: 0.85rem; flex: 1; min-width: 80px; background: transparent; }
 
-    .btn-admin-action {
-      border: none; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn-save-members { background: #059669; }
+    .btn-admin-action { border: none; padding: 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-save-flight { background: var(--primary); }
-    .btn-save-seats { background: #0284c7; }
-
-    .footer-text { margin-top: 20px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    
+    .footer-text { text-align: center; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 10px; }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     
-    <div class="header-section">
-      <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">הכנות לטיול למיקונוס</h1>
-      <p class="subtitle" id="appSubtitle">ניהול קבוצתי, תכנון והתחשבנות בלייב</p>
-    </div>
-
-    <!-- תגית מחזור חיים של הטיול -->
-    <div class="phase-badge" id="tripPhaseBadge">⏳ מתכוננים לטיול (לפני יציאה)</div>
-
-    <!-- שעון ספירה לאחור -->
-    <div class="timer-box" id="timerBoxContainer">
-      <div class="timer-title" id="timerTitle">זמן נותר להמראה ✈️</div>
-      <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
-    </div>
-
-    <!-- מזג אוויר דינמי -->
-    <div class="weather-container">
-      <div class="weather-item"><span class="weather-val" id="weatherTemp">--°C</span><span class="weather-lbl">🌡️ טמפ'</span></div>
-      <div class="weather-divider"></div>
-      <div class="weather-item"><span class="weather-val" id="weatherStatus">טוען...</span><span class="weather-lbl">מצב</span></div>
-      <div class="weather-divider"></div>
-      <div class="weather-item"><span class="weather-val" id="weatherWind">-- קמ"ש</span><span class="weather-lbl">💨 רוח</span></div>
-      <div class="weather-divider"></div>
-      <div class="weather-item"><span class="weather-val" id="weatherUV">--</span><span class="weather-lbl">☀️ קרינה</span></div>
-    </div>
-
-    <!-- כספת כרטיסי טיסה אישית (ללא הצגת מספר המושב בטקסט) -->
-    <div class="locker-card" id="lockerCardContainer">
-      <div class="locker-title">
-        <span>🎟️ כספת כרטיסי טיסה ומושבים</span>
-        <button onclick="openLockerModal()" style="background:var(--primary); color:white; border:none; padding:3px 8px; border-radius:6px; font-size:0.72rem; cursor:pointer;">+ הוסף כרטיס/מושב שלי</button>
+    <!-- Hero קומפקטי עליון -->
+    <div class="hero-card">
+      <div class="hero-top-row">
+        <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">מיקונוס 🇬🇷</h1>
+        <span class="phase-chip" id="tripPhaseBadge">מתכוננים לטיול</span>
       </div>
-      <div class="locker-grid" id="lockerGridList">
-        <span style="font-size:0.78rem; color:var(--text-muted); text-align:center;">טרם הוזנו כרטיסים אישיים. לחץ על הוספה!</span>
+      <div class="hero-status-row" id="heroStatusRow">
+        <span id="timerTitle">✈️ עוד 4 ימים · 12 שעות</span>
+        <span id="timerDisplay" style="font-size:0.8rem; opacity:0.8;"></span>
+      </div>
+      <div class="weather-row">
+        <span id="weatherTemp">☀️ 27°C</span>
+        <span id="weatherWind">💨 18 קמ"ש</span>
+        <span id="weatherUV">UV 7</span>
+        <span id="weatherStatus">בהיר</span>
       </div>
     </div>
 
-    <!-- באנר צ'ק-אין דינמי -->
-    <a id="checkinBanner" href="#" target="_blank" class="checkin-banner" style="display:none;">
-      <div class="checkin-info">
-        <span class="checkin-icon">🎫</span>
+    <!-- כרטיסיית קונטקסט חכמה (מה חשוב עכשיו לפי ה-Phase) -->
+    <a id="smartContextBanner" href="#" target="_blank" class="smart-context-card" style="display:none;">
+      <div class="context-info">
+        <span style="font-size: 1.4rem;" id="contextIcon">🎫</span>
         <div>
-          <div class="checkin-text-main" id="checkinMainText">צ'ק-אין לטיסה פתוח עכשיו!</div>
-          <div class="checkin-text-sub">לחץ כאן למעבר לעמוד חברת התעופה</div>
+          <div class="context-title" id="contextTitle">צ'ק-אין לטיסה פתוח</div>
+          <div class="context-sub" id="contextSub">הכן את הכרטיס וסמן את המושב שלך</div>
         </div>
       </div>
-      <span class="checkin-badge">צ'ק-אין ✈️</span>
+      <span class="context-action-btn" id="contextActionText">פתח צ'ק-אין</span>
     </a>
 
-    <!-- כפתור מפת מושבים -->
-    <div class="seats-banner-btn" id="seatsBannerBtn" style="display:none;">
-      <span>✈️ מפת הושבה קבוצתית אינטראקטיבית</span>
-      <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
+    <!-- כספת כרטיסים קומפקטית -->
+    <div class="compact-locker" id="lockerCardContainer">
+      <div class="locker-info-text">
+        <span>🎟️</span>
+        <span id="lockerSummaryText">הכרטיס שלי • מושב לא הוגדר</span>
+      </div>
+      <button class="btn-sm-action" onclick="openLockerModal()">הגדר ›</button>
     </div>
 
-    <!-- כפתורי הניווט -->
-    <div class="buttons-container">
-      
-      <div class="section-divider">שלב ההכנות (לפני הטיול)</div>
-      
-      <a href="packing.html" class="btn btn-list">
+    <!-- גריד פעולות מהירות (מה עושים לפני/במהלך) -->
+    <div class="quick-actions-grid">
+      <a href="packing.html" class="action-card">
         <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
-        <span>רשימת ציוד ומה לארוז 🎒</span>
+        <span class="action-card-title">רשימת ציוד 🎒</span>
+        <span class="action-card-desc">מה לארוז ומה לקחת</span>
       </a>
 
-      <a href="shopping.html" class="btn btn-list">
+      <a href="shopping.html" class="action-card">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-        <span>רשימת קניות משותפת 🛒</span>
+        <span class="action-card-title">קניות משותפות 🛒</span>
+        <span class="action-card-desc">מה צריך לקנות לקבוצה</span>
       </a>
 
-      <div class="section-divider">במהלך הטיול (לייב 🌴)</div>
-
-      <a href="places.html" class="btn btn-list">
+      <a href="places.html" class="action-card">
         <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        <span>מקומות, תמונות ומוזיקה 📍📸🎵</span>
+        <span class="action-card-title">מקומות ותמונות 📍</span>
+        <span class="action-card-desc">נקודות עניין ומוזיקה</span>
       </a>
 
-      <div class="section-divider">כספים והתחשבנות 💸</div>
-
-      <a href="https://startling-torrone-b6c067.netlify.app/" target="_blank" class="btn btn-expense">
-        <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-        <span>הוצאות והתחשבנות קבוצתית 💸</span>
+      <a href="https://startling-torrone-b6c067.netlify.app/" target="_blank" class="action-card" style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-color: #c7d2fe;">
+        <svg viewBox="0 0 24 24" style="fill: var(--expense);"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        <span class="action-card-title" style="color: var(--expense);">התחשבנות 💸</span>
+        <span class="action-card-desc">מעקב הוצאות קבוצתי</span>
       </a>
     </div>
 
-    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.7.1</div>
+    <!-- כפתור מהיר למפת המושבים (אם לפני טיסה) -->
+    <div class="seats-banner-btn" id="seatsBannerBtn" style="display:none; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 0.88rem; cursor: pointer;" onclick="openSeatsModal()">
+      <span>✈️ מפת הושבה קבוצתית אינטראקטיבית</span>
+      <span style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px;">הצג מטוס ✨</span>
+    </div>
+
+    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v3.0.0</div>
   </div>
 
-  <!-- Modal הוספת כרטיס טיסה אישי -->
+  <!-- Bottom Navigation קבוע למטה -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>בית</span>
+    </a>
+    <a href="packing.html" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
+      <span>ציוד</span>
+    </a>
+    <a href="shopping.html" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      <span>קניות</span>
+    </a>
+    <a href="places.html" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      <span>מקומות</span>
+    </a>
+    <a href="https://startling-torrone-b6c067.netlify.app/" target="_blank" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      <span>הוצאות</span>
+    </a>
+  </nav>
+
+  <!-- Bottom Sheet: כספת כרטיס אישי -->
   <div class="modal-overlay" id="lockerModal">
-    <div class="admin-modal">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
       <div class="modal-header">
-        <div class="modal-title">🎟️ הוספת פרטי טיסה אישיים</div>
+        <div class="modal-title">🎟️ כספת כרטיס אישי ומושב</div>
         <button class="modal-close" onclick="closeLockerModal()">✕</button>
       </div>
       <div class="admin-field">
-        <label>שם המשתתף:</label>
+        <label>בחר את השם שלך:</label>
         <select id="lockerMemberName" class="admin-input"></select>
       </div>
       <div class="admin-field">
@@ -460,16 +449,17 @@
         <label>קישור לכרטיס דיגיטלי / ברקוד (URL):</label>
         <input type="text" id="lockerLink" class="admin-input" placeholder="https://..." style="direction:ltr;">
       </div>
-      <button class="btn-admin-action btn-save-seats" onclick="savePersonalLockerCard()">💾 שמור כרטיס ומושב</button>
+      <button class="btn-admin-action btn-save-flight" onclick="savePersonalLockerCard()">שמור נתונים אישיים</button>
     </div>
   </div>
 
-  <!-- Modal מפת מטוס -->
+  <!-- Bottom Sheet: מפת מטוס אינטראקטיבית -->
   <div class="modal-overlay" id="seatsModal">
-    <div class="plane-modal">
+    <div class="bottom-sheet plane-modal-sheet">
+      <div class="sheet-handle" style="background:#334155;"></div>
       <div class="modal-header">
-        <div class="modal-title">✈️ מפת הושבה קבוצתית</div>
-        <button class="modal-close" id="closeSeatsModal">✕</button>
+        <div class="modal-title" style="color:#38bdf8;">✈️ מפת הושבה קבוצתית</div>
+        <button class="modal-close" style="background:#1e293b; color:#94a3b8;" onclick="closeSeatsModal()">✕</button>
       </div>
       <div class="plane-canvas-wrapper">
         <div class="radar-scan-line"></div>
@@ -479,12 +469,13 @@
     </div>
   </div>
 
-  <!-- Modal פאנל אדמין -->
+  <!-- Bottom Sheet: פאנל ניהול אדמין -->
   <div class="modal-overlay" id="adminModal">
-    <div class="admin-modal">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
       <div class="modal-header">
-        <h2>🛠️ פאנל ניהול אדמין</h2>
-        <button class="modal-close" id="closeAdminModal">✕</button>
+        <div class="modal-title">🛠️ פאנל ניהול אדמין</div>
+        <button class="modal-close" onclick="closeAdminModal()">✕</button>
       </div>
       
       <div class="admin-section-box">
@@ -492,12 +483,12 @@
         <div class="admin-field">
           <label>סוג הטיול:</label>
           <select id="adminTripType" class="admin-input">
-            <option value="abroad">טיסה לחו"ל (כולל טיסות, צ'ק-אין ומסלול)</option>
+            <option value="abroad">טיסה לחו"ל (כולל טיסות וצ'ק-אין)</option>
             <option value="reserve">שירות מילואים / שטח (ללא טיסות)</option>
           </select>
         </div>
         <div class="admin-field">
-          <label>שם היעד (לתצוגה ומזג אוויר):</label>
+          <label>שם היעד:</label>
           <input type="text" id="adminDestInput" class="admin-input" value="מיקונוס">
         </div>
         <div class="admin-field">
@@ -505,13 +496,12 @@
           <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
         </div>
         <div class="admin-field">
-          <label>קישור לצ'ק-אין (URL לחברת התעופה):</label>
+          <label>קישור לצ'ק-אין (URL):</label>
           <input type="text" id="adminCheckinUrl" class="admin-input" placeholder="https://..." style="direction: ltr;">
         </div>
-        <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">💾 שמור יעד וטיסה (איתור אוטומטי)</button>
+        <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">שמור הגדרות יעד וטיסה</button>
       </div>
 
-      <!-- ניהול חברי קבוצה עם Enter -->
       <div class="admin-section-box">
         <div class="admin-section-title">👥 ניהול חברי הקבוצה (הקלד והקש Enter)</div>
         <div class="tags-input-container" id="adminTagsContainer">
@@ -602,6 +592,10 @@
 
     window.openLockerModal = () => { document.getElementById("lockerModal").classList.add("open"); };
     window.closeLockerModal = () => { document.getElementById("lockerModal").classList.remove("open"); };
+    window.openSeatsModal = () => { document.getElementById("seatsModal").classList.add("open"); renderPlaneSeats(); };
+    window.closeSeatsModal = () => { document.getElementById("seatsModal").classList.remove("open"); };
+    window.openAdminModal = () => { document.getElementById("adminModal").classList.add("open"); };
+    window.closeAdminModal = () => { document.getElementById("adminModal").classList.remove("open"); };
 
     window.savePersonalLockerCard = () => {
       const name = document.getElementById("lockerMemberName").value;
@@ -611,36 +605,21 @@
       if (!name) return;
       personalLockerCards[name] = { seat, link };
 
-      if (db) {
-        db.ref("personal_locker").set(personalLockerCards);
-      }
-      renderLockerGrid();
+      if (db) db.ref("personal_locker").set(personalLockerCards);
+      updateLockerSummary();
       closeLockerModal();
     };
 
-    function renderLockerGrid() {
-      const grid = document.getElementById("lockerGridList");
-      grid.innerHTML = "";
+    function updateLockerSummary() {
+      const summaryText = document.getElementById("lockerSummaryText");
       const names = Object.keys(personalLockerCards);
-
       if (names.length === 0) {
-        grid.innerHTML = `<span style="font-size:0.78rem; color:var(--text-muted); text-align:center;">טרם הוזנו כרטיסים אישיים. לחץ על הוספה!</span>`;
+        summaryText.textContent = "הכרטיס שלי • מושב לא הוגדר";
         return;
       }
-
-      names.forEach(name => {
-        const card = personalLockerCards[name];
-        const row = document.createElement("div");
-        row.className = "locker-row";
-        
-        let linkBtn = card.link ? `<a href="${escapeHtml(card.link)}" target="_blank" style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:6px; text-decoration:none; font-weight:700; font-size:0.75rem;">כרטיס 🎫</a>` : '<span style="font-size:0.75rem; color:var(--text-muted);">מושב נשמר במפה ✈️</span>';
-        
-        row.innerHTML = `
-          <strong style="font-size:0.85rem; color:var(--text-main);">${escapeHtml(name)}</strong>
-          ${linkBtn}
-        `;
-        grid.appendChild(row);
-      });
+      const firstName = names[0];
+      const seat = personalLockerCards[firstName].seat || 'לא הוגדר';
+      summaryText.textContent = `${firstName} • מושב ${seat}`;
     }
 
     if (db) {
@@ -650,8 +629,8 @@
           if (data.tripType) tripType = data.tripType;
           if (data.destination) {
             destinationName = data.destination;
-            document.getElementById("appTitle").textContent = tripType === 'reserve' ? `הכנות ל-${destinationName}` : `הכנות לטיול ל-${destinationName}`;
-            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.7.1`;
+            document.getElementById("appTitle").textContent = `${destinationName} 🇬🇷`;
+            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v3.0.0`;
           }
           if (data.lat) latCoord = data.lat;
           if (data.lon) lonCoord = data.lon;
@@ -674,17 +653,16 @@
         const data = snapshot.val();
         if (data && typeof data === 'object') {
           personalLockerCards = data;
-          renderLockerGrid();
+          updateLockerSummary();
         }
       });
     }
 
     renderAdminTags();
-    renderLockerGrid();
+    updateLockerSummary();
 
     let titleClickCount = 0;
     let titleClickTimer = null;
-    const adminModal = document.getElementById("adminModal");
     const appTitleEl = document.getElementById("appTitle");
 
     if (appTitleEl) {
@@ -702,14 +680,11 @@
             document.getElementById("adminCheckinUrl").value = checkinLink;
             const tzOffset = flightOut.getTimezoneOffset() * 60000;
             document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
-            
-            adminModal.classList.add("open");
+            openAdminModal();
           } else if (pass !== null) alert("סיסמה שגויה");
         }
       });
     }
-
-    document.getElementById("closeAdminModal").addEventListener("click", () => adminModal.classList.remove("open"));
 
     document.getElementById("saveFlightBtn").addEventListener("click", async () => {
       const newTripType = document.getElementById("adminTripType").value;
@@ -745,7 +720,7 @@
           });
         }
 
-        adminModal.classList.remove("open");
+        closeAdminModal();
         updateClockAndPhases();
         fetchWeather();
         alert("הגדרות הטיול עודכנו בהצלחה!");
@@ -758,48 +733,43 @@
       const now = new Date();
       const diffOut = flightOut - now;
       const phaseBadge = document.getElementById("tripPhaseBadge");
-      const checkinBanner = document.getElementById("checkinBanner");
+      const smartContextBanner = document.getElementById("smartContextBanner");
       const seatsBannerBtn = document.getElementById("seatsBannerBtn");
-      const timerBoxContainer = document.getElementById("timerBoxContainer");
       const lockerCardContainer = document.getElementById("lockerCardContainer");
+      const timerTitle = document.getElementById("timerTitle");
 
       if (tripType === 'reserve') {
-        timerBoxContainer.style.display = "none";
-        checkinBanner.style.display = "none";
+        smartContextBanner.style.display = "none";
         seatsBannerBtn.style.display = "none";
         lockerCardContainer.style.display = "none";
-        phaseBadge.textContent = "🪖 פעילות שוטפת / מילואים";
+        phaseBadge.textContent = "מילואים";
+        timerTitle.textContent = "פעילות שוטפת / שטח";
         return;
-      } else {
-        timerBoxContainer.style.display = "block";
-        lockerCardContainer.style.display = "block";
       }
 
       if (diffOut > 0) {
-        phaseBadge.textContent = "⏳ מתכוננים לטיול (לפני יציאה)";
-        document.getElementById("timerTitle").textContent = "זמן נותר להמראה ✈️";
+        phaseBadge.textContent = "מתכוננים לטיול";
         const days = Math.floor(diffOut / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diffOut / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diffOut / 1000 / 60) % 60);
-        document.getElementById("timerDisplay").textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        timerTitle.textContent = `✈️ עוד ${days} ימים · ${hours} שעות`;
         
-        checkinBanner.style.display = "flex";
-        checkinBanner.href = checkinLink;
+        smartContextBanner.style.display = "flex";
+        smartContextBanner.href = checkinLink;
         seatsBannerBtn.style.display = "flex";
+        lockerCardContainer.style.display = "flex";
       } else if (now >= flightOut && now <= flightBack) {
-        phaseBadge.textContent = "🌴 החופשה בעיצומה! (במהלך הטיול)";
-        document.getElementById("timerTitle").textContent = `אנחנו ב${destinationName}! ☀️ זמן מקומי`;
-        const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Athens' };
-        document.getElementById("timerDisplay").textContent = now.toLocaleTimeString('he-IL', timeOpts);
+        phaseBadge.textContent = "במהלך הטיול 🌴";
+        timerTitle.textContent = `אנחנו ב-${destinationName}! ☀️ חוגגים בלייב`;
 
-        checkinBanner.style.display = "none";
+        smartContextBanner.style.display = "none";
         seatsBannerBtn.style.display = "none";
+        lockerCardContainer.style.display = "none";
       } else {
-        phaseBadge.textContent = "🎒 הטיול הסתיים (זיכרונות וגלריית תמונות)";
-        document.getElementById("timerTitle").textContent = "החופשה נגמרה, מחכים לטיול הבא! 💙";
-        document.getElementById("timerDisplay").textContent = "נתראה בשנה הבאה";
-        checkinBanner.style.display = "none";
+        phaseBadge.textContent = "הטיול הסתיים 🎒";
+        timerTitle.textContent = "החופשה נגמרה, מחכים לטיול הבא!";
+        smartContextBanner.style.display = "none";
         seatsBannerBtn.style.display = "none";
+        lockerCardContainer.style.display = "none";
       }
     }
 
@@ -861,26 +831,18 @@
       });
     }
 
-    const seatsModal = document.getElementById('seatsModal');
-    document.getElementById('seatsBannerBtn').addEventListener('click', () => {
-      seatsModal.classList.add('open');
-      renderPlaneSeats();
-      if ('vibrate' in navigator) navigator.vibrate(15);
-    });
-    document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
-
     async function fetchWeather() {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latCoord}&longitude=${lonCoord}&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=auto`);
         const data = await res.json();
         if (data && data.current) {
-          document.getElementById('weatherTemp').textContent = `${Math.round(data.current.temperature_2m)}°C`;
-          document.getElementById('weatherWind').textContent = `${Math.round(data.current.wind_speed_10m)} קמ"ש`;
-          document.getElementById('weatherUV').textContent = `${Math.round(data.current.uv_index || 0)}`;
-          let status = data.current.is_day === 1 ? "☀️ בהיר" : "🌙 בהיר";
+          document.getElementById('weatherTemp').textContent = `☀️ ${Math.round(data.current.temperature_2m)}°C`;
+          document.getElementById('weatherWind').textContent = `💨 ${Math.round(data.current.wind_speed_10m)} קמ"ש`;
+          document.getElementById('weatherUV').textContent = `UV ${Math.round(data.current.uv_index || 0)}`;
+          let status = data.current.is_day === 1 ? "בהיר" : "לילה";
           const code = data.current.weather_code;
-          if (code >= 1 && code <= 3) status = "⛅ מעונן";
-          else if (code >= 51) status = "🌧️ גשם";
+          if (code >= 1 && code <= 3) status = "מעונן";
+          else if (code >= 51) status = "גשם";
           document.getElementById('weatherStatus').textContent = status;
         }
       } catch (e) { console.error("Weather error"); }
