@@ -12,6 +12,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="TripApp">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5900/5900508.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&display=swap" rel="stylesheet">
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -158,12 +161,20 @@
     .hero-card::after {
       content: "";
       position: absolute;
-      width: 150px;
-      height: 150px;
+      width: 210px;
+      height: 210px;
       border-radius: 50%;
-      left: -70px;
-      bottom: -100px;
-      border: 28px solid rgba(255,255,255,.06);
+      left: -90px;
+      bottom: -130px;
+      border: 1px solid rgba(255,255,255,.14);
+      pointer-events: none;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent 40%);
       pointer-events: none;
     }
 
@@ -174,10 +185,11 @@
     }
 
     h1 {
-      font-size: 1.45rem;
-      font-weight: 800;
+      font-family: "Frank Ruhl Libre", Georgia, serif;
+      font-size: 1.55rem;
+      font-weight: 700;
       color: #fff;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.2px;
       cursor: pointer;
     }
 
@@ -199,10 +211,11 @@
       background: transparent;
       padding: 0;
       border-radius: 0;
-      font-size: 1.08rem;
-      font-weight: 800;
+      font-family: "Frank Ruhl Libre", Georgia, serif;
+      font-size: 1.22rem;
+      font-weight: 700;
       color: #fff;
-      letter-spacing: -.25px;
+      letter-spacing: -.1px;
     }
 
     .weather-row {
@@ -311,9 +324,10 @@
     }
 
     .section-title {
-      font-size: 1rem;
-      font-weight: 850;
-      letter-spacing: -.25px;
+      font-family: "Frank Ruhl Libre", Georgia, serif;
+      font-size: 1.08rem;
+      font-weight: 700;
+      letter-spacing: -.1px;
       color: var(--text-main);
     }
 
@@ -333,8 +347,9 @@
     .action-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
+      border-inline-end: 3px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 15px;
+      padding: 16px 15px;
       min-height: 128px;
       text-align: right;
       text-decoration: none;
@@ -373,8 +388,9 @@
     }
 
     .action-card-title {
-      font-size: 0.92rem;
-      font-weight: 800;
+      font-family: "Frank Ruhl Libre", Georgia, serif;
+      font-size: 1.04rem;
+      font-weight: 700;
     }
 
     .action-card-desc {
@@ -384,23 +400,19 @@
     }
 
     .action-card.packing {
-      background: linear-gradient(145deg, #FFFEFB, #EDF8F6);
-      border-color: #CFE8E3;
+      border-inline-end-color: #6FB8AC;
     }
 
     .action-card.shopping {
-      background: linear-gradient(145deg, #FFFEFB, #FFF4DF);
-      border-color: #F0DDB7;
+      border-inline-end-color: var(--sun);
     }
 
     .action-card.places {
-      background: linear-gradient(145deg, #FFFEFB, #EAF1FA);
-      border-color: #D5E1F0;
+      border-inline-end-color: #6E9BC7;
     }
 
     .action-card.expenses {
-      background: linear-gradient(145deg, #FFFEFB, #F0EEFB);
-      border-color: #DCD7F3;
+      border-inline-end-color: var(--expense);
     }
 
     .action-card.packing .action-icon {
