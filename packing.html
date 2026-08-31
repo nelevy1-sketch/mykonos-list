@@ -297,6 +297,24 @@
       font-weight:700;
     }
 
+    .list-head-actions {
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+
+    .list-icon-btn {
+      width:42px;
+      height:42px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:var(--surface);
+      color:var(--text);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
+
     .progress-wrap {
       margin-bottom:11px;
     }
@@ -634,7 +652,12 @@
 
       <div class="list-head">
         <h2 id="myListHeading">הרשימה שלי</h2>
-        <select class="list-select" id="listSelect"></select>
+
+        <div class="list-head-actions">
+          <select class="list-select" id="listSelect"></select>
+          <button class="list-icon-btn" id="manageListBtn" aria-label="ניהול רשימה" title="ניהול רשימה">⚙️</button>
+          <button class="list-icon-btn" id="newListBtn" aria-label="רשימה חדשה" title="רשימה חדשה">➕</button>
+        </div>
       </div>
 
       <div class="progress-wrap">
@@ -717,6 +740,42 @@
         id="saveMemberBtn">
         זה אני
       </button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="newListOverlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="newListTitle">רשימה חדשה</h2>
+
+      <div class="field">
+        <label id="newListNameLabel">שם הרשימה</label>
+        <input id="newListName" maxlength="60" placeholder="למשל: מסמכים">
+      </div>
+
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="cancelNewList">ביטול</button>
+        <button class="primary-btn" id="createListBtn">יצירה</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="manageListOverlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="manageListTitle">ניהול רשימה</h2>
+
+      <div class="field">
+        <label id="renameListLabel">שם הרשימה</label>
+        <input id="renameListName" maxlength="60">
+      </div>
+
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="cancelManageList">ביטול</button>
+        <button class="primary-btn" id="renameListBtn">שמירה</button>
+      </div>
+
+      <button class="secondary-btn danger-btn" style="width:100%;margin-top:8px" id="deleteListBtn">מחיקת הרשימה</button>
     </div>
   </div>
 
@@ -958,6 +1017,42 @@
       $("deleteItem").textContent =
         tr("מחיקת הפריט", "Delete item");
 
+      $("newListTitle").textContent =
+        tr("רשימה חדשה", "New list");
+
+      $("newListNameLabel").textContent =
+        tr("שם הרשימה", "List name");
+
+      $("newListName").placeholder =
+        tr("למשל: מסמכים", "e.g. Documents");
+
+      $("cancelNewList").textContent =
+        tr("ביטול", "Cancel");
+
+      $("createListBtn").textContent =
+        tr("יצירה", "Create");
+
+      $("manageListTitle").textContent =
+        tr("ניהול רשימה", "Manage list");
+
+      $("renameListLabel").textContent =
+        tr("שם הרשימה", "List name");
+
+      $("cancelManageList").textContent =
+        tr("ביטול", "Cancel");
+
+      $("renameListBtn").textContent =
+        tr("שמירה", "Save");
+
+      $("deleteListBtn").textContent =
+        tr("מחיקת הרשימה", "Delete list");
+
+      $("manageListBtn").title = tr("ניהול רשימה", "Manage list");
+      $("manageListBtn").setAttribute("aria-label", tr("ניהול רשימה", "Manage list"));
+
+      $("newListBtn").title = tr("רשימה חדשה", "New list");
+      $("newListBtn").setAttribute("aria-label", tr("רשימה חדשה", "New list"));
+
       [
         ["navHome", "בית", "Home"],
         ["navPacking", "ציוד", "Packing"],
@@ -1003,81 +1098,174 @@
         });
     }
 
-    function presets() {
+    function starterLists() {
       const type = trip.tripType || "abroad";
 
       const hebrew = {
         abroad: [
-          "דרכון",
-          "מטען לטלפון",
-          "תרופות",
-          "בגד ים",
-          "משקפי שמש"
+          { id: "documents", name: "מסמכים", items: ["דרכון", "כרטיס טיסה", "ביטוח נסיעות", "אישור מלון"] },
+          { id: "clothing", name: "ביגוד", items: ["בגד ים", "משקפי שמש", "נעליים נוחות", "כובע"] },
+          { id: "gear", name: "ציוד", items: ["מטען לטלפון", "תרופות", "פאוור בנק", "מתאם חשמל"] }
         ],
         local: [
-          "בקבוק מים",
-          "כובע",
-          "מטען",
-          "תרופות",
-          "נעליים נוחות"
+          { id: "gear", name: "ציוד", items: ["בקבוק מים", "כובע", "מטען", "תרופות", "נעליים נוחות"] },
+          { id: "clothing", name: "ביגוד", items: ["מעיל קל", "בגד החלפה"] }
         ],
         camping: [
-          "אוהל",
-          "שק שינה",
-          "פנס",
-          "מים",
-          "קרם הגנה"
+          { id: "shelter", name: "לינה", items: ["אוהל", "שק שינה", "מזרן מתנפח", "פנס"] },
+          { id: "gear", name: "ציוד", items: ["מים", "קרם הגנה", "ערכת עזרה ראשונה", "גפרורים"] },
+          { id: "clothing", name: "ביגוד", items: ["בגדים חמים", "נעלי הליכה", "גרביים רזרביים"] }
         ],
         reserve: [
-          "מדים",
-          "מטען",
-          "תרופות",
-          "כלי רחצה",
-          "פנס"
+          { id: "uniform", name: "ציוד אישי", items: ["מדים", "נעלי קרב", "כלי רחצה"] },
+          { id: "gear", name: "ציוד", items: ["מטען", "תרופות", "פנס", "סוללות"] }
         ]
       };
 
       const english = {
         abroad: [
-          "Passport",
-          "Phone charger",
-          "Medicine",
-          "Swimsuit",
-          "Sunglasses"
+          { id: "documents", name: "Documents", items: ["Passport", "Flight ticket", "Travel insurance", "Hotel confirmation"] },
+          { id: "clothing", name: "Clothing", items: ["Swimsuit", "Sunglasses", "Walking shoes", "Hat"] },
+          { id: "gear", name: "Gear", items: ["Phone charger", "Medicine", "Power bank", "Power adapter"] }
         ],
         local: [
-          "Water bottle",
-          "Hat",
-          "Charger",
-          "Medicine",
-          "Walking shoes"
+          { id: "gear", name: "Gear", items: ["Water bottle", "Hat", "Charger", "Medicine", "Walking shoes"] },
+          { id: "clothing", name: "Clothing", items: ["Light jacket", "Change of clothes"] }
         ],
         camping: [
-          "Tent",
-          "Sleeping bag",
-          "Flashlight",
-          "Water",
-          "Sunscreen"
+          { id: "shelter", name: "Shelter", items: ["Tent", "Sleeping bag", "Air mattress", "Flashlight"] },
+          { id: "gear", name: "Gear", items: ["Water", "Sunscreen", "First aid kit", "Matches"] },
+          { id: "clothing", name: "Clothing", items: ["Warm clothes", "Hiking shoes", "Spare socks"] }
         ],
         reserve: [
-          "Uniform",
-          "Charger",
-          "Medicine",
-          "Toiletries",
-          "Flashlight"
+          { id: "uniform", name: "Personal gear", items: ["Uniform", "Combat boots", "Toiletries"] },
+          { id: "gear", name: "Gear", items: ["Charger", "Medicine", "Flashlight", "Batteries"] }
         ]
       };
 
-      return (
-        trip.language === "en"
-          ? english
-          : hebrew
-      )[type] || [];
+      return (trip.language === "en" ? english : hebrew)[type] || [];
+    }
+
+    async function ensureStarterLists() {
+      const metadata = allPacking?.users?.[user?.uid]?.listMeta;
+      const existingItems = allPacking?.users?.[user?.uid]?.items;
+
+      if (metadata || (existingItems && Object.keys(existingItems).length)) {
+        return;
+      }
+
+      const lists = starterLists();
+
+      if (!lists.length) {
+        return;
+      }
+
+      const updates = {};
+
+      lists.forEach((list, index) => {
+        updates[`${userBase()}/listMeta/${list.id}`] = {
+          name: list.name,
+          order: index,
+          createdAt: Date.now()
+        };
+      });
+
+      await update(ref(db), updates);
+      activeList = lists[0].id;
+    }
+
+    async function createList(name) {
+      const trimmed = (name || "").trim();
+
+      if (!trimmed || !user) {
+        return;
+      }
+
+      const id = `list_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+      await set(
+        ref(db, `${userBase()}/listMeta/${id}`),
+        { name: trimmed, createdAt: Date.now() }
+      );
+
+      activeList = id;
+      $("newListOverlay").classList.add("hidden");
+      $("newListName").value = "";
+      renderMine();
+      toast(tr("הרשימה נוצרה", "List created"));
+    }
+
+    function openManageList() {
+      if (activeList === "main") {
+        return toast(
+          tr(
+            "לא ניתן לשנות את הרשימה הראשית",
+            "The main list can't be renamed or deleted"
+          )
+        );
+      }
+
+      const metadata =
+        allPacking?.users?.[user?.uid]?.listMeta?.[activeList];
+
+      $("renameListName").value =
+        metadata?.name || activeList;
+
+      $("manageListOverlay").classList.remove("hidden");
+    }
+
+    async function renameList() {
+      const name = $("renameListName").value.trim();
+
+      if (!name || activeList === "main") {
+        return;
+      }
+
+      await update(
+        ref(db, `${userBase()}/listMeta/${activeList}`),
+        { name }
+      );
+
+      $("manageListOverlay").classList.add("hidden");
+      toast(tr("הרשימה עודכנה", "List updated"));
+    }
+
+    async function deleteList() {
+      if (activeList === "main") {
+        return;
+      }
+
+      if (
+        !confirm(
+          tr(
+            "למחוק את הרשימה וכל הפריטים בה?",
+            "Delete this list and all its items?"
+          )
+        )
+      ) {
+        return;
+      }
+
+      const idToDelete = activeList;
+      activeList = "main";
+
+      await update(ref(db), {
+        [`${userBase()}/listMeta/${idToDelete}`]: null,
+        [`${userBase()}/items/${idToDelete}`]: null
+      });
+
+      $("manageListOverlay").classList.add("hidden");
+      renderMine();
+      toast(tr("הרשימה נמחקה", "List deleted"));
     }
 
     function renderQuickPicks() {
+      const lists = starterLists();
+      const match = lists.find(list => list.id === activeList);
+      const suggestions = match ? match.items : [];
+
       $("quickPicks").innerHTML =
-        presets()
+        suggestions
           .map(item => {
             return (
               `<button class="pick" ` +
@@ -1337,6 +1525,7 @@
 
     function renderMine() {
       renderLists();
+      renderQuickPicks();
 
       const map = currentItems();
 
@@ -1516,14 +1705,20 @@
       }
 
       packingListening = true;
+      let starterCheckDone = false;
 
       onValue(
         ref(db, `${tripRoot}/packing`),
-        snapshot => {
+        async snapshot => {
           allPacking = snapshot.val() || {};
 
           items =
             allPacking.users?.[user.uid]?.items || {};
+
+          if (!starterCheckDone) {
+            starterCheckDone = true;
+            await ensureStarterLists();
+          }
 
           render();
         }
@@ -1749,6 +1944,35 @@
       activeList = event.target.value;
       renderMine();
     };
+
+    $("newListBtn").onclick = () => {
+      $("newListName").value = "";
+      $("newListOverlay").classList.remove("hidden");
+    };
+
+    $("cancelNewList").onclick = () => {
+      $("newListOverlay").classList.add("hidden");
+    };
+
+    $("createListBtn").onclick = () => {
+      createList($("newListName").value);
+    };
+
+    $("newListName").onkeydown = event => {
+      if (event.key === "Enter") {
+        createList($("newListName").value);
+      }
+    };
+
+    $("manageListBtn").onclick = openManageList;
+
+    $("cancelManageList").onclick = () => {
+      $("manageListOverlay").classList.add("hidden");
+    };
+
+    $("renameListBtn").onclick = renameList;
+
+    $("deleteListBtn").onclick = deleteList;
 
     $("mineTab").onclick = () => {
       $("mineTab").classList.add("active");
