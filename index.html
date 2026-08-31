@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הכנות לטיול | Trip Dashboard 🇬🇷</title>
+  <title>הכנות לטיול | Trip Dashboard</title>
   
   <!-- הגדרות PWA -->
   <link rel="manifest" href="manifest.json">
@@ -67,27 +67,17 @@
       position: relative;
     }
 
-    /* כותרת */
-    .header-section {
-      margin-bottom: 16px;
-    }
-
+    .header-section { margin-bottom: 16px; }
     h1 {
       font-size: 1.65rem;
       font-weight: 800;
       color: var(--primary-dark);
       margin-bottom: 4px;
       letter-spacing: -0.5px;
-      cursor: pointer; /* מרמז על אפשרות לחיצה לאדמין */
+      cursor: pointer;
     }
-    
-    p.subtitle {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
+    p.subtitle { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
 
-    /* תגיות מחזור חיי הטיול (Timeline Phase Badge) */
     .phase-badge {
       display: inline-flex;
       align-items: center;
@@ -102,7 +92,6 @@
       border: 1px solid #bae6fd;
     }
 
-    /* שעון ספירה לאחור */
     .timer-box {
       background: #ffffff;
       border: 1px solid var(--border-color);
@@ -112,23 +101,9 @@
       margin-bottom: 14px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
-    .timer-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .timer-display {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--primary-dark);
-      letter-spacing: 0.5px;
-      font-variant-numeric: tabular-nums;
-    }
+    .timer-title { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .timer-display { font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
 
-    /* מזג אוויר דינמי ליעד */
     .weather-container {
       width: 100%;
       padding: 8px 4px 14px 4px;
@@ -138,32 +113,11 @@
       align-items: center;
       border-bottom: 1px solid #e2e8f0;
     }
-    .weather-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
-    }
-    .weather-val {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--text-main);
-      font-variant-numeric: tabular-nums;
-    }
-    .weather-lbl {
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-    .weather-divider {
-      width: 1px;
-      height: 18px;
-      background: #cbd5e1;
-      flex-shrink: 0;
-    }
+    .weather-item { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+    .weather-val { font-size: 0.88rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
+    .weather-lbl { font-size: 0.68rem; color: var(--text-muted); font-weight: 500; }
+    .weather-divider { width: 1px; height: 18px; background: #cbd5e1; flex-shrink: 0; }
 
-    /* באנר צ'ק-אין */
     .checkin-banner {
       width: 100%;
       border-radius: var(--radius-md);
@@ -173,29 +127,35 @@
       align-items: center;
       justify-content: space-between;
       text-decoration: none;
-      transition: all 0.2s ease;
       background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
       border: 1.5px solid #34d399;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
     }
-    .checkin-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-align: right;
-    }
+    .checkin-info { display: flex; align-items: center; gap: 10px; text-align: right; }
     .checkin-icon { font-size: 1.35rem; }
     .checkin-text-main { font-size: 0.86rem; font-weight: 700; color: #065f46; }
     .checkin-text-sub { font-size: 0.72rem; color: #047857; }
     .checkin-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; background: #059669; color: #ffffff; }
 
-    /* כפתורי הניווט והפעולות */
-    .buttons-container {
+    .seats-banner-btn {
       width: 100%;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1.5px solid #7dd3fc;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 14px;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--primary-dark);
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.06);
     }
+    .seats-banner-btn:hover { background: #bae6fd; }
+
+    .buttons-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
 
     .btn {
       display: flex;
@@ -208,10 +168,8 @@
       text-decoration: none;
       font-weight: 700;
       font-size: 1.02rem;
-      transition: all 0.18s ease;
       cursor: pointer;
       user-select: none;
-      -webkit-tap-highlight-color: transparent;
     }
     .btn svg { width: 22px; height: 22px; fill: currentColor; }
 
@@ -221,15 +179,7 @@
       border: 2px solid var(--primary);
       box-shadow: 0 4px 0 #0284c7, 0 8px 16px rgba(2, 132, 199, 0.08);
     }
-    .btn-list:hover {
-      background-color: #f0f9ff;
-      transform: translateY(-1px);
-      box-shadow: 0 5px 0 #0284c7, 0 10px 20px rgba(2, 132, 199, 0.12);
-    }
-    .btn-list:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #0284c7, 0 2px 4px rgba(2, 132, 199, 0.05);
-    }
+    .btn-list:hover { background-color: #f0f9ff; transform: translateY(-1px); }
 
     .section-divider {
       display: flex;
@@ -240,11 +190,7 @@
       font-size: 0.75rem;
       font-weight: 600;
     }
-    .section-divider::before, .section-divider::after {
-      content: "";
-      flex: 1;
-      border-bottom: 1px solid var(--border-color);
-    }
+    .section-divider::before, .section-divider::after { content: ""; flex: 1; border-bottom: 1px solid var(--border-color); }
     .section-divider:not(:empty)::before { margin-left: 10px; }
     .section-divider:not(:empty)::after { margin-right: 10px; }
 
@@ -254,16 +200,7 @@
       box-shadow: 0 4px 0 #4f46e5, 0 8px 18px rgba(99, 102, 241, 0.25);
       border: none;
     }
-    .btn-expense:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 0 #4f46e5, 0 10px 22px rgba(99, 102, 241, 0.35);
-    }
-    .btn-expense:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #4f46e5, 0 2px 6px rgba(99, 102, 241, 0.2);
-    }
 
-    /* Modal פאנל ניהול אדמין מתקדם */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -274,12 +211,10 @@
       align-items: center;
       padding: 16px;
       z-index: 9999;
-      opacity: 0;
-      transition: opacity 0.3s ease;
     }
-    .modal-overlay.open { display: flex; opacity: 1; }
+    .modal-overlay.open { display: flex; }
 
-    .admin-modal {
+    .plane-modal, .admin-modal {
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
@@ -294,70 +229,48 @@
       text-align: right;
       box-shadow: 0 25px 50px rgba(0,0,0,0.25);
     }
-    
-    .modal-header {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .admin-modal h2 { font-size: 1.25rem; color: var(--primary-dark); }
-    
+    .plane-modal { background: #0b132b; color: #f8fafc; border: 1px solid #1e293b; }
+
+    .modal-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .modal-title { font-size: 1.1rem; font-weight: 800; color: #38bdf8; }
     .modal-close {
-      background: #1e293b;
-      border: 1px solid #475569;
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      color: #94a3b8;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      background: #1e293b; border: 1px solid #475569; width: 32px; height: 32px;
+      border-radius: 50%; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
 
+    .plane-canvas-wrapper {
+      width: 100%; background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+      border: 1px solid #334155; border-radius: var(--radius-md); padding: 16px 8px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; direction: ltr;
+    }
+    .seat-grid { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .seat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 22px 1fr 1fr 1fr; gap: 6px; align-items: center; }
+    .row-num { font-size: 0.7rem; font-weight: 800; color: #64748b; text-align: center; }
+    .seat {
+      height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(30, 41, 59, 0.7); color: #64748b; border: 1px solid #334155; font-size: 0.65rem; font-weight: 700;
+    }
+    .seat.occupied { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1.5px solid #38bdf8; }
+    .passenger-tag { font-size: 0.7rem; font-weight: 900; color: #fff; direction: rtl; }
+    .seat-letter { font-size: 0.55rem; color: #bae6fd; }
+
     .admin-section-box {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;
     }
-    
-    .admin-section-title {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--primary-dark);
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 6px;
-    }
-    
+    .admin-section-title { font-size: 0.88rem; font-weight: 800; color: var(--primary-dark); border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
     .admin-field { display: flex; flex-direction: column; gap: 4px; }
     .admin-field label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
-    .admin-input {
-      padding: 9px 12px;
-      border-radius: 10px;
-      border: 1.5px solid var(--border-color);
-      font-size: 0.88rem;
-      font-family: inherit;
-      background: #fff;
-    }
-    
+    .admin-input, select.admin-input { padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border-color); font-size: 0.88rem; font-family: inherit; background: #fff; }
+    .admin-seats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .admin-seat-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-color); gap: 6px; }
+    .admin-seat-row span { font-size: 0.78rem; font-weight: 700; color: #334155; }
+    .admin-seat-row input { width: 55px; padding: 4px; border-radius: 6px; border: 1px solid #94a3b8; font-size: 0.82rem; font-weight: 700; text-align: center; text-transform: uppercase; direction: ltr; }
+
     .btn-admin-action {
-      border: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
+      border: none; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    
     .btn-save-members { background: #059669; }
     .btn-save-flight { background: var(--primary); }
-    .btn-save-quote { background: var(--accent); }
+    .btn-save-seats { background: #0284c7; }
 
     .footer-text { margin-top: 20px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
   </style>
@@ -366,7 +279,6 @@
 
   <div class="app-container">
     
-    <!-- כותרת ראשית דינמית ונקה (משמשת גם כטריגר לאדמין) -->
     <div class="header-section">
       <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">הכנות לטיול למיקונוס</h1>
       <p class="subtitle" id="appSubtitle">ניהול קבוצתי, תכנון והתחשבנות בלייב</p>
@@ -375,8 +287,8 @@
     <!-- תגית מחזור חיים של הטיול -->
     <div class="phase-badge" id="tripPhaseBadge">⏳ מתכוננים לטיול (לפני יציאה)</div>
 
-    <!-- שעון ספירה לאחור -->
-    <div class="timer-box">
+    <!-- שעון ספירה לאחור (מוצג רק בחו"ל/טיסה) -->
+    <div class="timer-box" id="timerBoxContainer">
       <div class="timer-title" id="timerTitle">זמן נותר להמראה ✈️</div>
       <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
     </div>
@@ -392,22 +304,27 @@
       <div class="weather-item"><span class="weather-val" id="weatherUV">--</span><span class="weather-lbl">☀️ קרינה</span></div>
     </div>
 
-    <!-- באנר צ'ק-אין (מופיע רק לפני הטיול) -->
-    <a id="checkinBanner" href="https://www.arkia.co.il/he/web-checkin-login?updateType=0" target="_blank" class="checkin-banner" style="display:none;">
+    <!-- באנר צ'ק-אין (מוצג רק לפני הטיול ובטיסות חו"ל) -->
+    <a id="checkinBanner" href="#" target="_blank" class="checkin-banner" style="display:none;">
       <div class="checkin-info">
         <span class="checkin-icon">🎫</span>
         <div>
-          <div class="checkin-text-main" id="checkinMain">צ'ק-אין לטיסה פתוח עכשיו!</div>
-          <div class="checkin-text-sub">בחרו מקומות וכרטיסי עלייה למטוס</div>
+          <div class="checkin-text-main" id="checkinMainText">צ'ק-אין לטיסה פתוח עכשיו!</div>
+          <div class="checkin-text-sub">לחץ כאן למעבר לעמוד חברת התעופה</div>
         </div>
       </div>
       <span class="checkin-badge">צ'ק-אין ✈️</span>
     </a>
 
+    <!-- כפתור מפת מושבים (מוצג אך ורק לפני הטיול ובטיסות חו"ל) -->
+    <div class="seats-banner-btn" id="seatsBannerBtn" style="display:none;">
+      <span>✈️ מפת הושבה אינטראקטיבית</span>
+      <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
+    </div>
+
     <!-- כפתורי הניווט המרכזיים מחולקים חכם -->
     <div class="buttons-container">
       
-      <!-- שלב א': לפני הטיול (הכנות) -->
       <div class="section-divider">שלב ההכנות (לפני הטיול)</div>
       
       <a href="packing.html" class="btn btn-list">
@@ -420,7 +337,6 @@
         <span>רשימת קניות משותפת 🛒</span>
       </a>
 
-      <!-- שלב ב': במהלך הטיול (לייב ותוכן) -->
       <div class="section-divider">במהלך הטיול (לייב 🌴)</div>
 
       <a href="places.html" class="btn btn-list">
@@ -428,7 +344,6 @@
         <span>מקומות, תמונות ומוזיקה 📍📸🎵</span>
       </a>
 
-      <!-- שלב ג': התחשבנות סופית -->
       <div class="section-divider">כספים והתחשבנות 💸</div>
 
       <a href="https://startling-torrone-b6c067.netlify.app/" target="_blank" class="btn btn-expense">
@@ -437,10 +352,23 @@
       </a>
     </div>
 
-    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.5.0</div>
+    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.6.0</div>
   </div>
 
-  <!-- Modal פאנל אדמין מוסתר (המשפט היומי הוסתר למסך זה בלבד) -->
+  <!-- Modal מפת מטוס -->
+  <div class="modal-overlay" id="seatsModal">
+    <div class="plane-modal">
+      <div class="modal-header">
+        <div class="modal-title">✈️ מפת הושבה קבוצתית</div>
+        <button class="modal-close" id="closeSeatsModal">✕</button>
+      </div>
+      <div class="plane-canvas-wrapper">
+        <div class="seat-grid" id="planeLayout"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal פאנל אדמין מוסתר -->
   <div class="modal-overlay" id="adminModal">
     <div class="admin-modal">
       <div class="modal-header">
@@ -448,6 +376,38 @@
         <button class="modal-close" id="closeAdminModal">✕</button>
       </div>
       
+      <!-- סוג טיול ויעד -->
+      <div class="admin-section-box">
+        <div class="admin-section-title">🌍 סוג טיול ויעד</div>
+        <div class="admin-field">
+          <label>סוג הטיול:</label>
+          <select id="adminTripType" class="admin-input">
+            <option value="abroad">טיסה לחו"ל (כולל טיסות, צ'ק-אין ומסלול)</option>
+            <option value="reserve">שירות מילואים / שטח (ללא טיסות)</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>שם היעד (לתצוגה ומזג אוויר):</label>
+          <input type="text" id="adminDestInput" class="admin-input" value="מיקונוס">
+        </div>
+        <div class="admin-field">
+          <label>מועד המראה:</label>
+          <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
+        </div>
+        <div class="admin-field">
+          <label>קישור לצ'ק-אין (URL לחברת התעופה):</label>
+          <input type="text" id="adminCheckinUrl" class="admin-input" placeholder="https://www.arkia.co.il/..." style="direction: ltr;">
+        </div>
+        <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">💾 שמור יעד וטיסה (איתור אוטומטי)</button>
+      </div>
+
+      <!-- ניהול מושבי מטוס -->
+      <div class="admin-section-box" id="adminSeatsSection">
+        <div class="admin-section-title">💺 שיבוץ מושבי החברים במטוס</div>
+        <div class="admin-seats-grid" id="adminSeatsContainer"></div>
+        <button class="btn-admin-action btn-save-seats" id="saveSeatsBtn">💾 שמור מושבים</button>
+      </div>
+
       <!-- ניהול חברי קבוצה -->
       <div class="admin-section-box">
         <div class="admin-section-title">👥 ניהול שמות חברי הקבוצה</div>
@@ -457,54 +417,16 @@
         </div>
         <button class="btn-admin-action btn-save-members" id="saveMembersBtn">💾 שמור רשימת חברים</button>
       </div>
-
-      <!-- מועד המראה וקואורדינטות מזג אוויר -->
-      <div class="admin-section-box">
-        <div class="admin-section-title">✈️ טיסה ויעד מזג אוויר</div>
-        <div class="admin-field">
-          <label>שעת המראה מעודכנת:</label>
-          <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
-        </div>
-        <div class="admin-field">
-          <label>שם היעד (לתצוגה):</label>
-          <input type="text" id="adminDestInput" class="admin-input" value="מיקונוס">
-        </div>
-        <div class="admin-field">
-          <label>קו רוחב (Latitude) למזג אוויר:</label>
-          <input type="text" id="adminLatInput" class="admin-input" value="37.4467" style="direction: ltr;">
-        </div>
-        <div class="admin-field">
-          <label>קו אורך (Longitude) למזג אוויר:</label>
-          <input type="text" id="adminLonInput" class="admin-input" value="25.3289" style="direction: ltr;">
-        </div>
-        <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">💾 שמור הגדרות טיסה ויעד</button>
-      </div>
-
-      <!-- ניהול משפט יומי נסתר -->
-      <div class="admin-section-box">
-        <div class="admin-section-title">✨ עריכת משפט יומי (לא מוצג ללקוח כרגע)</div>
-        <div class="admin-field">
-          <label>תאריך:</label>
-          <input type="date" id="adminQuoteDate" class="admin-input" style="direction: ltr;">
-        </div>
-        <div class="admin-field">
-          <label>תוכן המשפט:</label>
-          <textarea id="adminQuoteText" class="admin-input" rows="2" style="resize: none;"></textarea>
-        </div>
-        <button class="btn-admin-action btn-save-quote" id="saveQuoteBtn">💾 שמור משפט יומי במסד</button>
-      </div>
     </div>
   </div>
 
   <script>
-    // Service Worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("sw.js").catch(() => {});
       });
     }
 
-    // הגדרות Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBqcKqWMJeMgU7m7-ful5aA6RXKkXF7Zl8",
       authDomain: "trip-packing-list-d4319.firebaseapp.com",
@@ -521,28 +443,51 @@
       db = firebase.database();
     } catch (e) { console.warn("Firebase Init Error"); }
 
-    // מצב התחלתי
     let groupMembers = ["מארג׳", "נירה", "ציפי", "בנצה", "ברגה", "פוטה", "איילה", "בולבול"];
+    let tripType = "abroad"; // abroad / reserve
     let destinationName = "מיקונוס";
     let latCoord = 37.4467;
     let lonCoord = 25.3289;
     let flightOut = new Date("2026-08-20T08:15:00");
     const flightBack = new Date("2026-08-28T12:00:00");
-    let tripQuotes = {};
+    let checkinLink = "https://www.arkia.co.il";
+    let seatedFriends = {
+      "20A": "מארג׳", "20B": "נירה", "20E": "ציפי", "20F": "בנצה",
+      "21A": "ברגה", "21D": "פוטה", "21F": "איילה", "22F": "בולבול"
+    };
 
-    // האזנה לסנכרון מול Firebase
+    function buildAdminSeatsUI() {
+      const container = document.getElementById("adminSeatsContainer");
+      container.innerHTML = "";
+      groupMembers.forEach((member, idx) => {
+        let memberSeat = "";
+        for (const [seat, name] of Object.entries(seatedFriends)) {
+          if (name === member) { memberSeat = seat; break; }
+        }
+        const row = document.createElement("div");
+        row.className = "admin-seat-row";
+        row.innerHTML = `
+          <span>${escapeHtml(member)}</span>
+          <input type="text" id="seatInput_${idx}" value="${memberSeat}" placeholder="20A" maxlength="4">
+        `;
+        container.appendChild(row);
+      });
+    }
+
     if (db) {
       db.ref("trip_settings").on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
+          if (data.tripType) tripType = data.tripType;
           if (data.destination) {
             destinationName = data.destination;
-            document.getElementById("appTitle").textContent = `הכנות לטיול ל-${destinationName}`;
-            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.5.0`;
+            document.getElementById("appTitle").textContent = tripType === 'reserve' ? `הכנות ל-${destinationName}` : `הכנות לטיול ל-${destinationName}`;
+            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.6.0`;
           }
           if (data.lat) latCoord = data.lat;
           if (data.lon) lonCoord = data.lon;
           if (data.flightOut) flightOut = new Date(data.flightOut);
+          if (data.checkinLink) checkinLink = data.checkinLink;
           fetchWeather();
           updateClockAndPhases();
         }
@@ -550,16 +495,23 @@
 
       db.ref("group_members").on("value", (snapshot) => {
         const data = snapshot.val();
-        if (Array.isArray(data)) groupMembers = data;
+        if (Array.isArray(data)) {
+          groupMembers = data;
+          buildAdminSeatsUI();
+        }
       });
 
-      db.ref("custom_quotes").on("value", (snapshot) => {
+      db.ref("seats_config").on("value", (snapshot) => {
         const data = snapshot.val();
-        if (data) tripQuotes = data;
+        if (data && typeof data === 'object') {
+          seatedFriends = data;
+          buildAdminSeatsUI();
+        }
       });
     }
 
-    // פתיחת פאנל אדמין מוסתר (3 לחיצות רצופות על הכותרת הראשית - סיסמה: 2105)
+    buildAdminSeatsUI();
+
     let titleClickCount = 0;
     let titleClickTimer = null;
     const adminModal = document.getElementById("adminModal");
@@ -575,12 +527,10 @@
           titleClickCount = 0;
           const pass = prompt("הזן סיסמת מנהל:");
           if (pass === "2105") {
-            // טעינת הנתונים הקיימים לתוך פאנל האדמין
+            document.getElementById("adminTripType").value = tripType;
             document.getElementById("adminMembersInput").value = groupMembers.join(", ");
             document.getElementById("adminDestInput").value = destinationName;
-            document.getElementById("adminLatInput").value = latCoord;
-            document.getElementById("adminLonInput").value = lonCoord;
-            
+            document.getElementById("adminCheckinUrl").value = checkinLink;
             const tzOffset = flightOut.getTimezoneOffset() * 60000;
             document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
             
@@ -592,9 +542,8 @@
       });
     }
 
-    document.getElementById("closeAdminModal").addEventListener("click", () => document.getElementById("adminModal").classList.remove("open"));
+    document.getElementById("closeAdminModal").addEventListener("click", () => adminModal.classList.remove("open"));
 
-    // שמירת חברים באדמין
     document.getElementById("saveMembersBtn").addEventListener("click", () => {
       const val = document.getElementById("adminMembersInput").value;
       const newMembers = val.split(",").map(s => s.trim()).filter(Boolean);
@@ -605,57 +554,85 @@
       }
     });
 
-    // שמירת הגדרות טיסה ויעד באדמין
-    document.getElementById("saveFlightBtn").addEventListener("click", () => {
+    document.getElementById("saveSeatsBtn").addEventListener("click", () => {
+      const newSeats = {};
+      groupMembers.forEach((member, idx) => {
+        const seatVal = document.getElementById(`seatInput_${idx}`).value.trim().toUpperCase();
+        if (seatVal) { newSeats[seatVal] = member; }
+      });
+      seatedFriends = newSeats;
+      if (db) db.ref("seats_config").set(newSeats);
+      adminModal.classList.remove("open");
+      alert("מושבי המטוס עודכנו בהצלחה!");
+    });
+
+    document.getElementById("saveFlightBtn").addEventListener("click", async () => {
+      const newTripType = document.getElementById("adminTripType").value;
       const newFlight = document.getElementById("adminFlightInput").value;
-      const newDest = document.getElementById("adminDestInput").value;
-      const newLat = parseFloat(document.getElementById("adminLatInput").value);
-      const newLon = parseFloat(document.getElementById("adminLonInput").value);
+      const newDest = document.getElementById("adminDestInput").value.trim();
+      const newCheckin = document.getElementById("adminCheckinUrl").value.trim();
 
       if (newFlight && newDest) {
         flightOut = new Date(newFlight);
         destinationName = newDest;
-        latCoord = newLat;
-        lonCoord = newLon;
+        tripType = newTripType;
+        if (newCheckin) checkinLink = newCheckin;
+
+        if (tripType === 'abroad') {
+          try {
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(newDest)}&count=1&language=he&format=json`);
+            const geoData = await geoRes.json();
+            if (geoData && geoData.results && geoData.results.length > 0) {
+              latCoord = geoData.results[0].latitude;
+              lonCoord = geoData.results[0].longitude;
+            }
+          } catch (err) {
+            console.error("Geocoding error", err);
+          }
+        }
 
         if (db) {
           db.ref("trip_settings").set({
+            tripType: tripType,
             destination: destinationName,
             lat: latCoord,
             lon: lonCoord,
-            flightOut: newFlight
+            flightOut: newFlight,
+            checkinLink: checkinLink
           });
         }
-        document.getElementById("adminModal").classList.remove("open");
+
+        adminModal.classList.remove("open");
         updateClockAndPhases();
         fetchWeather();
-        alert("הנתונים עודכנו בהצלחה!");
-      }
-    });
-
-    // שמירת משפט יומי באדמין (לא מוצג ללקוח)
-    document.getElementById("saveQuoteBtn").addEventListener("click", () => {
-      const qDate = document.getElementById("adminQuoteDate").value;
-      const qText = document.getElementById("adminQuoteText").value.trim();
-
-      if (qDate && qText) {
-        tripQuotes[qDate] = qText;
-        if (db) db.ref(`custom_quotes/${qDate}`).set(qText);
-        alert(`המשפט היומי לתאריך ${qDate} נשמר במסד הנתונים!`);
+        alert("הגדרות הטיול עודכנו בהצלחה!");
       } else {
-        alert("אנא בחר תאריך והזן משפט.");
+        alert("נא להזין יעד ושעת המראה.");
       }
     });
 
-    // שעון ומחזור חיי הטיול (Timeline Phases)
     function updateClockAndPhases() {
       const now = new Date();
       const diffOut = flightOut - now;
       const phaseBadge = document.getElementById("tripPhaseBadge");
       const checkinBanner = document.getElementById("checkinBanner");
+      const seatsBannerBtn = document.getElementById("seatsBannerBtn");
+      const timerBoxContainer = document.getElementById("timerBoxContainer");
+      const adminSeatsSection = document.getElementById("adminSeatsSection");
+
+      if (tripType === 'reserve') {
+        timerBoxContainer.style.display = "none";
+        checkinBanner.style.display = "none";
+        seatsBannerBtn.style.display = "none";
+        adminSeatsSection.style.display = "none";
+        phaseBadge.textContent = "🪖 פעילות שוטפת / מילואים";
+        return;
+      } else {
+        timerBoxContainer.style.display = "block";
+        adminSeatsSection.style.display = "block";
+      }
 
       if (diffOut > 0) {
-        // שלב 1: לפני הטיול
         phaseBadge.textContent = "⏳ מתכוננים לטיול (לפני יציאה)";
         document.getElementById("timerTitle").textContent = "זמן נותר להמראה ✈️";
         const days = Math.floor(diffOut / (1000 * 60 * 60 * 24));
@@ -663,28 +640,75 @@
         const mins = Math.floor((diffOut / 1000 / 60) % 60);
         document.getElementById("timerDisplay").textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
         
+        // מציג צ'ק-אין ומפת מושבים רק לפני הטיול!
         checkinBanner.style.display = "flex";
+        checkinBanner.href = checkinLink;
+        seatsBannerBtn.style.display = "flex";
       } else if (now >= flightOut && now <= flightBack) {
-        // שלב 2: במהלך הטיול
         phaseBadge.textContent = "🌴 החופשה בעיצומה! (במהלך הטיול)";
         document.getElementById("timerTitle").textContent = `אנחנו ב${destinationName}! ☀️ זמן מקומי`;
         const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Athens' };
         document.getElementById("timerDisplay").textContent = now.toLocaleTimeString('he-IL', timeOpts);
 
+        // במהלך הטיול או אחריו - מפת הושבה וצ'ק-אין מוסתרים!
         checkinBanner.style.display = "none";
+        seatsBannerBtn.style.display = "none";
       } else {
-        // שלב 3: לאחר הטיול
         phaseBadge.textContent = "🎒 הטיול הסתיים (זיכרונות וגלריית תמונות)";
         document.getElementById("timerTitle").textContent = "החופשה נגמרה, מחכים לטיול הבא! 💙";
         document.getElementById("timerDisplay").textContent = "נתראה בשנה הבאה";
         checkinBanner.style.display = "none";
+        seatsBannerBtn.style.display = "none";
       }
     }
 
     updateClockAndPhases();
     setInterval(updateClockAndPhases, 1000);
 
-    // מזג אוויר דינמי מבוסס קואורדינטות
+    function renderPlaneSeats() {
+      const container = document.getElementById('planeLayout');
+      container.innerHTML = '';
+      let rowsToDisplay = [19, 20, 21, 22, 23];
+      const seatKeys = Object.keys(seatedFriends);
+      if (seatKeys.length > 0) {
+        const detectedRows = seatKeys.map(k => parseInt(k.replace(/\D/g, ''))).filter(n => !isNaN(n));
+        if (detectedRows.length > 0) {
+          const minR = Math.max(1, Math.min(...detectedRows) - 1);
+          const maxR = Math.max(...detectedRows) + 1;
+          rowsToDisplay = [];
+          for (let r = minR; r <= maxR; r++) rowsToDisplay.push(r);
+        }
+      }
+
+      rowsToDisplay.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+        ['A', 'B', 'C', 'AISLE', 'D', 'E', 'F'].forEach(col => {
+          if (col === 'AISLE') {
+            const num = document.createElement('div');
+            num.className = 'row-num'; num.textContent = row;
+            rowDiv.appendChild(num);
+          } else {
+            const seatKey = `${row}${col}`;
+            const seatDiv = document.createElement('div');
+            seatDiv.className = 'seat';
+            if (seatedFriends[seatKey]) {
+              seatDiv.classList.add('occupied');
+              seatDiv.innerHTML = `<span class="passenger-tag">${escapeHtml(seatedFriends[seatKey])}</span><span class="seat-letter">${seatKey}</span>`;
+            } else {
+              seatDiv.innerHTML = `<span class="seat-letter">${col}</span>`;
+            }
+            rowDiv.appendChild(seatDiv);
+          }
+        });
+        container.appendChild(rowDiv);
+      });
+    }
+
+    const seatsModal = document.getElementById('seatsModal');
+    document.getElementById('seatsBannerBtn').addEventListener('click', () => { seatsModal.classList.add('open'); renderPlaneSeats(); });
+    document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
+
     async function fetchWeather() {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latCoord}&longitude=${lonCoord}&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=auto`);
@@ -702,6 +726,11 @@
       } catch (e) { console.error("Weather error"); }
     }
     fetchWeather();
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
   </script>
 </body>
 </html>
