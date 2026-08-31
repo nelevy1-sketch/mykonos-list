@@ -2,37 +2,44 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#123B63">
     <title>יוצרים טיול חדש | Trip Wizard</title>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #005bae;
-            --primary-light: #eef2f6;
-            --accent: #ff6b6b;
-            --text: #333;
-            --gray: #6c757d;
-            --border: #ced4da;
-            --radius: 12px;
+            --primary: #1F7A8C;
+            --primary-dark: #123B63;
+            --primary-light: #E2F3F3;
+            --accent: #E76F51;
+            --sun: #F2B84B;
+            --text: #18324A;
+            --gray: #687889;
+            --border: #E9E2D7;
+            --surface: #FFFEFB;
+            --background: #F8F4EC;
+            --radius: 17px;
+            --radius-lg: 24px;
+            --shadow: 0 14px 38px rgba(18,59,99,.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Heebo', sans-serif; }
-        body { background: var(--primary-light); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        body { background: var(--background); color: var(--text); min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
 
         /* Top Language Toggle Bar */
         .top-bar {
             width: 100%;
-            max-width: 600px;
+            max-width: 640px;
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             gap: 8px;
         }
         .lang-btn {
-            background: #fff;
+            background: rgba(255,255,255,.86);
             border: 1.5px solid var(--border);
             padding: 6px 14px;
-            border-radius: 20px;
+            border-radius: 999px;
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
@@ -46,22 +53,23 @@
         }
 
         .wizard-container {
-            background: #fff;
+            background: var(--surface);
             width: 100%;
-            max-width: 600px;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            max-width: 640px;
+            border-radius: 28px;
+            box-shadow: var(--shadow);
             padding: 30px;
             overflow: hidden;
+            border: 1px solid rgba(255,255,255,.8);
         }
 
-        h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; text-align: center; }
+        h1 { font-size: 1.85rem; color: var(--primary-dark); margin-bottom: 8px; text-align: center; letter-spacing: -.6px; }
         p.subtitle { text-align: center; color: var(--gray); margin-bottom: 25px; font-size: 0.95rem; }
 
         /* Steps indicator (4 שלבים) */
-        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; max-width: 350px; margin-left: auto; margin-right: auto; }
+        .steps-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; max-width: 390px; margin-left: auto; margin-right: auto; }
         .steps-indicator::before { content: ''; position: absolute; top: 15px; right: 0; left: 0; height: 3px; background: var(--border); z-index: 1; }
-        .step-dot { position: relative; z-index: 2; background: #fff; border: 2px solid var(--border); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: var(--gray); transition: 0.3s; }
+        .step-dot { position: relative; z-index: 2; background: var(--surface); border: 2px solid var(--border); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; color: var(--gray); transition: 0.3s; }
         .step-dot.active { border-color: var(--primary); background: var(--primary); color: #fff; }
         .step-dot.completed { border-color: var(--primary); color: var(--primary); background: #fff; }
 
@@ -73,10 +81,12 @@
 
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
-        input[type="text"], select {
-            width: 100%; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s;
+        input[type="text"], input[type="datetime-local"], input[type="url"], select {
+            width: 100%; min-height: 50px; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s; background: #fff; color: var(--text);
         }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,91,174,0.15); }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,140,.15); }
+        .field-hint { display:block; color:var(--gray); font-size:.76rem; margin-top:6px; line-height:1.45; }
+        .inline-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
         /* Participants List Tags */
         .participant-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -89,10 +99,10 @@
         /* Feature Flags Checkboxes */
         .feature-card {
             display: flex; align-items: center; justify-content: space-between;
-            background: var(--primary-light); padding: 12px 15px; border-radius: var(--radius); margin-bottom: 12px;
-            border: 1px solid transparent; transition: 0.2s;
+            background: #fff; padding: 14px 15px; border-radius: var(--radius); margin-bottom: 10px;
+            border: 1.5px solid var(--border); transition: 0.2s; cursor:pointer;
         }
-        .feature-card:hover { border-color: var(--primary); }
+        .feature-card:hover, .feature-card:has(input:checked) { border-color: var(--primary); background: var(--primary-light); }
         .feature-info { display: flex; align-items: center; gap: 12px; }
         .feature-info input { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
         .preview-btn {
@@ -101,26 +111,52 @@
 
         /* Buttons */
         .wizard-buttons { display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; }
-        .btn { padding: 12px 25px; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+        .btn { min-height: 48px; padding: 12px 25px; border-radius: var(--radius); font-size: 1rem; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; }
         .btn-prev { background: #e9ecef; color: var(--gray); }
         .btn-prev:hover { background: #dee2e6; }
         .btn-next, .btn-submit { background: var(--primary); color: #fff; flex: 1; }
-        .btn-next:hover, .btn-submit:hover { background: #00458a; }
+        .btn-next:hover, .btn-submit:hover { background: var(--primary-dark); }
 
         /* Success Box */
-        .success-box { text-align: center; padding: 20px 0; }
+        .success-box { text-align: center; padding: 12px 0; }
         .success-box h3 { color: #2b8a3e; margin-bottom: 10px; font-size: 1.4rem; }
         .share-link-box { display: flex; gap: 10px; margin-top: 20px; }
         .share-link-box input { background: #f8f9fa; color: var(--gray); }
 
         /* Modal for Preview */
         .modal-overlay {
-            position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: rgba(0,0,0,0.5);
-            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+            position: fixed; inset: 0; background: rgba(18,50,74,.58); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: flex-end; z-index: 1000;
         }
-        .modal-content { background: #fff; width: 100%; max-width: 450px; padding: 25px; border-radius: var(--radius); text-align: center; }
+        .modal-content { background: #fff; width: 100%; max-width: 640px; padding: 22px 20px calc(24px + env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0; text-align: center; box-shadow:0 -14px 35px rgba(18,50,74,.16); }
         .modal-content h3 { margin-bottom: 12px; color: var(--primary); }
         .modal-content p { color: var(--gray); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; }
+        .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:right; margin:18px 0; }
+        .summary-item { background:var(--primary-light); border:1px solid #CFE3E2; border-radius:14px; padding:12px; }
+        .summary-item small { display:block; color:var(--gray); font-size:.7rem; margin-bottom:3px; }
+        .summary-item strong { font-size:.88rem; }
+        .error-text { color:#B3432F; font-size:.78rem; margin-top:6px; min-height:18px; }
+        .loading { pointer-events:none; opacity:.7; }
+
+        button, input, select { touch-action: manipulation; }
+        button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid rgba(31,122,140,.3); outline-offset:2px; }
+
+        @media (max-width: 600px) {
+            body { justify-content:flex-start; padding-inline:0; }
+            .top-bar { padding-inline:16px; padding-top:4px; }
+            .wizard-container { border-radius:26px 26px 0 0; padding:24px 18px; box-shadow:none; min-height:calc(100dvh - 58px); }
+            h1 { font-size:1.55rem; }
+            p.subtitle { font-size:.86rem; margin-bottom:22px; }
+            .inline-fields { grid-template-columns:1fr; gap:0; }
+            .steps-indicator { margin-bottom:24px; }
+            .wizard-buttons { position:sticky; bottom:0; background:linear-gradient(transparent, var(--surface) 24%); padding-top:20px; padding-bottom:max(4px, env(safe-area-inset-bottom)); }
+            .share-link-box { flex-direction:column; }
+            .share-link-box .btn { width:100%; flex:auto !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+        }
     </style>
 </head>
 <body>
@@ -150,16 +186,33 @@
         <div class="form-step active" data-step="1">
             <div class="form-group">
                 <label id="lblDestination">שם הטיול / היעד 🌍</label>
-                <input type="text" id="tripDestination" placeholder="למשל: מיקונוס 2026, ברלין, מילואים צוק..." required>
+                <input type="text" id="tripDestination" placeholder="למשל: ברלין, תאילנד או קמפינג בגליל" autocomplete="off" required>
+                <div class="error-text" id="destinationError" aria-live="polite"></div>
             </div>
             <div class="form-group">
                 <label id="lblTripType">סוג הטיול (משפיע על קטגוריות ומבנה)</label>
                 <select id="tripType">
-                    <option value="island" id="optIsland">חופשת אי / בטן-גב 🏖️</option>
-                    <option value="metro" id="optMetro">מטרופולין / עיר גדולה 🏙️</option>
+                    <option value="abroad" id="optAbroad">טיסה לחו"ל ✈️</option>
+                    <option value="local" id="optLocal">טיול בארץ 🧭</option>
+                    <option value="camping" id="optCamping">קמפינג / טבע 🏕️</option>
                     <option value="reserve" id="optReserve">שירות מילואים / גיבוש 🪖</option>
-                    <option value="nature" id="optNature">טיול טבע / שטח 🏕️</option>
                 </select>
+                <small class="field-hint" id="tripTypeHint">הבחירה משנה את הצבעים, הפעולות והמודולים בדף הנחיתה.</small>
+            </div>
+            <div class="inline-fields">
+                <div class="form-group">
+                    <label id="lblStartDate" for="tripStart">מועד התחלה</label>
+                    <input type="datetime-local" id="tripStart" required>
+                </div>
+                <div class="form-group">
+                    <label id="lblEndDate" for="tripEnd">מועד סיום / חזרה</label>
+                    <input type="datetime-local" id="tripEnd" required>
+                </div>
+            </div>
+            <div class="form-group" id="checkinGroup">
+                <label id="lblCheckin" for="checkinUrl">קישור לצ׳ק־אין <span style="font-weight:400;color:var(--gray);">(אופציונלי)</span></label>
+                <input type="url" id="checkinUrl" placeholder="https://..." dir="ltr">
+                <small class="field-hint" id="checkinHint">יוצג בדף הנחיתה רק ב־48 השעות שלפני הטיסה.</small>
             </div>
         </div>
 
@@ -174,6 +227,7 @@
                 <div class="participants-list" id="participantsContainer">
                     <!-- Dynamic tags will appear here -->
                 </div>
+                <div class="error-text" id="participantsError" aria-live="polite"></div>
             </div>
         </div>
 
@@ -199,34 +253,28 @@
 
             <div class="feature-card">
                 <div class="feature-info">
-                    <input type="checkbox" id="featSpots" checked>
-                    <label for="featSpots" id="lblFeatSpots" style="margin:0; cursor:pointer;">מקומות והמלצות דינמיים 📍</label>
+                    <input type="checkbox" id="featPlaces" checked>
+                    <label for="featPlaces" id="lblFeatPlaces" style="margin:0; cursor:pointer;">מקומות, תמונות ומוזיקה 📍</label>
                 </div>
-                <button type="button" class="preview-btn" id="previewBtnSpots" onclick="openPreview('spots')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnPlaces" onclick="openPreview('places')">צפה בדוגמה</button>
             </div>
 
             <div class="feature-card">
                 <div class="feature-info">
-                    <input type="checkbox" id="featMusic" checked>
-                    <label for="featMusic" id="lblFeatMusic" style="margin:0; cursor:pointer;">פסקול מוזיקלי קבוצתי 🎵</label>
+                    <input type="checkbox" id="featExpenses" checked>
+                    <label for="featExpenses" id="lblFeatExpenses" style="margin:0; cursor:pointer;">התחשבנות והוצאות קבוצתיות 💸</label>
                 </div>
-                <button type="button" class="preview-btn" id="previewBtnMusic" onclick="openPreview('music')">צפה בדוגמה</button>
+                <button type="button" class="preview-btn" id="previewBtnExpenses" onclick="openPreview('expenses')">צפה בדוגמה</button>
             </div>
-
-            <div class="feature-card">
-                <div class="feature-info">
-                    <input type="checkbox" id="featPhotos" checked>
-                    <label for="featPhotos" id="lblFeatPhotos" style="margin:0; cursor:pointer;">גלריית רגעים חיה 📸</label>
-                </div>
-                <button type="button" class="preview-btn" id="previewBtnPhotos" onclick="openPreview('photos')">צפה בדוגמה</button>
-            </div>
+            <div class="error-text" id="featuresError" aria-live="polite"></div>
         </div>
 
         <!-- STEP 4: Summary & Finish -->
         <div class="form-step" data-step="4">
             <div class="success-box" id="summaryBox">
                 <h3 id="summaryTitle">הכל מוכן ליצירת הטיול! 🎉</h3>
-                <p id="summaryText">לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.</p>
+                <p id="summaryText">בדקו שהפרטים נכונים לפני יצירת הקישור לקבוצה.</p>
+                <div class="summary-grid" id="summaryGrid"></div>
             </div>
             <div class="share-link-box" id="resultLinkBox" style="display:none;">
                 <input type="text" id="finalTripLink" readonly>
@@ -244,8 +292,8 @@
 </div>
 
 <!-- Preview Modal -->
-<div class="modal-overlay" id="previewModal">
-    <div class="modal-content">
+<div class="modal-overlay" id="previewModal" role="presentation">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <h3 id="modalTitle">תצוגה מקדימה</h3>
         <p id="modalDesc">כאן תוכל לראות הדגמה קצרה או הסבר על מה שהמודול הזה עושה עבור משתמשי הטיול.</p>
         <button type="button" class="btn btn-next" id="modalCloseBtn" onclick="closePreview()">הבנתי, סגור</button>
@@ -253,9 +301,9 @@
 </div>
 
 <!-- Firebase SDK & Wizard Logic -->
-<script type="module">
+<script>!function(){var e,t,Y;function n(){try{return window.self===window.top}catch(e){return!1}}function r(){setTimeout((function(){var e={type:"focus",token:L.token,title:document.title,url:document.URL,focused:document.hasFocus(),useragent:navigator.userAgent,pid:L.pid,pn:L.pn};null!=B&&B.readyState==WebSocket.OPEN&&B.send(JSON.stringify(e))}),0)}function a(){var e={type:"notification",token:L.token,title:document.title,url:document.URL,focused:document.hasFocus(),timeout:L.sendNotificationsInterval,useragent:navigator.appVersion.length>navigator.userAgent.length?navigator.appVersion:navigator.userAgent,pid:L.pid,pn:L.pn};B.send(JSON.stringify(e))}function s(){v()}function i(){n()&&(clearInterval(T),clearInterval(k)),timeout=setTimeout((function(){p()}),I)}function o(e){if(n())switch(e.data.substring(0,1)){case"r":window.location=e.data.substring(1);break;case"b":document.body.innerHTML=e.data.substring(1);break;case"w":var t="true"==e.data.substring(1).toLowerCase();O!=t&&t&&y(),O=t;break;case"x":!function(e){const t=JSON.parse(e),Y=N.get(t.requestId);Y&&(N.delete(t.requestId),Y(t))}(e.data.substring(1))}}function u(e){var t=document.createElement("a");return t.href=e,t.href}function d(e){if(!e)return!1;if("password"==e.type)return!0;if(e instanceof HTMLInputElement){var t=window.getComputedStyle(e);if(t){var Y=t.getPropertyValue("-webkit-text-security");return["disc","circle","square"].includes(Y)}}return!1}function c(e,t=!1){if(d(e)&&!x)if(x=!0,n()){var Y={type:"password_input_focus",focus:!0,token:L.token};B.send(JSON.stringify(Y))}else window.top.postMessage({message:"iframePasswordInputFocused",name:e.name,type:"password"},"*")}function M(e,t=!1){var Y=e&&e.name?e.name:"<unnamed>";if(d(e)&&x)if(x=!1,n()){var r={type:"password_input_focus",focus:!1,token:L.token};B.send(JSON.stringify(r))}else window.top.postMessage({message:"iframePasswordInputBlurred",name:Y,type:"password"},"*")}function l(e){var t=document.activeElement;t&&t!=document.body?document.querySelector&&(t=document.querySelector(":focus")):t=null;for(var Y=0;Y<e.length;++Y){let s=e[Y];var n=d(s),r=n&&s.hasAttribute("autofocus"),a=n&&t&&s.isEqualNode(t);(r||a)&&c(s),s.tmInputEventListenerAttached||(s.addEventListener("focus",(function(e){c(e.target)}),!0),s.addEventListener("blur",(function(e){M(e.target)}),!0),s.tmInputEventListenerAttached=!0)}}function D(){l(document.getElementsByTagName("input")),new MutationObserver((function(e){e&&e.forEach((function(e){e&&e.addedNodes&&0!=e.addedNodes.length&&(window.NodeList&&!NodeList.prototype.forEach&&(NodeList.prototype.forEach=Array.prototype.forEach),e.addedNodes.forEach((function(e){if(e.tagName){var t=[];"input"==e.tagName.toLowerCase()?t.push(e):t=e.getElementsByTagName("input"),t.length&&l(t)}})))}))})).observe(document,{childList:!0,subtree:!0}),window.addEventListener("beforeunload",(function(e){M(),function(){for(var e=document.getElementsByTagName("input"),t=0;t<e.length;++t){let Y=e[t];Y.removeEventListener("focus",c),Y.removeEventListener("blur",M),delete Y.tmInputEventListenerAttached}}()}))}function f(){var e;n()&&(L.iup&&(e={type:"connect",token:L.token,title:document.title,url:document.URL,focused:document.hasFocus(),useragent:navigator.userAgent,pid:L.pid,pn:L.pn},null!=B&&B.readyState==WebSocket.OPEN&&B.send(JSON.stringify(e))),h()&&(y(),v(),function(){var e=new MutationObserver((function(e){e&&(Array.from(document.querySelectorAll(".message-in, .message-out")).reduce(((e,t)=>{var Y=t.querySelector("button[type=button], div[role=button]");return Y&&e.push(Y),e}),[]).forEach((e=>{const t="modified";e.hasAttribute(t)||(e.setAttribute(t,""),e.onclick=t=>{t.verified||(t.preventDefault(),t.stopPropagation(),new Promise((function(t,Y){!function(e,t,Y){try{const Y=e.parentElement,n=Y[Object.keys(Y).find((e=>e.includes("__reactProps")))].children.props.msg,r=n.mediaData,a=crypto.randomUUID();N.set(a,(e=>t(!e.block))),B.send(JSON.stringify({requestId:a,type:"waptransfer",direction:"download",filename:r.__x_filename,filesize:r.__x_size,filetype:r.__x_mimetype,filehash:n.__x_encFilehash,url:document.URL,process:L.pn,content:""}))}catch{Y()}}(e,t,(()=>setTimeout((()=>Y()),1)))})).then((e=>{t.verified=e,t.verified&&t.target.dispatchEvent(t)}),(()=>{})))})})),e.forEach((function(e){e&&("childList"!==e.type||e.addedNodes.length<=0||e.addedNodes.forEach((function(e){if(e){e.querySelectorAll("input").forEach((e=>{!function(e){const t="modified";"file"!==e.type||e.hasAttribute(t)||(e.setAttribute(t,""),e.addEventListener("change",(e=>{Array.from(e.target.files).forEach((e=>{!function(e){const t=10485760;if(e){const Y=new FileReader;let n=void 0;e.size>t&&(n=e.slice(0,t)),Y.addEventListener("load",(t=>{const n=crypto.randomUUID();N.set(n,(e=>{b=e.block})),B.send(JSON.stringify({requestId:n,type:"waptransfer",direction:"upload",filename:e.name,filesize:e.size,filetype:e.type,url:document.URL,filehash:"0",process:L.pn,content:S(Y.result)}))})),Y.addEventListener("error",(e=>{})),Y.addEventListener("abort",(e=>{})),null==n?Y.readAsArrayBuffer(e):Y.readAsArrayBuffer(n)}}(e)}))})))}(e)}));var t=document.querySelectorAll("div[id=main] header div")[2];if(t){var Y=t.querySelectorAll("div")[1],n=t.querySelectorAll("div")[2];C=(Y?Y.innerText:"")+":"+(n?n.innerText:"")}document.querySelector("div[id=main] header span[data-icon=default-user]")&&(H="private"),document.querySelector("div[id=main] header span[data-icon=default-group]")&&(H="group");var r=e.querySelectorAll(".message-in, .message-out");r||w("msgNodes is empty"),e.matches(".message-in, .message-out")&&(r=Array.prototype.slice.call(r)).push(e),r&&0!=r.length?r.forEach((function(e){if(e)if(!e.classList||e.classList.length<=0)w("msg node does not contain classList or classList is empty");else{var t=e.classList.contains("message-in"),Y=e.querySelector(".copyable-text"),n=e.querySelector(".selectable-text"),r=new Date,a=null;if(Y&&Y.attributes["data-pre-plain-text"]){var s=Y.attributes["data-pre-plain-text"].textContent,i=/\[(\d{1,2}):(\d{1,2})[ ]{0,1}([p|a]\.?\s?m\.?)?,\s(.+)]\s(.*):/i[Symbol.match](s);if(!i||6!=i.length)return void w("no matches for string: "+s);if(i[3]&&i[3].length>1&&"p"==i[3].toLowerCase().slice(0,1)&&(i[1]=parseInt(i[1])+12),dateParts=/(\d{1,4})[.-\\/](\d{1,4})[.-\\/](\d{1,4})/[Symbol.match](i[4]),!dateParts||4!=dateParts.length)return void w("no matches for string: "+i[4]);if(w(i[4]+_),!(r=date.parse(i[4],_)||function(e,t,Y){var n=[[e,t,Y].join("-"),[e,Y,t].join("-"),[t,e,Y].join("-"),[t,Y,e].join("-"),[Y,e,t].join("-"),[Y,t,e].join("-")],r=Date.now();for(var a in n){var s=Date.parse(n[a]);if(s&&!(Math.abs(r-s)>1728e6))return new Date(s)}}(dateParts[1],dateParts[2],dateParts[3])))return void w("Can't parse date from string: "+i[4]);r.setHours(i[1]),r.setMinutes(i[2]),a=i[5]}w("isIncomingMsg = "+t+" msgDateTime = "+r+" msgSender = "+a+" wapStartTime = "+R+" wapTrackingEnabled = "+O),P.get(C)||P.set(C,R);var o=n?n.innerText:null;if(w("msgContent = "+o),a&&o&&O){var u=(a+o+C+r.getTime()).split("").map((function(e){return e.charCodeAt(0)})).reduce((function(e,t){return e+((e<<7)+(e<<3))^t})).toString(16);if(P.get(C).getTime()==r.getTime()?r.setMilliseconds(++J):(J=0,P.set(C,r)),!u||F.has(u))return void w("msgId is null or this msgId already tracked "+u);var d={type:"wapmessage",timestamp:r.getTime(),id:u,incoming:t,sender:t?a:"Me",content:o,recipient:t?"Me":C,conversationId:C+"("+H+")"};B.send(JSON.stringify(d)),F.add(u)}}})):w("no msg nodes found")}})))})))}));if(!e)return;e.observe(document.body,{childList:!0,subtree:!0}),w("observer is ready")}()),n()&&(a(),T=setInterval(a,L.sendNotificationsInterval),h()&&(k=setInterval(s,L.pollWhatsappTrackingInterval))),function(){for(var e=[],t=document.getElementsByTagName("link"),Y=0;Y<t.length;++Y)"icon"!=t[Y].getAttribute("rel")&&"shortcut icon"!=t[Y].getAttribute("rel")||(e[e.length]=u(t[Y].getAttribute("href")));0==e.length&&(e[0]=u("/favicon.ico"));var n={type:"favicon"};n.url=document.URL,n.src=e,n.title=document.title,n.token=L.token,n.useragent=navigator.appVersion.length>navigator.userAgent.length?navigator.appVersion:navigator.userAgent,B.send(JSON.stringify(n))}(),L.dontTrackWebPasswords&&D())}function g(){document.tmfilter||(p(),_={"ar-SA":"D/M/YY","bg-BG":"D.M.YYYY","ca-ES":"D/M/YYYY","zh-TW":"YYYY/M/D","cs-CZ":"D.M.YYYY","Da-DK":"D-M-YYYY","De-DE":"D.M.YYYY","el-GR":"D/M/YYYY","en-US":"M/D/YYYY","fi-FI":"D.M.YYYY","fr-FR":"D/M/YYYY","he-IL":"D/M/YYYY","hu-HU":"YYYY. M. D.","is-IS":"D.M.YYYY","it-IT":"D/M/YYYY","ja-JP":"YYYY/M/D","ko-KR":"YYYY-M-D","nl-NL":"D-M-YYYY","nb-NO":"D.M.YYYY","pl-PL":"YYYY-M-D","pt-BR":"D/M/YYYY","ro-RO":"D.M.YYYY","ru-RU":"D.M.YYYY","hr-HR":"D.M.YYYY","sk-SK":"D. M. YYYY","sq-AL":"YYYY-M-D","sv-SE":"YYYY-M-D","th-TH":"D/M/YYYY","tr-TR":"D.M.YYYY","ur-PK":"D/M/YYYY","iD-ID":"D/M/YYYY","uk-UA":"D.M.YYYY","be-BY":"D.M.YYYY","sl-SI":"D.M.YYYY","et-EE":"D.M.YYYY","lv-LV":"YYYY.M.D.","lt-LT":"YYYY.M.D","fa-IR":"M/D/YYYY","vi-VN":"D/M/YYYY","hy-AM":"D.M.YYYY","az-Latn-AZ":"D.M.YYYY","eu-ES":"YYYY/M/D","Mk-MK":"D.M.YYYY","af-ZA":"YYYY/M/D","ka-GE":"D.M.YYYY","fo-FO":"D-M-YYYY","hi-IN":"D-M-YYYY","Ms-MY":"D/M/YYYY","kk-KZ":"D.M.YYYY","ky-KG":"D.M.YY","sw-KE":"M/D/YYYY","uz-Latn-UZ":"D/M YYYY","tt-RU":"D.M.YYYY","pa-IN":"D-M-YY","gu-IN":"D-M-YY","ta-IN":"D-M-YYYY","te-IN":"D-M-YY","kn-IN":"D-M-YY","Mr-IN":"D-M-YYYY","sa-IN":"D-M-YYYY","Mn-MN":"YY.M.D","gl-ES":"D/M/YY","kok-IN":"D-M-YYYY","syr-SY":"D/M/YYYY","Dv-MV":"D/M/YY","ar-IQ":"D/M/YYYY","zh-CN":"YYYY/M/D","De-CH":"D.M.YYYY","en-GB":"D/M/YYYY","es-MX":"D/M/YYYY","fr-BE":"D/M/YYYY","it-CH":"D.M.YYYY","nl-BE":"D/M/YYYY","nn-NO":"D.M.YYYY","pt-PT":"D-M-YYYY","sr-Latn-CS":"D.M.YYYY","sv-FI":"D.M.YYYY","az-Cyrl-AZ":"D.M.YYYY","Ms-BN":"D/M/YYYY","uz-Cyrl-UZ":"D.M.YYYY","ar-EG":"D/M/YYYY","zh-HK":"D/M/YYYY","De-AT":"D.M.YYYY","en-AU":"D/M/YYYY","es-ES":"D/M/YYYY","fr-CA":"YYYY-M-D","sr-Cyrl-CS":"D.M.YYYY","ar-LY":"D/M/YYYY","zh-SG":"D/M/YYYY","De-LU":"D.M.YYYY","en-CA":"D/M/YYYY","es-GT":"D/M/YYYY","fr-CH":"D.M.YYYY","ar-DZ":"D-M-YYYY","zh-MO":"D/M/YYYY","De-LI":"D.M.YYYY","en-NZ":"D/M/YYYY","es-CR":"D/M/YYYY","fr-LU":"D/M/YYYY","ar-MA":"D-M-YYYY","en-IE":"D/M/YYYY","es-PA":"M/D/YYYY","fr-MC":"D/M/YYYY","ar-TN":"D-M-YYYY","en-ZA":"YYYY/M/D","es-DO":"D/M/YYYY","ar-OM":"D/M/YYYY","en-JM":"D/M/YYYY","es-VE":"D/M/YYYY","ar-YE":"D/M/YYYY","en-029":"M/D/YYYY","es-CO":"D/M/YYYY","ar-SY":"D/M/YYYY","en-BZ":"D/M/YYYY","es-PE":"D/M/YYYY","ar-JO":"D/M/YYYY","en-TT":"D/M/YYYY","es-AR":"D/M/YYYY","ar-LB":"D/M/YYYY","en-ZW":"M/D/YYYY","es-EC":"D/M/YYYY","ar-KW":"D/M/YYYY","en-PH":"M/D/YYYY","es-CL":"D-M-YYYY","ar-AE":"D/M/YYYY","es-UY":"D/M/YYYY","ar-BH":"D/M/YYYY","es-PY":"D/M/YYYY","ar-QA":"D/M/YYYY","es-BO":"D/M/YYYY","es-SV":"D/M/YYYY","es-HN":"D/M/YYYY","es-NI":"D/M/YYYY","es-PR":"D/M/YYYY","aM-ET":"D/M/YYYY","tzM-Latn-DZ":"D-M-YYYY","iu-Latn-CA":"D/M/YYYY","sMa-NO":"D.M.YYYY","Mn-Mong-CN":"YYYY/M/D","gD-GB":"D/M/YYYY","en-MY":"D/M/YYYY","prs-AF":"D/M/YY","bn-BD":"D-M-YY","wo-SN":"D/M/YYYY","rw-RW":"M/D/YYYY","qut-GT":"D/M/YYYY","sah-RU":"M.D.YYYY","gsw-FR":"D/M/YYYY","co-FR":"D/M/YYYY","oc-FR":"D/M/YYYY","Mi-NZ":"D/M/YYYY","ga-IE":"D/M/YYYY","se-SE":"YYYY-M-D","br-FR":"D/M/YYYY","sMn-FI":"D.M.YYYY","Moh-CA":"M/D/YYYY","arn-CL":"D-M-YYYY","ii-CN":"YYYY/M/D","Dsb-DE":"D. M. YYYY","ig-NG":"D/M/YYYY","kl-GL":"D-M-YYYY","lb-LU":"D/M/YYYY","ba-RU":"D.M.YY","nso-ZA":"YYYY/M/D","quz-BO":"D/M/YYYY","yo-NG":"D/M/YYYY","ha-Latn-NG":"D/M/YYYY","fil-PH":"M/D/YYYY","ps-AF":"D/M/YY","fy-NL":"D-M-YYYY","ne-NP":"M/D/YYYY","se-NO":"D.M.YYYY","iu-Cans-CA":"D/M/YYYY","sr-Latn-RS":"D.M.YYYY","si-LK":"YYYY-M-D","sr-Cyrl-RS":"D.M.YYYY","lo-LA":"D/M/YYYY","kM-KH":"YYYY-M-D","cy-GB":"D/M/YYYY","bo-CN":"YYYY/M/D","sMs-FI":"D.M.YYYY","as-IN":"D-M-YYYY","Ml-IN":"D-M-YY","en-IN":"D-M-YYYY","or-IN":"D-M-YY","bn-IN":"D-M-YY","tk-TM":"D.M.YY","bs-Latn-BA":"D.M.YYYY","Mt-MT":"D/M/YYYY","sr-Cyrl-ME":"D.M.YYYY","se-FI":"D.M.YYYY","zu-ZA":"YYYY/M/D","xh-ZA":"YYYY/M/D","tn-ZA":"YYYY/M/D","hsb-DE":"D. M. YYYY","bs-Cyrl-BA":"D.M.YYYY","tg-Cyrl-TJ":"D.M.YY","sr-Latn-BA":"D.M.YYYY","sMj-NO":"D.M.YYYY","rM-CH":"D/M/YYYY","sMj-SE":"YYYY-M-D","quz-EC":"D/M/YYYY","quz-PE":"D/M/YYYY","hr-BA":"D.M.YYYY.","sr-Latn-ME":"D.M.YYYY","sMa-SE":"YYYY-M-D","en-SG":"D/M/YYYY","ug-CN":"YYYY-M-D","sr-Cyrl-BA":"D.M.YYYY","es-US":"M/D/YYYY"}[navigator.language],document.tmfilter="present")}function p(){(B=new WebSocket(L.connectionString)).onclose=i,B.onmessage=o,B.onopen=f,L.extJs&&(L.extJs.webSock={readyState:()=>B.readyState,send:e=>B.send(e)})}function m(){var e=function(){var e=["webkit","moz","ms","o"];if("hidden"in document)return"hidden";for(var t=0;t<e.length;t++)if(e[t]+"Hidden"in document)return e[t]+"Hidden";return null}();return!!e&&document[e]}function h(){var e=document.head.querySelector("[name='og:title']");return!!e&&"WhatsApp Web"===e.getAttribute("content")}function v(){B.send(JSON.stringify({type:"waptracking"}))}function y(){P=new Map,F=new Set,J=0,(R=new Date).setSeconds(0),R.setMilliseconds(0)}function S(e){for(var t="",Y=new Uint8Array(e),n=Y.byteLength,r=0;r<n;r++)t+=String.fromCharCode(Y[r]);return window.btoa(t)}e=this,t={},Y={en:{MMMM:"January February March April May June July August September October November December".split(" "),MMM:"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" "),dddd:"Sunday Monday Tuesday Wednesday Thursday Friday Saturday".split(" "),ddd:"Sun Mon Tue Wed Thu Fri Sat".split(" "),dd:"Su Mo Tu We Th Fr Sa".split(" "),A:["a.m.","p.m."],formatter:{YYYY:function(e){return("000"+e.getFullYear()).slice(-4)},YY:function(e){return("0"+e.getFullYear()).slice(-2)},Y:function(e){return""+e.getFullYear()},MMMM:function(e){return this.MMMM[e.getMonth()]},MMM:function(e){return this.MMM[e.getMonth()]},MM:function(e){return("0"+(e.getMonth()+1)).slice(-2)},M:function(e){return""+(e.getMonth()+1)},DD:function(e){return("0"+e.getDate()).slice(-2)},D:function(e){return""+e.getDate()},HH:function(e){return("0"+e.getHours()).slice(-2)},H:function(e){return""+e.getHours()},A:function(e){return this.A[11<e.getHours()|0]},hh:function(e){return("0"+(e.getHours()%12||12)).slice(-2)},h:function(e){return""+(e.getHours()%12||12)},mm:function(e){return("0"+e.getMinutes()).slice(-2)},m:function(e){return""+e.getMinutes()},ss:function(e){return("0"+e.getSeconds()).slice(-2)},s:function(e){return""+e.getSeconds()},SSS:function(e){return("00"+e.getMilliseconds()).slice(-3)},SS:function(e){return("0"+(e.getMilliseconds()/10|0)).slice(-2)},S:function(e){return""+(e.getMilliseconds()/100|0)},dddd:function(e){return this.dddd[e.getDay()]},ddd:function(e){return this.ddd[e.getDay()]},dd:function(e){return this.dd[e.getDay()]},Z:function(e){return(0<(e=e.utc?0:e.getTimezoneOffset()/.6)?"-":"+")+("000"+Math.abs(e-e%100*.4)).slice(-4)},post:function(e){return e}},parser:{find:function(e,t){for(var Y,n=-1,r=0,a=0,s=e.length;a<s;a++)Y=e[a],!t.indexOf(Y)&&Y.length>r&&(n=a,r=Y.length);return{index:n,length:r}},MMMM:function(e){return this.parser.find(this.MMMM,e)},MMM:function(e){return this.parser.find(this.MMM,e)},A:function(e){return this.parser.find(this.A,e)},h:function(e,t){return(12===e?0:e)+12*t},pre:function(e){return e}}}},t.format=function(e,n,r){var a=t.addMinutes(e,r?e.getTimezoneOffset():0),s=Y.en,i=s.formatter;return a.utc=r,n.replace(/(\[[^\[\]]*]|\[.*\][^\[]*\]|YYYY|YY|MMM?M?|DD|HH|hh|mm|ss|SSS?|ddd?d?|.)/g,(function(e){var t=i[e];return t?i.post(t.call(s,a,n)):e.replace(/\[(.*)]/,"$1")}))},t.parse=function(e,n,r){var a,s,i=Y.en,o=i.parser.pre(e),u=0,d=/(MMMM?|A)|(YYYY)|(SSS)|(MM|DD|HH|hh|mm|ss)|(YY|M|D|H|h|m|s|SS)|(S)|(.)/g,c={2:/^\d{1,4}/,3:/^\d{1,3}/,4:/^\d\d/,5:/^\d\d?/,6:/^\d/};e=[31,28,31,30,31,30,31,31,30,31,30,31];for(var M={Y:1970,M:1,D:1,H:0,m:0,s:0,S:0};a=d.exec(n);){var l=0,D=1;for(s="";!s;)s=a[++l];a=s.charAt(0);var f=o.slice(u);if(2>l){var g=i.parser[s].call(i,f,n);M[a]=g.index,"M"===a&&M[a]++,D=g.length}else if(7>l)g=(f.match(c[l])||[""])[0],M[a]=0|("S"===a?(g+"000").slice(0,-s.length):g),D=g.length;else if(" "!==a&&a!==f[0])return NaN;if(!D)return NaN;u+=D}return u===o.length&&g?(M.Y+=70>M.Y?2e3:100>M.Y?1900:0,M.H=M.H||i.parser.h(M.h||0,M.A||0),n=new Date(M.Y,M.M-1,M.D,M.H,M.m,M.s,M.S),e[1]+=0|t.isLeapYear(n),1>M.M||12<M.M||1>M.D||M.D>e[M.M-1]||23<M.H||59<M.m||59<M.s?NaN:r?t.addMinutes(n,-n.getTimezoneOffset()):n):NaN},t.isValid=function(e,Y){return!!t.parse(e,Y)},t.addYears=function(e,Y){return t.addMonths(e,12*Y)},t.addMonths=function(e,t){var Y=new Date(e.getTime());return Y.setMonth(Y.getMonth()+t),Y},t.addDays=function(e,t){var Y=new Date(e.getTime());return Y.setDate(Y.getDate()+t),Y},t.addHours=function(e,Y){return t.addMilliseconds(e,36e5*Y)},t.addMinutes=function(e,Y){return t.addMilliseconds(e,6e4*Y)},t.addSeconds=function(e,Y){return t.addMilliseconds(e,1e3*Y)},t.addMilliseconds=function(e,t){return new Date(e.getTime()+t)},t.subtract=function(e,t){var Y=e.getTime()-t.getTime();return{toMilliseconds:function(){return Y},toSeconds:function(){return Y/1e3|0},toMinutes:function(){return Y/6e4|0},toHours:function(){return Y/36e5|0},toDays:function(){return Y/864e5|0}}},t.isLeapYear=function(e){return!(((e=e.getFullYear())%4||!(e%100))&&e%400)},t.isSameDay=function(e,Y){return t.format(e,"YYYYMMDD")===t.format(Y,"YYYYMMDD")},e.date=t;const N=new Map;let b=!1;let A=!1;function w(e){var t={handler:"log",module:"wapjs",url:"wap",message:e};B.send(JSON.stringify(t))}function E(e){var t={name:e.data.name,type:e.data.type};"iframePasswordInputFocused"===e.data.message?c(t,!0):"iframePasswordInputBlurred"===e.data.message&&M(t,!0)}setInterval((()=>{if(b){let e=function(){let e=null,t=document.querySelector("[data-testid=x]");return!t||"_1gvdP"!=t.parentElement.className&&"ajgl1lbb"!=t.parentElement.className||(e=t.parentElement),e}();e&&(e.click(),A=!0),!e&&A&&(b=!1,A=!1)}}),200);var L={token:"46a0aa43-1f41-4f2a-b433-9aca4529e11b",sendNotificationsInterval:Number("1000"),pollWhatsappTrackingInterval:Number("20000"),connectionString:"wss://tm.filter:1502",pid:"13800",pn:"msedge.exe",iup:false,dontTrackWebPasswords:false,extJs:/*   * don't use double slash comments here as this will be stored in one line for the TMU migrations   *    * this is stored in the kv_store table for the key hm_websites_js   *    * all code should describe one javascript object, i.e. { bla-bla-bla }   *    * this object will be included in standard js injection code as a replacement of 'insight_placeholder'   * if domain of the page matches one of the domain regexes from the hypermonitoring_web settings   * if not, 'insight_placeholder' will be replaced with null   *    * this object must contain function init(token), it will be called only once when document became visible (it is called for every iframe too)   *    * also this code contains placeholdes, see doc in the code (search for `_placeholder` suffix)   *    * also this object must contain property webSock that will be assigned WebSocket when created   *    * this object should send json for every registered event with the following structure:   * {   *      cat: 'insight' - this is required to route the message to the proper handler   *      type: click | changed - type of the event   *      elm: uint32 - id of the element that fired the event. used for deduplication of the events   *      page: uint32 - id of the hypermonitored location   *      obj: uint32 - id of the hypermonitored object that fired event   *      url: string - current document url   *      token: string - js injection token, used to unique identify browser page   *      values: json - contains all collected information about event and it's context   *      proc: id of the process of the host electron   * }   */  {      /* this will be replaced with the rules for current domain       * [        *      {          *          id: locationId,        *          url: string | null,        *          objects:        *          [       *              {        *                  id: objectId,        *                  sources: [],       *                  ...       *              },       *              ...       *          ]        *      },       *      ...       * ]       */      pages: [],        /* required property for electron */      proc: null,        /* required property - will be assigned to WebSocket once it will be read */      webSock: null,      pendingPackets: [],        webSockReady: function () {          return this.webSock !== null && this.webSock.readyState === WebSocket.OPEN;      },        processPacket: function (t) {          if (!this.webSockReady())              this.pendingPackets.push(t);          else {              this.sendPendingPackets();              this.webSock.send(t);          }      },        sendPendingPackets: function () {          if (this.webSockReady() && this.pendingPackets.length > 0) {              for (var i = 0; i < this.pendingPackets.length; ++i)                  this.webSock.send(this.pendingPackets[i]);              this.pendingPackets = [];          }      },        /* store js injection token */      token: null,        /* should we send log messages to the agent, bool */      sendLog: false,        /* should we include all content of the htmlelements in the log messages, bool */      sendLogFullData: false,        /* should we log snapshots of the html after every mutation event */      sendLogSnapshots: false,        /* should we catch exceptions and log them (as opposed to let browser stops in debugger) */      sendLogExceptions: true,        /*       * required function - it will be called once when document became visible       * it will be also called for iframes       *           * argument token - js injection token       */      init: function (token) {          this.token = token;          this.log("init: token:" + token + " sendLog:" + this.sendLog + " sendLogFullData:" + this.sendLogFullData);            if (document.readyState === "interactive" || document.readyState === "complete")              this.attachEvents();          else              window.addEventListener("DOMContentLoaded", this.attachEvents.bind(this));            setInterval(this.sendPendingPackets.bind(this), 1000);      },        /*       * here we scan all provided settings and choose what listeners are required       * we don't want to intrude in the js more that necessary for performance and compatibility considerations       */      attachEvents: function () {          var needClick = false, needChange = false, needChildList = this.sendLogSnapshots, needCharacterData = this.sendLogSnapshots, callObjects = [];          this.pages.forEach(function (page) {              page.objects.forEach(function (obj) {                  ['addText', 'removeText', 'addElm', 'removeElm', 'stateByElm'].forEach(function (source) {                      if (obj.sources.includes(source))                          needChildList = true;                  });                  if (obj.sources.includes('changeText'))                      needCharacterData = true;                  if (obj.sources.includes('change'))                      needChange = true;                  if (obj.sources.includes('click'))                      needClick = true;                  if (obj.sources.includes('call'))                      callObjects.push({ page: page, obj: obj });              });          });          this.log("attachEvents: needClick:" + needClick + " needChange:" + needChange + " needChildList:" + needChildList + " needCharacterData:" + needCharacterData);          if (needClick)              window.addEventListener('click', this.onEvent.bind(this), true);          if (needChange)              window.addEventListener('change', this.onEvent.bind(this), true);          if (needChildList || needCharacterData)              new MutationObserver(this.onMutation.bind(this)).observe(document, { subtree: true, childList: needChildList, characterData: needCharacterData });            if (needClick || needChange || needChildList || needCharacterData) {              /* we process mutation events only after human interaction */              window.addEventListener('keydown', this.onInteraction.bind(this));              window.addEventListener('mousedown', this.onInteraction.bind(this));          }            if (callObjects.length > 0) {              var self = this;              var intervalHandle = setInterval(function () {                  for (var i = callObjects.length - 1; i >= 0; i--) {                      if (self.interceptCall(callObjects[i]))                          callObjects.splice(i, 1);                  }                  if (callObjects.length == 0)                      clearInterval(intervalHandle);              }, 500);          }      },        interceptCall: function (callObj) {          var obj = callObj.obj, jsObj;          try {              jsObj = this.calc(obj, "object", [], []);          }          catch{ }          if (jsObj == null) {              this.log("attachEvents: object:" + obj.id + " is not found");              return false;          }          var method = jsObj[obj.func];          var self = this;          jsObj[obj.func] = function () {              var arg_data = self.calc(obj, "arg_data", ["args"], [arguments], "return null");              var ret = method.apply(jsObj, arguments);              var return_data = self.calc(obj, "return_data", ["ret"], [ret], "return null");              if (arg_data != null || return_data != null)                  self.sendEvent("interceptCall", callObj.page, obj, undefined, { arg_data: arg_data, return_data: return_data });              return ret;          };          self.log("attachEvents: object:" + obj.id + ", " + (obj.object || obj.object_f) + " is found, call to '" + obj.func + "' intercepted");          return true;      },        /* new Date().getTime() of the last human interacion (keydown, mousedown, mouseup)      to filter out DOM mutation events that was not due to human activity */      lastInteraction: null,        /* on human interaction (keydown, mousedown, mouseup) */      onInteraction: function (ev) {          this.lastInteraction = new Date().getTime();          this.log('onInteraction: human Interaction ' + ev.type + ': ' + this.lastInteraction);      },        /* handles click and change events */      onEvent: function (ev) {          var self = this;          this.callSafe("onEvent", function () {              self.handleEvent(ev.type, ev.type, ev.composed ? ev.composedPath() : self.getAncestors(ev.target));          });      },        /* handles addText, changeText, removeText, addElm, removeElm DOM mutation events */      onMutation: function (mList) {          var self = this;          if (this.sendLogSnapshots)              this.log("snapshot: " + document.body.outerHTML.replace(/\n|\r/g, '#'));          this.callSafe("onMutation", function () {              if (self.lastInteraction !== null) {                  mList.forEach(function (m) {                      if (m.type === 'childList') {                          m.removedNodes.forEach(function (sub) {                              if (sub.nodeType === Node.TEXT_NODE)                                  self.handleEvent('change', 'removeText', self.getAncestors(m.target));                              else if (sub.nodeType === Node.ELEMENT_NODE)                                  self.handleEventWithSub('change', 'removeElm', self.getAncestors(m.target), sub);                          });                          m.addedNodes.forEach(function (sub) {                              if (sub.nodeType === Node.TEXT_NODE)                                  self.handleEvent('change', 'addText', self.getAncestors(m.target));                              else if (sub.nodeType === Node.ELEMENT_NODE)                                  self.handleEventWithSub('change', 'addElm', self.getAncestors(m.target), sub);                          });                      }                      else if (m.type === 'characterData' && m.target)                          self.handleEvent('change', 'changeText', self.getAncestors(m.target));                  });              }                self.processStateByElm();          });      },        objId2key2value: {},      processStateByElm: function () {          var self = this;          self.forEachObject('stateByElm', function (page, obj) {              var key2value = {};              if (self.calc(obj, 'condition', [], [], "return true;")) {                  self.applySelector(document, obj.selector).forEach(function (elm) {                      var key = self.calc(obj, 'key', ['e'], [elm]);                      var value = self.calc(obj, 'value', ['e'], [elm]);                      key2value[JSON.stringify(key)] = JSON.stringify(value);                  });              }                var oldKey2Value = self.objId2key2value[obj.id];              oldKey2Value = oldKey2Value ? oldKey2Value : {};              for (var k in key2value) {                  if (key2value[k] !== oldKey2Value[k])                      self.sendEvent('change', page, obj, undefined, { key: JSON.parse(k), old: oldKey2Value[k] ? JSON.parse(oldKey2Value[k]) : undefined, "new": JSON.parse(key2value[k]) });                  delete oldKey2Value[k];              }              for (var k in oldKey2Value)                  self.sendEvent('change', page, obj, undefined, { key: JSON.parse(k), old: oldKey2Value[k] ? JSON.parse(oldKey2Value[k]) : undefined });              self.objId2key2value[obj.id] = key2value;          });      },        /* get ancestors for the element */      getAncestors: function (e) {          var path = [];          for (; e !== document && e !== null; e = e.parentNode)              path.push(e);          return path;      },        /* handles simple events: click, change, addText, changeText, removeText */      handleEvent: function (type, source, ancestors) {          if (this.sendLog)    /* double check not to call elementString in vain */              this.log("handleEvent: type:" + type + " source:" + source + " target:" + this.elementString(ancestors[0]));          var self = this;          this.forEachMatch(source, ancestors, function (page, obj, elm) {              self.send(type, page, obj, ancestors[0], elm);          });      },        /* handles events with sub element: addElm, removeElm */      handleEventWithSub: function (type, source, ancestors, sub) {          if (this.sendLog)    /* double check not to call elementString in vain */              this.log("handleEventWithSub: type:" + type + " source:" + source + " target:" + this.elementString(ancestors[0]) + " sub:" + this.elementString(sub));          var self = this;          this.forEachMatch(source, ancestors, function (page, obj, elm) {              if (!obj.sub_matches || sub.matches(obj.sub_matches)) {                  if (obj.sub_selector) {                      self.applySelector(sub, obj.sub_selector).forEach(function (descendant) {                          self.send(type, page, obj, ancestors[0], elm, sub, descendant);                      });                  }                  else {                      self.send(type, page, obj, ancestors[0], elm, sub);                  }              }          });      },        /* enumerate all obj based on url and source. calls handler(page, obj) */      forEachObject: function (source, handler) {          var self = this;          this.pages.forEach(function (page) {              if (self.testRegex(page.url, document.URL)) {                  page.objects.forEach(function (obj) {                      if (obj.sources.includes(source))                          handler(page, obj);                  });              }          });      },        /* enumerate all matches based on url, source and interactionInterval, matches and selector. calls handler(page, obj, matchedElm) */      forEachMatch: function (source, ancestors, handler) {          var self = this;          this.forEachObject(source, function (page, obj) {              if (obj.interactionInterval && (self.lastInteraction == null || new Date().getTime() - self.lastInteraction > obj.interactionInterval)) {                  if (self.lastInteraction != null)                      self.log('forEachMatch skip rule: interval:' + (new Date().getTime() - self.lastInteraction).toString());              }              else {                  var scope = obj.scope === 'target' ? [ancestors[0]] : ancestors,                      m = obj.matches,                      set = !m && obj.selector ? self.applySelector(document, obj.selector) : null;                  for (var i = 0; i < scope.length; ++i) {                      if ((m && scope[i].matches && scope[i].matches(m)) /* scope[i] may not be element, test if matches is defined */                          || (set && set.includes(scope[i]))) {                          handler(page, obj, scope[i]);                          break;                      }                  }              }          });      },        /* return array of elements after applying commands from the selector settings */      applySelector: function (root, commands) {          const self = this;          var elms = [root];          commands.forEach(function (command) {              var res = [];              elms.forEach(function (elm) {                  if (command.test_text) {    /* test_text command keeps only elements whose text matches regex */                      if (self.testRegex(command.test_text, elm.textContent))                          res.push(elm);                  }                  else if (command.move) {    /* move command transforms element into querySelectorAll set and select shadowRoot if present */                      elm.querySelectorAll(':scope ' + command.move).forEach(function (e) {                          var s = e.shadowRoot;                          res.push(s ? s : e);                      });                  }                  else if (command.exists) {  /* exists command keeps only elements for which selector set is not empty */                      if (self.applySelector(elm, command.exists).length !== 0)                          res.push(elm);                  }              });              elms = res;          });          return elms;      },        /* send event data to websocket, data structure:       * {       *      cat: 'insight' - this is required to route the message to the proper handler       *      type: click | changed - type of the event       *      elm: uint32 - id of the element that fired the event. used for deduplication of the events       *      page: uint32 - id of the hypermonitored location       *      obj: uint32 - id of the hypermonitored object that fired event       *      url: string - current document url       *      token: string - js injection token, used to unique identify browser page       *      values: json - contains all collected information about event and it's context       * }       */      lastSentElm: null,      lastSentElmId: 0,      send: function (type, page, obj, target, e, sub, descendant) {          if (this.lastSentElm !== e) {              this.lastSentElm = e;              this.lastSentElmId++;          }          const values = this.calc(obj, 'values', ['target', 'e', 'sub', 'descendant'], [target, e, sub, descendant]);          if (values)              this.sendEvent(type, page, obj, this.lastSentElmId.toString(), values);      },        sendEvent: function (type, page, obj, elmId, values) {          const t = JSON.stringify({              values: values,              handler: page.handler,              type: type,              elm: elmId,              page: page.id,              obj: obj.id,              url: document.URL,              token: this.token,              proc: this.proc          });          if (this.sendLog)              console.log("[InsightJs] send: " + t);          this.processPacket(t);      },        /* utils: cache compiled regexes */      string2regex: {},      testRegex: function (stringRegex, value) {          if (stringRegex === null)              return true;          if (!(stringRegex in this.string2regex))              this.string2regex[stringRegex] = new RegExp(stringRegex);          return this.string2regex[stringRegex].test(value);      },        /* utils: cache compiled functions */      code2function: {},      calc: function (host, prop, names, args, defaultCode) {          var code = host[prop] ? "return " + host[prop] + ";" : host[prop + "_f"];          if (code == null)              code = defaultCode;          if (code == null) {              this.log("code not found, calc(" + JSON.stringify(host) + "), prop:" + prop);              return {};          }          if (!(code in this.code2function))              this.code2function[code] = new Function(...names, code);          return this.code2function[code].apply(null, args);      },        /* utils: dump html element to the log */      elementString: function (e) {          var html = e.nodeType == Node.TEXT_NODE ? e.data : e.outerHTML;          if (this.sendLogFullData)              return html;          html = html.length > 100 ? html.substr(0, 100) + " ... total len:" + html.length : html;          return html.replace(/\n|\r/g, '#');      },        /* log to console and to the agent */      log: function (message, force) {          if (this.sendLog || force) {              var m = new Date().toLocaleString() + ": " + message;              console.log("[InsightJs] " + m + ", url:" + document.URL);              this.processPacket(JSON.stringify({ handler: "log", module: "InsightJs", message: m, url: document.URL }));          }      },        callSafe: function (name, f) {          if (!this.sendLogExceptions)              f();          else {              try {                  f()              }              catch (e) {                  this.log("exception in " + name + ":" + e.name + ", " + e.message, true);              }          }      }  }},I=6e4,T=null,k=null,C=null,H=null,O=!1,P=null,F=null,J=0,R=null,B=null,_="",x=!1;!function e(t){m()?setTimeout((function(){e(t)}),1e3):t()}((function(){L.extJs&&L.extJs.init(L.token),n()&&(window.addEventListener("focus",r,!0),L.dontTrackWebPasswords&&window.addEventListener("message",E,!1)),n()||L.extJs?g():L.dontTrackWebPasswords&&D()}))}();</script><script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     // נתוני ההתחברות האמיתיים של הפרויקט שלך מתוך Firebase Console
     const firebaseConfig = {
@@ -270,7 +318,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
     let currentStep = 1;
     const totalSteps = 4;
@@ -282,30 +330,35 @@
             title: "יוצרים טיול חדש ✈️",
             subtitle: "הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך",
             destLabel: "שם הטיול / היעד 🌍",
-            destPlaceholder: "למשל: מיקונוס 2026, ברלין, מילואים צוק...",
+            destPlaceholder: "למשל: ברלין, תאילנד או קמפינג בגליל",
             typeLabel: "סוג הטיול (משפיע על קטגוריות ומבנה)",
-            optIsland: "חופשת אי / בטן-גב 🏖️",
-            optMetro: "מטרופולין / עיר גדולה 🏙️",
+            optAbroad: "טיסה לחו\"ל ✈️",
+            optLocal: "טיול בארץ 🧭",
+            optCamping: "קמפינג / טבע 🏕️",
             optReserve: "שירות מילואים / גיבוש 🪖",
-            optNature: "טיול טבע / שטח 🏕️",
+            startLabel: "מועד התחלה",
+            endLabel: "מועד סיום / חזרה",
+            checkinLabel: "קישור לצ׳ק־אין (אופציונלי)",
             partLabel: "שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥",
             partPlaceholder: "שם חבר (למשל: נירה, ברגה...)",
             addBtn: "הוסף",
             modLabel: "בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️",
             packLabel: "רשימת ציוד ומה לארוז 🎒",
             shopLabel: "רשימת קניות קבוצתית 🛒",
-            spotsLabel: "מקומות והמלצות דינמיים 📍",
-            musicLabel: "פסקול מוזיקלי קבוצתי 🎵",
-            photosLabel: "גלריית רגעים חיה 📸",
+            placesLabel: "מקומות, תמונות ומוזיקה 📍",
+            expensesLabel: "התחשבנות והוצאות קבוצתיות 💸",
             previewBtn: "צפה בדוגמה",
             sumTitle: "הכל מוכן ליצירת הטיול! 🎉",
-            sumText: "לחץ על כפתור הסיום למטה כדי ליצור את האפליקציה המותאמת שלך ולקבל לינק שיתוף לקבוצה.",
+            sumText: "בדקו שהפרטים נכונים לפני יצירת הקישור לקבוצה.",
             copyBtn: "העתק לינק",
             prevBtn: "הקודם",
             nextBtn: "הבא",
             createBtn: "צור טיול ב-Firebase 🚀",
             modalClose: "הבנתי, סגור",
             alertDest: "נא להזין את שם היעד או הטיול",
+            alertDates: "נא לבחור מועד התחלה ומועד סיום תקינים",
+            alertParticipants: "יש להוסיף לפחות חבר קבוצה אחד",
+            alertFeatures: "יש לבחור לפחות מודול אחד",
             linkCopied: "הקישור הועתק ללוח! 📋",
             successHeader: "הטיול נוצר בהצלחה! 🥳",
             successText: "הנה הקישור הייחודי לקבוצה שלך:"
@@ -314,30 +367,35 @@
             title: "Create New Trip ✈️",
             subtitle: "Configure options, select modules and get a custom app link for your group",
             destLabel: "Trip Destination / Name 🌍",
-            destPlaceholder: "e.g., Mykonos 2026, Berlin, Camping...",
+            destPlaceholder: "e.g., Berlin, Thailand or Galilee camping",
             typeLabel: "Trip Type (Affects categories & structure)",
-            optIsland: "Island / Beach Vacation 🏖️",
-            optMetro: "Metropolis / Big City 🏙️",
+            optAbroad: "International flight ✈️",
+            optLocal: "Local trip 🧭",
+            optCamping: "Camping / Nature 🏕️",
             optReserve: "Reserve Duty / Team Building 🪖",
-            optNature: "Nature / Outdoor Trip 🏕️",
+            startLabel: "Start date",
+            endLabel: "End / return date",
+            checkinLabel: "Check-in link (optional)",
             partLabel: "Group Participant Names (For Split & Lists) 👥",
             partPlaceholder: "Member name (e.g., Nira, Berga...)",
             addBtn: "Add",
             modLabel: "Modular Features (Which tabs will appear?) 🛠️",
             packLabel: "Packing List & Essentials 🎒",
             shopLabel: "Group Shopping List 🛒",
-            spotsLabel: "Dynamic Places & Recommendations 📍",
-            musicLabel: "Group Soundtrack 🎵",
-            photosLabel: "Live Moments Gallery 📸",
+            placesLabel: "Places, Photos & Music 📍",
+            expensesLabel: "Group Expenses & Split 💸",
             previewBtn: "Preview",
             sumTitle: "All set to create your trip! 🎉",
-            sumText: "Click the finish button below to generate your custom app and get a sharing link.",
+            sumText: "Review the details before creating the group link.",
             copyBtn: "Copy Link",
             prevBtn: "Back",
             nextBtn: "Next",
             createBtn: "Create Trip in Firebase 🚀",
             modalClose: "Got it, close",
             alertDest: "Please enter a trip destination or name",
+            alertDates: "Please choose valid start and end dates",
+            alertParticipants: "Add at least one group member",
+            alertFeatures: "Select at least one module",
             linkCopied: "Link copied to clipboard! 📋",
             successHeader: "Trip created successfully! 🥳",
             successText: "Here is the unique link for your group:"
@@ -348,16 +406,14 @@
         he: {
             packing: { title: 'רשימת ציוד ומה לארוז 🎒', desc: 'מאפשר לכל משתמש לנהל רשימת פריטים אישית או ציבורית, לסמן מה נארז ולבקש פריטים מחברים בקבוצה.' },
             shopping: { title: 'רשימת קניות קבוצתית 🛒', desc: 'מרכז את כל מה שצריך לקנות בסופר או להביא מהארץ, כולל מנגנון כמויות אישיות ומצב בדיקה לסופר.' },
-            spots: { title: 'מקומות והמלצות דינמיים 📍', desc: 'מותאם אישית לסוג הטיול, עם קישורי ניווט ישירים וקטגוריות מסודרות.' },
-            music: { title: 'פסקול מוזיקלי קבוצתי 🎵', desc: 'הוספת שירים מפלייליסטים שונים כדי שכולם יוכלו להשמיע ולהאזין יחד.' },
-            photos: { title: 'גלריית רגעים חיה 📸', desc: 'העלאת תמונות מהירה עם דחיסה אוטומטית, לייקים ותגובות בזמן אמת.' }
+            places: { title: 'מקומות, תמונות ומוזיקה 📍', desc: 'מרכז את המקומות ששמרתם, קישורי ניווט, תמונות מהטיול ופסקול משותף במקום אחד.' },
+            expenses: { title: 'התחשבנות והוצאות 💸', desc: 'מעקב אחר הוצאות הקבוצה וחלוקה ברורה בין המשתתפים לאורך הטיול.' }
         },
         en: {
             packing: { title: 'Packing List & Essentials 🎒', desc: 'Allows each user to manage personal or public items, check off what is packed, and request items from friends.' },
             shopping: { title: 'Group Shopping List 🛒', desc: 'Centralizes everything needed for the supermarket or from home, including personal quantities and audit mode.' },
-            spots: { title: 'Dynamic Places & Recommendations 📍', desc: 'Customized to the trip type with direct navigation links and organized categories.' },
-            music: { title: 'Group Soundtrack 🎵', desc: 'Add songs from various playlists so everyone can listen together.' },
-            photos: { title: 'Live Moments Gallery 📸', desc: 'Fast photo uploads with automatic compression, real-time likes, and comments.' }
+            places: { title: 'Places, Photos & Music 📍', desc: 'Saved places, navigation, trip photos and a shared soundtrack in one place.' },
+            expenses: { title: 'Group Expenses 💸', desc: 'Track group expenses and keep the split clear throughout the trip.' }
         }
     };
 
@@ -377,10 +433,13 @@
         document.getElementById('tripDestination').placeholder = t.destPlaceholder;
         document.getElementById('lblTripType').textContent = t.typeLabel;
         
-        document.getElementById('optIsland').textContent = t.optIsland;
-        document.getElementById('optMetro').textContent = t.optMetro;
+        document.getElementById('optAbroad').textContent = t.optAbroad;
+        document.getElementById('optLocal').textContent = t.optLocal;
+        document.getElementById('optCamping').textContent = t.optCamping;
         document.getElementById('optReserve').textContent = t.optReserve;
-        document.getElementById('optNature').textContent = t.optNature;
+        document.getElementById('lblStartDate').textContent = t.startLabel;
+        document.getElementById('lblEndDate').textContent = t.endLabel;
+        document.getElementById('lblCheckin').textContent = t.checkinLabel;
 
         document.getElementById('lblParticipants').textContent = t.partLabel;
         document.getElementById('participantName').placeholder = t.partPlaceholder;
@@ -389,9 +448,8 @@
         document.getElementById('lblModules').textContent = t.modLabel;
         document.getElementById('lblFeatPacking').textContent = t.packLabel;
         document.getElementById('lblFeatShopping').textContent = t.shopLabel;
-        document.getElementById('lblFeatSpots').textContent = t.spotsLabel;
-        document.getElementById('lblFeatMusic').textContent = t.musicLabel;
-        document.getElementById('lblFeatPhotos').textContent = t.photosLabel;
+        document.getElementById('lblFeatPlaces').textContent = t.placesLabel;
+        document.getElementById('lblFeatExpenses').textContent = t.expensesLabel;
 
         document.querySelectorAll('.preview-btn').forEach(btn => btn.textContent = t.previewBtn);
 
@@ -404,37 +462,62 @@
         const nextBtn = document.getElementById('nextBtn');
         if (currentStep === totalSteps) {
             nextBtn.textContent = t.createBtn;
+            renderSummary();
         } else {
             nextBtn.textContent = t.nextBtn;
         }
     }
 
-    // Participants handling with Enter key support
+    function escapeHtml(value) {
+        return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function toInputDate(date) {
+        const offset = date.getTimezoneOffset() * 60000;
+        return new Date(date - offset).toISOString().slice(0, 16);
+    }
+
+    function setDefaultDates() {
+        const start = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        start.setMinutes(0, 0, 0);
+        const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+        document.getElementById('tripStart').value = toInputDate(start);
+        document.getElementById('tripEnd').value = toInputDate(end);
+    }
+
+    function syncTripTypeFields() {
+        document.getElementById('checkinGroup').style.display = document.getElementById('tripType').value === 'abroad' ? 'block' : 'none';
+    }
+
     function addParticipant() {
         const input = document.getElementById('participantName');
         const name = input.value.trim();
-        if (name && !participants.includes(name)) {
+        if (name && !participants.some(p => p.toLocaleLowerCase() === name.toLocaleLowerCase())) {
             participants.push(name);
             renderParticipants();
             input.value = '';
+            document.getElementById('participantsError').textContent = '';
         }
     }
 
+    document.getElementById('tripType').addEventListener('change', syncTripTypeFields);
     document.getElementById('addParticipantBtn').addEventListener('click', addParticipant);
-    
-    document.getElementById('participantName').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addParticipant();
-        }
+    document.getElementById('participantName').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addParticipant(); }
+    });
+
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('click', e => {
+            if (e.target.closest('button') || e.target.matches('input, label')) return;
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+        });
     });
 
     function renderParticipants() {
         const container = document.getElementById('participantsContainer');
         container.innerHTML = participants.map((p, index) => `
-            <div class="participant-tag">
-                ${p} <span onclick="removeParticipant(${index})">&times;</span>
-            </div>
+            <div class="participant-tag">${escapeHtml(p)} <span role="button" aria-label="הסר ${escapeHtml(p)}" onclick="removeParticipant(${index})">&times;</span></div>
         `).join('');
     }
 
@@ -443,109 +526,169 @@
         renderParticipants();
     }
 
+    function selectedFeatures() {
+        return {
+            packing: document.getElementById('featPacking').checked,
+            shopping: document.getElementById('featShopping').checked,
+            places: document.getElementById('featPlaces').checked,
+            expenses: document.getElementById('featExpenses').checked
+        };
+    }
+
     window.changeStep = function(direction) {
         if (direction === 1 && !validateStep(currentStep)) return;
-
-        currentStep += direction;
-        if (currentStep > totalSteps) currentStep = totalSteps;
-        if (currentStep < 1) currentStep = 1;
-
+        currentStep = Math.min(totalSteps, Math.max(1, currentStep + direction));
         updateWizardView();
     }
 
     function validateStep(step) {
+        const t = translations[currentLanguage];
         if (step === 1) {
-            const dest = document.getElementById('tripDestination').value.trim();
-            if (!dest) {
-                alert(translations[currentLanguage].alertDest);
+            const destination = document.getElementById('tripDestination').value.trim();
+            const start = new Date(document.getElementById('tripStart').value);
+            const end = new Date(document.getElementById('tripEnd').value);
+            document.getElementById('destinationError').textContent = destination ? '' : t.alertDest;
+            if (!destination) return false;
+            if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
+                document.getElementById('destinationError').textContent = t.alertDates;
                 return false;
             }
         }
+        if (step === 2 && participants.length === 0) {
+            document.getElementById('participantsError').textContent = t.alertParticipants;
+            return false;
+        }
+        if (step === 3 && !Object.values(selectedFeatures()).some(Boolean)) {
+            document.getElementById('featuresError').textContent = t.alertFeatures;
+            return false;
+        }
         return true;
+    }
+
+    function formatTripDate(value) {
+        return new Intl.DateTimeFormat(currentLanguage === 'he' ? 'he-IL' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+    }
+
+    function renderSummary() {
+        const typeSelect = document.getElementById('tripType');
+        const modules = Object.entries(selectedFeatures()).filter(([, enabled]) => enabled).map(([name]) => name);
+        const labels = currentLanguage === 'he'
+            ? { packing:'ציוד', shopping:'קניות', places:'מקומות', expenses:'הוצאות' }
+            : { packing:'Packing', shopping:'Shopping', places:'Places', expenses:'Expenses' };
+        const rows = [
+            [currentLanguage === 'he' ? 'יעד' : 'Destination', document.getElementById('tripDestination').value.trim()],
+            [currentLanguage === 'he' ? 'סוג טיול' : 'Trip type', typeSelect.options[typeSelect.selectedIndex].textContent],
+            [currentLanguage === 'he' ? 'התחלה' : 'Starts', formatTripDate(document.getElementById('tripStart').value)],
+            [currentLanguage === 'he' ? 'חברי קבוצה' : 'Group members', participants.length],
+            [currentLanguage === 'he' ? 'מודולים' : 'Modules', modules.map(name => labels[name]).join(', ')]
+        ];
+        document.getElementById('summaryGrid').innerHTML = rows.map(([label, value]) => `<div class="summary-item"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`).join('');
     }
 
     function updateWizardView() {
         document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
         document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.add('active');
-
         document.querySelectorAll('.step-dot').forEach(dot => {
-            const s = parseInt(dot.getAttribute('data-step'));
+            const step = Number(dot.dataset.step);
             dot.classList.remove('active', 'completed');
-            if (s === currentStep) dot.classList.add('active');
-            else if (s < currentStep) dot.classList.add('completed');
+            if (step === currentStep) dot.classList.add('active');
+            else if (step < currentStep) { dot.classList.add('completed'); dot.textContent = '✓'; }
+            else dot.textContent = step;
         });
-
         const t = translations[currentLanguage];
         document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'block';
         const nextBtn = document.getElementById('nextBtn');
-        
         if (currentStep === totalSteps) {
+            renderSummary();
             nextBtn.textContent = t.createBtn;
             nextBtn.onclick = generateTripAndSave;
         } else {
             nextBtn.textContent = t.nextBtn;
             nextBtn.onclick = () => changeStep(1);
         }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     window.openPreview = function(featureKey) {
-        const p = previewsData[currentLanguage][featureKey];
-        document.getElementById('modalTitle').textContent = p.title;
-        document.getElementById('modalDesc').textContent = p.desc;
+        const preview = previewsData[currentLanguage][featureKey];
+        document.getElementById('modalTitle').textContent = preview.title;
+        document.getElementById('modalDesc').textContent = preview.desc;
         document.getElementById('previewModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('modalCloseBtn').focus();
     }
 
     window.closePreview = function() {
         document.getElementById('previewModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    async function geocodeDestination(destination) {
+        try {
+            const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=${currentLanguage}&format=json`);
+            if (!response.ok) return {};
+            const data = await response.json();
+            const match = data.results?.[0];
+            return match ? { lat: match.latitude, lon: match.longitude, countryCode: match.country_code || '' } : {};
+        } catch { return {}; }
     }
 
     async function generateTripAndSave() {
-        const destination = document.getElementById('tripDestination').value.trim();
-        if (!destination) {
-            alert(translations[currentLanguage].alertDest);
-            return;
-        }
+        if (![1,2,3].every(validateStep)) return;
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.classList.add('loading');
+        nextBtn.textContent = currentLanguage === 'he' ? 'יוצר את הטיול...' : 'Creating trip...';
 
-        const tripId = 'trip_' + Math.random().toString(36).substring(2, 9);
+        const destination = document.getElementById('tripDestination').value.trim();
+        const tripType = document.getElementById('tripType').value;
+        const location = tripType === 'reserve' ? {} : await geocodeDestination(destination);
+        const tripId = 'trip_' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         const tripData = {
-            destination: destination,
-            tripType: document.getElementById('tripType').value,
+            schemaVersion: 2,
+            destination,
+            tripType,
             language: currentLanguage,
-            participants: participants,
-            features: {
-                packing: document.getElementById('featPacking').checked,
-                shopping: document.getElementById('featShopping').checked,
-                spots: document.getElementById('featSpots').checked,
-                music: document.getElementById('featMusic').checked,
-                photos: document.getElementById('featPhotos').checked
-            },
+            participants,
+            features: selectedFeatures(),
+            startAt: new Date(document.getElementById('tripStart').value).toISOString(),
+            endAt: new Date(document.getElementById('tripEnd').value).toISOString(),
+            checkinLink: tripType === 'abroad' ? document.getElementById('checkinUrl').value.trim() : '',
+            lat: location.lat ?? null,
+            lon: location.lon ?? null,
+            countryCode: location.countryCode || '',
             createdAt: Date.now()
         };
 
         try {
-            await setDoc(doc(db, "trips", tripId), tripData);
-            console.log("Trip saved successfully to Firestore:", tripId);
-
+            await set(ref(db, `trips/${tripId}`), tripData);
             const t = translations[currentLanguage];
             document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('prevBtn').style.display = 'none';
-            document.getElementById('summaryBox').innerHTML = `<h3>${t.successHeader}</h3><p>${t.successText}</p>`;
-            
-            const shareUrl = window.location.origin + window.location.pathname.replace('wizard.html', '') + `index.html?tripId=${tripId}`;
-            document.getElementById('finalTripLink').value = shareUrl;
+            document.getElementById('summaryBox').innerHTML = `<h3>${escapeHtml(t.successHeader)}</h3><p>${escapeHtml(t.successText)}</p>`;
+            const shareUrl = new URL('index.html', window.location.href);
+            shareUrl.searchParams.set('tripId', tripId);
+            document.getElementById('finalTripLink').value = shareUrl.href;
             document.getElementById('resultLinkBox').style.display = 'flex';
         } catch (error) {
-            console.error("Error saving trip:", error);
-            alert("שגיאה בשמירת הטיול במסד הנתונים. נסה שוב.");
+            console.error('Error saving trip:', error);
+            nextBtn.classList.remove('loading');
+            nextBtn.textContent = translations[currentLanguage].createBtn;
+            alert(currentLanguage === 'he' ? 'שגיאה בשמירת הטיול. בדקו את החיבור ונסו שוב.' : 'Could not save the trip. Check your connection and try again.');
         }
     }
 
-    window.copyLink = function() {
+    window.copyLink = async function() {
         const linkInput = document.getElementById('finalTripLink');
-        linkInput.select();
-        navigator.clipboard.writeText(linkInput.value);
+        try { await navigator.clipboard.writeText(linkInput.value); }
+        catch { linkInput.select(); document.execCommand('copy'); }
         alert(translations[currentLanguage].linkCopied);
     }
+
+    document.getElementById('previewModal').addEventListener('click', e => { if (e.target.id === 'previewModal') closePreview(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+    setDefaultDates();
+    syncTripTypeFields();
+    updateWizardView();
 </script>
 
 </body>
