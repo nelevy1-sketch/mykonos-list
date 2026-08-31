@@ -1697,6 +1697,8 @@ body.modal-open .modal-card {
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -1714,6 +1716,31 @@ body.modal-open .modal-card {
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app);
+
+  function doGoogleSignIn() {
+    const provider = new GoogleAuthProvider();
+
+    return signInWithPopup(auth, provider).catch(error => {
+      const fallbackCodes = [
+        "auth/popup-blocked",
+        "auth/popup-closed-by-user",
+        "auth/cancelled-popup-request",
+        "auth/web-storage-unsupported",
+        "auth/operation-not-supported-in-this-environment"
+      ];
+
+      if (
+        fallbackCodes.includes(error?.code) ||
+        /missing initial state/i.test(error?.message || "")
+      ) {
+        return signInWithRedirect(auth, provider);
+      }
+
+      throw error;
+    });
+  }
+
+  getRedirectResult(auth).catch(() => {});
 
   const urlParams =
     new URLSearchParams(window.location.search);
@@ -2128,10 +2155,7 @@ body.modal-open .modal-card {
     .getElementById("shoppingGoogleBtn")
     .addEventListener("click",async () => {
       try {
-                await signInWithPopup(
-          auth,
-          new GoogleAuthProvider()
-        );
+        await doGoogleSignIn();
       } catch (error) {
         showToast(
           tr(
