@@ -143,6 +143,7 @@
 
     .hero-card {
       background:
+        linear-gradient(180deg, rgba(255,255,255,.06), transparent 42%),
         radial-gradient(circle at 5% 5%, var(--hero-glow), transparent 36%),
         var(--hero-bg);
       color: #fff;
@@ -158,6 +159,27 @@
       overflow: hidden;
     }
 
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-repeat: repeat;
+      background-size: 120px;
+      opacity: .5;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M0 60 Q30 40 60 60 T120 60' stroke='rgba(255,255,255,0.07)' fill='none' stroke-width='1.5'/%3E%3Cpath d='M0 90 Q30 70 60 90 T120 90' stroke='rgba(255,255,255,0.05)' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+    }
+
+    body.theme-camping .hero-card::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cpath d='M0 100 L25 60 L45 85 L70 40 L95 90 L140 100' stroke='rgba(255,255,255,0.08)' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+      background-size: 140px;
+    }
+
+    body.theme-reserve .hero-card::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cpath d='M0 0 L45 45 L0 90 M45 0 L90 45 L45 90' stroke='rgba(255,255,255,0.06)' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+      background-size: 90px;
+    }
+
     .hero-card::after {
       content: "";
       position: absolute;
@@ -167,14 +189,6 @@
       left: -90px;
       bottom: -130px;
       border: 1px solid rgba(255,255,255,.14);
-      pointer-events: none;
-    }
-
-    .hero-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent 40%);
       pointer-events: none;
     }
 
@@ -379,6 +393,20 @@
       place-items: center;
       background: var(--primary-soft);
       margin-bottom: 4px;
+    }
+
+    .action-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 6px rgba(15,42,68,.08);
     }
 
     .action-card svg {
@@ -1053,6 +1081,8 @@
          class="action-card packing"
          data-feature="packing">
 
+        <span class="action-badge hidden" id="packingBadge"></span>
+
         <span class="action-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/>
@@ -1072,6 +1102,8 @@
          class="action-card shopping"
          data-feature="shopping">
 
+        <span class="action-badge hidden" id="shoppingBadge"></span>
+
         <span class="action-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
@@ -1090,6 +1122,8 @@
       <a href="places.html"
          class="action-card places"
          data-feature="places">
+
+        <span class="action-badge hidden" id="placesBadge"></span>
 
         <span class="action-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -2049,11 +2083,72 @@
       updateLockerSummary();
       applyTripPresentation();
       applyFeatureVisibility();
+      renderActionBadges(data);
       fetchWeather();
       updateClockAndPhases();
 
       if (currentUser && tripRoot) {
         loadMemberProfile();
+      }
+    }
+
+    function renderActionBadges(data) {
+      const packingBadge = document.getElementById("packingBadge");
+      const shoppingBadge = document.getElementById("shoppingBadge");
+      const placesBadge = document.getElementById("placesBadge");
+
+      if (currentUser && data.packing?.users?.[currentUser.uid]?.items) {
+        const lists = data.packing.users[currentUser.uid].items;
+        let total = 0;
+        let done = 0;
+
+        Object.values(lists).forEach(list => {
+          Object.values(list || {}).forEach(item => {
+            total += 1;
+            if (item.isDone) {
+              done += 1;
+            }
+          });
+        });
+
+        if (total > 0) {
+          packingBadge.textContent = `${done}/${total}`;
+          packingBadge.classList.remove("hidden");
+        } else {
+          packingBadge.classList.add("hidden");
+        }
+      } else {
+        packingBadge.classList.add("hidden");
+      }
+
+      const shoppingLists = data.shopping?.lists;
+
+      if (shoppingLists) {
+        const count =
+          Object.values(shoppingLists).reduce(
+            (sum, list) => sum + Object.keys(list || {}).length,
+            0
+          );
+
+        if (count > 0) {
+          shoppingBadge.textContent = tr(`${count} פריטים`, `${count} items`);
+          shoppingBadge.classList.remove("hidden");
+        } else {
+          shoppingBadge.classList.add("hidden");
+        }
+      } else {
+        shoppingBadge.classList.add("hidden");
+      }
+
+      const placesCount = Object.keys(data.places?.items || {}).length;
+      const photosCount = Object.keys(data.photos?.items || {}).length;
+      const totalPlaces = placesCount + photosCount;
+
+      if (totalPlaces > 0) {
+        placesBadge.textContent = tr(`${totalPlaces} פריטים`, `${totalPlaces} items`);
+        placesBadge.classList.remove("hidden");
+      } else {
+        placesBadge.classList.add("hidden");
       }
     }
 
