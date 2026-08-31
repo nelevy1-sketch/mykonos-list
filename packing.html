@@ -834,6 +834,8 @@
       getAuth,
       GoogleAuthProvider,
       signInWithPopup,
+      signInWithRedirect,
+      getRedirectResult,
       signOut,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -892,6 +894,29 @@
         $("toast").classList.remove("show");
       }, 2200);
     }
+
+    function doGoogleSignIn() {
+      signInWithPopup(auth, provider).catch(error => {
+        const fallbackCodes = [
+          "auth/popup-blocked",
+          "auth/popup-closed-by-user",
+          "auth/cancelled-popup-request",
+          "auth/web-storage-unsupported",
+          "auth/operation-not-supported-in-this-environment"
+        ];
+
+        if (
+          fallbackCodes.includes(error?.code) ||
+          /missing initial state/i.test(error?.message || "")
+        ) {
+          signInWithRedirect(auth, provider);
+        } else {
+          toast(error.message);
+        }
+      });
+    }
+
+    getRedirectResult(auth).catch(error => toast(error.message));
 
     function applyTheme() {
       document.documentElement.classList.remove(
@@ -1890,12 +1915,7 @@
       }
     }
 
-    $("googleBtn").onclick = () => {
-      signInWithPopup(auth, provider)
-        .catch(error => {
-          toast(error.message);
-        });
-    };
+    $("googleBtn").onclick = doGoogleSignIn;
 
     $("logoutBtn").onclick = () => {
       signOut(auth);
