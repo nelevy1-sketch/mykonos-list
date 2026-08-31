@@ -1124,6 +1124,43 @@
     font-weight:800;
     cursor:pointer;
   }
+  /* Mobile keyboard and modal fix */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.form-row > .form-group {
+  min-width: 0;
+}
+
+select,
+input[type="text"],
+input[type="number"],
+textarea {
+  font-size: 16px !important;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+body.modal-open .modal-overlay {
+  overflow: hidden;
+}
+
+body.modal-open .modal-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88dvh;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+}
   </style>
 </head>
 
@@ -3359,13 +3396,7 @@
   document.getElementById('statusSelectAudit').onclick = () => setStatusAndSave('🔍 בדיקת המשלוח');
   document.getElementById('statusSelectDone').onclick = () => setStatusAndSave('🎉 הושלמה');
 
-  document.querySelectorAll('#addModalForm input, #addModalForm select').forEach(input => {
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
-  });
+  
 
   document.addEventListener('click', (e) => {
     if (!e.target.classList.contains('menu-btn')) {
