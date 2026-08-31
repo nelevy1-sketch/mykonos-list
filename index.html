@@ -204,25 +204,27 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
       align-items: center;
       padding: 16px;
       z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
-    .modal-overlay.open { display: flex; }
+    .modal-overlay.open { display: flex; opacity: 1; }
 
     .plane-modal, .admin-modal {
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
-      max-width: 420px;
+      max-width: 390px;
       max-height: 90vh;
       overflow-y: auto;
       border-radius: var(--radius-lg);
-      padding: 24px 18px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -238,20 +240,89 @@
       border-radius: 50%; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
 
+    /* עיצוב רדאר וזְהירות למפת המטוס */
     .plane-canvas-wrapper {
-      width: 100%; background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
-      border: 1px solid #334155; border-radius: var(--radius-md); padding: 16px 8px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; direction: ltr;
+      width: 100%;
+      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+      border: 1px solid #334155;
+      border-radius: 22px;
+      padding: 16px 8px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      direction: ltr;
     }
-    .seat-grid { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+
+    .radar-scan-line {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 60px;
+      background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.6));
+      border-bottom: 2px solid #38bdf8;
+      pointer-events: none;
+      animation: radarScan 3s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    @keyframes radarScan {
+      0% { top: -60px; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .plane-nose {
+      width: 80px; height: 36px;
+      border: 2px solid #38bdf8;
+      border-bottom: none;
+      border-radius: 40px 40px 0 0;
+      background: rgba(56, 189, 248, 0.1);
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .plane-nose::after {
+      content: "✈️ כיוון הטיסה";
+      position: absolute; bottom: -18px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem; color: #94a3b8; font-weight: 700; direction: rtl;
+    }
+
+    .seat-grid { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; z-index: 5; }
     .seat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 22px 1fr 1fr 1fr; gap: 6px; align-items: center; }
     .row-num { font-size: 0.7rem; font-weight: 800; color: #64748b; text-align: center; }
     .seat {
-      height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(30, 41, 59, 0.7); color: #64748b; border: 1px solid #334155; font-size: 0.65rem; font-weight: 700;
+      height: 48px; border-radius: 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700;
+      background: rgba(30, 41, 59, 0.7); color: #64748b; border: 1px solid #334155;
+      opacity: 0; transform: translateY(15px) scale(0.9); transition: all 0.3s ease;
+      position: relative;
     }
-    .seat.occupied { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1.5px solid #38bdf8; }
-    .passenger-tag { font-size: 0.7rem; font-weight: 900; color: #fff; direction: rtl; }
-    .seat-letter { font-size: 0.55rem; color: #bae6fd; }
+    .seat.reveal { opacity: 1; transform: translateY(0) scale(1); }
+    .seat.occupied {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff; border: 1.5px solid #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); z-index: 6;
+      animation: friendPulse 2s infinite ease-in-out;
+    }
+    .seat.occupied::before {
+      content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px;
+      border-radius: 14px; border: 2px solid #38bdf8;
+      animation: sonarRipple 2s infinite ease-out; pointer-events: none;
+    }
+
+    @keyframes sonarRipple {
+      0% { transform: scale(0.95); opacity: 1; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+    @keyframes friendPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .passenger-tag { font-size: 0.72rem; font-weight: 900; color: #ffffff; line-height: 1.1; direction: rtl; text-shadow: 0 0 8px rgba(56, 189, 248, 0.8); }
+    .seat-letter { font-size: 0.58rem; color: #bae6fd; opacity: 0.9; }
 
     .admin-section-box {
       background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;
@@ -287,7 +358,7 @@
     <!-- תגית מחזור חיים של הטיול -->
     <div class="phase-badge" id="tripPhaseBadge">⏳ מתכוננים לטיול (לפני יציאה)</div>
 
-    <!-- שעון ספירה לאחור (מוצג רק בחו"ל/טיסה) -->
+    <!-- שעון ספירה לאחור -->
     <div class="timer-box" id="timerBoxContainer">
       <div class="timer-title" id="timerTitle">זמן נותר להמראה ✈️</div>
       <div class="timer-display" id="timerDisplay">מחשב זמן...</div>
@@ -304,7 +375,7 @@
       <div class="weather-item"><span class="weather-val" id="weatherUV">--</span><span class="weather-lbl">☀️ קרינה</span></div>
     </div>
 
-    <!-- באנר צ'ק-אין (מוצג רק לפני הטיול ובטיסות חו"ל) -->
+    <!-- באנר צ'ק-אין -->
     <a id="checkinBanner" href="#" target="_blank" class="checkin-banner" style="display:none;">
       <div class="checkin-info">
         <span class="checkin-icon">🎫</span>
@@ -316,13 +387,13 @@
       <span class="checkin-badge">צ'ק-אין ✈️</span>
     </a>
 
-    <!-- כפתור מפת מושבים (מוצג אך ורק לפני הטיול ובטיסות חו"ל) -->
+    <!-- כפתור מפת מושבים -->
     <div class="seats-banner-btn" id="seatsBannerBtn" style="display:none;">
       <span>✈️ מפת הושבה אינטראקטיבית</span>
       <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
     </div>
 
-    <!-- כפתורי הניווט המרכזיים מחולקים חכם -->
+    <!-- כפתורי הניווט -->
     <div class="buttons-container">
       
       <div class="section-divider">שלב ההכנות (לפני הטיול)</div>
@@ -352,10 +423,10 @@
       </a>
     </div>
 
-    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.6.0</div>
+    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.6.1</div>
   </div>
 
-  <!-- Modal מפת מטוס -->
+  <!-- Modal מפת מטוס עם אפקט רדאר וניאון -->
   <div class="modal-overlay" id="seatsModal">
     <div class="plane-modal">
       <div class="modal-header">
@@ -363,12 +434,14 @@
         <button class="modal-close" id="closeSeatsModal">✕</button>
       </div>
       <div class="plane-canvas-wrapper">
+        <div class="radar-scan-line"></div>
+        <div class="plane-nose"></div>
         <div class="seat-grid" id="planeLayout"></div>
       </div>
     </div>
   </div>
 
-  <!-- Modal פאנל אדמין מוסתר -->
+  <!-- Modal פאנל אדמין -->
   <div class="modal-overlay" id="adminModal">
     <div class="admin-modal">
       <div class="modal-header">
@@ -376,7 +449,6 @@
         <button class="modal-close" id="closeAdminModal">✕</button>
       </div>
       
-      <!-- סוג טיול ויעד -->
       <div class="admin-section-box">
         <div class="admin-section-title">🌍 סוג טיול ויעד</div>
         <div class="admin-field">
@@ -401,14 +473,12 @@
         <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">💾 שמור יעד וטיסה (איתור אוטומטי)</button>
       </div>
 
-      <!-- ניהול מושבי מטוס -->
       <div class="admin-section-box" id="adminSeatsSection">
         <div class="admin-section-title">💺 שיבוץ מושבי החברים במטוס</div>
         <div class="admin-seats-grid" id="adminSeatsContainer"></div>
         <button class="btn-admin-action btn-save-seats" id="saveSeatsBtn">💾 שמור מושבים</button>
       </div>
 
-      <!-- ניהול חברי קבוצה -->
       <div class="admin-section-box">
         <div class="admin-section-title">👥 ניהול שמות חברי הקבוצה</div>
         <div class="admin-field">
@@ -444,7 +514,7 @@
     } catch (e) { console.warn("Firebase Init Error"); }
 
     let groupMembers = ["מארג׳", "נירה", "ציפי", "בנצה", "ברגה", "פוטה", "איילה", "בולבול"];
-    let tripType = "abroad"; // abroad / reserve
+    let tripType = "abroad";
     let destinationName = "מיקונוס";
     let latCoord = 37.4467;
     let lonCoord = 25.3289;
@@ -482,7 +552,7 @@
           if (data.destination) {
             destinationName = data.destination;
             document.getElementById("appTitle").textContent = tripType === 'reserve' ? `הכנות ל-${destinationName}` : `הכנות לטיול ל-${destinationName}`;
-            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.6.0`;
+            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.6.1`;
           }
           if (data.lat) latCoord = data.lat;
           if (data.lon) lonCoord = data.lon;
@@ -640,7 +710,6 @@
         const mins = Math.floor((diffOut / 1000 / 60) % 60);
         document.getElementById("timerDisplay").textContent = `${days} ימים, ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
         
-        // מציג צ'ק-אין ומפת מושבים רק לפני הטיול!
         checkinBanner.style.display = "flex";
         checkinBanner.href = checkinLink;
         seatsBannerBtn.style.display = "flex";
@@ -650,7 +719,6 @@
         const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Athens' };
         document.getElementById("timerDisplay").textContent = now.toLocaleTimeString('he-IL', timeOpts);
 
-        // במהלך הטיול או אחריו - מפת הושבה וצ'ק-אין מוסתרים!
         checkinBanner.style.display = "none";
         seatsBannerBtn.style.display = "none";
       } else {
@@ -680,6 +748,7 @@
         }
       }
 
+      let seatDelayCounter = 0;
       rowsToDisplay.forEach(row => {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'seat-row';
@@ -692,6 +761,7 @@
             const seatKey = `${row}${col}`;
             const seatDiv = document.createElement('div');
             seatDiv.className = 'seat';
+
             if (seatedFriends[seatKey]) {
               seatDiv.classList.add('occupied');
               seatDiv.innerHTML = `<span class="passenger-tag">${escapeHtml(seatedFriends[seatKey])}</span><span class="seat-letter">${seatKey}</span>`;
@@ -699,6 +769,9 @@
               seatDiv.innerHTML = `<span class="seat-letter">${col}</span>`;
             }
             rowDiv.appendChild(seatDiv);
+
+            setTimeout(() => { seatDiv.classList.add('reveal'); }, seatDelayCounter * 30);
+            seatDelayCounter++;
           }
         });
         container.appendChild(rowDiv);
@@ -706,7 +779,11 @@
     }
 
     const seatsModal = document.getElementById('seatsModal');
-    document.getElementById('seatsBannerBtn').addEventListener('click', () => { seatsModal.classList.add('open'); renderPlaneSeats(); });
+    document.getElementById('seatsBannerBtn').addEventListener('click', () => {
+      seatsModal.classList.add('open');
+      renderPlaneSeats();
+      if ('vibrate' in navigator) navigator.vibrate(15);
+    });
     document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
 
     async function fetchWeather() {
