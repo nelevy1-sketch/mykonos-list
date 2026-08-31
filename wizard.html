@@ -374,7 +374,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     // נתוני ההתחברות האמיתיים של הפרויקט שלך מתוך Firebase Console
     const firebaseConfig = {
@@ -626,9 +626,89 @@
 
     async function signInOrganizer(provider = googleProvider) {
         if (provider === googleProvider) googleProvider.setCustomParameters({ prompt: 'select_account' });
-        const result = await signInWithPopup(auth, provider);
-        return result.user;
+
+        try {
+            const result = await signInWithPopup(auth, provider);
+            return result.user;
+        } catch (error) {
+            const fallbackCodes = [
+                'auth/popup-blocked',
+                'auth/popup-closed-by-user',
+                'auth/cancelled-popup-request',
+                'auth/web-storage-unsupported',
+                'auth/operation-not-supported-in-this-environment'
+            ];
+
+            if (fallbackCodes.includes(error?.code) || /missing initial state/i.test(error?.message || '')) {
+                saveWizardDraft();
+                await signInWithRedirect(auth, provider);
+                return null;
+            }
+
+            throw error;
+        }
     }
+
+    function saveWizardDraft() {
+        try {
+            const draft = {
+                destination: document.getElementById('tripDestination').value,
+                tripType: document.getElementById('tripType').value,
+                start: document.getElementById('tripStart').value,
+                end: document.getElementById('tripEnd').value,
+                checkinUrl: document.getElementById('checkinUrl').value,
+                participants,
+                features: {
+                    packing: document.getElementById('featPacking').checked,
+                    shopping: document.getElementById('featShopping').checked,
+                    places: document.getElementById('featPlaces').checked,
+                    expenses: document.getElementById('featExpenses').checked
+                },
+                step: currentStep
+            };
+            localStorage.setItem('wizardDraft', JSON.stringify(draft));
+        } catch (e) { /* ignore */ }
+    }
+
+    function restoreWizardDraft() {
+        let raw;
+        try { raw = localStorage.getItem('wizardDraft'); } catch (e) { return; }
+        if (!raw) return;
+        localStorage.removeItem('wizardDraft');
+
+        let draft;
+        try { draft = JSON.parse(raw); } catch (e) { return; }
+        if (!draft) return;
+
+        if (draft.destination) document.getElementById('tripDestination').value = draft.destination;
+        if (draft.tripType) document.getElementById('tripType').value = draft.tripType;
+        if (draft.start) document.getElementById('tripStart').value = draft.start;
+        if (draft.end) document.getElementById('tripEnd').value = draft.end;
+        if (draft.checkinUrl) document.getElementById('checkinUrl').value = draft.checkinUrl;
+
+        if (Array.isArray(draft.participants)) {
+            participants = draft.participants;
+            renderParticipants();
+        }
+
+        if (draft.features) {
+            document.getElementById('featPacking').checked = draft.features.packing !== false;
+            document.getElementById('featShopping').checked = draft.features.shopping !== false;
+            document.getElementById('featPlaces').checked = draft.features.places !== false;
+            document.getElementById('featExpenses').checked = draft.features.expenses !== false;
+        }
+
+        syncTripTypeFields();
+
+        if (draft.step) {
+            currentStep = draft.step;
+            updateWizardView();
+        }
+    }
+
+    getRedirectResult(auth).catch(error => {
+        console.error('Redirect sign-in failed:', error);
+    });
 
     async function requireOrganizer() {
         if (currentUser) return currentUser;
@@ -963,6 +1043,7 @@
     updateWizardView();
     updateAuthUI();
     renderRecentTrips();
+    restoreWizardDraft();
 </script>
 
 </body>
