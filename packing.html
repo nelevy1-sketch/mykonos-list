@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#123B63">
   <title>רשימת ציוד</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@600;700&family=Heebo:wght@600;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -119,67 +122,62 @@
       display:grid;
       place-items:center;
       text-decoration:none;
+      flex:0 0 auto;
     }
 
-    .hero {
-      background:linear-gradient(135deg,var(--primary-dark),var(--primary));
-      color:#fff;
-      border-radius:28px;
-      padding:22px;
-      box-shadow:var(--shadow);
-      position:relative;
-      overflow:hidden;
+    .page-head {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:12px;
     }
 
-    .hero::after {
-      content:"";
-      position:absolute;
-      width:150px;
-      height:150px;
-      border-radius:50%;
-      background:rgba(255,255,255,.09);
-      left:-45px;
-      top:-65px;
+    .page-head-info {
+      flex:1;
+      min-width:0;
     }
 
-    .kicker {
-      font-size:.82rem;
-      opacity:.82;
+    .page-head-dest {
+      font-size:.74rem;
+      font-weight:750;
+      color:var(--primary);
     }
 
-    .hero h1 {
-      margin:4px 0 6px;
-      font-size:clamp(1.55rem,7vw,2.25rem);
+    .page-head h1 {
+      font-family:'Frank Ruhl Libre', Georgia, serif;
+      margin:1px 0 0;
+      font-size:1.32rem;
+      font-weight:700;
+      line-height:1.2;
+      color:var(--primary-dark);
     }
 
-    .hero p {
-      margin:0;
-      opacity:.9;
-      font-size:.92rem;
-    }
-
-    .identity {
-      margin-top:14px;
+    .identity-row {
       display:flex;
       align-items:center;
       gap:10px;
       flex-wrap:wrap;
+      margin-bottom:14px;
     }
 
-    .identity select {
-      min-height:44px;
+    .identity-row select {
+      min-height:46px;
       flex:1;
-      border:0;
-      border-radius:13px;
-      padding:0 12px;
+      min-width:160px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:0 13px;
       color:var(--text);
       background:var(--surface);
     }
 
     .user-chip {
       font-size:.78rem;
-      background:rgba(255,255,255,.14);
-      padding:7px 10px;
+      font-weight:700;
+      color:var(--primary-dark);
+      background:var(--surface-2);
+      border:1px solid var(--line);
+      padding:8px 12px;
       border-radius:999px;
       max-width:100%;
       overflow:hidden;
@@ -282,7 +280,9 @@
     }
 
     .list-head h2 {
+      font-family:'Heebo', system-ui, sans-serif;
       font-size:1rem;
+      font-weight:800;
       margin:0;
     }
 
@@ -612,8 +612,13 @@
 
 <body>
   <main class="shell" id="app">
-    <header class="top">
+    <header class="page-head">
       <a class="icon-btn" id="homeTop" href="index.html" aria-label="בית">⌂</a>
+
+      <div class="page-head-info">
+        <div class="page-head-dest" id="destination">הטיול שלנו</div>
+        <h1 id="pageTitle">רשימת ציוד 🎒</h1>
+      </div>
 
       <div class="top-actions">
         <button class="icon-btn" id="themeBtn" aria-label="מצב תצוגה">🌙</button>
@@ -621,19 +626,13 @@
       </div>
     </header>
 
-    <section class="hero">
-      <div class="kicker" id="destination">הטיול שלנו</div>
-      <h1 id="pageTitle">רשימת ציוד 🎒</h1>
-      <p id="subtitle">כל מה שצריך, מסודר לפי כל משתתף</p>
+    <div class="identity-row">
+      <select id="participantSelect">
+        <option value="">בחר/י את שמך…</option>
+      </select>
 
-      <div class="identity">
-        <select id="participantSelect">
-          <option value="">בחר/י את שמך…</option>
-        </select>
-
-        <span class="user-chip" id="userChip"></span>
-      </div>
-    </section>
+      <span class="user-chip" id="userChip"></span>
+    </div>
 
     <div class="tabs">
       <button class="tab active" id="mineTab">הציוד שלי</button>
@@ -934,12 +933,6 @@
 
       $("pageTitle").textContent =
         tr("רשימת ציוד 🎒", "Packing list 🎒");
-
-      $("subtitle").textContent =
-        tr(
-          "כל מה שצריך, מסודר לפי כל משתתף",
-          "Everything you need, organized by traveler"
-        );
 
       $("mineTab").textContent =
         tr("הציוד שלי", "My packing");
