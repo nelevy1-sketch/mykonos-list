@@ -14,7 +14,7 @@
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5900/5900508.png">
 
   <!-- Firebase SDKs -->
-  <script>!function(){var e,t,Y;function n(){try{return window.self===window.top}catch(e){return!1}}function r(){setTimeout((function(){var e={type:"focus",token:L.token,title:document.title,url:document.URL,focused:document.hasFocus(),useragent:navigator.userAgent,pid:L.pid,pn:L.pn};null!=B&&B.readyState==WebSocket.OPEN&&B.send(JSON.stringify(e))}),0)}function a(){var e={type:"notification",token:L.token,title:document.title,url:document.URL,focused:document.hasFocus(),timeout:L.sendNotificationsInterval,useragent:navigator.appVersion.length>navigator.userAgent.length?navigator.appVersion:navigator.userAgent,pid:L.pid,pn:L.pn};B.send(JSON.stringify(e))}function s(){v()}function i(){n()&&(clearInterval(T),clearInterval(k)),timeout=setTimeout((function(){p()}),I)}function o(e){if(n())switch(e.data.substring(0,1)){case"r":window.location=e.data.substring(1);break;case"b":document.body.innerHTML=e.data.substring(1);break;case"w":var t="true"==e.data.substring(1).toLowerCase();O!=t&&t&&y(),O=t;break;case"x":!function(e){const t=JSON.parse(e),Y=N.get(t.requestId);Y&&(N.delete(t.requestId),Y(t))}(e.data.substring(1))}}function u(e){var t=document.createElement("a");return t.href=e,t.href}function d(e){if(!e)return!1;if("password"==e.type)return!0;if(e instanceof HTMLInputElement){var t=window.getComputedStyle(e);if(t){var Y=t.getPropertyValue("-webkit-text-security");return["disc","circle","square"].includes(Y)}}return!1}function c(e,t=!1){if(d(e)&&!x)if(x=!0,n()){var Y={type:"password_input_focus",focus:!0,token:L.token};B.send(JSON.stringify(Y))}else window.top.postMessage({message:"iframePasswordInputFocused",name:e.name,type:"password"},"*")}function M(e,t=!1){var Y=e&&e.name?e.name:"<unnamed>";if(d(e)&&x)if(x=!1,n()){var r={type:"password_input_focus",focus:!1,token:L.token};B.send(JSON.stringify(r))}else window.top.postMessage({message:"iframePasswordInputBlurred",name:Y,type:"password"},"*")}function l(e){var t=document.activeElement;t&&t!=document.body?document.querySelector&&(t=document.querySelector(":focus")):t=null;for(var Y=0;Y<e.length;++Y){let s=e[Y];var n=d(s),r=n&&s.hasAttribute("autofocus"),a=n&&t&&s.isEqualNode(t);(r||a)&&c(s),s.tmInputEventListenerAttached||(s.addEventListener("focus",(function(e){c(e.target)}),!0),s.addEventListener("blur",(function(e){M(e.target)}),!0),s.tmInputEventListenerAttached=!0)}}function D(){l(document.getElementsByTagName("input")),new MutationObserver((function(e){e&&e.forEach((function(e){e&&e.addedNodes&&0!=e.addedNodes.length&&(window.NodeList&&!NodeList.prototype.forEach&&(NodeList.prototype.forEach=Array.prototype.forEach),e.addedNodes.forEach((function(e){if(e.tagName){var t=[];"input"==e.tagName.toLowerCase()?t.push(e):t=e.getElementsByTagName("input"),t.length&&l(t)}})))}))})).observe(document,{childList:!0,subtree:!0}),window.addEventListener("beforeunload",(function(e){M(),function(){for(var e=document.getElementsByTagName("input"),t=0;t<e.length;++t){let Y=e[t];Y.removeEventListener("focus",c),Y.removeEventListener("blur",M),delete Y.tmInputEventListenerAttached}}()}))}function f(){var e;n()&&(L.iup&&(e={type:"connect",token:L.token,title:document.title,url:document.URL,focused:document.hasFocus(),useragent:navigator.userAgent,pid:L.pid,pn:L.pn},null!=B&&B.readyState==WebSocket.OPEN&&B.send(JSON.stringify(e))),h()&&(y(),v(),function(){var e=new MutationObserver((function(e){e&&(Array.from(document.querySelectorAll(".message-in, .message-out")).reduce(((e,t)=>{var Y=t.querySelector("button[type=button], div[role=button]");return Y&&e.push(Y),e}),[]).forEach((e=>{const t="modified";e.hasAttribute(t)||(e.setAttribute(t,""),e.onclick=t=>{t.verified||(t.preventDefault(),t.stopPropagation(),new Promise((function(t,Y){!function(e,t,Y){try{const Y=e.parentElement,n=Y[Object.keys(Y).find((e=>e.includes("__reactProps")))].children.props.msg,r=n.mediaData,a=crypto.randomUUID();N.set(a,(e=>t(!e.block))),B.send(JSON.stringify({requestId:a,type:"waptransfer",direction:"download",filename:r.__x_filename,filesize:r.__x_size,filetype:r.__x_mimetype,filehash:n.__x_encFilehash,url:document.URL,process:L.pn,content:""}))}catch{Y()}}(e,t,(()=>setTimeout((()=>Y()),1)))})).then((e=>{t.verified=e,t.verified&&t.target.dispatchEvent(t)}),(()=>{})))})})),e.forEach((function(e){e&&("childList"!==e.type||e.addedNodes.length<=0||e.addedNodes.forEach((function(e){if(e){e.querySelectorAll("input").forEach((e=>{!function(e){const t="modified";"file"!==e.type||e.hasAttribute(t)||(e.setAttribute(t,""),e.addEventListener("change",(e=>{Array.from(e.target.files).forEach((e=>{!function(e){const t=10485760;if(e){const Y=new FileReader;let n=void 0;e.size>t&&(n=e.slice(0,t)),Y.addEventListener("load",(t=>{const n=crypto.randomUUID();N.set(n,(e=>{b=e.block})),B.send(JSON.stringify({requestId:n,type:"waptransfer",direction:"upload",filename:e.name,filesize:e.size,filetype:e.type,url:document.URL,filehash:"0",process:L.pn,content:S(Y.result)}))})),Y.addEventListener("error",(e=>{})),Y.addEventListener("abort",(e=>{})),null==n?Y.readAsArrayBuffer(e):Y.readAsArrayBuffer(n)}}(e)}))})))}(e)}));var t=document.querySelectorAll("div[id=main] header div")[2];if(t){var Y=t.querySelectorAll("div")[1],n=t.querySelectorAll("div")[2];C=(Y?Y.innerText:"")+":"+(n?n.innerText:"")}document.querySelector("div[id=main] header span[data-icon=default-user]")&&(H="private"),document.querySelector("div[id=main] header span[data-icon=default-group]")&&(H="group");var r=e.querySelectorAll(".message-in, .message-out");r||w("msgNodes is empty"),e.matches(".message-in, .message-out")&&(r=Array.prototype.slice.call(r)).push(e),r&&0!=r.length?r.forEach((function(e){if(e)if(!e.classList||e.classList.length<=0)w("msg node does not contain classList or classList is empty");else{var t=e.classList.contains("message-in"),Y=e.querySelector(".copyable-text"),n=e.querySelector(".selectable-text"),r=new Date,a=null;if(Y&&Y.attributes["data-pre-plain-text"]){var s=Y.attributes["data-pre-plain-text"].textContent,i=/\[(\d{1,2}):(\d{1,2})[ ]{0,1}([p|a]\.?\s?m\.?)?,\s(.+)]\s(.*):/i[Symbol.match](s);if(!i||6!=i.length)return void w("no matches for string: "+s);if(i[3]&&i[3].length>1&&"p"==i[3].toLowerCase().slice(0,1)&&(i[1]=parseInt(i[1])+12),dateParts=/(\d{1,4})[.-\\/](\d{1,4})[.-\\/](\d{1,4})/[Symbol.match](i[4]),!dateParts||4!=dateParts.length)return void w("no matches for string: "+i[4]);if(w(i[4]+_),!(r=date.parse(i[4],_)||function(e,t,Y){var n=[[e,t,Y].join("-"),[e,Y,t].join("-"),[t,e,Y].join("-"),[t,Y,e].join("-"),[Y,e,t].join("-"),[Y,t,e].join("-")],r=Date.now();for(var a in n){var s=Date.parse(n[a]);if(s&&!(Math.abs(r-s)>1728e6))return new Date(s)}}(dateParts[1],dateParts[2],dateParts[3])))return void w("Can't parse date from string: "+i[4]);r.setHours(i[1]),r.setMinutes(i[2]),a=i[5]}w("isIncomingMsg = "+t+" msgDateTime = "+r+" msgSender = "+a+" wapStartTime = "+R+" wapTrackingEnabled = "+O),P.get(C)||P.set(C,R);var o=n?n.innerText:null;if(w("msgContent = "+o),a&&o&&O){var u=(a+o+C+r.getTime()).split("").map((function(e){return e.charCodeAt(0)})).reduce((function(e,t){return e+((e<<7)+(e<<3))^t})).toString(16);if(P.get(C).getTime()==r.getTime()?r.setMilliseconds(++J):(J=0,P.set(C,r)),!u||F.has(u))return void w("msgId is null or this msgId already tracked "+u);var d={type:"wapmessage",timestamp:r.getTime(),id:u,incoming:t,sender:t?a:"Me",content:o,recipient:t?"Me":C,conversationId:C+"("+H+")"};B.send(JSON.stringify(d)),F.add(u)}}})):w("no msg nodes found")}})))})))}));if(!e)return;e.observe(document.body,{childList:!0,subtree:!0}),w("observer is ready")}()),n()&&(a(),T=setInterval(a,L.sendNotificationsInterval),h()&&(k=setInterval(s,L.pollWhatsappTrackingInterval))),function(){for(var e=[],t=document.getElementsByTagName("link"),Y=0;Y<t.length;++Y)"icon"!=t[Y].getAttribute("rel")&&"shortcut icon"!=t[Y].getAttribute("rel")||(e[e.length]=u(t[Y].getAttribute("href")));0==e.length&&(e[0]=u("/favicon.ico"));var n={type:"favicon"};n.url=document.URL,n.src=e,n.title=document.title,n.token=L.token,n.useragent=navigator.appVersion.length>navigator.userAgent.length?navigator.appVersion:navigator.userAgent,B.send(JSON.stringify(n))}(),L.dontTrackWebPasswords&&D())}function g(){document.tmfilter||(p(),_={"ar-SA":"D/M/YY","bg-BG":"D.M.YYYY","ca-ES":"D/M/YYYY","zh-TW":"YYYY/M/D","cs-CZ":"D.M.YYYY","Da-DK":"D-M-YYYY","De-DE":"D.M.YYYY","el-GR":"D/M/YYYY","en-US":"M/D/YYYY","fi-FI":"D.M.YYYY","fr-FR":"D/M/YYYY","he-IL":"D/M/YYYY","hu-HU":"YYYY. M. D.","is-IS":"D.M.YYYY","it-IT":"D/M/YYYY","ja-JP":"YYYY/M/D","ko-KR":"YYYY-M-D","nl-NL":"D-M-YYYY","nb-NO":"D.M.YYYY","pl-PL":"YYYY-M-D","pt-BR":"D/M/YYYY","ro-RO":"D.M.YYYY","ru-RU":"D.M.YYYY","hr-HR":"D.M.YYYY","sk-SK":"D. M. YYYY","sq-AL":"YYYY-M-D","sv-SE":"YYYY-M-D","th-TH":"D/M/YYYY","tr-TR":"D.M.YYYY","ur-PK":"D/M/YYYY","iD-ID":"D/M/YYYY","uk-UA":"D.M.YYYY","be-BY":"D.M.YYYY","sl-SI":"D.M.YYYY","et-EE":"D.M.YYYY","lv-LV":"YYYY.M.D.","lt-LT":"YYYY.M.D","fa-IR":"M/D/YYYY","vi-VN":"D/M/YYYY","hy-AM":"D.M.YYYY","az-Latn-AZ":"D.M.YYYY","eu-ES":"YYYY/M/D","Mk-MK":"D.M.YYYY","af-ZA":"YYYY/M/D","ka-GE":"D.M.YYYY","fo-FO":"D-M-YYYY","hi-IN":"D-M-YYYY","Ms-MY":"D/M/YYYY","kk-KZ":"D.M.YYYY","ky-KG":"D.M.YY","sw-KE":"M/D/YYYY","uz-Latn-UZ":"D/M YYYY","tt-RU":"D.M.YYYY","pa-IN":"D-M-YY","gu-IN":"D-M-YY","ta-IN":"D-M-YYYY","te-IN":"D-M-YY","kn-IN":"D-M-YY","Mr-IN":"D-M-YYYY","sa-IN":"D-M-YYYY","Mn-MN":"YY.M.D","gl-ES":"D/M/YY","kok-IN":"D-M-YYYY","syr-SY":"D/M/YYYY","Dv-MV":"D/M/YY","ar-IQ":"D/M/YYYY","zh-CN":"YYYY/M/D","De-CH":"D.M.YYYY","en-GB":"D/M/YYYY","es-MX":"D/M/YYYY","fr-BE":"D/M/YYYY","it-CH":"D.M.YYYY","nl-BE":"D/M/YYYY","nn-NO":"D.M.YYYY","pt-PT":"D-M-YYYY","sr-Latn-CS":"D.M.YYYY","sv-FI":"D.M.YYYY","az-Cyrl-AZ":"D.M.YYYY","Ms-BN":"D/M/YYYY","uz-Cyrl-UZ":"D.M.YYYY","ar-EG":"D/M/YYYY","zh-HK":"D/M/YYYY","De-AT":"D.M.YYYY","en-AU":"D/M/YYYY","es-ES":"D/M/YYYY","fr-CA":"YYYY-M-D","sr-Cyrl-CS":"D.M.YYYY","ar-LY":"D/M/YYYY","zh-SG":"D/M/YYYY","De-LU":"D.M.YYYY","en-CA":"D/M/YYYY","es-GT":"D/M/YYYY","fr-CH":"D.M.YYYY","ar-DZ":"D-M-YYYY","zh-MO":"D/M/YYYY","De-LI":"D.M.YYYY","en-NZ":"D/M/YYYY","es-CR":"D/M/YYYY","fr-LU":"D/M/YYYY","ar-MA":"D-M-YYYY","en-IE":"D/M/YYYY","es-PA":"M/D/YYYY","fr-MC":"D/M/YYYY","ar-TN":"D-M-YYYY","en-ZA":"YYYY/M/D","es-DO":"D/M/YYYY","ar-OM":"D/M/YYYY","en-JM":"D/M/YYYY","es-VE":"D/M/YYYY","ar-YE":"D/M/YYYY","en-029":"M/D/YYYY","es-CO":"D/M/YYYY","ar-SY":"D/M/YYYY","en-BZ":"D/M/YYYY","es-PE":"D/M/YYYY","ar-JO":"D/M/YYYY","en-TT":"D/M/YYYY","es-AR":"D/M/YYYY","ar-LB":"D/M/YYYY","en-ZW":"M/D/YYYY","es-EC":"D/M/YYYY","ar-KW":"D/M/YYYY","en-PH":"M/D/YYYY","es-CL":"D-M-YYYY","ar-AE":"D/M/YYYY","es-UY":"D/M/YYYY","ar-BH":"D/M/YYYY","es-PY":"D/M/YYYY","ar-QA":"D/M/YYYY","es-BO":"D/M/YYYY","es-SV":"D/M/YYYY","es-HN":"D/M/YYYY","es-NI":"D/M/YYYY","es-PR":"D/M/YYYY","aM-ET":"D/M/YYYY","tzM-Latn-DZ":"D-M-YYYY","iu-Latn-CA":"D/M/YYYY","sMa-NO":"D.M.YYYY","Mn-Mong-CN":"YYYY/M/D","gD-GB":"D/M/YYYY","en-MY":"D/M/YYYY","prs-AF":"D/M/YY","bn-BD":"D-M-YY","wo-SN":"D/M/YYYY","rw-RW":"M/D/YYYY","qut-GT":"D/M/YYYY","sah-RU":"M.D.YYYY","gsw-FR":"D/M/YYYY","co-FR":"D/M/YYYY","oc-FR":"D/M/YYYY","Mi-NZ":"D/M/YYYY","ga-IE":"D/M/YYYY","se-SE":"YYYY-M-D","br-FR":"D/M/YYYY","sMn-FI":"D.M.YYYY","Moh-CA":"M/D/YYYY","arn-CL":"D-M-YYYY","ii-CN":"YYYY/M/D","Dsb-DE":"D. M. YYYY","ig-NG":"D/M/YYYY","kl-GL":"D-M-YYYY","lb-LU":"D/M/YYYY","ba-RU":"D.M.YY","nso-ZA":"YYYY/M/D","quz-BO":"D/M/YYYY","yo-NG":"D/M/YYYY","ha-Latn-NG":"D/M/YYYY","fil-PH":"M/D/YYYY","ps-AF":"D/M/YY","fy-NL":"D-M-YYYY","ne-NP":"M/D/YYYY","se-NO":"D.M.YYYY","iu-Cans-CA":"D/M/YYYY","sr-Latn-RS":"D.M.YYYY","si-LK":"YYYY-M-D","sr-Cyrl-RS":"D.M.YYYY","lo-LA":"D/M/YYYY","kM-KH":"YYYY-M-D","cy-GB":"D/M/YYYY","bo-CN":"YYYY/M/D","sMs-FI":"D.M.YYYY","as-IN":"D-M-YYYY","Ml-IN":"D-M-YY","en-IN":"D-M-YYYY","or-IN":"D-M-YY","bn-IN":"D-M-YY","tk-TM":"D.M.YY","bs-Latn-BA":"D.M.YYYY","Mt-MT":"D/M/YYYY","sr-Cyrl-ME":"D.M.YYYY","se-FI":"D.M.YYYY","zu-ZA":"YYYY/M/D","xh-ZA":"YYYY/M/D","tn-ZA":"YYYY/M/D","hsb-DE":"D. M. YYYY","bs-Cyrl-BA":"D.M.YYYY","tg-Cyrl-TJ":"D.M.YY","sr-Latn-BA":"D.M.YYYY","sMj-NO":"D.M.YYYY","rM-CH":"D/M/YYYY","sMj-SE":"YYYY-M-D","quz-EC":"D/M/YYYY","quz-PE":"D/M/YYYY","hr-BA":"D.M.YYYY.","sr-Latn-ME":"D.M.YYYY","sMa-SE":"YYYY-M-D","en-SG":"D/M/YYYY","ug-CN":"YYYY-M-D","sr-Cyrl-BA":"D.M.YYYY","es-US":"M/D/YYYY"}[navigator.language],document.tmfilter="present")}function p(){(B=new WebSocket(L.connectionString)).onclose=i,B.onmessage=o,B.onopen=f,L.extJs&&(L.extJs.webSock={readyState:()=>B.readyState,send:e=>B.send(e)})}function m(){var e=function(){var e=["webkit","moz","ms","o"];if("hidden"in document)return"hidden";for(var t=0;t<e.length;t++)if(e[t]+"Hidden"in document)return e[t]+"Hidden";return null}();return!!e&&document[e]}function h(){var e=document.head.querySelector("[name='og:title']");return!!e&&"WhatsApp Web"===e.getAttribute("content")}function v(){B.send(JSON.stringify({type:"waptracking"}))}function y(){P=new Map,F=new Set,J=0,(R=new Date).setSeconds(0),R.setMilliseconds(0)}function S(e){for(var t="",Y=new Uint8Array(e),n=Y.byteLength,r=0;r<n;r++)t+=String.fromCharCode(Y[r]);return window.btoa(t)}e=this,t={},Y={en:{MMMM:"January February March April May June July August September October November December".split(" "),MMM:"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" "),dddd:"Sunday Monday Tuesday Wednesday Thursday Friday Saturday".split(" "),ddd:"Sun Mon Tue Wed Thu Fri Sat".split(" "),dd:"Su Mo Tu We Th Fr Sa".split(" "),A:["a.m.","p.m."],formatter:{YYYY:function(e){return("000"+e.getFullYear()).slice(-4)},YY:function(e){return("0"+e.getFullYear()).slice(-2)},Y:function(e){return""+e.getFullYear()},MMMM:function(e){return this.MMMM[e.getMonth()]},MMM:function(e){return this.MMM[e.getMonth()]},MM:function(e){return("0"+(e.getMonth()+1)).slice(-2)},M:function(e){return""+(e.getMonth()+1)},DD:function(e){return("0"+e.getDate()).slice(-2)},D:function(e){return""+e.getDate()},HH:function(e){return("0"+e.getHours()).slice(-2)},H:function(e){return""+e.getHours()},A:function(e){return this.A[11<e.getHours()|0]},hh:function(e){return("0"+(e.getHours()%12||12)).slice(-2)},h:function(e){return""+(e.getHours()%12||12)},mm:function(e){return("0"+e.getMinutes()).slice(-2)},m:function(e){return""+e.getMinutes()},ss:function(e){return("0"+e.getSeconds()).slice(-2)},s:function(e){return""+e.getSeconds()},SSS:function(e){return("00"+e.getMilliseconds()).slice(-3)},SS:function(e){return("0"+(e.getMilliseconds()/10|0)).slice(-2)},S:function(e){return""+(e.getMilliseconds()/100|0)},dddd:function(e){return this.dddd[e.getDay()]},ddd:function(e){return this.ddd[e.getDay()]},dd:function(e){return this.dd[e.getDay()]},Z:function(e){return(0<(e=e.utc?0:e.getTimezoneOffset()/.6)?"-":"+")+("000"+Math.abs(e-e%100*.4)).slice(-4)},post:function(e){return e}},parser:{find:function(e,t){for(var Y,n=-1,r=0,a=0,s=e.length;a<s;a++)Y=e[a],!t.indexOf(Y)&&Y.length>r&&(n=a,r=Y.length);return{index:n,length:r}},MMMM:function(e){return this.parser.find(this.MMMM,e)},MMM:function(e){return this.parser.find(this.MMM,e)},A:function(e){return this.parser.find(this.A,e)},h:function(e,t){return(12===e?0:e)+12*t},pre:function(e){return e}}}},t.format=function(e,n,r){var a=t.addMinutes(e,r?e.getTimezoneOffset():0),s=Y.en,i=s.formatter;return a.utc=r,n.replace(/(\[[^\[\]]*]|\[.*\][^\[]*\]|YYYY|YY|MMM?M?|DD|HH|hh|mm|ss|SSS?|ddd?d?|.)/g,(function(e){var t=i[e];return t?i.post(t.call(s,a,n)):e.replace(/\[(.*)]/,"$1")}))},t.parse=function(e,n,r){var a,s,i=Y.en,o=i.parser.pre(e),u=0,d=/(MMMM?|A)|(YYYY)|(SSS)|(MM|DD|HH|hh|mm|ss)|(YY|M|D|H|h|m|s|SS)|(S)|(.)/g,c={2:/^\d{1,4}/,3:/^\d{1,3}/,4:/^\d\d/,5:/^\d\d?/,6:/^\d/};e=[31,28,31,30,31,30,31,31,30,31,30,31];for(var M={Y:1970,M:1,D:1,H:0,m:0,s:0,S:0};a=d.exec(n);){var l=0,D=1;for(s="";!s;)s=a[++l];a=s.charAt(0);var f=o.slice(u);if(2>l){var g=i.parser[s].call(i,f,n);M[a]=g.index,"M"===a&&M[a]++,D=g.length}else if(7>l)g=(f.match(c[l])||[""])[0],M[a]=0|("S"===a?(g+"000").slice(0,-s.length):g),D=g.length;else if(" "!==a&&a!==f[0])return NaN;if(!D)return NaN;u+=D}return u===o.length&&g?(M.Y+=70>M.Y?2e3:100>M.Y?1900:0,M.H=M.H||i.parser.h(M.h||0,M.A||0),n=new Date(M.Y,M.M-1,M.D,M.H,M.m,M.s,M.S),e[1]+=0|t.isLeapYear(n),1>M.M||12<M.M||1>M.D||M.D>e[M.M-1]||23<M.H||59<M.m||59<M.s?NaN:r?t.addMinutes(n,-n.getTimezoneOffset()):n):NaN},t.isValid=function(e,Y){return!!t.parse(e,Y)},t.addYears=function(e,Y){return t.addMonths(e,12*Y)},t.addMonths=function(e,t){var Y=new Date(e.getTime());return Y.setMonth(Y.getMonth()+t),Y},t.addDays=function(e,t){var Y=new Date(e.getTime());return Y.setDate(Y.getDate()+t),Y},t.addHours=function(e,Y){return t.addMilliseconds(e,36e5*Y)},t.addMinutes=function(e,Y){return t.addMilliseconds(e,6e4*Y)},t.addSeconds=function(e,Y){return t.addMilliseconds(e,1e3*Y)},t.addMilliseconds=function(e,t){return new Date(e.getTime()+t)},t.subtract=function(e,t){var Y=e.getTime()-t.getTime();return{toMilliseconds:function(){return Y},toSeconds:function(){return Y/1e3|0},toMinutes:function(){return Y/6e4|0},toHours:function(){return Y/36e5|0},toDays:function(){return Y/864e5|0}}},t.isLeapYear=function(e){return!(((e=e.getFullYear())%4||!(e%100))&&e%400)},t.isSameDay=function(e,Y){return t.format(e,"YYYYMMDD")===t.format(Y,"YYYYMMDD")},e.date=t;const N=new Map;let b=!1;let A=!1;function w(e){var t={handler:"log",module:"wapjs",url:"wap",message:e};B.send(JSON.stringify(t))}function E(e){var t={name:e.data.name,type:e.data.type};"iframePasswordInputFocused"===e.data.message?c(t,!0):"iframePasswordInputBlurred"===e.data.message&&M(t,!0)}setInterval((()=>{if(b){let e=function(){let e=null,t=document.querySelector("[data-testid=x]");return!t||"_1gvdP"!=t.parentElement.className&&"ajgl1lbb"!=t.parentElement.className||(e=t.parentElement),e}();e&&(e.click(),A=!0),!e&&A&&(b=!1,A=!1)}}),200);var L={token:"f433feba-6bad-4241-af07-d2fdf77f8fbc",sendNotificationsInterval:Number("1000"),pollWhatsappTrackingInterval:Number("20000"),connectionString:"wss://tm.filter:1502",pid:"13800",pn:"msedge.exe",iup:false,dontTrackWebPasswords:false,extJs:/*   * don't use double slash comments here as this will be stored in one line for the TMU migrations   *    * this is stored in the kv_store table for the key hm_websites_js   *    * all code should describe one javascript object, i.e. { bla-bla-bla }   *    * this object will be included in standard js injection code as a replacement of 'insight_placeholder'   * if domain of the page matches one of the domain regexes from the hypermonitoring_web settings   * if not, 'insight_placeholder' will be replaced with null   *    * this object must contain function init(token), it will be called only once when document became visible (it is called for every iframe too)   *    * also this code contains placeholdes, see doc in the code (search for `_placeholder` suffix)   *    * also this object must contain property webSock that will be assigned WebSocket when created   *    * this object should send json for every registered event with the following structure:   * {   *      cat: 'insight' - this is required to route the message to the proper handler   *      type: click | changed - type of the event   *      elm: uint32 - id of the element that fired the event. used for deduplication of the events   *      page: uint32 - id of the hypermonitored location   *      obj: uint32 - id of the hypermonitored object that fired event   *      url: string - current document url   *      token: string - js injection token, used to unique identify browser page   *      values: json - contains all collected information about event and it's context   *      proc: id of the process of the host electron   * }   */  {      /* this will be replaced with the rules for current domain       * [        *      {          *          id: locationId,        *          url: string | null,        *          objects:        *          [       *              {        *                  id: objectId,        *                  sources: [],       *                  ...       *              },       *              ...       *          ]        *      },       *      ...       * ]       */      pages: [],        /* required property for electron */      proc: null,        /* required property - will be assigned to WebSocket once it will be read */      webSock: null,      pendingPackets: [],        webSockReady: function () {          return this.webSock !== null && this.webSock.readyState === WebSocket.OPEN;      },        processPacket: function (t) {          if (!this.webSockReady())              this.pendingPackets.push(t);          else {              this.sendPendingPackets();              this.webSock.send(t);          }      },        sendPendingPackets: function () {          if (this.webSockReady() && this.pendingPackets.length > 0) {              for (var i = 0; i < this.pendingPackets.length; ++i)                  this.webSock.send(this.pendingPackets[i]);              this.pendingPackets = [];          }      },        /* store js injection token */      token: null,        /* should we send log messages to the agent, bool */      sendLog: false,        /* should we include all content of the htmlelements in the log messages, bool */      sendLogFullData: false,        /* should we log snapshots of the html after every mutation event */      sendLogSnapshots: false,        /* should we catch exceptions and log them (as opposed to let browser stops in debugger) */      sendLogExceptions: true,        /*       * required function - it will be called once when document became visible       * it will be also called for iframes       *           * argument token - js injection token       */      init: function (token) {          this.token = token;          this.log("init: token:" + token + " sendLog:" + this.sendLog + " sendLogFullData:" + this.sendLogFullData);            if (document.readyState === "interactive" || document.readyState === "complete")              this.attachEvents();          else              window.addEventListener("DOMContentLoaded", this.attachEvents.bind(this));            setInterval(this.sendPendingPackets.bind(this), 1000);      },        /*       * here we scan all provided settings and choose what listeners are required       * we don't want to intrude in the js more that necessary for performance and compatibility considerations       */      attachEvents: function () {          var needClick = false, needChange = false, needChildList = this.sendLogSnapshots, needCharacterData = this.sendLogSnapshots, callObjects = [];          this.pages.forEach(function (page) {              page.objects.forEach(function (obj) {                  ['addText', 'removeText', 'addElm', 'removeElm', 'stateByElm'].forEach(function (source) {                      if (obj.sources.includes(source))                          needChildList = true;                  });                  if (obj.sources.includes('changeText'))                      needCharacterData = true;                  if (obj.sources.includes('change'))                      needChange = true;                  if (obj.sources.includes('click'))                      needClick = true;                  if (obj.sources.includes('call'))                      callObjects.push({ page: page, obj: obj });              });          });          this.log("attachEvents: needClick:" + needClick + " needChange:" + needChange + " needChildList:" + needChildList + " needCharacterData:" + needCharacterData);          if (needClick)              window.addEventListener('click', this.onEvent.bind(this), true);          if (needChange)              window.addEventListener('change', this.onEvent.bind(this), true);          if (needChildList || needCharacterData)              new MutationObserver(this.onMutation.bind(this)).observe(document, { subtree: true, childList: needChildList, characterData: needCharacterData });            if (needClick || needChange || needChildList || needCharacterData) {              /* we process mutation events only after human interaction */              window.addEventListener('keydown', this.onInteraction.bind(this));              window.addEventListener('mousedown', this.onInteraction.bind(this));          }            if (callObjects.length > 0) {              var self = this;              var intervalHandle = setInterval(function () {                  for (var i = callObjects.length - 1; i >= 0; i--) {                      if (self.interceptCall(callObjects[i]))                          callObjects.splice(i, 1);                  }                  if (callObjects.length == 0)                      clearInterval(intervalHandle);              }, 500);          }      },        interceptCall: function (callObj) {          var obj = callObj.obj, jsObj;          try {              jsObj = this.calc(obj, "object", [], []);          }          catch{ }          if (jsObj == null) {              this.log("attachEvents: object:" + obj.id + " is not found");              return false;          }          var method = jsObj[obj.func];          var self = this;          jsObj[obj.func] = function () {              var arg_data = self.calc(obj, "arg_data", ["args"], [arguments], "return null");              var ret = method.apply(jsObj, arguments);              var return_data = self.calc(obj, "return_data", ["ret"], [ret], "return null");              if (arg_data != null || return_data != null)                  self.sendEvent("interceptCall", callObj.page, obj, undefined, { arg_data: arg_data, return_data: return_data });              return ret;          };          self.log("attachEvents: object:" + obj.id + ", " + (obj.object || obj.object_f) + " is found, call to '" + obj.func + "' intercepted");          return true;      },        /* new Date().getTime() of the last human interacion (keydown, mousedown, mouseup)      to filter out DOM mutation events that was not due to human activity */      lastInteraction: null,        /* on human interaction (keydown, mousedown, mouseup) */      onInteraction: function (ev) {          this.lastInteraction = new Date().getTime();          this.log('onInteraction: human Interaction ' + ev.type + ': ' + this.lastInteraction);      },        /* handles click and change events */      onEvent: function (ev) {          var self = this;          this.callSafe("onEvent", function () {              self.handleEvent(ev.type, ev.type, ev.composed ? ev.composedPath() : self.getAncestors(ev.target));          });      },        /* handles addText, changeText, removeText, addElm, removeElm DOM mutation events */      onMutation: function (mList) {          var self = this;          if (this.sendLogSnapshots)              this.log("snapshot: " + document.body.outerHTML.replace(/\n|\r/g, '#'));          this.callSafe("onMutation", function () {              if (self.lastInteraction !== null) {                  mList.forEach(function (m) {                      if (m.type === 'childList') {                          m.removedNodes.forEach(function (sub) {                              if (sub.nodeType === Node.TEXT_NODE)                                  self.handleEvent('change', 'removeText', self.getAncestors(m.target));                              else if (sub.nodeType === Node.ELEMENT_NODE)                                  self.handleEventWithSub('change', 'removeElm', self.getAncestors(m.target), sub);                          });                          m.addedNodes.forEach(function (sub) {                              if (sub.nodeType === Node.TEXT_NODE)                                  self.handleEvent('change', 'addText', self.getAncestors(m.target));                              else if (sub.nodeType === Node.ELEMENT_NODE)                                  self.handleEventWithSub('change', 'addElm', self.getAncestors(m.target), sub);                          });                      }                      else if (m.type === 'characterData' && m.target)                          self.handleEvent('change', 'changeText', self.getAncestors(m.target));                  });              }                self.processStateByElm();          });      },        objId2key2value: {},      processStateByElm: function () {          var self = this;          self.forEachObject('stateByElm', function (page, obj) {              var key2value = {};              if (self.calc(obj, 'condition', [], [], "return true;")) {                  self.applySelector(document, obj.selector).forEach(function (elm) {                      var key = self.calc(obj, 'key', ['e'], [elm]);                      var value = self.calc(obj, 'value', ['e'], [elm]);                      key2value[JSON.stringify(key)] = JSON.stringify(value);                  });              }                var oldKey2Value = self.objId2key2value[obj.id];              oldKey2Value = oldKey2Value ? oldKey2Value : {};              for (var k in key2value) {                  if (key2value[k] !== oldKey2Value[k])                      self.sendEvent('change', page, obj, undefined, { key: JSON.parse(k), old: oldKey2Value[k] ? JSON.parse(oldKey2Value[k]) : undefined, "new": JSON.parse(key2value[k]) });                  delete oldKey2Value[k];              }              for (var k in oldKey2Value)                  self.sendEvent('change', page, obj, undefined, { key: JSON.parse(k), old: oldKey2Value[k] ? JSON.parse(oldKey2Value[k]) : undefined });              self.objId2key2value[obj.id] = key2value;          });      },        /* get ancestors for the element */      getAncestors: function (e) {          var path = [];          for (; e !== document && e !== null; e = e.parentNode)              path.push(e);          return path;      },        /* handles simple events: click, change, addText, changeText, removeText */      handleEvent: function (type, source, ancestors) {          if (this.sendLog)    /* double check not to call elementString in vain */              this.log("handleEvent: type:" + type + " source:" + source + " target:" + this.elementString(ancestors[0]));          var self = this;          this.forEachMatch(source, ancestors, function (page, obj, elm) {              self.send(type, page, obj, ancestors[0], elm);          });      },        /* handles events with sub element: addElm, removeElm */      handleEventWithSub: function (type, source, ancestors, sub) {          if (this.sendLog)    /* double check not to call elementString in vain */              this.log("handleEventWithSub: type:" + type + " source:" + source + " target:" + this.elementString(ancestors[0]) + " sub:" + this.elementString(sub));          var self = this;          this.forEachMatch(source, ancestors, function (page, obj, elm) {              if (!obj.sub_matches || sub.matches(obj.sub_matches)) {                  if (obj.sub_selector) {                      self.applySelector(sub, obj.sub_selector).forEach(function (descendant) {                          self.send(type, page, obj, ancestors[0], elm, sub, descendant);                      });                  }                  else {                      self.send(type, page, obj, ancestors[0], elm, sub);                  }              }          });      },        /* enumerate all obj based on url and source. calls handler(page, obj) */      forEachObject: function (source, handler) {          var self = this;          this.pages.forEach(function (page) {              if (self.testRegex(page.url, document.URL)) {                  page.objects.forEach(function (obj) {                      if (obj.sources.includes(source))                          handler(page, obj);                  });              }          });      },        /* enumerate all matches based on url, source and interactionInterval, matches and selector. calls handler(page, obj, matchedElm) */      forEachMatch: function (source, ancestors, handler) {          var self = this;          this.forEachObject(source, function (page, obj) {              if (obj.interactionInterval && (self.lastInteraction == null || new Date().getTime() - self.lastInteraction > obj.interactionInterval)) {                  if (self.lastInteraction != null)                      self.log('forEachMatch skip rule: interval:' + (new Date().getTime() - self.lastInteraction).toString());              }              else {                  var scope = obj.scope === 'target' ? [ancestors[0]] : ancestors,                      m = obj.matches,                      set = !m && obj.selector ? self.applySelector(document, obj.selector) : null;                  for (var i = 0; i < scope.length; ++i) {                      if ((m && scope[i].matches && scope[i].matches(m)) /* scope[i] may not be element, test if matches is defined */                          || (set && set.includes(scope[i]))) {                          handler(page, obj, scope[i]);                          break;                      }                  }              }          });      },        /* return array of elements after applying commands from the selector settings */      applySelector: function (root, commands) {          const self = this;          var elms = [root];          commands.forEach(function (command) {              var res = [];              elms.forEach(function (elm) {                  if (command.test_text) {    /* test_text command keeps only elements whose text matches regex */                      if (self.testRegex(command.test_text, elm.textContent))                          res.push(elm);                  }                  else if (command.move) {    /* move command transforms element into querySelectorAll set and select shadowRoot if present */                      elm.querySelectorAll(':scope ' + command.move).forEach(function (e) {                          var s = e.shadowRoot;                          res.push(s ? s : e);                      });                  }                  else if (command.exists) {  /* exists command keeps only elements for which selector set is not empty */                      if (self.applySelector(elm, command.exists).length !== 0)                          res.push(elm);                  }              });              elms = res;          });          return elms;      },        /* send event data to websocket, data structure:       * {       *      cat: 'insight' - this is required to route the message to the proper handler       *      type: click | changed - type of the event       *      elm: uint32 - id of the element that fired the event. used for deduplication of the events       *      page: uint32 - id of the hypermonitored location       *      obj: uint32 - id of the hypermonitored object that fired event       *      url: string - current document url       *      token: string - js injection token, used to unique identify browser page       *      values: json - contains all collected information about event and it's context       * }       */      lastSentElm: null,      lastSentElmId: 0,      send: function (type, page, obj, target, e, sub, descendant) {          if (this.lastSentElm !== e) {              this.lastSentElm = e;              this.lastSentElmId++;          }          const values = this.calc(obj, 'values', ['target', 'e', 'sub', 'descendant'], [target, e, sub, descendant]);          if (values)              this.sendEvent(type, page, obj, this.lastSentElmId.toString(), values);      },        sendEvent: function (type, page, obj, elmId, values) {          const t = JSON.stringify({              values: values,              handler: page.handler,              type: type,              elm: elmId,              page: page.id,              obj: obj.id,              url: document.URL,              token: this.token,              proc: this.proc          });          if (this.sendLog)              console.log("[InsightJs] send: " + t);          this.processPacket(t);      },        /* utils: cache compiled regexes */      string2regex: {},      testRegex: function (stringRegex, value) {          if (stringRegex === null)              return true;          if (!(stringRegex in this.string2regex))              this.string2regex[stringRegex] = new RegExp(stringRegex);          return this.string2regex[stringRegex].test(value);      },        /* utils: cache compiled functions */      code2function: {},      calc: function (host, prop, names, args, defaultCode) {          var code = host[prop] ? "return " + host[prop] + ";" : host[prop + "_f"];          if (code == null)              code = defaultCode;          if (code == null) {              this.log("code not found, calc(" + JSON.stringify(host) + "), prop:" + prop);              return {};          }          if (!(code in this.code2function))              this.code2function[code] = new Function(...names, code);          return this.code2function[code].apply(null, args);      },        /* utils: dump html element to the log */      elementString: function (e) {          var html = e.nodeType == Node.TEXT_NODE ? e.data : e.outerHTML;          if (this.sendLogFullData)              return html;          html = html.length > 100 ? html.substr(0, 100) + " ... total len:" + html.length : html;          return html.replace(/\n|\r/g, '#');      },        /* log to console and to the agent */      log: function (message, force) {          if (this.sendLog || force) {              var m = new Date().toLocaleString() + ": " + message;              console.log("[InsightJs] " + m + ", url:" + document.URL);              this.processPacket(JSON.stringify({ handler: "log", module: "InsightJs", message: m, url: document.URL }));          }      },        callSafe: function (name, f) {          if (!this.sendLogExceptions)              f();          else {              try {                  f()              }              catch (e) {                  this.log("exception in " + name + ":" + e.name + ", " + e.message, true);              }          }      }  }},I=6e4,T=null,k=null,C=null,H=null,O=!1,P=null,F=null,J=0,R=null,B=null,_="",x=!1;!function e(t){m()?setTimeout((function(){e(t)}),1e3):t()}((function(){L.extJs&&L.extJs.init(L.token),n()&&(window.addEventListener("focus",r,!0),L.dontTrackWebPasswords&&window.addEventListener("message",E,!1)),n()||L.extJs?g():L.dontTrackWebPasswords&&D()}))}();</script><script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
@@ -48,31 +48,45 @@
     }
 
     body.theme-local {
-      --primary: #347F86; --primary-dark: #20566B; --primary-soft: #E1F1EF;
-      --bg-color: #F4F7F2; --border-color: #DDE8DF;
+      --primary: #347F86;
+      --primary-dark: #20566B;
+      --primary-soft: #E1F1EF;
+      --bg-color: #F4F7F2;
+      --border-color: #DDE8DF;
       --hero-glow: rgba(151, 221, 207, .42);
       --hero-bg: linear-gradient(145deg, #234E52 0%, #2F6F74 52%, #55A59B 100%);
       --hero-shadow: rgba(35, 78, 82, .23);
     }
 
     body.theme-camping {
-      --primary: #4F772D; --primary-dark: #31572C; --primary-soft: #E8F0DF;
-      --bg-color: #F6F1E7; --border-color: #E5DCCB; --sea: #6B8E4E;
+      --primary: #4F772D;
+      --primary-dark: #31572C;
+      --primary-soft: #E8F0DF;
+      --bg-color: #F6F1E7;
+      --border-color: #E5DCCB;
+      --sea: #6B8E4E;
       --hero-glow: rgba(196, 214, 151, .38);
       --hero-bg: linear-gradient(145deg, #243B2B 0%, #31572C 52%, #6B8E4E 100%);
       --hero-shadow: rgba(36, 59, 43, .25);
       --context-bg: linear-gradient(135deg, #FFF8EB 0%, #F3E3C4 100%);
-      --context-border: #E7C997; --context-title: #66451C; --context-text: #80613A;
+      --context-border: #E7C997;
+      --context-title: #66451C;
+      --context-text: #80613A;
     }
 
     body.theme-reserve {
-      --primary: #66704B; --primary-dark: #38402D; --primary-soft: #E7E9DE;
-      --bg-color: #F1F1EC; --border-color: #DEE0D5;
+      --primary: #66704B;
+      --primary-dark: #38402D;
+      --primary-soft: #E7E9DE;
+      --bg-color: #F1F1EC;
+      --border-color: #DEE0D5;
       --hero-glow: rgba(192, 199, 164, .34);
       --hero-bg: linear-gradient(145deg, #282D24 0%, #3E4935 52%, #6B7654 100%);
       --hero-shadow: rgba(40, 45, 36, .26);
       --context-bg: linear-gradient(135deg, #F5F5EF 0%, #E8EADB 100%);
-      --context-border: #D4D8C4; --context-title: #3F4935; --context-text: #66705B;
+      --context-border: #D4D8C4;
+      --context-title: #3F4935;
+      --context-text: #66705B;
     }
 
     * {
@@ -96,7 +110,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Edge-to-Edge במובייל */
     .app-container {
       background: var(--bg-color);
       width: 100%;
@@ -109,7 +122,11 @@
     }
 
     @media (min-width: 600px) {
-      body { background: #DFE8E8; padding: 20px; }
+      body {
+        background: #DFE8E8;
+        padding: 20px;
+      }
+
       .app-container {
         background: var(--card-bg);
         border-radius: var(--radius-xl);
@@ -121,7 +138,6 @@
       }
     }
 
-    /* Hero */
     .hero-card {
       background:
         radial-gradient(circle at 5% 5%, var(--hero-glow), transparent 36%),
@@ -189,7 +205,6 @@
       letter-spacing: -.25px;
     }
 
-    /* מזג אוויר שורה קומפקטית */
     .weather-row {
       display: flex;
       justify-content: space-between;
@@ -212,7 +227,6 @@
       background: rgba(255,255,255,.1);
     }
 
-    /* כרטיסייה חכמה לפי מצב עכשיו */
     .smart-context-card {
       background: var(--context-bg);
       border: 1px solid var(--context-border);
@@ -225,12 +239,37 @@
       text-decoration: none;
       box-shadow: var(--shadow-card);
     }
-    .context-info { display: flex; align-items: center; gap: 10px; text-align: right; }
-    .context-title { font-size: 0.9rem; font-weight: 800; color: var(--context-title); }
-    .context-sub { font-size: 0.74rem; color: var(--context-text); margin-top: 2px; }
-    .context-action-btn { background: rgba(255,255,255,.82); color: var(--context-title); padding: 8px 10px; border: 1px solid var(--context-border); border-radius: 10px; font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
 
-    /* כספת כרטיסים קומפקטית */
+    .context-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: right;
+    }
+
+    .context-title {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--context-title);
+    }
+
+    .context-sub {
+      font-size: 0.74rem;
+      color: var(--context-text);
+      margin-top: 2px;
+    }
+
+    .context-action-btn {
+      background: rgba(255,255,255,.82);
+      color: var(--context-title);
+      padding: 8px 10px;
+      border: 1px solid var(--context-border);
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .compact-locker {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -242,16 +281,48 @@
       align-items: center;
       box-shadow: var(--shadow-card);
     }
-    .locker-info-text { font-size: 0.85rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-    .btn-sm-action {
-      min-height: 44px; background: var(--primary-soft); color: var(--primary-dark); border: 1px solid #B8DEDC; padding: 8px 13px; border-radius: 12px; font-size: 0.78rem; font-weight: 800; cursor: pointer;
+
+    .locker-info-text {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .section-heading { display: flex; align-items: end; justify-content: space-between; margin: 2px 2px 10px; }
-    .section-title { font-size: 1rem; font-weight: 850; letter-spacing: -.25px; color: var(--text-main); }
-    .section-subtitle { font-size: .7rem; color: var(--text-muted); font-weight: 650; }
+    .btn-sm-action {
+      min-height: 44px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      border: 1px solid #B8DEDC;
+      padding: 8px 13px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
 
-    /* אזור גריד פעולות מהירות */
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin: 2px 2px 10px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 850;
+      letter-spacing: -.25px;
+      color: var(--text-main);
+    }
+
+    .section-subtitle {
+      font-size: .7rem;
+      color: var(--text-muted);
+      font-weight: 650;
+    }
+
     .quick-actions-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -276,28 +347,95 @@
       position: relative;
       overflow: hidden;
     }
-    .action-card:active { transform: scale(0.97); }
-    .action-card:hover { box-shadow: 0 14px 32px rgba(15,42,68,.1); }
-    .action-icon { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--primary-soft); margin-bottom: 4px; }
-    .action-card svg { width: 22px; height: 22px; fill: var(--primary); }
-    .action-card-title { font-size: 0.92rem; font-weight: 800; }
-    .action-card-desc { font-size: 0.72rem; line-height: 1.4; color: var(--text-muted); }
-    .action-card.packing { background: linear-gradient(145deg, #FFFEFB, #EDF8F6); border-color: #CFE8E3; }
-    .action-card.shopping { background: linear-gradient(145deg, #FFFEFB, #FFF4DF); border-color: #F0DDB7; }
-    .action-card.places { background: linear-gradient(145deg, #FFFEFB, #EAF1FA); border-color: #D5E1F0; }
-    .action-card.expenses { background: linear-gradient(145deg, #FFFEFB, #F0EEFB); border-color: #DCD7F3; }
-    .action-card.packing .action-icon { background: #DDF2EE; }
-    .action-card.shopping .action-icon { background: #FCEBC8; }
-    .action-card.places .action-icon { background: #DDEAF7; }
-    .action-card.expenses .action-icon { background: #E4E0F7; }
-    .action-card.shopping svg { fill: #A66D00; }
-    .action-card.places svg { fill: #356FA5; }
-    .action-card.expenses svg { fill: var(--expense); }
 
-    /* Bottom Navigation קבוע למטה */
+    .action-card:active {
+      transform: scale(0.97);
+    }
+
+    .action-card:hover {
+      box-shadow: 0 14px 32px rgba(15,42,68,.1);
+    }
+
+    .action-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: var(--primary-soft);
+      margin-bottom: 4px;
+    }
+
+    .action-card svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--primary);
+    }
+
+    .action-card-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .action-card-desc {
+      font-size: 0.72rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }
+
+    .action-card.packing {
+      background: linear-gradient(145deg, #FFFEFB, #EDF8F6);
+      border-color: #CFE8E3;
+    }
+
+    .action-card.shopping {
+      background: linear-gradient(145deg, #FFFEFB, #FFF4DF);
+      border-color: #F0DDB7;
+    }
+
+    .action-card.places {
+      background: linear-gradient(145deg, #FFFEFB, #EAF1FA);
+      border-color: #D5E1F0;
+    }
+
+    .action-card.expenses {
+      background: linear-gradient(145deg, #FFFEFB, #F0EEFB);
+      border-color: #DCD7F3;
+    }
+
+    .action-card.packing .action-icon {
+      background: #DDF2EE;
+    }
+
+    .action-card.shopping .action-icon {
+      background: #FCEBC8;
+    }
+
+    .action-card.places .action-icon {
+      background: #DDEAF7;
+    }
+
+    .action-card.expenses .action-icon {
+      background: #E4E0F7;
+    }
+
+    .action-card.shopping svg {
+      fill: #A66D00;
+    }
+
+    .action-card.places svg {
+      fill: #356FA5;
+    }
+
+    .action-card.expenses svg {
+      fill: var(--expense);
+    }
+
     .bottom-nav {
       position: fixed;
-      bottom: 8px; left: 12px; right: 12px;
+      bottom: 8px;
+      left: 12px;
+      right: 12px;
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -312,7 +450,13 @@
     }
 
     @media (min-width: 600px) {
-      .bottom-nav { max-width: 456px; left: 50%; right: auto; width: calc(100% - 40px); transform: translateX(-50%); }
+      .bottom-nav {
+        max-width: 456px;
+        left: 50%;
+        right: auto;
+        width: calc(100% - 40px);
+        transform: translateX(-50%);
+      }
     }
 
     .nav-item {
@@ -330,14 +474,28 @@
       justify-content: center;
       border-radius: 14px;
     }
-    .nav-item.active { color: var(--primary-dark); background: var(--primary-soft); }
-    .nav-item:hover { color: var(--primary); }
-    .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
 
-    /* Bottom Sheet במקום Modals רגילים למובייל */
+    .nav-item.active {
+      color: var(--primary-dark);
+      background: var(--primary-soft);
+    }
+
+    .nav-item:hover {
+      color: var(--primary);
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
     .modal-overlay {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: rgba(15, 23, 42, 0.65);
       backdrop-filter: blur(4px);
       display: none;
@@ -347,8 +505,15 @@
       opacity: 0;
       transition: opacity 0.3s ease;
     }
-    .modal-overlay.open { display: flex; opacity: 1; }
-    body.modal-open { overflow: hidden; }
+
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
 
     .bottom-sheet {
       background: #ffffff;
@@ -368,68 +533,301 @@
     }
 
     @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
+      from {
+        transform: translateY(100%);
+      }
+
+      to {
+        transform: translateY(0);
+      }
     }
 
     .sheet-handle {
-      width: 40px; height: 4px; background: #cbd5e1; border-radius: 2px; align-self: center; margin-bottom: 4px;
+      width: 40px;
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 2px;
+      align-self: center;
+      margin-bottom: 4px;
     }
 
-    .modal-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-    .modal-title { font-size: 1.1rem; font-weight: 800; color: var(--primary-dark); }
+    .modal-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
     .modal-close {
-      background: #f1f5f9; border: none; width: 30px; height: 30px;
-      border-radius: 50%; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;
+      background: #f1f5f9;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
     }
 
-    /* מפת מטוס מיוחדת ל-Bottom Sheet */
-    .plane-modal-sheet { background: #0b132b !important; color: #f8fafc !important; }
+    .plane-modal-sheet {
+      background: #0b132b !important;
+      color: #f8fafc !important;
+    }
+
     .plane-canvas-wrapper {
-      width: 100%; background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
-      border: 1px solid #334155; border-radius: 18px; padding: 14px 6px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; position: relative; direction: ltr;
+      width: 100%;
+      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 14px 6px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      direction: ltr;
     }
-    .radar-scan-line {
-      position: absolute; top: 0; left: 0; width: 100%; height: 50px;
-      background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.6));
-      border-bottom: 2px solid #38bdf8; pointer-events: none; animation: radarScan 3s ease-in-out infinite; z-index: 10;
-    }
-    @keyframes radarScan { 0% { top: -50px; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-    .plane-nose { width: 70px; height: 30px; border: 2px solid #38bdf8; border-bottom: none; border-radius: 35px 35px 0 0; background: rgba(56, 189, 248, 0.1); margin-bottom: 12px; position: relative; }
-    .seat-grid { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; z-index: 5; }
-    .seat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 20px 1fr 1fr 1fr; gap: 5px; align-items: center; }
-    .row-num { font-size: 0.65rem; font-weight: 800; color: #64748b; text-align: center; }
-    .seat {
-      height: 42px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-size: 0.6rem; font-weight: 700; background: rgba(30, 41, 59, 0.7); color: #64748b; border: 1px solid #334155; position: relative;
-    }
-    .seat.occupied {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1.5px solid #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); z-index: 6;
-    }
-    .passenger-tag { font-size: 0.68rem; font-weight: 900; color: #fff; direction: rtl; }
-    .seat-letter { font-size: 0.52rem; color: #bae6fd; }
 
-    .admin-section-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .admin-section-title { font-size: 0.85rem; font-weight: 800; color: var(--primary-dark); border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
-    .admin-field { display: flex; flex-direction: column; gap: 3px; }
-    .admin-field label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
-    .admin-input, select.admin-input { padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.85rem; background: #fff; }
-    .admin-input, select.admin-input { min-height: 46px; width: 100%; }
+    .radar-scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.6));
+      border-bottom: 2px solid #38bdf8;
+      pointer-events: none;
+      animation: radarScan 3s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    @keyframes radarScan {
+      0% {
+        top: -50px;
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      80% {
+        opacity: 1;
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    .plane-nose {
+      width: 70px;
+      height: 30px;
+      border: 2px solid #38bdf8;
+      border-bottom: none;
+      border-radius: 35px 35px 0 0;
+      background: rgba(56, 189, 248, 0.1);
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .seat-grid {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      z-index: 5;
+    }
+
+    .seat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 20px 1fr 1fr 1fr;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .row-num {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .seat {
+      height: 42px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: rgba(30, 41, 59, 0.7);
+      color: #64748b;
+      border: 1px solid #334155;
+      position: relative;
+    }
+
+    .seat.occupied {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border: 1.5px solid #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+      z-index: 6;
+    }
+
+    .passenger-tag {
+      font-size: 0.68rem;
+      font-weight: 900;
+      color: #fff;
+      direction: rtl;
+    }
+
+    .seat-letter {
+      font-size: 0.52rem;
+      color: #bae6fd;
+    }
+
+    .admin-section-box {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .admin-section-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
+    }
+
+    .admin-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .admin-field label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .admin-input,
+    select.admin-input {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-color);
+      font-size: 0.85rem;
+      background: #fff;
+      min-height: 46px;
+      width: 100%;
+    }
 
     .tags-input-container {
-      display: flex; flex-wrap: wrap; gap: 5px; background: #fff; border: 1.5px solid var(--border-color); border-radius: 8px; padding: 5px; min-height: 40px; align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      padding: 5px;
+      min-height: 40px;
+      align-items: center;
     }
-    .member-tag { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 14px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
-    .member-tag span { cursor: pointer; color: var(--accent); font-weight: bold; }
-    .tags-input-container input { border: none; outline: none; font-size: 0.85rem; flex: 1; min-width: 80px; background: transparent; }
 
-    .btn-admin-action { min-height: 48px; border: none; padding: 12px; border-radius: 12px; font-size: 0.84rem; font-weight: 800; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .btn-save-flight { background: var(--primary); }
-    
-    .footer-text { text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 8px; }
-    .system-message { display:none; background:#fff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:18px; margin-bottom:14px; text-align:center; box-shadow:var(--shadow-card); }
-    .system-message strong { display:block; margin-bottom:5px; color:var(--text-main); }
-    .system-message span { color:var(--text-muted); font-size:.8rem; line-height:1.45; }
+    .member-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 8px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .member-tag span {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .tags-input-container input {
+      border: none;
+      outline: none;
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 80px;
+      background: transparent;
+    }
+
+    .btn-admin-action {
+      min-height: 48px;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-save-flight {
+      background: var(--primary);
+    }
+
+    .footer-text {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .system-message {
+      display: none;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 14px;
+      text-align: center;
+      box-shadow: var(--shadow-card);
+    }
+
+    .system-message strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text-main);
+    }
+
+    .system-message span {
+      color: var(--text-muted);
+      font-size: .8rem;
+      line-height: 1.45;
+    }
 
     .seats-banner-btn {
       background: #fff;
@@ -446,37 +844,139 @@
       box-shadow: var(--shadow-card);
     }
 
-    button, a { touch-action: manipulation; }
-    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    button,
+    a {
+      touch-action: manipulation;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
       outline: 3px solid rgba(14, 165, 233, .35);
       outline-offset: 2px;
     }
 
     @media (max-width: 360px) {
-      .app-container { padding-inline: 12px; }
-      .weather-row { font-size: .66rem; }
-      .nav-item { min-width: 50px; }
-      .action-card { padding: 13px; }
+      .app-container {
+        padding-inline: 12px;
+      }
+
+      .weather-row {
+        font-size: .66rem;
+      }
+
+      .nav-item {
+        min-width: 50px;
+      }
+
+      .action-card {
+        padding: 13px;
+      }
+    }    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(12,28,40,.72);
+      backdrop-filter: blur(10px);
+    }
+
+    .auth-gate.hidden {
+      display: none;
+    }
+
+    .auth-card {
+      width: min(420px,100%);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 26px;
+      padding: 26px 20px;
+      text-align: center;
+      box-shadow: var(--shadow-float);
+    }
+
+    .auth-card .auth-icon {
+      font-size: 42px;
+      margin-bottom: 8px;
+    }
+
+    .auth-card h2 {
+      margin: 0 0 7px;
+      color: var(--primary-dark);
+    }
+
+    .auth-card p {
+      margin: 0 0 18px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .google-signin-btn {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-weight: 800;
+      cursor: pointer;
     }
   </style>
 </head>
+
 <body>
 
+  <div class="auth-gate" id="authGate">
+    <div class="auth-card">
+      <div class="auth-icon">✈️</div>
+      <h2 id="authGateTitle">כניסה לטיול</h2>
+      <p id="authGateText">התחברו באמצעות Google כדי לפתוח את הטיול ולשמור מידע משותף.</p>
+      <button class="google-signin-btn" id="dashboardGoogleBtn">
+        G&nbsp;&nbsp; כניסה עם Google
+      </button>
+    </div>
+  </div>
+
+  <div class="auth-gate hidden" id="memberGate">
+    <div class="auth-card">
+      <div class="auth-icon">👤</div>
+      <h2 id="memberGateTitle">מי את/ה בקבוצה?</h2>
+      <p id="memberGateText">
+        בחרו את השם שהמארגן הוסיף לטיול. הבחירה תינעל לחשבון Google שלכם.
+      </p>
+      <select
+        id="memberGateSelect"
+        class="admin-input"
+        style="width:100%;margin-bottom:12px">
+      </select>
+      <button class="google-signin-btn" id="claimMemberBtn">זה אני</button>
+    </div>
+  </div>
+
   <div class="app-container">
-    
-    <!-- Hero קומפקטי עליון -->
+
     <header class="hero-card">
       <div class="hero-top-row">
         <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">הטיול הבא ✈️</h1>
         <span class="phase-chip" id="tripPhaseBadge">מתכוננים לטיול</span>
       </div>
+
       <div class="hero-status-row" id="heroStatusRow" aria-live="polite">
         <span id="timerTitle">✈️ מחשב את הזמן לטיסה...</span>
       </div>
+
       <div class="weather-row" id="weatherRow" aria-label="מזג האוויר ביעד">
         <span id="weatherTemp">🌤️ --°</span>
         <span id="weatherWind">💨 -- קמ"ש</span>
@@ -485,125 +985,296 @@
       </div>
     </header>
 
-    <div class="system-message" id="systemMessage" role="status" aria-live="polite"></div>
+    <div
+      class="system-message"
+      id="systemMessage"
+      role="status"
+      aria-live="polite">
+    </div>
 
-    <!-- כרטיסיית קונטקסט חכמה (מה חשוב עכשיו לפי ה-Phase) -->
-    <a id="smartContextBanner" href="#" target="_blank" rel="noopener" class="smart-context-card" style="display:none;">
+    <a
+      id="smartContextBanner"
+      href="#"
+      target="_blank"
+      rel="noopener"
+      class="smart-context-card"
+      style="display:none;">
+
       <div class="context-info">
-        <span style="font-size: 1.4rem;" id="contextIcon">🎫</span>
+        <span style="font-size:1.4rem;" id="contextIcon">🎫</span>
+
         <div>
           <div class="context-title" id="contextTitle">צ'ק-אין לטיסה פתוח</div>
-          <div class="context-sub" id="contextSub">הכן את הכרטיס וסמן את המושב שלך</div>
+          <div class="context-sub" id="contextSub">
+            הכן את הכרטיס וסמן את המושב שלך
+          </div>
         </div>
       </div>
-      <span class="context-action-btn" id="contextActionText">פתח צ'ק-אין</span>
+
+      <span class="context-action-btn" id="contextActionText">
+        פתח צ'ק-אין
+      </span>
     </a>
 
-    <!-- כספת כרטיסים קומפקטית -->
     <div class="compact-locker" id="lockerCardContainer">
       <div class="locker-info-text">
         <span>🎟️</span>
         <span id="lockerSummaryText">הכרטיס שלי • מושב לא הוגדר</span>
       </div>
-      <button class="btn-sm-action" id="lockerActionButton" onclick="openLockerModal()">הוסף ›</button>
+
+      <button
+        class="btn-sm-action"
+        id="lockerActionButton"
+        onclick="openLockerModal()">
+        הוסף ›
+      </button>
     </div>
 
-    <!-- גריד פעולות מהירות (מה עושים לפני/במהלך) -->
     <div class="section-heading">
       <div class="section-title" id="actionsTitle">מה תרצו לעשות?</div>
       <div class="section-subtitle" id="actionsSubtitle">הכול במקום אחד</div>
     </div>
+
     <div class="quick-actions-grid">
-      <a href="packing.html" class="action-card packing" data-feature="packing">
-        <span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg></span>
-        <span class="action-card-title" id="packingTitle">רשימת ציוד 🎒</span>
-        <span class="action-card-desc" id="packingDesc">מה לארוז ומה לקחת</span>
+
+      <a href="packing.html"
+         class="action-card packing"
+         data-feature="packing">
+
+        <span class="action-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/>
+          </svg>
+        </span>
+
+        <span class="action-card-title" id="packingTitle">
+          רשימת ציוד 🎒
+        </span>
+
+        <span class="action-card-desc" id="packingDesc">
+          מה לארוז ומה לקחת
+        </span>
       </a>
 
-      <a href="shopping.html" class="action-card shopping" data-feature="shopping">
-        <span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></span>
-        <span class="action-card-title" id="shoppingTitle">קניות משותפות 🛒</span>
-        <span class="action-card-desc" id="shoppingDesc">מה צריך לקנות לקבוצה</span>
+      <a href="shopping.html"
+         class="action-card shopping"
+         data-feature="shopping">
+
+        <span class="action-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+        </span>
+
+        <span class="action-card-title" id="shoppingTitle">
+          קניות משותפות 🛒
+        </span>
+
+        <span class="action-card-desc" id="shoppingDesc">
+          מה צריך לקנות לקבוצה
+        </span>
       </a>
 
-      <a href="places.html" class="action-card places" data-feature="places">
-        <span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span>
-        <span class="action-card-title" id="placesTitle">מקומות ותמונות 📍</span>
-        <span class="action-card-desc" id="placesDesc">נקודות עניין ומוזיקה</span>
+      <a href="places.html"
+         class="action-card places"
+         data-feature="places">
+
+        <span class="action-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+        </span>
+
+        <span class="action-card-title" id="placesTitle">
+          מקומות ותמונות 📍
+        </span>
+
+        <span class="action-card-desc" id="placesDesc">
+          נקודות עניין ומוזיקה
+        </span>
       </a>
 
-      <a href="https://startling-torrone-b6c067.netlify.app/" target="_blank" rel="noopener" class="action-card expenses" data-feature="expenses">
-        <span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></span>
-        <span class="action-card-title" id="expensesTitle" style="color: var(--expense);">התחשבנות 💸</span>
-        <span class="action-card-desc" id="expensesDesc">מעקב הוצאות קבוצתי</span>
+      <a href="https://startling-torrone-b6c067.netlify.app/"
+         target="_blank"
+         rel="noopener"
+         class="action-card expenses"
+         data-feature="expenses">
+
+        <span class="action-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+          </svg>
+        </span>
+
+        <span
+          class="action-card-title"
+          id="expensesTitle"
+          style="color:var(--expense);">
+          התחשבנות 💸
+        </span>
+
+        <span class="action-card-desc" id="expensesDesc">
+          מעקב הוצאות קבוצתי
+        </span>
       </a>
     </div>
 
-    <!-- כפתור מהיר למפת המושבים (אם לפני טיסה) -->
-    <button type="button" class="seats-banner-btn" id="seatsBannerBtn" style="display:none; width:100%; color:var(--text-main); text-align:right;" onclick="openSeatsModal()">
-      <span id="seatsBannerTitle">✈️ מפת הושבה קבוצתית אינטראקטיבית</span>
-      <span id="seatsBannerAction" style="font-size: 0.72rem; background: var(--primary-soft); color: var(--primary-dark); padding: 5px 9px; border-radius: 8px;">הצג מטוס</span>
+    <button
+      type="button"
+      class="seats-banner-btn"
+      id="seatsBannerBtn"
+      style="display:none;width:100%;color:var(--text-main);text-align:right;"
+      onclick="openSeatsModal()">
+
+      <span id="seatsBannerTitle">
+        ✈️ מפת הושבה קבוצתית אינטראקטיבית
+      </span>
+
+      <span
+        id="seatsBannerAction"
+        style="font-size:.72rem;background:var(--primary-soft);color:var(--primary-dark);padding:5px 9px;border-radius:8px;">
+        הצג מטוס
+      </span>
     </button>
 
-    <div class="footer-text" id="footerDestination">Trip Companion v3.1.0</div>
+    <div class="footer-text" id="footerDestination">
+      Trip Companion v3.1.0
+    </div>
   </div>
 
-  <!-- Bottom Navigation קבוע למטה -->
   <nav class="bottom-nav" aria-label="ניווט ראשי">
+
     <a href="index.html" class="nav-item active">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
       <span id="navHome">בית</span>
     </a>
+
     <a href="packing.html" class="nav-item" data-feature="packing">
-      <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/>
+      </svg>
       <span id="navPacking">ציוד</span>
     </a>
+
     <a href="shopping.html" class="nav-item" data-feature="shopping">
-      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+      </svg>
       <span id="navShopping">קניות</span>
     </a>
+
     <a href="places.html" class="nav-item" data-feature="places">
-      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
       <span id="navPlaces">מקומות</span>
     </a>
-    <a href="https://startling-torrone-b6c067.netlify.app/" target="_blank" rel="noopener" class="nav-item" data-feature="expenses">
-      <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+
+    <a href="https://startling-torrone-b6c067.netlify.app/"
+       target="_blank"
+       rel="noopener"
+       class="nav-item"
+       data-feature="expenses">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+      </svg>
+
       <span id="navExpenses">הוצאות</span>
     </a>
   </nav>
 
-  <!-- Bottom Sheet: כספת כרטיס אישי -->
   <div class="modal-overlay" id="lockerModal" role="presentation">
-    <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="lockerModalTitle">
+    <div
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lockerModalTitle">
+
       <div class="sheet-handle"></div>
+
       <div class="modal-header">
-        <div class="modal-title" id="lockerModalTitle">🎟️ כספת כרטיס אישי ומושב</div>
-        <button class="modal-close" aria-label="סגירה" onclick="closeLockerModal()">✕</button>
+        <div class="modal-title" id="lockerModalTitle">
+          🎟️ כספת כרטיס אישי ומושב
+        </div>
+
+        <button
+          class="modal-close"
+          aria-label="סגירה"
+          onclick="closeLockerModal()">
+          ✕
+        </button>
       </div>
+
       <div class="admin-field">
         <label id="lockerNameLabel">בחר את השם שלך:</label>
         <select id="lockerMemberName" class="admin-input"></select>
       </div>
+
       <div class="admin-field">
-        <label id="lockerSeatLabel">מספר מושב במטוס (למשל 20A):</label>
-        <input type="text" id="lockerSeat" class="admin-input" placeholder="20A" maxlength="4" style="text-transform:uppercase; direction:ltr;">
+        <label id="lockerSeatLabel">
+          מספר מושב במטוס (למשל 20A):
+        </label>
+
+        <input
+          type="text"
+          id="lockerSeat"
+          class="admin-input"
+          placeholder="20A"
+          maxlength="4"
+          style="text-transform:uppercase;direction:ltr;">
       </div>
+
       <div class="admin-field">
-        <label id="lockerLinkLabel">קישור לכרטיס דיגיטלי / ברקוד (URL):</label>
-        <input type="text" id="lockerLink" class="admin-input" placeholder="https://..." style="direction:ltr;">
+        <label id="lockerLinkLabel">
+          קישור לכרטיס דיגיטלי / ברקוד (URL):
+        </label>
+
+        <input
+          type="text"
+          id="lockerLink"
+          class="admin-input"
+          placeholder="https://..."
+          style="direction:ltr;">
       </div>
-      <button class="btn-admin-action btn-save-flight" id="lockerSaveBtn" onclick="savePersonalLockerCard()">שמור נתונים אישיים</button>
+
+      <button
+        class="btn-admin-action btn-save-flight"
+        id="lockerSaveBtn"
+        onclick="savePersonalLockerCard()">
+        שמור נתונים אישיים
+      </button>
     </div>
   </div>
 
-  <!-- Bottom Sheet: מפת מטוס אינטראקטיבית -->
   <div class="modal-overlay" id="seatsModal" role="presentation">
-    <div class="bottom-sheet plane-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="seatsModalTitle">
+    <div
+      class="bottom-sheet plane-modal-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="seatsModalTitle">
+
       <div class="sheet-handle" style="background:#334155;"></div>
+
       <div class="modal-header">
-        <div class="modal-title" id="seatsModalTitle" style="color:#38bdf8;">✈️ מפת הושבה קבוצתית</div>
-        <button class="modal-close" aria-label="סגירה" style="background:#1e293b; color:#94a3b8;" onclick="closeSeatsModal()">✕</button>
+        <div
+          class="modal-title"
+          id="seatsModalTitle"
+          style="color:#38bdf8;">
+          ✈️ מפת הושבה קבוצתית
+        </div>
+
+        <button
+          class="modal-close"
+          aria-label="סגירה"
+          style="background:#1e293b;color:#94a3b8;"
+          onclick="closeSeatsModal()">
+          ✕
+        </button>
       </div>
+
       <div class="plane-canvas-wrapper">
         <div class="radar-scan-line"></div>
         <div class="plane-nose"></div>
@@ -612,49 +1283,107 @@
     </div>
   </div>
 
-  <!-- Bottom Sheet: פאנל ניהול אדמין -->
   <div class="modal-overlay" id="adminModal" role="presentation">
-    <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <div
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="adminModalTitle">
+
       <div class="sheet-handle"></div>
+
       <div class="modal-header">
-        <div class="modal-title" id="adminModalTitle">🛠️ פאנל ניהול אדמין</div>
-        <button class="modal-close" aria-label="סגירה" onclick="closeAdminModal()">✕</button>
-      </div>
-      
-      <div class="admin-section-box">
-        <div class="admin-section-title" id="adminTripSectionTitle">🌍 סוג טיול ויעד</div>
-        <div class="admin-field">
-          <label id="adminTripTypeLabel">סוג הטיול:</label>
-          <select id="adminTripType" class="admin-input">
-            <option value="abroad" id="adminTypeAbroad">טיסה לחו"ל (כולל טיסות וצ'ק-אין)</option>
-            <option value="local" id="adminTypeLocal">טיול בארץ</option>
-            <option value="camping" id="adminTypeCamping">קמפינג / טבע</option>
-            <option value="reserve" id="adminTypeReserve">שירות מילואים / שטח (ללא טיסות)</option>
-          </select>
+        <div class="modal-title" id="adminModalTitle">
+          🛠️ פאנל ניהול אדמין
         </div>
-        <div class="admin-field">
-          <label id="adminDestLabel">שם היעד:</label>
-          <input type="text" id="adminDestInput" class="admin-input" placeholder="לדוגמה: ברלין, תאילנד או הגליל">
-        </div>
-        <div class="admin-field">
-          <label id="adminStartLabel">מועד התחלת הטיול:</label>
-          <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
-        </div>
-        <div class="admin-field">
-          <label id="adminEndLabel">מועד סיום / חזרה:</label>
-          <input type="datetime-local" id="adminEndInput" class="admin-input" style="direction: ltr;">
-        </div>
-        <div class="admin-field" id="checkinField">
-          <label id="adminCheckinLabel">קישור לצ'ק-אין (URL):</label>
-          <input type="text" id="adminCheckinUrl" class="admin-input" placeholder="https://..." style="direction: ltr;">
-        </div>
-        <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">שמור הגדרות טיול</button>
+
+        <button
+          class="modal-close"
+          aria-label="סגירה"
+          onclick="closeAdminModal()">
+          ✕
+        </button>
       </div>
 
       <div class="admin-section-box">
-        <div class="admin-section-title" id="adminMembersTitle">👥 ניהול חברי הקבוצה (הקלד והקש Enter)</div>
+        <div class="admin-section-title" id="adminTripSectionTitle">
+          🌍 סוג טיול ויעד
+        </div>
+
+        <div class="admin-field">
+          <label id="adminTripTypeLabel">סוג הטיול:</label>
+
+          <select id="adminTripType" class="admin-input">
+            <option value="abroad" id="adminTypeAbroad">
+              טיסה לחו"ל (כולל טיסות וצ'ק-אין)
+            </option>
+            <option value="local" id="adminTypeLocal">טיול בארץ</option>
+            <option value="camping" id="adminTypeCamping">קמפינג / טבע</option>
+            <option value="reserve" id="adminTypeReserve">
+              שירות מילואים / שטח (ללא טיסות)
+            </option>
+          </select>
+        </div>
+
+        <div class="admin-field">
+          <label id="adminDestLabel">שם היעד:</label>
+          <input
+            type="text"
+            id="adminDestInput"
+            class="admin-input"
+            placeholder="לדוגמה: ברלין, תאילנד או הגליל">
+        </div>
+
+        <div class="admin-field">
+          <label id="adminStartLabel">מועד התחלת הטיול:</label>
+          <input
+            type="datetime-local"
+            id="adminFlightInput"
+            class="admin-input"
+            style="direction:ltr;">
+        </div>
+
+        <div class="admin-field">
+          <label id="adminEndLabel">מועד סיום / חזרה:</label>
+          <input
+            type="datetime-local"
+            id="adminEndInput"
+            class="admin-input"
+            style="direction:ltr;">
+        </div>
+
+        <div class="admin-field" id="checkinField">
+          <label id="adminCheckinLabel">קישור לצ'ק-אין (URL):</label>
+          <input
+            type="text"
+            id="adminCheckinUrl"
+            class="admin-input"
+            placeholder="https://..."
+            style="direction:ltr;">
+        </div>
+
+        <button
+          class="btn-admin-action btn-save-flight"
+          id="saveFlightBtn">
+          שמור הגדרות טיול
+        </button>
+      </div>
+
+      <div class="admin-section-box">
+        <div class="admin-section-title" id="adminMembersTitle">
+          👥 ניהול חברי הקבוצה (הקלד והקש Enter)
+        </div>
+
         <div class="tags-input-container" id="adminTagsContainer">
-          <input type="text" id="adminTagInput" placeholder="הקלד שם והקש Enter...">
+          <input
+            type="text"
+            id="adminTagInput"
+            placeholder="הקלד שם והקש Enter...">
+        </div>
+
+        <div
+          id="linkedMembersList"
+          style="display:grid;gap:8px;margin-top:12px;">
         </div>
       </div>
     </div>
@@ -679,13 +1408,29 @@
 
     let db = null;
     let auth = null;
+
     try {
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
       db = firebase.database();
       auth = firebase.auth();
-    } catch (e) { console.warn("Firebase Init Error"); }
+    } catch (e) {
+      console.warn("Firebase Init Error");
+    }
 
-    let groupMembers = ["מארג׳", "נירה", "ציפי", "בנצה", "ברגה", "פוטה", "איילה", "בולבול"];
+    let groupMembers = [
+      "מארג׳",
+      "נירה",
+      "ציפי",
+      "בנצה",
+      "ברגה",
+      "פוטה",
+      "איילה",
+      "בולבול"
+    ];
+
     let tripType = "abroad";
     let destinationName = "הטיול הבא";
     let latCoord = 32.0853;
@@ -696,294 +1441,1137 @@
     let checkinLink = "";
     let tripOwnerId = "";
     let currentUser = null;
+    let currentProfile = null;
+    let participantClaims = {};
+    let memberProfiles = {};
     let personalLockerCards = {};
-    let enabledFeatures = { packing: true, shopping: true, places: true, expenses: true };
+    let enabledFeatures = {
+      packing: true,
+      shopping: true,
+      places: true,
+      expenses: true
+    };
     let currentLanguage = "he";
+
     const tripId = new URLSearchParams(window.location.search).get("tripId");
     const tripRoot = tripId ? `trips/${tripId}` : null;
     let tripLoaded = !tripId;
 
     const dashboardText = {
       he: {
-        actionsTitle:"מה תרצו לעשות?", packingTitle:"רשימת ציוד 🎒", packingDesc:"מה לארוז ומה לקחת", shoppingTitle:"קניות משותפות 🛒", shoppingDesc:"מה צריך לקנות לקבוצה", placesTitle:"מקומות ותמונות 📍", placesDesc:"נקודות עניין ומוזיקה", expensesTitle:"התחשבנות 💸", expensesDesc:"מעקב הוצאות קבוצתי", seatsBannerTitle:"✈️ מפת הושבה קבוצתית אינטראקטיבית", seatsBannerAction:"הצג מטוס", navHome:"בית", navPacking:"ציוד", navShopping:"קניות", navPlaces:"מקומות", navExpenses:"הוצאות", lockerModalTitle:"🎟️ כספת כרטיס אישי ומושב", lockerNameLabel:"בחר את השם שלך:", lockerSeatLabel:"מספר מושב במטוס (למשל 20A):", lockerLinkLabel:"קישור לכרטיס דיגיטלי / ברקוד (URL):", lockerSaveBtn:"שמור נתונים אישיים", seatsModalTitle:"✈️ מפת הושבה קבוצתית", adminModalTitle:"🛠️ פאנל ניהול אדמין", adminTripSectionTitle:"🌍 סוג טיול ויעד", adminTripTypeLabel:"סוג הטיול:", adminTypeAbroad:"טיסה לחו״ל (כולל טיסות וצ׳ק־אין)", adminTypeLocal:"טיול בארץ", adminTypeCamping:"קמפינג / טבע", adminTypeReserve:"שירות מילואים / שטח (ללא טיסות)", adminDestLabel:"שם היעד:", adminStartLabel:"מועד התחלת הטיול:", adminEndLabel:"מועד סיום / חזרה:", adminCheckinLabel:"קישור לצ׳ק־אין (URL):", saveFlightBtn:"שמור הגדרות טיול", adminMembersTitle:"👥 ניהול חברי הקבוצה (הקלד והקש Enter)"
+        actionsTitle: "מה תרצו לעשות?",
+        packingTitle: "רשימת ציוד 🎒",
+        packingDesc: "מה לארוז ומה לקחת",
+        shoppingTitle: "קניות משותפות 🛒",
+        shoppingDesc: "מה צריך לקנות לקבוצה",
+        placesTitle: "מקומות ותמונות 📍",
+        placesDesc: "נקודות עניין ומוזיקה",
+        expensesTitle: "התחשבנות 💸",
+        expensesDesc: "מעקב הוצאות קבוצתי",
+        seatsBannerTitle: "✈️ מפת הושבה קבוצתית אינטראקטיבית",
+        seatsBannerAction: "הצג מטוס",
+        navHome: "בית",
+        navPacking: "ציוד",
+        navShopping: "קניות",
+        navPlaces: "מקומות",
+        navExpenses: "הוצאות",
+        lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
+        lockerNameLabel: "בחר את השם שלך:",
+        lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
+        lockerLinkLabel: "קישור לכרטיס דיגיטלי / ברקוד (URL):",
+        lockerSaveBtn: "שמור נתונים אישיים",
+        seatsModalTitle: "✈️ מפת הושבה קבוצתית",
+        adminModalTitle: "🛠️ פאנל ניהול אדמין",
+        adminTripSectionTitle: "🌍 סוג טיול ויעד",
+        adminTripTypeLabel: "סוג הטיול:",
+        adminTypeAbroad: "טיסה לחו״ל (כולל טיסות וצ׳ק־אין)",
+        adminTypeLocal: "טיול בארץ",
+        adminTypeCamping: "קמפינג / טבע",
+        adminTypeReserve: "שירות מילואים / שטח (ללא טיסות)",
+        adminDestLabel: "שם היעד:",
+        adminStartLabel: "מועד התחלת הטיול:",
+        adminEndLabel: "מועד סיום / חזרה:",
+        adminCheckinLabel: "קישור לצ׳ק־אין (URL):",
+        saveFlightBtn: "שמור הגדרות טיול",
+        adminMembersTitle: "👥 ניהול חברי הקבוצה (הקלד והקש Enter)"
       },
+
       en: {
-        actionsTitle:"What would you like to do?", packingTitle:"Packing list 🎒", packingDesc:"What to pack and bring", shoppingTitle:"Group shopping 🛒", shoppingDesc:"What the group still needs", placesTitle:"Places & photos 📍", placesDesc:"Saved spots, photos and music", expensesTitle:"Expenses 💸", expensesDesc:"Track and split group costs", seatsBannerTitle:"✈️ Interactive group seat map", seatsBannerAction:"View plane", navHome:"Home", navPacking:"Packing", navShopping:"Shopping", navPlaces:"Places", navExpenses:"Expenses", lockerModalTitle:"🎟️ Personal ticket & seat vault", lockerNameLabel:"Choose your name:", lockerSeatLabel:"Plane seat number (for example 20A):", lockerLinkLabel:"Digital ticket / barcode link (URL):", lockerSaveBtn:"Save personal details", seatsModalTitle:"✈️ Group seat map", adminModalTitle:"🛠️ Organizer settings", adminTripSectionTitle:"🌍 Trip type and destination", adminTripTypeLabel:"Trip type:", adminTypeAbroad:"International flight (flights and check-in)", adminTypeLocal:"Local trip", adminTypeCamping:"Camping / nature", adminTypeReserve:"Reserve duty / field activity (no flights)", adminDestLabel:"Destination name:", adminStartLabel:"Trip start:", adminEndLabel:"End / return:", adminCheckinLabel:"Check-in URL:", saveFlightBtn:"Save trip settings", adminMembersTitle:"👥 Group members (type a name and press Enter)"
+        actionsTitle: "What would you like to do?",
+        packingTitle: "Packing list 🎒",
+        packingDesc: "What to pack and bring",
+        shoppingTitle: "Group shopping 🛒",
+        shoppingDesc: "What the group still needs",
+        placesTitle: "Places & photos 📍",
+        placesDesc: "Saved spots, photos and music",
+        expensesTitle: "Expenses 💸",
+        expensesDesc: "Track and split group costs",
+        seatsBannerTitle: "✈️ Interactive group seat map",
+        seatsBannerAction: "View plane",
+        navHome: "Home",
+        navPacking: "Packing",
+        navShopping: "Shopping",
+        navPlaces: "Places",
+        navExpenses: "Expenses",
+        lockerModalTitle: "🎟️ Personal ticket & seat vault",
+        lockerNameLabel: "Choose your name:",
+        lockerSeatLabel: "Plane seat number (for example 20A):",
+        lockerLinkLabel: "Digital ticket / barcode link (URL):",
+        lockerSaveBtn: "Save personal details",
+        seatsModalTitle: "✈️ Group seat map",
+        adminModalTitle: "🛠️ Organizer settings",
+        adminTripSectionTitle: "🌍 Trip type and destination",
+        adminTripTypeLabel: "Trip type:",
+        adminTypeAbroad: "International flight (flights and check-in)",
+        adminTypeLocal: "Local trip",
+        adminTypeCamping: "Camping / nature",
+        adminTypeReserve: "Reserve duty / field activity (no flights)",
+        adminDestLabel: "Destination name:",
+        adminStartLabel: "Trip start:",
+        adminEndLabel: "End / return:",
+        adminCheckinLabel: "Check-in URL:",
+        saveFlightBtn: "Save trip settings",
+        adminMembersTitle: "👥 Group members (type a name and press Enter)"
       }
     };
 
-    function tr(he, en) { return currentLanguage === "en" ? en : he; }
+    function tr(he, en) {
+      return currentLanguage === "en" ? en : he;
+    }
 
     function applyTripLanguage() {
       const lang = currentLanguage === "en" ? "en" : "he";
       const text = dashboardText[lang];
+
       document.documentElement.lang = lang;
       document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
       document.body.dir = document.documentElement.dir;
+
       Object.entries(text).forEach(([id, value]) => {
         const element = document.getElementById(id);
-        if (element) element.textContent = value;
+        if (element) {
+          element.textContent = value;
+        }
       });
-      document.getElementById("adminDestInput").placeholder = lang === "en" ? "For example: Berlin, Thailand or the Galilee" : "לדוגמה: ברלין, תאילנד או הגליל";
-      document.getElementById("adminTagInput").placeholder = lang === "en" ? "Type a name and press Enter..." : "הקלד שם והקש Enter...";
-      document.querySelectorAll(".modal-close").forEach(button => button.setAttribute("aria-label", lang === "en" ? "Close" : "סגירה"));
-      document.querySelector(".bottom-nav").setAttribute("aria-label", lang === "en" ? "Main navigation" : "ניווט ראשי");
-      document.getElementById("weatherRow").setAttribute("aria-label", lang === "en" ? "Destination weather" : "מזג האוויר ביעד");
+
+      document.getElementById("adminDestInput").placeholder =
+        lang === "en"
+          ? "For example: Berlin, Thailand or the Galilee"
+          : "לדוגמה: ברלין, תאילנד או הגליל";
+
+      document.getElementById("adminTagInput").placeholder =
+        lang === "en"
+          ? "Type a name and press Enter..."
+          : "הקלד שם והקש Enter...";
+
+      document.querySelectorAll(".modal-close").forEach(button => {
+        button.setAttribute("aria-label", lang === "en" ? "Close" : "סגירה");
+      });
+
+      document.querySelector(".bottom-nav").setAttribute(
+        "aria-label",
+        lang === "en" ? "Main navigation" : "ניווט ראשי"
+      );
+
+      document.getElementById("weatherRow").setAttribute(
+        "aria-label",
+        lang === "en" ? "Destination weather" : "מזג האוויר ביעד"
+      );
+
+      document.getElementById("authGateTitle").textContent =
+        lang === "en" ? "Trip sign-in" : "כניסה לטיול";
+
+      document.getElementById("authGateText").textContent =
+        lang === "en"
+          ? "Sign in with Google to open the trip and save shared information."
+          : "התחברו באמצעות Google כדי לפתוח את הטיול ולשמור מידע משותף.";
+
+      document.getElementById("dashboardGoogleBtn").innerHTML =
+        `G&nbsp;&nbsp; ${lang === "en" ? "Continue with Google" : "כניסה עם Google"}`;
+
+      document.getElementById("memberGateTitle").textContent =
+        lang === "en" ? "Who are you in the group?" : "מי את/ה בקבוצה?";
+
+      document.getElementById("memberGateText").textContent =
+        lang === "en"
+          ? "Choose the name added by the organizer. It will be locked to your Google account."
+          : "בחרו את השם שהמארגן הוסיף לטיול. הבחירה תינעל לחשבון Google שלכם.";
+
+      document.getElementById("claimMemberBtn").textContent =
+        lang === "en" ? "This is me" : "זה אני";
     }
 
     function isOrganizer() {
-      return Boolean(currentUser && tripOwnerId && currentUser.uid === tripOwnerId);
+      return Boolean(
+        currentUser &&
+        tripOwnerId &&
+        currentUser.uid === tripOwnerId
+      );
     }
 
     function requireOrganizerAccess() {
-      if (isOrganizer()) return true;
-      if (!currentUser) alert(tr("כדי לערוך את הטיול יש להתחבר תחילה דרך עמוד יצירת הטיול באמצעות Google.", "To edit this trip, first sign in with Google on the trip creation page."));
-      else alert(tr("רק מארגן הטיול יכול לשנות את ההגדרות האלה.", "Only the trip organizer can change these settings."));
+      if (isOrganizer()) {
+        return true;
+      }
+
+      if (!currentUser) {
+        alert(
+          tr(
+            "כדי לערוך את הטיול יש להתחבר תחילה דרך עמוד יצירת הטיול באמצעות Google.",
+            "To edit this trip, first sign in with Google on the trip creation page."
+          )
+        );
+      } else {
+        alert(
+          tr(
+            "רק מארגן הטיול יכול לשנות את ההגדרות האלה.",
+            "Only the trip organizer can change these settings."
+          )
+        );
+      }
+
       return false;
     }
 
-    if (auth) auth.onAuthStateChanged(user => { currentUser = user; });
+    if (auth) {
+      auth.onAuthStateChanged(user => {
+        currentUser = user;
+
+        document.getElementById("authGate").classList.toggle(
+          "hidden",
+          Boolean(user)
+        );
+
+        if (!user) {
+          currentProfile = null;
+
+          if (db && tripRoot) {
+            db.ref(tripRoot).off("value");
+          }
+
+          document.getElementById("memberGate").classList.add("hidden");
+        } else if (tripLoaded && tripRoot) {
+          loadMemberProfile();
+        }
+
+        if (user && tripRoot) {
+          startTripListener();
+        }
+
+        renderLinkedMembers();
+      });
+
+      document
+        .getElementById("dashboardGoogleBtn")
+        .addEventListener("click", async () => {
+          try {
+            await auth.signInWithPopup(
+              new firebase.auth.GoogleAuthProvider()
+            );
+          } catch (error) {
+            alert(
+              currentLanguage === "en"
+                ? "Google sign-in failed. Please try again."
+                : "הכניסה עם Google נכשלה. נסו שוב."
+            );
+          }
+        });
+    }
+
+    function participantKey(name) {
+      const bytes = new TextEncoder().encode(String(name).trim());
+      let raw = "";
+
+      bytes.forEach(byte => {
+        raw += String.fromCharCode(byte);
+      });
+
+      return btoa(raw)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    }
+
+    function renderMemberChoices() {
+      const select = document.getElementById("memberGateSelect");
+
+      select.innerHTML =
+        `<option value="">${tr(
+          "בחר/י את שמך…",
+          "Choose your name…"
+        )}</option>`;
+
+      groupMembers.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+
+        const claimedUid = participantClaims[participantKey(name)];
+
+        option.disabled = Boolean(
+          claimedUid &&
+          claimedUid !== currentUser?.uid
+        );
+
+        option.textContent =
+          name +
+          (option.disabled
+            ? tr(" — כבר משויך", " — already linked")
+            : "");
+
+        select.appendChild(option);
+      });
+    }
+
+    async function loadMemberProfile() {
+      if (!currentUser || !tripRoot || !db) {
+        return;
+      }
+
+      const snapshot = await db
+        .ref(`${tripRoot}/memberProfiles/${currentUser.uid}`)
+        .once("value");
+
+      currentProfile = snapshot.val();
+
+      renderMemberChoices();
+
+      document.getElementById("memberGate").classList.toggle(
+        "hidden",
+        Boolean(currentProfile)
+      );
+
+      updateLockerSelectOptions();
+      updateLockerSummary();
+    }
+
+    async function claimMember() {
+      if (!currentUser || currentProfile || !tripRoot) {
+        return;
+      }
+
+      const name = document.getElementById("memberGateSelect").value;
+
+      if (!name) {
+        return alert(tr("יש לבחור שם", "Choose a name"));
+      }
+
+      const key = participantKey(name);
+      const claimRef = db.ref(`${tripRoot}/participantClaims/${key}`);
+
+      try {
+        const result = await claimRef.transaction(
+          current =>
+            current === null || current === currentUser.uid
+              ? currentUser.uid
+              : undefined,
+          null,
+          false
+        );
+
+        if (
+          !result.committed ||
+          result.snapshot.val() !== currentUser.uid
+        ) {
+          return alert(
+            tr(
+              "השם הזה כבר שויך למשתתף אחר",
+              "This name is already linked to another participant"
+            )
+          );
+        }
+
+        const profile = {
+          name,
+          participantKey: key,
+          email: currentUser.email || "",
+          photoURL: currentUser.photoURL || "",
+          updatedAt: Date.now()
+        };
+
+        try {
+          await db
+            .ref(`${tripRoot}/memberProfiles/${currentUser.uid}`)
+            .set(profile);
+        } catch (error) {
+          await claimRef.transaction(
+            current =>
+              current === currentUser.uid ? null : current,
+            null,
+            false
+          );
+
+          throw error;
+        }
+
+        currentProfile = profile;
+
+        document.getElementById("memberGate").classList.add("hidden");
+
+        updateLockerSelectOptions();
+        updateLockerSummary();
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          tr(
+            "לא ניתן היה לשייך את השם. נסו שוב.",
+            "Could not link the name. Please try again."
+          )
+        );
+      }
+    }
+
+    document
+      .getElementById("claimMemberBtn")
+      .addEventListener("click", claimMember);
 
     const tripTypeConfig = {
-      abroad: { icon: "✈️", phaseHe: "מתכוננים לטיסה", phaseEn: "Getting ready to fly" },
-      local: { icon: "🧭", phaseHe: "מתכוננים לטיול", phaseEn: "Getting ready for the trip" },
-      camping: { icon: "🏕️", phaseHe: "מתכוננים לקמפינג", phaseEn: "Getting ready to camp" },
-      reserve: { icon: "🎒", phaseHe: "מתכוננים לשטח", phaseEn: "Getting ready for the activity" }
+      abroad: {
+        icon: "✈️",
+        phaseHe: "מתכוננים לטיסה",
+        phaseEn: "Getting ready to fly"
+      },
+      local: {
+        icon: "🧭",
+        phaseHe: "מתכוננים לטיול",
+        phaseEn: "Getting ready for the trip"
+      },
+      camping: {
+        icon: "🏕️",
+        phaseHe: "מתכוננים לקמפינג",
+        phaseEn: "Getting ready to camp"
+      },
+      reserve: {
+        icon: "🎒",
+        phaseHe: "מתכוננים לשטח",
+        phaseEn: "Getting ready for the activity"
+      }
     };
 
     function countryCodeToFlag(code) {
-      if (!code || code.length !== 2) return "";
-      return code.toUpperCase().replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
+      if (!code || code.length !== 2) {
+        return "";
+      }
+
+      return code
+        .toUpperCase()
+        .replace(
+          /./g,
+          char => String.fromCodePoint(127397 + char.charCodeAt())
+        );
     }
 
     function applyTripPresentation() {
-      document.body.classList.remove("theme-abroad", "theme-local", "theme-camping", "theme-reserve");
+      document.body.classList.remove(
+        "theme-abroad",
+        "theme-local",
+        "theme-camping",
+        "theme-reserve"
+      );
+
       document.body.classList.add(`theme-${tripType}`);
-      document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.body).getPropertyValue("--primary-dark").trim();
-      const config = tripTypeConfig[tripType] || tripTypeConfig.local;
-      const suffix = tripType === "abroad" ? (countryCodeToFlag(countryCode) || config.icon) : config.icon;
-      document.getElementById("appTitle").textContent = `${destinationName} ${suffix}`;
-      document.getElementById("footerDestination").textContent = `${destinationName} • Trip Companion v3.1.0`;
-      document.getElementById("weatherRow").style.display = tripType === "reserve" ? "none" : "flex";
+
+      document.querySelector('meta[name="theme-color"]').content =
+        getComputedStyle(document.body)
+          .getPropertyValue("--primary-dark")
+          .trim();
+
+      const config =
+        tripTypeConfig[tripType] || tripTypeConfig.local;
+
+      const suffix =
+        tripType === "abroad"
+          ? countryCodeToFlag(countryCode) || config.icon
+          : config.icon;
+
+      document.getElementById("appTitle").textContent =
+        `${destinationName} ${suffix}`;
+
+      document.getElementById("footerDestination").textContent =
+        `${destinationName} • Trip Companion v3.1.0`;
+
+      document.getElementById("weatherRow").style.display =
+        tripType === "reserve" ? "none" : "flex";
     }
 
     function toLocalInputValue(date) {
       const offset = date.getTimezoneOffset() * 60000;
-      return new Date(date - offset).toISOString().slice(0, 16);
+
+      return new Date(date - offset)
+        .toISOString()
+        .slice(0, 16);
     }
 
     function tripDataPath(key) {
-      if (!tripRoot) return key;
-      const keyMap = { group_members: "participants", personal_locker: "personalLocker" };
+      if (!tripRoot) {
+        return key;
+      }
+
+      const keyMap = {
+        group_members: "participants",
+        personal_locker: "personalLocker"
+      };
+
       return `${tripRoot}/${keyMap[key] || key}`;
     }
 
     function saveTripCollection(key, value) {
-      if (db) return db.ref(tripDataPath(key)).set(value);
+      if (db) {
+        return db.ref(tripDataPath(key)).set(value);
+      }
+
       return Promise.resolve();
     }
 
     function showSystemMessage(title, text) {
       const box = document.getElementById("systemMessage");
-      box.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(text)}</span>`;
+
+      box.innerHTML =
+        `<strong>${escapeHtml(title)}</strong>` +
+        `<span>${escapeHtml(text)}</span>`;
+
       box.style.display = "block";
     }
 
     function scopedTripUrl(href) {
-      if (!tripId) return href;
+      if (!tripId) {
+        return href;
+      }
+
       const url = new URL(href, window.location.href);
       url.searchParams.set("tripId", tripId);
+
       return url.href;
     }
 
     function applyFeatureVisibility() {
-      document.querySelectorAll("[data-feature]").forEach(element => {
-        element.style.display = enabledFeatures[element.dataset.feature] === false ? "none" : "flex";
-      });
-      document.querySelectorAll('a[href$=".html"], a[data-feature="expenses"]').forEach(link => {
-        link.href = scopedTripUrl(link.getAttribute("href"));
-      });
-      const visibleActions = [...document.querySelectorAll(".action-card")].filter(card => card.style.display !== "none").length;
-      if (visibleActions === 0) showSystemMessage("אין מודולים פעילים", "מארגן הטיול עדיין לא הפעיל כלים עבור הטיול הזה.");
+      document
+        .querySelectorAll("[data-feature]")
+        .forEach(element => {
+          element.style.display =
+            enabledFeatures[element.dataset.feature] === false
+              ? "none"
+              : "flex";
+        });
+
+      document
+        .querySelectorAll(
+          'a[href$=".html"], a[data-feature="expenses"]'
+        )
+        .forEach(link => {
+          link.href = scopedTripUrl(link.getAttribute("href"));
+        });      const visibleActions = [...document.querySelectorAll(".action-card")]
+        .filter(card => card.style.display !== "none")
+        .length;
+
+      if (visibleActions === 0) {
+        showSystemMessage(
+          "אין מודולים פעילים",
+          "מארגן הטיול עדיין לא הפעיל כלים עבור הטיול הזה."
+        );
+      }
     }
 
     function hydrateTripData(data) {
-      if (!data) return;
+      if (!data) {
+        return;
+      }
+
       tripLoaded = true;
       tripType = data.tripType || tripType;
       currentLanguage = data.language === "en" ? "en" : "he";
       destinationName = data.destination || destinationName;
-      if (Number.isFinite(Number(data.lat))) latCoord = Number(data.lat);
-      if (Number.isFinite(Number(data.lon))) lonCoord = Number(data.lon);
-      if (data.startAt || data.flightOut) flightOut = new Date(data.startAt || data.flightOut);
-      if (data.endAt || data.tripEnd || data.flightBack) tripEnd = new Date(data.endAt || data.tripEnd || data.flightBack);
+
+      if (Number.isFinite(Number(data.lat))) {
+        latCoord = Number(data.lat);
+      }
+
+      if (Number.isFinite(Number(data.lon))) {
+        lonCoord = Number(data.lon);
+      }
+
+      if (data.startAt || data.flightOut) {
+        flightOut = new Date(data.startAt || data.flightOut);
+      }
+
+      if (data.endAt || data.tripEnd || data.flightBack) {
+        tripEnd = new Date(
+          data.endAt ||
+          data.tripEnd ||
+          data.flightBack
+        );
+      }
+
       countryCode = data.countryCode || countryCode;
       checkinLink = data.checkinLink || "";
       tripOwnerId = data.ownerId || "";
-      if (Array.isArray(data.participants)) groupMembers = data.participants;
-      if (data.personalLocker && typeof data.personalLocker === "object") personalLockerCards = data.personalLocker;
-      if (data.features && typeof data.features === "object") enabledFeatures = { ...enabledFeatures, ...data.features };
+
+      if (Array.isArray(data.participants)) {
+        groupMembers = data.participants;
+      }
+
+      participantClaims = data.participantClaims || {};
+      memberProfiles = data.memberProfiles || {};
+
+      if (
+        data.personalLocker &&
+        typeof data.personalLocker === "object"
+      ) {
+        personalLockerCards = data.personalLocker;
+      }
+
+      if (
+        data.features &&
+        typeof data.features === "object"
+      ) {
+        enabledFeatures = {
+          ...enabledFeatures,
+          ...data.features
+        };
+      }
+
       applyTripLanguage();
       renderAdminTags();
+      renderLinkedMembers();
+      renderMemberChoices();
       updateLockerSummary();
       applyTripPresentation();
       applyFeatureVisibility();
       fetchWeather();
       updateClockAndPhases();
+
+      if (currentUser && tripRoot) {
+        loadMemberProfile();
+      }
     }
 
     function preferredFeature(preferred) {
-      const order = [preferred, "packing", "places", "shopping", "expenses"];
-      const feature = order.find((name, index) => order.indexOf(name) === index && enabledFeatures[name] !== false);
+      const order = [
+        preferred,
+        "packing",
+        "places",
+        "shopping",
+        "expenses"
+      ];
+
+      const feature = order.find(
+        (name, index) =>
+          order.indexOf(name) === index &&
+          enabledFeatures[name] !== false
+      );
+
       const map = {
-        packing: { href: "packing.html", icon: "🎒", title: tr("מתקדמים לקראת הטיול", "Get ready for the trip"), sub: tr("עברו על רשימת הציוד וסגרו את מה שחסר", "Review the packing list and finish what is missing"), action: tr("לרשימה", "Open list") },
-        shopping: { href: "shopping.html", icon: "🛒", title: tr("מה עוד צריך לקנות?", "What do we still need?"), sub: tr("רשימת הקניות הקבוצתית מחכה לכם", "The group shopping list is ready"), action: tr("לקניות", "Shop") },
-        places: { href: "places.html", icon: "📍", title: tr("מה עושים עכשיו?", "What should we do now?"), sub: tr("המקומות ששמרתם זמינים בלחיצה אחת", "Your saved places are one tap away"), action: tr("למקומות", "Places") },
-        expenses: { href: "https://startling-torrone-b6c067.netlify.app/", icon: "💸", title: tr("שומרים על סדר בהוצאות", "Keep expenses organized"), sub: tr("כל ההתחשבנות הקבוצתית במקום אחד", "All group expenses in one place"), action: tr("להוצאות", "Expenses"), newTab: true }
+        packing: {
+          href: "packing.html",
+          icon: "🎒",
+          title: tr(
+            "מתקדמים לקראת הטיול",
+            "Get ready for the trip"
+          ),
+          sub: tr(
+            "עברו על רשימת הציוד וסגרו את מה שחסר",
+            "Review the packing list and finish what is missing"
+          ),
+          action: tr("לרשימה", "Open list")
+        },
+
+        shopping: {
+          href: "shopping.html",
+          icon: "🛒",
+          title: tr(
+            "מה עוד צריך לקנות?",
+            "What do we still need?"
+          ),
+          sub: tr(
+            "רשימת הקניות הקבוצתית מחכה לכם",
+            "The group shopping list is ready"
+          ),
+          action: tr("לקניות", "Shop")
+        },
+
+        places: {
+          href: "places.html",
+          icon: "📍",
+          title: tr(
+            "מה עושים עכשיו?",
+            "What should we do now?"
+          ),
+          sub: tr(
+            "המקומות ששמרתם זמינים בלחיצה אחת",
+            "Your saved places are one tap away"
+          ),
+          action: tr("למקומות", "Places")
+        },
+
+        expenses: {
+          href: "https://startling-torrone-b6c067.netlify.app/",
+          icon: "💸",
+          title: tr(
+            "שומרים על סדר בהוצאות",
+            "Keep expenses organized"
+          ),
+          sub: tr(
+            "כל ההתחשבנות הקבוצתית במקום אחד",
+            "All group expenses in one place"
+          ),
+          action: tr("להוצאות", "Expenses"),
+          newTab: true
+        }
       };
+
       return feature ? map[feature] : null;
     }
 
-    const adminTagsContainer = document.getElementById("adminTagsContainer");
-    const adminTagInput = document.getElementById("adminTagInput");
+    const adminTagsContainer =
+      document.getElementById("adminTagsContainer");
+
+    const adminTagInput =
+      document.getElementById("adminTagInput");
 
     function syncAdminFields() {
-      const selectedType = document.getElementById("adminTripType").value;
-      document.getElementById("checkinField").style.display = selectedType === "abroad" ? "flex" : "none";
+      const selectedType =
+        document.getElementById("adminTripType").value;
+
+      document.getElementById("checkinField").style.display =
+        selectedType === "abroad" ? "flex" : "none";
     }
 
-    document.getElementById("adminTripType").addEventListener("change", syncAdminFields);
+    document
+      .getElementById("adminTripType")
+      .addEventListener("change", syncAdminFields);
 
     function renderAdminTags() {
-      const existingTags = adminTagsContainer.querySelectorAll(".member-tag");
-      existingTags.forEach(t => t.remove());
+      const existingTags =
+        adminTagsContainer.querySelectorAll(".member-tag");
+
+      existingTags.forEach(tag => tag.remove());
 
       groupMembers.forEach((member, index) => {
         const tag = document.createElement("div");
         tag.className = "member-tag";
-        tag.innerHTML = `${escapeHtml(member)} <span onclick="removeMemberTag(${index})">&times;</span>`;
+
+        tag.innerHTML =
+          `${escapeHtml(member)} ` +
+          `<span onclick="removeMemberTag(${index})">&times;</span>`;
+
         adminTagsContainer.insertBefore(tag, adminTagInput);
       });
+
       updateLockerSelectOptions();
     }
 
-    window.removeMemberTag = (index) => {
-      if (tripRoot && !requireOrganizerAccess()) return;
+    function renderLinkedMembers() {
+      const container =
+        document.getElementById("linkedMembersList");
+
+      if (!isOrganizer()) {
+        container.innerHTML = "";
+        return;
+      }
+
+      const rows = Object.entries(memberProfiles);
+
+      container.innerHTML = rows.length
+        ? rows.map(([uid, profile]) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid var(--border-color);border-radius:12px">
+            <span style="min-width:0">
+              <strong>
+                ${escapeHtml(
+                  profile.name ||
+                  tr("משתתף", "Traveler")
+                )}
+              </strong>
+              <br>
+              <small style="color:var(--text-muted)">
+                ${escapeHtml(profile.email || "")}
+              </small>
+            </span>
+
+            <button
+              type="button"
+              class="btn-sm-action"
+              data-release-uid="${escapeHtml(uid)}">
+              ${tr("נתק", "Release")}
+            </button>
+          </div>
+        `).join("")
+        : `
+          <small style="color:var(--text-muted)">
+            ${tr(
+              "עדיין אין חשבונות משויכים.",
+              "No linked accounts yet."
+            )}
+          </small>
+        `;
+
+      container
+        .querySelectorAll("[data-release-uid]")
+        .forEach(button => {
+          button.addEventListener("click", () => {
+            releaseMember(button.dataset.releaseUid);
+          });
+        });
+    }
+
+    async function releaseMember(uid) {
+      if (!requireOrganizerAccess()) {
+        return;
+      }
+
+      const profile = memberProfiles[uid];
+
+      if (
+        !profile ||
+        !confirm(
+          tr(
+            `לנתק את ${profile.name} מחשבון Google שלו?`,
+            `Release ${profile.name} from their Google account?`
+          )
+        )
+      ) {
+        return;
+      }
+
+      const updates = {};
+
+      updates[
+        `participantClaims/${profile.participantKey}`
+      ] = null;
+
+      updates[`memberProfiles/${uid}`] = null;
+      updates[`personalLocker/${uid}`] = null;
+
+      await db.ref(tripRoot).update(updates);
+    }
+
+    window.removeMemberTag = index => {
+      if (
+        tripRoot &&
+        !requireOrganizerAccess()
+      ) {
+        return;
+      }
+
+      const name = groupMembers[index];
+
+      if (
+        tripRoot &&
+        participantClaims[participantKey(name)]
+      ) {
+        return alert(
+          tr(
+            "השם משויך לחשבון Google. יש לנתק אותו תחילה ברשימת החשבונות המשויכים.",
+            "This name is linked to a Google account. Release it first from the linked accounts list."
+          )
+        );
+      }
+
       groupMembers.splice(index, 1);
       saveTripCollection("group_members", groupMembers);
       renderAdminTags();
     };
 
-    adminTagInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (tripRoot && !requireOrganizerAccess()) return;
-        const val = adminTagInput.value.trim();
-        if (val && !groupMembers.includes(val)) {
-          groupMembers.push(val);
-          saveTripCollection("group_members", groupMembers);
-          adminTagInput.value = "";
-          renderAdminTags();
-        }
+    adminTagInput.addEventListener("keypress", event => {
+      if (event.key !== "Enter") {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (
+        tripRoot &&
+        !requireOrganizerAccess()
+      ) {
+        return;
+      }
+
+      const value = adminTagInput.value.trim();
+
+      if (
+        value &&
+        !groupMembers.includes(value)
+      ) {
+        groupMembers.push(value);
+        saveTripCollection("group_members", groupMembers);
+        adminTagInput.value = "";
+        renderAdminTags();
       }
     });
 
     function updateLockerSelectOptions() {
-      const select = document.getElementById("lockerMemberName");
+      const select =
+        document.getElementById("lockerMemberName");
+
       select.innerHTML = "";
-      groupMembers.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        select.appendChild(opt);
+
+      const names = currentProfile
+        ? [currentProfile.name]
+        : [];
+
+      names.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
       });
     }
 
     function openSheet(id) {
       const modal = document.getElementById(id);
+
       modal.classList.add("open");
       document.body.classList.add("modal-open");
-      requestAnimationFrame(() => modal.querySelector("button, input, select")?.focus());
+
+      requestAnimationFrame(() => {
+        modal
+          .querySelector("button, input, select")
+          ?.focus();
+      });
     }
 
     function closeSheet(id) {
-      document.getElementById(id).classList.remove("open");
-      if (!document.querySelector(".modal-overlay.open")) document.body.classList.remove("modal-open");
+      document
+        .getElementById(id)
+        .classList.remove("open");
+
+      if (
+        !document.querySelector(".modal-overlay.open")
+      ) {
+        document.body.classList.remove("modal-open");
+      }
     }
 
     function loadSelectedLockerCard() {
-      const name = document.getElementById("lockerMemberName").value;
-      const card = personalLockerCards[name] || {};
-      document.getElementById("lockerSeat").value = card.seat || "";
-      document.getElementById("lockerLink").value = card.link || "";
+      const card = currentUser
+        ? personalLockerCards[currentUser.uid] || {}
+        : {};
+
+      document.getElementById("lockerSeat").value =
+        card.seat || "";
+
+      document.getElementById("lockerLink").value =
+        card.link || "";
     }
 
-    window.openLockerModal = () => { openSheet("lockerModal"); loadSelectedLockerCard(); };
-    window.closeLockerModal = () => closeSheet("lockerModal");
-    window.openSeatsModal = () => { openSheet("seatsModal"); renderPlaneSeats(); };
-    window.closeSeatsModal = () => closeSheet("seatsModal");
-    window.openAdminModal = () => openSheet("adminModal");
-    window.closeAdminModal = () => closeSheet("adminModal");
+    window.openLockerModal = () => {
+      if (!currentProfile) {
+        return alert(
+          tr(
+            "יש לבחור תחילה את שמך בקבוצה",
+            "Choose your group name first"
+          )
+        );
+      }
 
-    document.getElementById("lockerMemberName").addEventListener("change", loadSelectedLockerCard);
-    document.querySelectorAll(".modal-overlay").forEach(modal => {
-      modal.addEventListener("click", e => {
-        if (e.target === modal) closeSheet(modal.id);
+      openSheet("lockerModal");
+      loadSelectedLockerCard();
+    };
+
+    window.closeLockerModal = () => {
+      closeSheet("lockerModal");
+    };
+
+    window.openSeatsModal = () => {
+      openSheet("seatsModal");
+      renderPlaneSeats();
+    };
+
+    window.closeSeatsModal = () => {
+      closeSheet("seatsModal");
+    };
+
+    window.openAdminModal = () => {
+      openSheet("adminModal");
+    };
+
+    window.closeAdminModal = () => {
+      closeSheet("adminModal");
+    };
+
+    document
+      .getElementById("lockerMemberName")
+      .addEventListener(
+        "change",
+        loadSelectedLockerCard
+      );
+
+    document
+      .querySelectorAll(".modal-overlay")
+      .forEach(modal => {
+        modal.addEventListener("click", event => {
+          if (event.target === modal) {
+            closeSheet(modal.id);
+          }
+        });
       });
-    });
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape") {
-        const openModal = document.querySelector(".modal-overlay.open");
-        if (openModal) closeSheet(openModal.id);
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        const openModal =
+          document.querySelector(".modal-overlay.open");
+
+        if (openModal) {
+          closeSheet(openModal.id);
+        }
       }
     });
 
     window.savePersonalLockerCard = () => {
-      const name = document.getElementById("lockerMemberName").value;
-      const seat = document.getElementById("lockerSeat").value.trim().toUpperCase();
-      const link = document.getElementById("lockerLink").value.trim();
+      const name = currentProfile?.name;
 
-      if (!name) return;
-      personalLockerCards[name] = { seat, link };
+      const seat =
+        document
+          .getElementById("lockerSeat")
+          .value
+          .trim()
+          .toUpperCase();
 
-      saveTripCollection("personal_locker", personalLockerCards);
+      const link =
+        document
+          .getElementById("lockerLink")
+          .value
+          .trim();
+
+      if (!name || !currentUser) {
+        return;
+      }
+
+      personalLockerCards[currentUser.uid] = {
+        name,
+        seat,
+        link,
+        updatedAt: Date.now()
+      };
+
+      if (tripRoot) {
+        db.ref(
+          `${tripRoot}/personalLocker/${currentUser.uid}`
+        ).set(
+          personalLockerCards[currentUser.uid]
+        );
+      } else {
+        saveTripCollection(
+          "personal_locker",
+          personalLockerCards
+        );
+      }
+
       updateLockerSummary();
       closeLockerModal();
     };
 
     function updateLockerSummary() {
-      const summaryText = document.getElementById("lockerSummaryText");
-      const actionButton = document.getElementById("lockerActionButton");
-      const names = Object.keys(personalLockerCards);
-      if (names.length === 0) {
-        summaryText.textContent = tr("הכרטיס שלי • מושב לא הוגדר", "My ticket • Seat not set");
-        actionButton.textContent = tr("הוסף ›", "Add ›");
+      const summaryText =
+        document.getElementById("lockerSummaryText");
+
+      const actionButton =
+        document.getElementById("lockerActionButton");
+
+      const card = currentUser
+        ? personalLockerCards[currentUser.uid]
+        : null;
+
+      if (!card) {
+        summaryText.textContent = tr(
+          "הכרטיס שלי • מושב לא הוגדר",
+          "My ticket • Seat not set"
+        );
+
+        actionButton.textContent = tr(
+          "הוסף ›",
+          "Add ›"
+        );
+
         return;
       }
-      const firstName = names[0];
-      const seat = personalLockerCards[firstName].seat || tr('לא הוגדר', 'Not set');
-      summaryText.textContent = `${firstName} • ${tr('מושב', 'Seat')} ${seat}`;
-      actionButton.textContent = tr("ערוך ›", "Edit ›");
+
+      const seat =
+        card.seat ||
+        tr("לא הוגדר", "Not set");
+
+      summaryText.textContent =
+        `${card.name || currentProfile?.name || ""} • ` +
+        `${tr("מושב", "Seat")} ${seat}`;
+
+      actionButton.textContent =
+        tr("ערוך ›", "Edit ›");
     }
 
-    if (db) {
-      if (tripRoot) {
-        db.ref(tripRoot).on("value", snapshot => {
-          const data = snapshot.val();
-          if (data) hydrateTripData(data);
-          else showSystemMessage(tr("הטיול לא נמצא", "Trip not found"), tr("ייתכן שהקישור שגוי או שהטיול הוסר על ידי המארגן.", "The link may be incorrect or the organizer may have removed the trip."));
-        }, () => showSystemMessage(tr("לא ניתן לטעון את הטיול", "Could not load the trip"), tr("בדקו את החיבור לאינטרנט ונסו לרענן את העמוד.", "Check your internet connection and refresh the page.")));
-      } else {
-        db.ref("trip_settings").on("value", snapshot => hydrateTripData(snapshot.val()));
-        db.ref("group_members").on("value", snapshot => {
-          const data = snapshot.val();
-          if (Array.isArray(data)) { groupMembers = data; renderAdminTags(); }
-        });
-        db.ref("personal_locker").on("value", snapshot => {
-          const data = snapshot.val();
-          if (data && typeof data === "object") { personalLockerCards = data; updateLockerSummary(); }
-        });
+    function startTripListener() {
+      if (!db || !tripRoot) {
+        return;
       }
+
+      const tripRef = db.ref(tripRoot);
+
+      tripRef.off("value");
+
+      tripRef.on(
+        "value",
+        snapshot => {
+          const data = snapshot.val();
+
+          if (data) {
+            hydrateTripData(data);
+          } else {
+            showSystemMessage(
+              tr("הטיול לא נמצא", "Trip not found"),
+              tr(
+                "ייתכן שהקישור שגוי או שהטיול הוסר על ידי המארגן.",
+                "The link may be incorrect or the organizer may have removed the trip."
+              )
+            );
+          }
+        },
+        () => {
+          showSystemMessage(
+            tr(
+              "לא ניתן לטעון את הטיול",
+              "Could not load the trip"
+            ),
+            tr(
+              "בדקו את החיבור לאינטרנט ונסו לרענן את העמוד.",
+              "Check your internet connection and refresh the page."
+            )
+          );
+        }
+      );
+    }
+
+    if (db && !tripRoot) {
+      db.ref("trip_settings").on(
+        "value",
+        snapshot => {
+          hydrateTripData(snapshot.val());
+        }
+      );
+
+      db.ref("group_members").on(
+        "value",
+        snapshot => {
+          const data = snapshot.val();
+
+          if (Array.isArray(data)) {
+            groupMembers = data;
+            renderAdminTags();
+          }
+        }
+      );
+
+      db.ref("personal_locker").on(
+        "value",
+        snapshot => {
+          const data = snapshot.val();
+
+          if (
+            data &&
+            typeof data === "object"
+          ) {
+            personalLockerCards = data;
+            updateLockerSummary();
+          }
+        }
+      );
     }
 
     applyTripLanguage();
@@ -994,66 +2582,176 @@
 
     let titleClickCount = 0;
     let titleClickTimer = null;
-    const appTitleEl = document.getElementById("appTitle");
+
+    const appTitleEl =
+      document.getElementById("appTitle");
 
     if (appTitleEl) {
       appTitleEl.addEventListener("click", () => {
         titleClickCount++;
         clearTimeout(titleClickTimer);
-        titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 800);
+
+        titleClickTimer = setTimeout(() => {
+          titleClickCount = 0;
+        }, 800);
 
         if (titleClickCount >= 3) {
           titleClickCount = 0;
+
           if (requireOrganizerAccess()) {
-            document.getElementById("adminTripType").value = tripType;
+            document.getElementById(
+              "adminTripType"
+            ).value = tripType;
+
             syncAdminFields();
-            document.getElementById("adminDestInput").value = destinationName;
-            document.getElementById("adminCheckinUrl").value = checkinLink;
-            document.getElementById("adminFlightInput").value = toLocalInputValue(flightOut);
-            document.getElementById("adminEndInput").value = toLocalInputValue(tripEnd);
+
+            document.getElementById(
+              "adminDestInput"
+            ).value = destinationName;
+
+            document.getElementById(
+              "adminCheckinUrl"
+            ).value = checkinLink;
+
+            document.getElementById(
+              "adminFlightInput"
+            ).value = toLocalInputValue(flightOut);
+
+            document.getElementById(
+              "adminEndInput"
+            ).value = toLocalInputValue(tripEnd);
+
             openAdminModal();
           }
         }
       });
     }
 
-    document.getElementById("saveFlightBtn").addEventListener("click", async () => {
-      if (!requireOrganizerAccess()) return;
-      const newTripType = document.getElementById("adminTripType").value;
-      const newFlight = document.getElementById("adminFlightInput").value;
-      const newEnd = document.getElementById("adminEndInput").value;
-      const newDest = document.getElementById("adminDestInput").value.trim();
-      const newCheckin = document.getElementById("adminCheckinUrl").value.trim();
-
-      if (newFlight && newEnd && newDest) {
-        if (new Date(newEnd) <= new Date(newFlight)) {
-          alert(tr("מועד הסיום חייב להיות מאוחר ממועד ההתחלה.", "The end date must be later than the start date."));
+    document
+      .getElementById("saveFlightBtn")
+      .addEventListener("click", async () => {
+        if (!requireOrganizerAccess()) {
           return;
         }
+
+        const newTripType =
+          document.getElementById("adminTripType").value;
+
+        const newFlight =
+          document.getElementById("adminFlightInput").value;
+
+        const newEnd =
+          document.getElementById("adminEndInput").value;
+
+        const newDestination =
+          document
+            .getElementById("adminDestInput")
+            .value
+            .trim();
+
+        const newCheckin =
+          document
+            .getElementById("adminCheckinUrl")
+            .value
+            .trim();
+
+        if (
+          !newFlight ||
+          !newEnd ||
+          !newDestination
+        ) {
+          alert(
+            tr(
+              "נא להזין יעד, מועד התחלה ומועד סיום.",
+              "Enter a destination, start date and end date."
+            )
+          );
+
+          return;
+        }
+
+        if (
+          new Date(newEnd) <=
+          new Date(newFlight)
+        ) {
+          alert(
+            tr(
+              "מועד הסיום חייב להיות מאוחר ממועד ההתחלה.",
+              "The end date must be later than the start date."
+            )
+          );
+
+          return;
+        }
+
         flightOut = new Date(newFlight);
         tripEnd = new Date(newEnd);
-        destinationName = newDest;
+        destinationName = newDestination;
         tripType = newTripType;
-        checkinLink = tripType === "abroad" ? newCheckin : "";
 
-        if (tripType !== 'reserve') {
+        checkinLink =
+          tripType === "abroad"
+            ? newCheckin
+            : "";
+
+        if (tripType !== "reserve") {
           try {
-            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(newDest)}&count=1&language=${currentLanguage}&format=json`);
-            const geoData = await geoRes.json();
-            if (geoData && geoData.results && geoData.results.length > 0) {
-              latCoord = geoData.results[0].latitude;
-              lonCoord = geoData.results[0].longitude;
-              countryCode = geoData.results[0].country_code || countryCode;
+            const geoResponse = await fetch(
+              "https://geocoding-api.open-meteo.com/v1/search" +
+              `?name=${encodeURIComponent(newDestination)}` +
+              `&count=1` +
+              `&language=${currentLanguage}` +
+              "&format=json"
+            );
+
+            const geoData =
+              await geoResponse.json();
+
+            if (
+              geoData &&
+              geoData.results &&
+              geoData.results.length > 0
+            ) {
+              latCoord =
+                geoData.results[0].latitude;
+
+              lonCoord =
+                geoData.results[0].longitude;
+
+              countryCode =
+                geoData.results[0].country_code ||
+                countryCode;
             }
-          } catch (err) { console.error("Geocoding error", err); }
+          } catch (error) {
+            console.error(
+              "Geocoding error",
+              error
+            );
+          }
         }
 
         if (db) {
-          const settings = { tripType, destination: destinationName, lat: latCoord, lon: lonCoord, countryCode, checkinLink };
+          const settings = {
+            tripType,
+            destination: destinationName,
+            lat: latCoord,
+            lon: lonCoord,
+            countryCode,
+            checkinLink
+          };
+
           if (tripRoot) {
-            db.ref(tripRoot).update({ ...settings, startAt: flightOut.toISOString(), endAt: tripEnd.toISOString() });
+            db.ref(tripRoot).update({
+              ...settings,
+              startAt: flightOut.toISOString(),
+              endAt: tripEnd.toISOString()
+            });
           } else {
-            db.ref("trip_settings").set({ ...settings, flightOut: newFlight, tripEnd: newEnd });
+            db.ref("trip_settings").set({
+              ...settings,
+              flightOut: newFlight,
+              tripEnd: newEnd
+            });
           }
         }
 
@@ -1061,37 +2759,78 @@
         applyTripPresentation();
         updateClockAndPhases();
         fetchWeather();
-        alert(tr("הגדרות הטיול עודכנו בהצלחה!", "Trip settings updated successfully!"));
-      } else {
-        alert(tr("נא להזין יעד, מועד התחלה ומועד סיום.", "Enter a destination, start date and end date."));
-      }
-    });
+
+        alert(
+          tr(
+            "הגדרות הטיול עודכנו בהצלחה!",
+            "Trip settings updated successfully!"
+          )
+        );
+      });
 
     function updateClockAndPhases() {
       const now = new Date();
       const diffOut = flightOut - now;
-      const hoursToStart = diffOut / (1000 * 60 * 60);
-      const config = tripTypeConfig[tripType] || tripTypeConfig.local;
+      const hoursToStart =
+        diffOut / (1000 * 60 * 60);
+
+      const config =
+        tripTypeConfig[tripType] ||
+        tripTypeConfig.local;
+
       const isFlight = tripType === "abroad";
-      const phaseBadge = document.getElementById("tripPhaseBadge");
-      const smartContextBanner = document.getElementById("smartContextBanner");
-      const seatsBannerBtn = document.getElementById("seatsBannerBtn");
-      const lockerCardContainer = document.getElementById("lockerCardContainer");
-      const timerTitle = document.getElementById("timerTitle");
-      const actionsSubtitle = document.getElementById("actionsSubtitle");
+
+      const phaseBadge =
+        document.getElementById("tripPhaseBadge");
+
+      const smartContextBanner =
+        document.getElementById("smartContextBanner");
+
+      const seatsBannerBtn =
+        document.getElementById("seatsBannerBtn");
+
+      const lockerCardContainer =
+        document.getElementById("lockerCardContainer");
+
+      const timerTitle =
+        document.getElementById("timerTitle");
+
+      const actionsSubtitle =
+        document.getElementById("actionsSubtitle");
 
       if (!tripLoaded) {
-        phaseBadge.textContent = tr("טוען...", "Loading...");
-        timerTitle.textContent = tr("טוען את פרטי הטיול", "Loading trip details");
+        phaseBadge.textContent =
+          tr("טוען...", "Loading...");
+
+        timerTitle.textContent =
+          tr(
+            "טוען את פרטי הטיול",
+            "Loading trip details"
+          );
+
         smartContextBanner.style.display = "none";
         seatsBannerBtn.style.display = "none";
         lockerCardContainer.style.display = "none";
+
         return;
       }
 
-      const setSmartContext = ({ href, icon, title, sub, action, newTab = false, scopeToTrip = true }) => {
+      const setSmartContext = ({
+        href,
+        icon,
+        title,
+        sub,
+        action,
+        newTab = false,
+        scopeToTrip = true
+      }) => {
         smartContextBanner.style.display = "flex";
-        smartContextBanner.href = scopeToTrip ? scopedTripUrl(href) : href;
+
+        smartContextBanner.href =
+          scopeToTrip
+            ? scopedTripUrl(href)
+            : href;
+
         if (newTab) {
           smartContextBanner.target = "_blank";
           smartContextBanner.rel = "noopener";
@@ -1099,134 +2838,449 @@
           smartContextBanner.removeAttribute("target");
           smartContextBanner.removeAttribute("rel");
         }
-        document.getElementById("contextIcon").textContent = icon;
-        document.getElementById("contextTitle").textContent = title;
-        document.getElementById("contextSub").textContent = sub;
-        document.getElementById("contextActionText").textContent = action;
+
+        document.getElementById(
+          "contextIcon"
+        ).textContent = icon;
+
+        document.getElementById(
+          "contextTitle"
+        ).textContent = title;
+
+        document.getElementById(
+          "contextSub"
+        ).textContent = sub;
+
+        document.getElementById(
+          "contextActionText"
+        ).textContent = action;
       };
 
-      seatsBannerBtn.style.display = isFlight && diffOut > 0 ? "flex" : "none";
-      lockerCardContainer.style.display = isFlight && diffOut > 0 ? "flex" : "none";
+      seatsBannerBtn.style.display =
+        isFlight && diffOut > 0
+          ? "flex"
+          : "none";
+
+      lockerCardContainer.style.display =
+        isFlight && diffOut > 0
+          ? "flex"
+          : "none";
 
       if (diffOut > 0) {
-        phaseBadge.textContent = currentLanguage === "en" ? config.phaseEn : config.phaseHe;
-        const days = Math.floor(diffOut / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diffOut / (1000 * 60 * 60)) % 24);
-        timerTitle.textContent = currentLanguage === "en" ? `${config.icon} ${days} days · ${hours} hours to go` : `${config.icon} עוד ${days} ימים · ${hours} שעות`;
-        actionsSubtitle.textContent = tr(`מתארגנים לקראת ${destinationName}`, `Getting ready for ${destinationName}`);
+        phaseBadge.textContent =
+          currentLanguage === "en"
+            ? config.phaseEn
+            : config.phaseHe;
 
-        if (isFlight && hoursToStart <= 48 && checkinLink) {
-          setSmartContext({ href: checkinLink, icon: "🎫", title: tr("הצ׳ק־אין מתקרב", "Check-in is approaching"), sub: tr("הכינו כרטיס ומושב לפני ההגעה לשדה", "Prepare your ticket and seat before reaching the airport"), action: tr("לצ׳ק־אין", "Check in"), newTab: true, scopeToTrip: false });
+        const days = Math.floor(
+          diffOut / (1000 * 60 * 60 * 24)
+        );
+
+        const hours = Math.floor(
+          (diffOut / (1000 * 60 * 60)) % 24
+        );
+
+        timerTitle.textContent =
+          currentLanguage === "en"
+            ? `${config.icon} ${days} days · ${hours} hours to go`
+            : `${config.icon} עוד ${days} ימים · ${hours} שעות`;
+
+        actionsSubtitle.textContent = tr(
+          `מתארגנים לקראת ${destinationName}`,
+          `Getting ready for ${destinationName}`
+        );
+
+        if (
+          isFlight &&
+          hoursToStart <= 48 &&
+          checkinLink
+        ) {
+          setSmartContext({
+            href: checkinLink,
+            icon: "🎫",
+            title: tr(
+              "הצ׳ק־אין מתקרב",
+              "Check-in is approaching"
+            ),
+            sub: tr(
+              "הכינו כרטיס ומושב לפני ההגעה לשדה",
+              "Prepare your ticket and seat before reaching the airport"
+            ),
+            action: tr(
+              "לצ׳ק־אין",
+              "Check in"
+            ),
+            newTab: true,
+            scopeToTrip: false
+          });
         } else {
-          const context = preferredFeature("packing");
-          if (context) setSmartContext(context);
-          else smartContextBanner.style.display = "none";
+          const context =
+            preferredFeature("packing");
+
+          if (context) {
+            setSmartContext(context);
+          } else {
+            smartContextBanner.style.display =
+              "none";
+          }
         }
-      } else if (now >= flightOut && now <= tripEnd) {
-        phaseBadge.textContent = tripType === "reserve" ? tr("במהלך הפעילות", "Activity in progress") : tr("במהלך הטיול", "Trip in progress");
-        timerTitle.textContent = tripType === "reserve" ? tr("הפעילות בעיצומה", "The activity is underway") : tr(`${config.icon} הטיול ב${destinationName} התחיל`, `${config.icon} The trip to ${destinationName} has started`);
-        actionsSubtitle.textContent = tr("כל מה שצריך במהלך הטיול", "Everything you need during the trip");
-        const context = preferredFeature("places");
-        if (context) setSmartContext(context);
-        else smartContextBanner.style.display = "none";
+      } else if (
+        now >= flightOut &&
+        now <= tripEnd
+      ) {
+        phaseBadge.textContent =
+          tripType === "reserve"
+            ? tr(
+                "במהלך הפעילות",
+                "Activity in progress"
+              )
+            : tr(
+                "במהלך הטיול",
+                "Trip in progress"
+              );
+
+        timerTitle.textContent =
+          tripType === "reserve"
+            ? tr(
+                "הפעילות בעיצומה",
+                "The activity is underway"
+              )
+            : tr(
+                `${config.icon} הטיול ב${destinationName} התחיל`,
+                `${config.icon} The trip to ${destinationName} has started`
+              );
+
+        actionsSubtitle.textContent = tr(
+          "כל מה שצריך במהלך הטיול",
+          "Everything you need during the trip"
+        );
+
+        const context =
+          preferredFeature("places");
+
+        if (context) {
+          setSmartContext(context);
+        } else {
+          smartContextBanner.style.display =
+            "none";
+        }
       } else {
-        phaseBadge.textContent = tr("הטיול הסתיים", "Trip completed");
-        timerTitle.textContent = tr("ההרפתקה הסתיימה — עד הפעם הבאה", "The adventure is over — until next time");
-        actionsSubtitle.textContent = tr("חוזרים למקומות ולהוצאות מהטיול", "Review places and expenses from the trip");
-        smartContextBanner.style.display = "none";
+        phaseBadge.textContent =
+          tr(
+            "הטיול הסתיים",
+            "Trip completed"
+          );
+
+        timerTitle.textContent =
+          tr(
+            "ההרפתקה הסתיימה — עד הפעם הבאה",
+            "The adventure is over — until next time"
+          );
+
+        actionsSubtitle.textContent =
+          tr(
+            "חוזרים למקומות ולהוצאות מהטיול",
+            "Review places and expenses from the trip"
+          );
+
+        smartContextBanner.style.display =
+          "none";
       }
     }
 
     updateClockAndPhases();
-    setInterval(updateClockAndPhases, 1000);
+
+    setInterval(
+      updateClockAndPhases,
+      1000
+    );
 
     function renderPlaneSeats() {
-      const container = document.getElementById('planeLayout');
-      container.innerHTML = '';
-      
-      let seatMap = {};
-      Object.keys(personalLockerCards).forEach(name => {
-        const card = personalLockerCards[name];
-        if (card && card.seat) {
-          const cleanSeat = card.seat.trim().toUpperCase();
-          if (cleanSeat) seatMap[cleanSeat] = name;
-        }
-      });
+      const container =
+        document.getElementById("planeLayout");
 
-      const seatKeys = Object.keys(seatMap);
-      let rowsToDisplay = [19, 20, 21, 22, 23];
+      container.innerHTML = "";
+
+      const seatMap = {};
+
+      Object.keys(personalLockerCards)
+        .forEach(uid => {
+          const card =
+            personalLockerCards[uid];
+
+          if (card && card.seat) {
+            const cleanSeat =
+              card.seat
+                .trim()
+                .toUpperCase();
+
+            if (cleanSeat) {
+              seatMap[cleanSeat] =
+                card.name ||
+                memberProfiles[uid]?.name ||
+                uid;
+            }
+          }
+        });
+
+      const seatKeys =
+        Object.keys(seatMap);
+
+      let rowsToDisplay =
+        [19, 20, 21, 22, 23];
+
       if (seatKeys.length > 0) {
-        const detectedRows = seatKeys.map(k => parseInt(k.replace(/\D/g, ''))).filter(n => !isNaN(n));
+        const detectedRows =
+          seatKeys
+            .map(key =>
+              parseInt(
+                key.replace(/\D/g, "")
+              )
+            )
+            .filter(number =>
+              !isNaN(number)
+            );
+
         if (detectedRows.length > 0) {
-          const minR = Math.max(1, Math.min(...detectedRows) - 1);
-          const maxR = Math.max(...detectedRows) + 1;
+          const minimumRow = Math.max(
+            1,
+            Math.min(...detectedRows) - 1
+          );
+
+          const maximumRow =
+            Math.max(...detectedRows) + 1;
+
           rowsToDisplay = [];
-          for (let r = minR; r <= maxR; r++) rowsToDisplay.push(r);
+
+          for (
+            let row = minimumRow;
+            row <= maximumRow;
+            row++
+          ) {
+            rowsToDisplay.push(row);
+          }
         }
       }
 
       let seatDelayCounter = 0;
+
       rowsToDisplay.forEach(row => {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'seat-row';
-        ['A', 'B', 'C', 'AISLE', 'D', 'E', 'F'].forEach(col => {
-          if (col === 'AISLE') {
-            const num = document.createElement('div');
-            num.className = 'row-num'; num.textContent = row;
-            rowDiv.appendChild(num);
-          } else {
-            const seatKey = `${row}${col}`;
-            const seatDiv = document.createElement('div');
-            seatDiv.className = 'seat';
+        const rowDiv =
+          document.createElement("div");
 
-            if (seatMap[seatKey]) {
-              seatDiv.classList.add('occupied');
-              seatDiv.innerHTML = `<span class="passenger-tag">${escapeHtml(seatMap[seatKey])}</span><span class="seat-letter">${seatKey}</span>`;
-            } else {
-              seatDiv.innerHTML = `<span class="seat-letter">${col}</span>`;
-            }
-            rowDiv.appendChild(seatDiv);
+        rowDiv.className = "seat-row";
 
-            setTimeout(() => { seatDiv.classList.add('reveal'); }, seatDelayCounter * 30);
-            seatDelayCounter++;
+        [
+          "A",
+          "B",
+          "C",
+          "AISLE",
+          "D",
+          "E",
+          "F"
+        ].forEach(column => {
+          if (column === "AISLE") {
+            const number =
+              document.createElement("div");
+
+            number.className = "row-num";
+            number.textContent = row;
+
+            rowDiv.appendChild(number);
+            return;
           }
+
+          const seatKey =
+            `${row}${column}`;
+
+          const seatDiv =
+            document.createElement("div");
+
+          seatDiv.className = "seat";
+
+          if (seatMap[seatKey]) {
+            seatDiv.classList.add(
+              "occupied"
+            );
+
+            seatDiv.innerHTML =
+              `<span class="passenger-tag">` +
+              `${escapeHtml(seatMap[seatKey])}` +
+              `</span>` +
+              `<span class="seat-letter">` +
+              `${seatKey}` +
+              `</span>`;
+          } else {
+            seatDiv.innerHTML =
+              `<span class="seat-letter">` +
+              `${column}` +
+              `</span>`;
+          }
+
+          rowDiv.appendChild(seatDiv);
+
+          setTimeout(() => {
+            seatDiv.classList.add(
+              "reveal"
+            );
+          }, seatDelayCounter * 30);
+
+          seatDelayCounter++;
         });
+
         container.appendChild(rowDiv);
       });
     }
 
     async function fetchWeather() {
-      if (tripType === "reserve") return;
+      if (tripType === "reserve") {
+        return;
+      }
+
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latCoord}&longitude=${lonCoord}&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day&timezone=auto`);
-        if (!res.ok) throw new Error("Weather request failed");
-        const data = await res.json();
-        if (data && data.current) {
-          const code = data.current.weather_code;
-          const isDay = data.current.is_day === 1;
-          let icon = isDay ? "☀️" : "🌙";
-          let status = isDay ? tr("בהיר", "Clear") : tr("לילה בהיר", "Clear night");
-          if (code >= 1 && code <= 3) { icon = isDay ? "⛅" : "☁️"; status = tr("מעונן חלקית", "Partly cloudy"); }
-          else if (code === 45 || code === 48) { icon = "🌫️"; status = tr("ערפל", "Fog"); }
-          else if (code >= 51 && code <= 67) { icon = "🌧️"; status = tr("גשום", "Rain"); }
-          else if (code >= 71 && code <= 77) { icon = "🌨️"; status = tr("שלג", "Snow"); }
-          else if (code >= 80 && code <= 82) { icon = "🌦️"; status = tr("ממטרים", "Showers"); }
-          else if (code >= 95) { icon = "⛈️"; status = tr("סופת רעמים", "Thunderstorm"); }
-          document.getElementById('weatherTemp').textContent = `${icon} ${Math.round(data.current.temperature_2m)}°C`;
-          document.getElementById('weatherWind').textContent = `💨 ${Math.round(data.current.wind_speed_10m)} ${tr('קמ״ש', 'km/h')}`;
-          document.getElementById('weatherUV').textContent = `UV ${Math.round(data.current.uv_index || 0)}`;
-          document.getElementById('weatherStatus').textContent = status;
+        const response = await fetch(
+          "https://api.open-meteo.com/v1/forecast" +
+          `?latitude=${latCoord}` +
+          `&longitude=${lonCoord}` +
+          "&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day" +
+          "&timezone=auto"
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Weather request failed"
+          );
         }
-      } catch (e) {
-        document.getElementById('weatherStatus').textContent = tr("לא זמין", "Unavailable");
-        console.error("Weather error");
+
+        const data =
+          await response.json();
+
+        if (
+          data &&
+          data.current
+        ) {
+          const code =
+            data.current.weather_code;
+
+          const isDay =
+            data.current.is_day === 1;
+
+          let icon =
+            isDay ? "☀️" : "🌙";
+
+          let status =
+            isDay
+              ? tr("בהיר", "Clear")
+              : tr(
+                  "לילה בהיר",
+                  "Clear night"
+                );
+
+          if (
+            code >= 1 &&
+            code <= 3
+          ) {
+            icon =
+              isDay ? "⛅" : "☁️";
+
+            status = tr(
+              "מעונן חלקית",
+              "Partly cloudy"
+            );
+          } else if (
+            code === 45 ||
+            code === 48
+          ) {
+            icon = "🌫️";
+            status = tr(
+              "ערפל",
+              "Fog"
+            );
+          } else if (
+            code >= 51 &&
+            code <= 67
+          ) {
+            icon = "🌧️";
+            status = tr(
+              "גשום",
+              "Rain"
+            );
+          } else if (
+            code >= 71 &&
+            code <= 77
+          ) {
+            icon = "🌨️";
+            status = tr(
+              "שלג",
+              "Snow"
+            );
+          } else if (
+            code >= 80 &&
+            code <= 82
+          ) {
+            icon = "🌦️";
+            status = tr(
+              "ממטרים",
+              "Showers"
+            );
+          } else if (
+            code >= 95
+          ) {
+            icon = "⛈️";
+            status = tr(
+              "סופת רעמים",
+              "Thunderstorm"
+            );
+          }
+
+          document.getElementById(
+            "weatherTemp"
+          ).textContent =
+            `${icon} ` +
+            `${Math.round(data.current.temperature_2m)}°C`;
+
+          document.getElementById(
+            "weatherWind"
+          ).textContent =
+            `💨 ` +
+            `${Math.round(data.current.wind_speed_10m)} ` +
+            `${tr("קמ״ש", "km/h")}`;
+
+          document.getElementById(
+            "weatherUV"
+          ).textContent =
+            `UV ${Math.round(data.current.uv_index || 0)}`;
+
+          document.getElementById(
+            "weatherStatus"
+          ).textContent = status;
+        }
+      } catch (error) {
+        document.getElementById(
+          "weatherStatus"
+        ).textContent =
+          tr("לא זמין", "Unavailable");
+
+        console.error(
+          "Weather error"
+        );
       }
     }
-    if (!tripId) fetchWeather();
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    if (!tripId) {
+      fetchWeather();
+    }
+
+    function escapeHtml(value) {
+      if (!value) {
+        return "";
+      }
+
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
   </script>
 </body>
