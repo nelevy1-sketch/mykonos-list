@@ -1462,8 +1462,35 @@
 
       db = firebase.database();
       auth = firebase.auth();
+
+      auth.getRedirectResult().catch(() => {});
     } catch (e) {
       console.warn("Firebase Init Error");
+    }
+
+    async function doGoogleSignIn() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (error) {
+        const fallbackCodes = [
+          "auth/popup-blocked",
+          "auth/popup-closed-by-user",
+          "auth/cancelled-popup-request",
+          "auth/web-storage-unsupported",
+          "auth/operation-not-supported-in-this-environment"
+        ];
+
+        if (
+          fallbackCodes.includes(error?.code) ||
+          /missing initial state/i.test(error?.message || "")
+        ) {
+          await auth.signInWithRedirect(provider);
+        } else {
+          throw error;
+        }
+      }
     }
 
     let groupMembers = [
@@ -1711,9 +1738,7 @@
         .getElementById("dashboardGoogleBtn")
         .addEventListener("click", async () => {
           try {
-            await auth.signInWithPopup(
-              new firebase.auth.GoogleAuthProvider()
-            );
+            await doGoogleSignIn();
           } catch (error) {
             alert(
               currentLanguage === "en"
