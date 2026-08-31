@@ -24,7 +24,7 @@
       --accent: #f59e0b;
       --expense: #6366f1;
       --bg-gradient: radial-gradient(circle at top, #f0f9ff 0%, #e0f2fe 100%);
-      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-bg: rgba(255, 255, 255, 0.88);
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border-color: #cbd5e1;
@@ -117,6 +117,20 @@
     .weather-val { font-size: 0.88rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
     .weather-lbl { font-size: 0.68rem; color: var(--text-muted); font-weight: 500; }
     .weather-divider { width: 1px; height: 18px; background: #cbd5e1; flex-shrink: 0; }
+
+    /* כספת כרטיסי טיסה אישית */
+    .locker-card {
+      width: 100%;
+      background: #f8fafc;
+      border: 1.5px dashed var(--primary);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 14px;
+      text-align: right;
+    }
+    .locker-title { font-size: 0.82rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .locker-grid { display: flex; flex-direction: column; gap: 6px; max-height: 130px; overflow-y: auto; }
+    .locker-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem; }
 
     .checkin-banner {
       width: 100%;
@@ -220,7 +234,7 @@
       background: #ffffff;
       color: var(--text-main);
       width: 100%;
-      max-width: 390px;
+      max-width: 410px;
       max-height: 90vh;
       overflow-y: auto;
       border-radius: var(--radius-lg);
@@ -240,7 +254,6 @@
       border-radius: 50%; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
 
-    /* עיצוב רדאר וזְהירות למפת המטוס */
     .plane-canvas-wrapper {
       width: 100%;
       background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
@@ -304,23 +317,7 @@
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: #ffffff; border: 1.5px solid #38bdf8;
       box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); z-index: 6;
-      animation: friendPulse 2s infinite ease-in-out;
     }
-    .seat.occupied::before {
-      content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px;
-      border-radius: 14px; border: 2px solid #38bdf8;
-      animation: sonarRipple 2s infinite ease-out; pointer-events: none;
-    }
-
-    @keyframes sonarRipple {
-      0% { transform: scale(0.95); opacity: 1; }
-      100% { transform: scale(1.35); opacity: 0; }
-    }
-    @keyframes friendPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.06); }
-    }
-
     .passenger-tag { font-size: 0.72rem; font-weight: 900; color: #ffffff; line-height: 1.1; direction: rtl; text-shadow: 0 0 8px rgba(56, 189, 248, 0.8); }
     .seat-letter { font-size: 0.58rem; color: #bae6fd; opacity: 0.9; }
 
@@ -331,10 +328,16 @@
     .admin-field { display: flex; flex-direction: column; gap: 4px; }
     .admin-field label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
     .admin-input, select.admin-input { padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border-color); font-size: 0.88rem; font-family: inherit; background: #fff; }
-    .admin-seats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .admin-seat-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-color); gap: 6px; }
-    .admin-seat-row span { font-size: 0.78rem; font-weight: 700; color: #334155; }
-    .admin-seat-row input { width: 55px; padding: 4px; border-radius: 6px; border: 1px solid #94a3b8; font-size: 0.82rem; font-weight: 700; text-align: center; text-transform: uppercase; direction: ltr; }
+
+    /* תגיות חברים עם אנטר באדמין */
+    .tags-input-container {
+      display: flex; flex-wrap: wrap; gap: 6px; background: #fff; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 6px; min-height: 42px; align-items: center;
+    }
+    .member-tag {
+      background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .member-tag span { cursor: pointer; color: var(--accent); font-weight: bold; }
+    .tags-input-container input { border: none; outline: none; font-size: 0.88rem; flex: 1; min-width: 90px; background: transparent; padding: 4px; }
 
     .btn-admin-action {
       border: none; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -375,7 +378,18 @@
       <div class="weather-item"><span class="weather-val" id="weatherUV">--</span><span class="weather-lbl">☀️ קרינה</span></div>
     </div>
 
-    <!-- באנר צ'ק-אין -->
+    <!-- כספת כרטיסי טיסה אישית (חברים מזינים סריקה/מושב בעצמם) -->
+    <div class="locker-card" id="lockerCardContainer">
+      <div class="locker-title">
+        <span>🎟️ כספת כרטיסי טיסה ומושבים</span>
+        <button onclick="openLockerModal()" style="background:var(--primary); color:white; border:none; padding:3px 8px; border-radius:6px; font-size:0.72rem; cursor:pointer;">+ הוסף כרטיס/מושב שלי</button>
+      </div>
+      <div class="locker-grid" id="lockerGridList">
+        <span style="font-size:0.78rem; color:var(--text-muted); text-align:center;">טרם הוזנו כרטיסים אישיים. לחץ על הוספה!</span>
+      </div>
+    </div>
+
+    <!-- באנר צ'ק-אין דינמי -->
     <a id="checkinBanner" href="#" target="_blank" class="checkin-banner" style="display:none;">
       <div class="checkin-info">
         <span class="checkin-icon">🎫</span>
@@ -389,7 +403,7 @@
 
     <!-- כפתור מפת מושבים -->
     <div class="seats-banner-btn" id="seatsBannerBtn" style="display:none;">
-      <span>✈️ מפת הושבה אינטראקטיבית</span>
+      <span>✈️ מפת הושבה קבוצתית אינטראקטיבית</span>
       <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px;">הצג מטוס ✨</span>
     </div>
 
@@ -423,10 +437,33 @@
       </a>
     </div>
 
-    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.6.1</div>
+    <div class="footer-text" id="footerDestination">Mykonos 2026 ☀️ v2.7.0</div>
   </div>
 
-  <!-- Modal מפת מטוס עם אפקט רדאר וניאון -->
+  <!-- Modal הוספת כרטיס טיסה אישי -->
+  <div class="modal-overlay" id="lockerModal">
+    <div class="admin-modal">
+      <div class="modal-header">
+        <div class="modal-title">🎟️ הוספת פרטי טיסה אישיים</div>
+        <button class="modal-close" onclick="closeLockerModal()">✕</button>
+      </div>
+      <div class="admin-field">
+        <label>שם המשתתף:</label>
+        <select id="lockerMemberName" class="admin-input"></select>
+      </div>
+      <div class="admin-field">
+        <label>מספר מושב (למשל 20A):</label>
+        <input type="text" id="lockerSeat" class="admin-input" placeholder="20A" maxlength="4" style="text-transform:uppercase; direction:ltr;">
+      </div>
+      <div class="admin-field">
+        <label>קישור לכרטיס דיגיטלי / ברקוד (URL):</label>
+        <input type="text" id="lockerLink" class="admin-input" placeholder="https://..." style="direction:ltr;">
+      </div>
+      <button class="btn-admin-action btn-save-seats" onclick="savePersonalLockerCard()">💾 שמור כרטיס אישי</button>
+    </div>
+  </div>
+
+  <!-- Modal מפת מטוס -->
   <div class="modal-overlay" id="seatsModal">
     <div class="plane-modal">
       <div class="modal-header">
@@ -463,29 +500,22 @@
           <input type="text" id="adminDestInput" class="admin-input" value="מיקונוס">
         </div>
         <div class="admin-field">
-          <label>מועד המראה:</label>
+          <label>מועד המראה ראשי:</label>
           <input type="datetime-local" id="adminFlightInput" class="admin-input" style="direction: ltr;">
         </div>
         <div class="admin-field">
           <label>קישור לצ'ק-אין (URL לחברת התעופה):</label>
-          <input type="text" id="adminCheckinUrl" class="admin-input" placeholder="https://www.arkia.co.il/..." style="direction: ltr;">
+          <input type="text" id="adminCheckinUrl" class="admin-input" placeholder="https://..." style="direction: ltr;">
         </div>
         <button class="btn-admin-action btn-save-flight" id="saveFlightBtn">💾 שמור יעד וטיסה (איתור אוטומטי)</button>
       </div>
 
-      <div class="admin-section-box" id="adminSeatsSection">
-        <div class="admin-section-title">💺 שיבוץ מושבי החברים במטוס</div>
-        <div class="admin-seats-grid" id="adminSeatsContainer"></div>
-        <button class="btn-admin-action btn-save-seats" id="saveSeatsBtn">💾 שמור מושבים</button>
-      </div>
-
+      <!-- ניהול חברי קבוצה עם תגיות ואנטר -->
       <div class="admin-section-box">
-        <div class="admin-section-title">👥 ניהול שמות חברי הקבוצה</div>
-        <div class="admin-field">
-          <label>הזן שמות מופרדים בפסיקים:</label>
-          <input type="text" id="adminMembersInput" class="admin-input" placeholder="נירה, ברגה, פוטה...">
+        <div class="admin-section-title">👥 ניהול חברי הקבוצה (הקלד והקש Enter)</div>
+        <div class="tags-input-container" id="adminTagsContainer">
+          <input type="text" id="adminTagInput" placeholder="הקלד שם והקש Enter...">
         </div>
-        <button class="btn-admin-action btn-save-members" id="saveMembersBtn">💾 שמור רשימת חברים</button>
       </div>
     </div>
   </div>
@@ -521,26 +551,93 @@
     let flightOut = new Date("2026-08-20T08:15:00");
     const flightBack = new Date("2026-08-28T12:00:00");
     let checkinLink = "https://www.arkia.co.il";
-    let seatedFriends = {
-      "20A": "מארג׳", "20B": "נירה", "20E": "ציפי", "20F": "בנצה",
-      "21A": "ברגה", "21D": "פוטה", "21F": "איילה", "22F": "בולבול"
+    let personalLockerCards = {}; // { "נירה": { seat: "20B", link: "..." } }
+
+    // טיפול בהוספת חברים באדמין באמצעות Enter
+    const adminTagsContainer = document.getElementById("adminTagsContainer");
+    const adminTagInput = document.getElementById("adminTagInput");
+
+    function renderAdminTags() {
+      const existingTags = adminTagsContainer.querySelectorAll(".member-tag");
+      existingTags.forEach(t => t.remove());
+
+      groupMembers.forEach((member, index) => {
+        const tag = document.createElement("div");
+        tag.className = "member-tag";
+        tag.innerHTML = `${escapeHtml(member)} <span onclick="removeMemberTag(${index})">&times;</span>`;
+        adminTagsContainer.insertBefore(tag, adminTagInput);
+      });
+      updateLockerSelectOptions();
+    }
+
+    window.removeMemberTag = (index) => {
+      groupMembers.splice(index, 1);
+      if (db) db.ref("group_members").set(groupMembers);
+      renderAdminTags();
     };
 
-    function buildAdminSeatsUI() {
-      const container = document.getElementById("adminSeatsContainer");
-      container.innerHTML = "";
-      groupMembers.forEach((member, idx) => {
-        let memberSeat = "";
-        for (const [seat, name] of Object.entries(seatedFriends)) {
-          if (name === member) { memberSeat = seat; break; }
+    adminTagInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const val = adminTagInput.value.trim();
+        if (val && !groupMembers.includes(val)) {
+          groupMembers.push(val);
+          if (db) db.ref("group_members").set(groupMembers);
+          adminTagInput.value = "";
+          renderAdminTags();
         }
+      }
+    });
+
+    function updateLockerSelectOptions() {
+      const select = document.getElementById("lockerMemberName");
+      select.innerHTML = "";
+      groupMembers.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        select.appendChild(opt);
+      });
+    }
+
+    window.openLockerModal = () => { document.getElementById("lockerModal").classList.add("open"); };
+    window.closeLockerModal = () => { document.getElementById("lockerModal").classList.remove("open"); };
+
+    window.savePersonalLockerCard = () => {
+      const name = document.getElementById("lockerMemberName").value;
+      const seat = document.getElementById("lockerSeat").value.trim().toUpperCase();
+      const link = document.getElementById("lockerLink").value.trim();
+
+      if (!name) return;
+      personalLockerCards[name] = { seat, link };
+
+      if (db) {
+        db.ref("personal_locker").set(personalLockerCards);
+      }
+      renderLockerGrid();
+      closeLockerModal();
+    };
+
+    function renderLockerGrid() {
+      const grid = document.getElementById("lockerGridList");
+      grid.innerHTML = "";
+      const names = Object.keys(personalLockerCards);
+
+      if (names.length === 0) {
+        grid.innerHTML = `<span style="font-size:0.78rem; color:var(--text-muted); text-align:center;">טרם הוזנו כרטיסים אישיים. לחץ על הוספה!</span>`;
+        return;
+      }
+
+      names.forEach(name => {
+        const card = personalLockerCards[name];
         const row = document.createElement("div");
-        row.className = "admin-seat-row";
+        row.className = "locker-row";
+        let linkBtn = card.link ? `<a href="${escapeHtml(card.link)}" target="_blank" style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; text-decoration:none; font-weight:700; font-size:0.75rem;">כרטיס 🎫</a>` : '';
         row.innerHTML = `
-          <span>${escapeHtml(member)}</span>
-          <input type="text" id="seatInput_${idx}" value="${memberSeat}" placeholder="20A" maxlength="4">
+          <span><strong>${escapeHtml(name)}</strong> (מושב: <em>${card.seat || 'לא צוין'}</em>)</span>
+          ${linkBtn}
         `;
-        container.appendChild(row);
+        grid.appendChild(row);
       });
     }
 
@@ -552,7 +649,7 @@
           if (data.destination) {
             destinationName = data.destination;
             document.getElementById("appTitle").textContent = tripType === 'reserve' ? `הכנות ל-${destinationName}` : `הכנות לטיול ל-${destinationName}`;
-            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.6.1`;
+            document.getElementById("footerDestination").textContent = `${destinationName} 2026 ☀️ v2.7.0`;
           }
           if (data.lat) latCoord = data.lat;
           if (data.lon) lonCoord = data.lon;
@@ -567,20 +664,21 @@
         const data = snapshot.val();
         if (Array.isArray(data)) {
           groupMembers = data;
-          buildAdminSeatsUI();
+          renderAdminTags();
         }
       });
 
-      db.ref("seats_config").on("value", (snapshot) => {
+      db.ref("personal_locker").on("value", (snapshot) => {
         const data = snapshot.val();
         if (data && typeof data === 'object') {
-          seatedFriends = data;
-          buildAdminSeatsUI();
+          personalLockerCards = data;
+          renderLockerGrid();
         }
       });
     }
 
-    buildAdminSeatsUI();
+    renderAdminTags();
+    renderLockerGrid();
 
     let titleClickCount = 0;
     let titleClickTimer = null;
@@ -598,43 +696,18 @@
           const pass = prompt("הזן סיסמת מנהל:");
           if (pass === "2105") {
             document.getElementById("adminTripType").value = tripType;
-            document.getElementById("adminMembersInput").value = groupMembers.join(", ");
             document.getElementById("adminDestInput").value = destinationName;
             document.getElementById("adminCheckinUrl").value = checkinLink;
             const tzOffset = flightOut.getTimezoneOffset() * 60000;
             document.getElementById("adminFlightInput").value = (new Date(flightOut - tzOffset)).toISOString().slice(0, 16);
             
             adminModal.classList.add("open");
-          } else if (pass !== null) {
-            alert("סיסמה שגויה");
-          }
+          } else if (pass !== null) alert("סיסמה שגויה");
         }
       });
     }
 
     document.getElementById("closeAdminModal").addEventListener("click", () => adminModal.classList.remove("open"));
-
-    document.getElementById("saveMembersBtn").addEventListener("click", () => {
-      const val = document.getElementById("adminMembersInput").value;
-      const newMembers = val.split(",").map(s => s.trim()).filter(Boolean);
-      if (newMembers.length > 0) {
-        groupMembers = newMembers;
-        if (db) db.ref("group_members").set(groupMembers);
-        alert("רשימת החברים עודכנה בהצלחה!");
-      }
-    });
-
-    document.getElementById("saveSeatsBtn").addEventListener("click", () => {
-      const newSeats = {};
-      groupMembers.forEach((member, idx) => {
-        const seatVal = document.getElementById(`seatInput_${idx}`).value.trim().toUpperCase();
-        if (seatVal) { newSeats[seatVal] = member; }
-      });
-      seatedFriends = newSeats;
-      if (db) db.ref("seats_config").set(newSeats);
-      adminModal.classList.remove("open");
-      alert("מושבי המטוס עודכנו בהצלחה!");
-    });
 
     document.getElementById("saveFlightBtn").addEventListener("click", async () => {
       const newTripType = document.getElementById("adminTripType").value;
@@ -656,9 +729,7 @@
               latCoord = geoData.results[0].latitude;
               lonCoord = geoData.results[0].longitude;
             }
-          } catch (err) {
-            console.error("Geocoding error", err);
-          }
+          } catch (err) { console.error("Geocoding error", err); }
         }
 
         if (db) {
@@ -688,18 +759,18 @@
       const checkinBanner = document.getElementById("checkinBanner");
       const seatsBannerBtn = document.getElementById("seatsBannerBtn");
       const timerBoxContainer = document.getElementById("timerBoxContainer");
-      const adminSeatsSection = document.getElementById("adminSeatsSection");
+      const lockerCardContainer = document.getElementById("lockerCardContainer");
 
       if (tripType === 'reserve') {
         timerBoxContainer.style.display = "none";
         checkinBanner.style.display = "none";
         seatsBannerBtn.style.display = "none";
-        adminSeatsSection.style.display = "none";
+        lockerCardContainer.style.display = "none";
         phaseBadge.textContent = "🪖 פעילות שוטפת / מילואים";
         return;
       } else {
         timerBoxContainer.style.display = "block";
-        adminSeatsSection.style.display = "block";
+        lockerCardContainer.style.display = "block";
       }
 
       if (diffOut > 0) {
@@ -737,16 +808,12 @@
       const container = document.getElementById('planeLayout');
       container.innerHTML = '';
       let rowsToDisplay = [19, 20, 21, 22, 23];
-      const seatKeys = Object.keys(seatedFriends);
-      if (seatKeys.length > 0) {
-        const detectedRows = seatKeys.map(k => parseInt(k.replace(/\D/g, ''))).filter(n => !isNaN(n));
-        if (detectedRows.length > 0) {
-          const minR = Math.max(1, Math.min(...detectedRows) - 1);
-          const maxR = Math.max(...detectedRows) + 1;
-          rowsToDisplay = [];
-          for (let r = minR; r <= maxR; r++) rowsToDisplay.push(r);
-        }
-      }
+      
+      let seatMap = {};
+      Object.keys(personalLockerCards).forEach(name => {
+        const s = personalLockerCards[name].seat;
+        if (s) seatMap[s] = name;
+      });
 
       let seatDelayCounter = 0;
       rowsToDisplay.forEach(row => {
@@ -762,9 +829,9 @@
             const seatDiv = document.createElement('div');
             seatDiv.className = 'seat';
 
-            if (seatedFriends[seatKey]) {
+            if (seatMap[seatKey]) {
               seatDiv.classList.add('occupied');
-              seatDiv.innerHTML = `<span class="passenger-tag">${escapeHtml(seatedFriends[seatKey])}</span><span class="seat-letter">${seatKey}</span>`;
+              seatDiv.innerHTML = `<span class="passenger-tag">${escapeHtml(seatMap[seatKey])}</span><span class="seat-letter">${seatKey}</span>`;
             } else {
               seatDiv.innerHTML = `<span class="seat-letter">${col}</span>`;
             }
@@ -782,7 +849,6 @@
     document.getElementById('seatsBannerBtn').addEventListener('click', () => {
       seatsModal.classList.add('open');
       renderPlaneSeats();
-      if ('vibrate' in navigator) navigator.vibrate(15);
     });
     document.getElementById('closeSeatsModal').addEventListener('click', () => seatsModal.classList.remove('open'));
 
