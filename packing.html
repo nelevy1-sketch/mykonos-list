@@ -249,6 +249,13 @@
       font-weight:800;
     }
 
+    .quick-picks-label {
+      font-size:.76rem;
+      font-weight:750;
+      color:var(--muted);
+      margin-top:8px;
+    }
+
     .quick-picks {
       display:flex;
       gap:7px;
@@ -359,6 +366,21 @@
       background:var(--surface);
     }
 
+    .item.selection-mode {
+      grid-template-columns:auto auto 1fr auto;
+    }
+
+    .item.selected {
+      border-color:var(--primary);
+      background:color-mix(in srgb, var(--primary) 7%, var(--surface));
+    }
+
+    .select-check {
+      width:24px;
+      height:24px;
+      accent-color:var(--primary);
+    }
+
     .item.done {
       opacity:.64;
     }
@@ -397,10 +419,6 @@
       border-radius:12px;
       background:transparent;
       color:var(--muted);
-    }
-
-    .visibility {
-      font-size:.82rem;
     }
 
     .empty {
@@ -464,6 +482,54 @@
 
     [data-theme="dark"] .bottom-nav {
       background:rgba(32,44,50,.94);
+    }
+
+    .bulk-bar {
+      position:fixed;
+      z-index:35;
+      bottom:calc(78px + env(safe-area-inset-bottom));
+      left:50%;
+      transform:translateX(-50%);
+      width:min(730px,94%);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:var(--primary-dark);
+      color:#fff;
+      border-radius:18px;
+      padding:10px 12px;
+      box-shadow:0 14px 34px rgba(18,59,99,.3);
+    }
+
+    .bulk-bar span {
+      font-size:.82rem;
+      font-weight:750;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+
+    .bulk-actions {
+      display:flex;
+      gap:6px;
+      overflow-x:auto;
+    }
+
+    .bulk-btn {
+      min-height:40px;
+      border:1px solid rgba(255,255,255,.28);
+      background:rgba(255,255,255,.12);
+      color:#fff;
+      border-radius:12px;
+      padding:0 12px;
+      font-size:.78rem;
+      font-weight:750;
+      white-space:nowrap;
+    }
+
+    .bulk-btn.danger {
+      background:var(--danger);
+      border-color:var(--danger);
     }
 
     .overlay {
@@ -646,6 +712,7 @@
           <button class="primary-btn" id="addBtn">הוסף</button>
         </div>
 
+        <div class="quick-picks-label hidden" id="quickPicksLabel">מה עוד חסר לך?</div>
         <div class="quick-picks" id="quickPicks"></div>
       </div>
 
@@ -654,6 +721,7 @@
 
         <div class="list-head-actions">
           <select class="list-select" id="listSelect"></select>
+          <button class="list-icon-btn" id="selectModeBtn" aria-label="בחירה מרובה" title="בחירה מרובה">☑️</button>
           <button class="list-icon-btn" id="manageListBtn" aria-label="ניהול רשימה" title="ניהול רשימה">⚙️</button>
           <button class="list-icon-btn" id="newListBtn" aria-label="רשימה חדשה" title="רשימה חדשה">➕</button>
         </div>
@@ -672,6 +740,16 @@
 
       <div class="items" id="items"></div>
     </section>
+
+    <div class="bulk-bar hidden" id="bulkBar">
+      <span id="bulkCount">0 נבחרו</span>
+      <div class="bulk-actions">
+        <button class="bulk-btn" id="bulkMoveBtn">העברה</button>
+        <button class="bulk-btn" id="bulkToggleDoneBtn">סימון</button>
+        <button class="bulk-btn danger" id="bulkDeleteBtn">מחיקה</button>
+        <button class="bulk-btn" id="bulkCancelBtn">ביטול</button>
+      </div>
+    </div>
 
     <section id="groupView" class="hidden">
       <div id="groupItems"></div>
@@ -774,6 +852,15 @@
         <button class="primary-btn" id="renameListBtn">שמירה</button>
       </div>
 
+      <div class="field">
+        <label id="listVisibilityLabel">שיתוף כל הרשימה</label>
+        <div class="sheet-actions">
+          <button class="secondary-btn" style="flex:1" id="makeListPrivateBtn">🔒 הפוך הכל לפרטי</button>
+          <button class="secondary-btn" style="flex:1" id="makeListPublicBtn">🌐 הפוך הכל לגלוי</button>
+        </div>
+      </div>
+
+      <button class="secondary-btn" style="width:100%;margin-top:8px" id="duplicateListBtn">שכפול הרשימה</button>
       <button class="secondary-btn danger-btn" style="width:100%;margin-top:8px" id="deleteListBtn">מחיקת הרשימה</button>
     </div>
   </div>
@@ -797,6 +884,11 @@
         </select>
       </div>
 
+      <div class="field">
+        <label id="editListLabel">רשימה</label>
+        <select id="editListSelect"></select>
+      </div>
+
       <div class="sheet-actions">
         <button class="secondary-btn" id="cancelEdit">ביטול</button>
         <button class="primary-btn" id="saveEdit">שמירה</button>
@@ -808,6 +900,23 @@
         id="deleteItem">
         מחיקת הפריט
       </button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="bulkMoveOverlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="bulkMoveTitle">העברה לרשימה</h2>
+
+      <div class="field">
+        <label id="bulkMoveLabel">רשימת יעד</label>
+        <select id="bulkMoveTarget"></select>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="cancelBulkMove">ביטול</button>
+        <button class="primary-btn" id="confirmBulkMove">העברה</button>
+      </div>
     </div>
   </div>
 
@@ -870,6 +979,9 @@
     let editingId = null;
     let packingListening = false;
     let stopTrip = null;
+    let selectionMode = false;
+    let selectedIds = new Set();
+    let celebratedLists = new Set();
 
     const $ = id => document.getElementById(id);
 
@@ -893,6 +1005,61 @@
       setTimeout(() => {
         $("toast").classList.remove("show");
       }, 2200);
+    }
+
+    function fireConfetti() {
+      const canvas = document.createElement("canvas");
+      canvas.style.position = "fixed";
+      canvas.style.inset = "0";
+      canvas.style.zIndex = "60";
+      canvas.style.pointerEvents = "none";
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      const colors = ["#123B63", "#1F7A8C", "#F2B84B", "#E76F51", "#2F8B68"];
+
+      const pieces = Array.from({ length: 120 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * canvas.height * 0.4,
+        size: 6 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        speedY: 2 + Math.random() * 3,
+        speedX: -1.5 + Math.random() * 3,
+        rotation: Math.random() * 360,
+        rotationSpeed: -8 + Math.random() * 16
+      }));
+
+      const start = Date.now();
+      const duration = 2600;
+
+      function frame() {
+        const elapsed = Date.now() - start;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        pieces.forEach(piece => {
+          piece.x += piece.speedX;
+          piece.y += piece.speedY;
+          piece.rotation += piece.rotationSpeed;
+
+          ctx.save();
+          ctx.translate(piece.x, piece.y);
+          ctx.rotate((piece.rotation * Math.PI) / 180);
+          ctx.fillStyle = piece.color;
+          ctx.fillRect(-piece.size / 2, -piece.size / 4, piece.size, piece.size / 2);
+          ctx.restore();
+        });
+
+        if (elapsed < duration) {
+          requestAnimationFrame(frame);
+        } else {
+          canvas.remove();
+        }
+      }
+
+      requestAnimationFrame(frame);
+      toast(tr("🎉 סיימתם לארוז!", "🎉 Packing complete!"));
     }
 
     function doGoogleSignIn() {
@@ -1065,11 +1232,44 @@
       $("deleteListBtn").textContent =
         tr("מחיקת הרשימה", "Delete list");
 
+      $("duplicateListBtn").textContent =
+        tr("שכפול הרשימה", "Duplicate list");
+
+      $("listVisibilityLabel").textContent =
+        tr("שיתוף כל הרשימה", "Share the whole list");
+
+      $("makeListPrivateBtn").textContent =
+        tr("🔒 הפוך הכל לפרטי", "🔒 Make all private");
+
+      $("makeListPublicBtn").textContent =
+        tr("🌐 הפוך הכל לגלוי", "🌐 Make all visible");
+
+      $("quickPicksLabel").textContent =
+        tr("מה עוד חסר לך?", "What else do you need?");
+
+      $("editListLabel").textContent =
+        tr("רשימה", "List");
+
       $("manageListBtn").title = tr("ניהול רשימה", "Manage list");
       $("manageListBtn").setAttribute("aria-label", tr("ניהול רשימה", "Manage list"));
 
       $("newListBtn").title = tr("רשימה חדשה", "New list");
       $("newListBtn").setAttribute("aria-label", tr("רשימה חדשה", "New list"));
+
+      $("selectModeBtn").title = tr("בחירה מרובה", "Multi-select");
+      $("selectModeBtn").setAttribute("aria-label", tr("בחירה מרובה", "Multi-select"));
+
+      $("bulkMoveBtn").textContent = tr("העברה", "Move");
+      $("bulkToggleDoneBtn").textContent = tr("סימון", "Toggle");
+      $("bulkDeleteBtn").textContent = tr("מחיקה", "Delete");
+      $("bulkCancelBtn").textContent = tr("ביטול", "Cancel");
+
+      $("bulkMoveTitle").textContent = tr("העברה לרשימה", "Move to list");
+      $("bulkMoveLabel").textContent = tr("רשימת יעד", "Target list");
+      $("cancelBulkMove").textContent = tr("ביטול", "Cancel");
+      $("confirmBulkMove").textContent = tr("העברה", "Move");
+
+      updateBulkBar();
 
       [
         ["navHome", "בית", "Home"],
@@ -1214,22 +1414,63 @@
     }
 
     function openManageList() {
-      if (activeList === "main") {
-        return toast(
-          tr(
-            "לא ניתן לשנות את הרשימה הראשית",
-            "The main list can't be renamed or deleted"
-          )
-        );
-      }
+      const isMain = activeList === "main";
 
-      const metadata =
-        allPacking?.users?.[user?.uid]?.listMeta?.[activeList];
-
-      $("renameListName").value =
-        metadata?.name || activeList;
+      $("renameListName").value = listLabel(activeList);
+      $("renameListName").disabled = isMain;
+      $("renameListBtn").disabled = isMain;
+      $("renameListBtn").style.opacity = isMain ? ".5" : "1";
+      $("deleteListBtn").classList.toggle("hidden", isMain);
 
       $("manageListOverlay").classList.remove("hidden");
+    }
+
+    async function duplicateList() {
+      const sourceItems = currentItems();
+      const baseName = listLabel(activeList);
+      const newId = `list_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+      const updates = {
+        [`${userBase()}/listMeta/${newId}`]: {
+          name: `${baseName} (${tr("עותק", "copy")})`,
+          createdAt: Date.now()
+        }
+      };
+
+      Object.entries(sourceItems).forEach(([id, item]) => {
+        updates[`${userBase()}/items/${newId}/${id}`] = item;
+      });
+
+      await update(ref(db), updates);
+
+      activeList = newId;
+      $("manageListOverlay").classList.add("hidden");
+      renderMine();
+      toast(tr("הרשימה שוכפלה", "List duplicated"));
+    }
+
+    async function setListVisibility(isPublic) {
+      const sourceItems = currentItems();
+      const ids = Object.keys(sourceItems);
+
+      if (!ids.length) {
+        return;
+      }
+
+      const updates = {};
+
+      ids.forEach(id => {
+        updates[`${userBase()}/items/${activeList}/${id}/isPublic`] = isPublic;
+      });
+
+      await update(ref(db), updates);
+      $("manageListOverlay").classList.add("hidden");
+
+      toast(
+        isPublic
+          ? tr("כל הרשימה שותפה עם הקבוצה", "The whole list is now shared")
+          : tr("כל הרשימה הפכה לפרטית", "The whole list is now private")
+      );
     }
 
     async function renameList() {
@@ -1280,7 +1521,22 @@
     function renderQuickPicks() {
       const lists = starterLists();
       const match = lists.find(list => list.id === activeList);
-      const suggestions = match ? match.items : [];
+      const allSuggestions = match ? match.items : [];
+
+      const existingNames = new Set(
+        Object.values(currentItems())
+          .map(item => (item.name || "").trim().toLowerCase())
+      );
+
+      const suggestions =
+        allSuggestions.filter(item =>
+          !existingNames.has(item.trim().toLowerCase())
+        );
+
+      $("quickPicksLabel").classList.toggle(
+        "hidden",
+        !suggestions.length
+      );
 
       $("quickPicks").innerHTML =
         suggestions
@@ -1505,36 +1761,41 @@
       return items?.[activeList] || {};
     }
 
-    function renderLists() {
+    function allListIds() {
       const metadata =
         allPacking?.users?.[user?.uid]?.listMeta || {};
 
-      const ids = new Set([
+      return [...new Set([
         "main",
         ...Object.keys(items || {}),
         ...Object.keys(metadata)
-      ]);
+      ])];
+    }
+
+    function listLabel(id) {
+      const metadata =
+        allPacking?.users?.[user?.uid]?.listMeta || {};
+
+      const defaultName =
+        id === "main"
+          ? tr("רשימה ראשית", "Main list")
+          : id;
+
+      return metadata[id]?.name || defaultName;
+    }
+
+    function renderLists() {
+      const ids = allListIds();
 
       $("listSelect").innerHTML =
-        [...ids]
-          .map(id => {
-            const defaultName =
-              id === "main"
-                ? tr(
-                    "רשימה ראשית",
-                    "Main list"
-                  )
-                : id;
-
-            return (
-              `<option value="${escapeHtml(id)}">` +
-              `${escapeHtml(metadata[id]?.name || defaultName)}` +
-              `</option>`
-            );
-          })
+        ids
+          .map(id =>
+            `<option value="${escapeHtml(id)}">` +
+            `${escapeHtml(listLabel(id))}</option>`
+          )
           .join("");
 
-      if (!ids.has(activeList)) {
+      if (!ids.includes(activeList)) {
         activeList = "main";
       }
 
@@ -1574,10 +1835,28 @@
       $("progressBar").style.width =
         `${percentage}%`;
 
+      if (entries.length && percentage === 100) {
+        if (!celebratedLists.has(activeList)) {
+          celebratedLists.add(activeList);
+          fireConfetti();
+        }
+      } else {
+        celebratedLists.delete(activeList);
+      }
+
       $("items").innerHTML =
         entries.length
           ? entries.map(item => `
-              <article class="item ${item.isDone ? "done" : ""}">
+              <article class="item ${item.isDone ? "done" : ""} ${selectionMode ? "selection-mode" : ""} ${selectedIds.has(item.id) ? "selected" : ""}">
+                ${selectionMode ? `
+                  <input
+                    class="select-check"
+                    type="checkbox"
+                    data-select="${item.id}"
+                    ${selectedIds.has(item.id) ? "checked" : ""}
+                    aria-label="${tr("בחירה", "Select")}">
+                ` : ""}
+
                 <input
                   class="check"
                   type="checkbox"
@@ -1593,13 +1872,21 @@
                     ${item.isPublic
                       ? tr("גלוי לקבוצה", "Visible to group")
                       : tr("פרטי", "Private")}
+                    ${item.importedFrom
+                      ? ` · ${tr("יובא מ ", "Imported from ")}${escapeHtml(item.importedFrom)}`
+                      : ""}
                   </div>
                 </div>
 
                 <div class="item-actions">
-                  <span class="visibility">
+                  <button
+                    class="mini visibility-toggle"
+                    data-toggle-visibility="${item.id}"
+                    aria-label="${item.isPublic
+                      ? tr("הפוך לפרטי", "Make private")
+                      : tr("שתף עם הקבוצה", "Share with group")}">
                     ${item.isPublic ? "🌐" : "🔒"}
-                  </span>
+                  </button>
 
                   <button
                     class="mini"
@@ -1643,6 +1930,170 @@
             openEdit(button.dataset.edit);
           };
         });
+
+      document
+        .querySelectorAll("[data-toggle-visibility]")
+        .forEach(button => {
+          button.onclick = () => {
+            const id = button.dataset.toggleVisibility;
+            const item = currentItems()[id];
+
+            if (!item) {
+              return;
+            }
+
+            update(
+              ref(
+                db,
+                `${userBase()}/items/${activeList}/${id}`
+              ),
+              { isPublic: !item.isPublic }
+            );
+          };
+        });
+
+      document
+        .querySelectorAll("[data-select]")
+        .forEach(checkbox => {
+          checkbox.onchange = () => {
+            const id = checkbox.dataset.select;
+
+            if (checkbox.checked) {
+              selectedIds.add(id);
+            } else {
+              selectedIds.delete(id);
+            }
+
+            renderMine();
+          };
+        });
+
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = $("bulkBar");
+
+      if (selectionMode && selectedIds.size > 0) {
+        bar.classList.remove("hidden");
+
+        $("bulkCount").textContent =
+          tr(
+            `${selectedIds.size} נבחרו`,
+            `${selectedIds.size} selected`
+          );
+      } else {
+        bar.classList.add("hidden");
+      }
+    }
+
+    function setSelectionMode(next) {
+      selectionMode = next;
+
+      if (!next) {
+        selectedIds = new Set();
+      }
+
+      $("selectModeBtn").classList.toggle("active", selectionMode);
+      renderMine();
+    }
+
+    async function bulkDelete() {
+      if (!selectedIds.size) {
+        return;
+      }
+
+      if (
+        !confirm(
+          tr(
+            `למחוק ${selectedIds.size} פריטים?`,
+            `Delete ${selectedIds.size} items?`
+          )
+        )
+      ) {
+        return;
+      }
+
+      const updates = {};
+
+      selectedIds.forEach(id => {
+        updates[`${userBase()}/items/${activeList}/${id}`] = null;
+      });
+
+      await update(ref(db), updates);
+      setSelectionMode(false);
+      toast(tr("הפריטים נמחקו", "Items deleted"));
+    }
+
+    async function bulkToggleDone() {
+      if (!selectedIds.size) {
+        return;
+      }
+
+      const map = currentItems();
+
+      const allDone =
+        [...selectedIds].every(id => map[id]?.isDone);
+
+      const updates = {};
+
+      selectedIds.forEach(id => {
+        updates[`${userBase()}/items/${activeList}/${id}/isDone`] = !allDone;
+      });
+
+      await update(ref(db), updates);
+      setSelectionMode(false);
+    }
+
+    function openBulkMove() {
+      if (!selectedIds.size) {
+        return;
+      }
+
+      $("bulkMoveTarget").innerHTML =
+        allListIds()
+          .filter(id => id !== activeList)
+          .map(id =>
+            `<option value="${escapeHtml(id)}">` +
+            `${escapeHtml(listLabel(id))}</option>`
+          )
+          .join("");
+
+      if (!$("bulkMoveTarget").options.length) {
+        return toast(
+          tr(
+            "אין רשימה אחרת להעביר אליה",
+            "There's no other list to move to"
+          )
+        );
+      }
+
+      $("bulkMoveOverlay").classList.remove("hidden");
+    }
+
+    async function confirmBulkMove() {
+      const targetList = $("bulkMoveTarget").value;
+
+      if (!targetList || !selectedIds.size) {
+        return;
+      }
+
+      const map = currentItems();
+      const updates = {};
+
+      selectedIds.forEach(id => {
+        if (!map[id]) {
+          return;
+        }
+
+        updates[`${userBase()}/items/${activeList}/${id}`] = null;
+        updates[`${userBase()}/items/${targetList}/${id}`] = map[id];
+      });
+
+      await update(ref(db), updates);
+      $("bulkMoveOverlay").classList.add("hidden");
+      setSelectionMode(false);
+      toast(tr("הפריטים הועברו", "Items moved"));
     }
 
     function renderGroup() {
@@ -1655,12 +2106,12 @@
         .forEach(([uid, data]) => {
           const publicItems = [];
 
-          Object.values(data.items || {})
-            .forEach(list => {
-              Object.values(list || {})
-                .forEach(item => {
+          Object.entries(data.items || {})
+            .forEach(([listId, list]) => {
+              Object.entries(list || {})
+                .forEach(([itemId, item]) => {
                   if (item.isPublic) {
-                    publicItems.push(item);
+                    publicItems.push({ uid, listId, itemId, ...item });
                   }
                 });
             });
@@ -1673,6 +2124,8 @@
             trip.memberProfiles?.[uid]?.name ||
             publicItems[0]?.ownerName ||
             tr("משתתף", "Traveler");
+
+          const isMe = uid === user?.uid;
 
           blocks.push(`
             <section class="card group-block">
@@ -1687,7 +2140,14 @@
                     <div class="item-name">
                       ${escapeHtml(item.name)}
                     </div>
-                    <span></span>
+                    ${isMe ? "<span></span>" : `
+                      <button
+                        class="mini"
+                        data-import="${item.uid}:${item.listId}:${item.itemId}"
+                        aria-label="${tr("ייבוא לרשימה שלי", "Import to my list")}">
+                        ⬇️
+                      </button>
+                    `}
                   </div>
                 `).join("")}
               </div>
@@ -1706,6 +2166,50 @@
             )}
           </div>
         `;
+
+      document
+        .querySelectorAll("[data-import]")
+        .forEach(button => {
+          button.onclick = () => {
+            importItem(button.dataset.import);
+          };
+        });
+    }
+
+    async function importItem(key) {
+      const [sourceUid, sourceListId, sourceItemId] = key.split(":");
+
+      const sourceItem =
+        allPacking?.users?.[sourceUid]?.items?.[sourceListId]?.[sourceItemId];
+
+      if (!sourceItem || !profile) {
+        return;
+      }
+
+      const memberName =
+        trip.memberProfiles?.[sourceUid]?.name ||
+        sourceItem.ownerName ||
+        tr("חבר/ה לקבוצה", "a group member");
+
+      await push(
+        ref(db, `${userBase()}/items/${activeList}`),
+        {
+          name: sourceItem.name,
+          isDone: false,
+          isPublic: false,
+          importedFrom: memberName,
+          ownerName: profile.name,
+          createdByUid: user.uid,
+          createdAt: Date.now()
+        }
+      );
+
+      toast(
+        tr(
+          `הפריט יובא לרשימה "${listLabel(activeList)}"`,
+          `Item imported to "${listLabel(activeList)}"`
+        )
+      );
     }
 
     function render() {
@@ -1810,6 +2314,16 @@
           ? "public"
           : "private";
 
+      $("editListSelect").innerHTML =
+        allListIds()
+          .map(listId =>
+            `<option value="${escapeHtml(listId)}">` +
+            `${escapeHtml(listLabel(listId))}</option>`
+          )
+          .join("");
+
+      $("editListSelect").value = activeList;
+
       $("editOverlay")
         .classList
         .remove("hidden");
@@ -1827,17 +2341,36 @@
         return;
       }
 
-      await update(
-        ref(
-          db,
-          `${userBase()}/items/${activeList}/${editingId}`
-        ),
-        {
-          name,
-          isPublic:
-            $("editVisibility").value === "public"
-        }
-      );
+      const targetList = $("editListSelect").value;
+      const sourceList = activeList;
+      const fields = {
+        name,
+        isPublic:
+          $("editVisibility").value === "public"
+      };
+
+      if (targetList && targetList !== sourceList) {
+        const existingItem = currentItems()[editingId];
+
+        await update(ref(db), {
+          [`${userBase()}/items/${sourceList}/${editingId}`]: null,
+          [`${userBase()}/items/${targetList}/${editingId}`]: {
+            ...existingItem,
+            ...fields
+          }
+        });
+
+        activeList = targetList;
+        toast(tr("הפריט הועבר", "Item moved"));
+      } else {
+        await update(
+          ref(
+            db,
+            `${userBase()}/items/${sourceList}/${editingId}`
+          ),
+          fields
+        );
+      }
 
       $("editOverlay")
         .classList
@@ -1986,6 +2519,31 @@
     $("renameListBtn").onclick = renameList;
 
     $("deleteListBtn").onclick = deleteList;
+
+    $("duplicateListBtn").onclick = duplicateList;
+
+    $("makeListPrivateBtn").onclick = () => setListVisibility(false);
+    $("makeListPublicBtn").onclick = () => setListVisibility(true);
+
+    $("selectModeBtn").onclick = () => {
+      setSelectionMode(!selectionMode);
+    };
+
+    $("bulkCancelBtn").onclick = () => {
+      setSelectionMode(false);
+    };
+
+    $("bulkDeleteBtn").onclick = bulkDelete;
+
+    $("bulkToggleDoneBtn").onclick = bulkToggleDone;
+
+    $("bulkMoveBtn").onclick = openBulkMove;
+
+    $("cancelBulkMove").onclick = () => {
+      $("bulkMoveOverlay").classList.add("hidden");
+    };
+
+    $("confirmBulkMove").onclick = confirmBulkMove;
 
     $("mineTab").onclick = () => {
       $("mineTab").classList.add("active");
