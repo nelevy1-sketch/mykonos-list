@@ -940,6 +940,33 @@
       display: none;
     }
 
+    .auth-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 5001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-color);
+    }
+
+    .auth-loading.hidden {
+      display: none;
+    }
+
+    .auth-spinner {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--primary);
+      animation: auth-spin .8s linear infinite;
+    }
+
+    @keyframes auth-spin {
+      to { transform: rotate(360deg); }
+    }
+
     .auth-card {
       width: min(420px,100%);
       background: var(--card-bg);
@@ -981,7 +1008,9 @@
 
 <body>
 
-  <div class="auth-gate" id="authGate">
+  <div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
+
+  <div class="auth-gate hidden" id="authGate">
     <div class="auth-card">
       <div class="auth-icon">✈️</div>
       <h2 id="authGateTitle">כניסה לטיול</h2>
@@ -1469,6 +1498,8 @@
       auth.getRedirectResult().catch(() => {});
     } catch (e) {
       console.warn("Firebase Init Error");
+      document.getElementById("authLoading").classList.add("hidden");
+      document.getElementById("authGate").classList.remove("hidden");
     }
 
     async function doGoogleSignIn() {
@@ -1712,6 +1743,8 @@
     if (auth) {
       auth.onAuthStateChanged(user => {
         currentUser = user;
+
+        document.getElementById("authLoading").classList.add("hidden");
 
         document.getElementById("authGate").classList.toggle(
           "hidden",
