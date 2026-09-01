@@ -399,6 +399,67 @@
       accent-color:var(--primary);
     }
 
+    .sub-progress {
+      min-width:24px;
+      height:24px;
+      display:grid;
+      place-items:center;
+      font-size:.68rem;
+      font-weight:800;
+      color:var(--primary-dark);
+      background:var(--surface-2);
+      border-radius:8px;
+      padding:0 4px;
+    }
+
+    .expand-toggle {
+      font-size:.72rem;
+      color:var(--muted);
+    }
+
+    .sub-panel {
+      grid-column:1/-1;
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px dashed var(--line);
+      display:grid;
+      gap:6px;
+    }
+
+    .sub-item {
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:8px;
+      padding-inline-start:4px;
+    }
+
+    .sub-name {
+      font-size:.86rem;
+    }
+
+    .sub-name.sub-done {
+      text-decoration:line-through;
+      color:var(--muted);
+    }
+
+    .sub-add-row {
+      display:flex;
+      gap:6px;
+      margin-top:2px;
+    }
+
+    .sub-add-input {
+      flex:1;
+      min-height:38px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:var(--surface);
+      color:var(--text);
+      padding:0 10px;
+      font-size:.84rem;
+    }
+
     .item-name {
       font-weight:700;
       word-break:break-word;
@@ -1016,6 +1077,7 @@
     let selectionMode = false;
     let selectedIds = new Set();
     let celebratedLists = new Set();
+    let expandedItems = new Set();
 
     const $ = id => document.getElementById(id);
 
@@ -1822,8 +1884,8 @@
     function syncIdentity() {
       $("userChip").textContent =
         profile
-          ? `${profile.name} · ${user?.email || ""}`
-          : user?.email || "";
+          ? `${profile.name} · ${user?.displayName || ""}`
+          : user?.displayName || user?.email || "";
 
       participantOptions();
 
@@ -1899,23 +1961,33 @@
             (first.createdAt - second.createdAt)
           );
 
-      const completed =
-        entries.filter(item => item.isDone).length;
+      let totalUnits = 0;
+      let doneUnits = 0;
 
-      const percentage =
-        entries.length
-          ? Math.round(
-              completed / entries.length * 100
-            )
-          : 0;
+      entries.forEach(item => {
+        const subs = item.subItems ? Object.entries(item.subItems) : [];
+
+        if (subs.length) {
+          subs.forEach(([, sub]) => {
+            totalUnits += 1;
+            if (sub.isDone) doneUnits += 1;
+          });
+        } else {
+          totalUnits += 1;
+          if (item.isDone) doneUnits += 1;
+        }
+      });
+
+      const unitPercentage =
+        totalUnits ? Math.round(doneUnits / totalUnits * 100) : 0;
 
       $("progressText").textContent =
-        `${completed}/${entries.length} · ${percentage}%`;
+        `${doneUnits}/${totalUnits} · ${unitPercentage}%`;
 
       $("progressBar").style.width =
-        `${percentage}%`;
+        `${unitPercentage}%`;
 
-      if (entries.length && percentage === 100) {
+      if (totalUnits && unitPercentage === 100) {
         if (!celebratedLists.has(activeList)) {
           celebratedLists.add(activeList);
           fireConfetti();
@@ -1926,7 +1998,13 @@
 
       $("items").innerHTML =
         entries.length
-          ? entries.map(item => `
+          ? entries.map(item => {
+              const subs = Object.entries(item.subItems || {}).map(([id, sub]) => ({ id, ...sub }));
+              const hasSubs = subs.length > 0;
+              const subDone = subs.filter(s => s.isDone).length;
+              const isExpanded = expandedItems.has(item.id);
+
+              return `
               <article class="item ${item.isDone ? "done" : ""} ${selectionMode ? "selection-mode" : ""} ${selectedIds.has(item.id) ? "selected" : ""}">
                 ${selectionMode ? `
                   <input
@@ -1937,11 +2015,15 @@
                     aria-label="${tr("בחירה", "Select")}">
                 ` : ""}
 
-                <input
-                  class="check"
-                  type="checkbox"
-                  data-check="${item.id}"
-                  ${item.isDone ? "checked" : ""}>
+                ${hasSubs ? `
+                  <span class="sub-progress">${subDone}/${subs.length}</span>
+                ` : `
+                  <input
+                    class="check"
+                    type="checkbox"
+                    data-check="${item.id}"
+                    ${item.isDone ? "checked" : ""}>
+                `}
 
                 <div>
                   <div class="item-name">
@@ -1960,6 +2042,13 @@
 
                 <div class="item-actions">
                   <button
+                    class="mini expand-toggle"
+                    data-expand="${item.id}"
+                    aria-label="${tr("תת-פריטים", "Sub-items")}">
+                    ${isExpanded ? "▾" : "▸"}
+                  </button>
+
+                  <button
                     class="mini visibility-toggle"
                     data-toggle-visibility="${item.id}"
                     aria-label="${item.isPublic
@@ -1975,8 +2064,26 @@
                     •••
                   </button>
                 </div>
+
+                ${isExpanded ? `
+                  <div class="sub-panel">
+                    ${subs.map(sub => `
+                      <div class="sub-item">
+                        <input class="check" type="checkbox" data-sub-check="${item.id}:${sub.id}" ${sub.isDone ? "checked" : ""}>
+                        <span class="sub-name ${sub.isDone ? "sub-done" : ""}">${escapeHtml(sub.name)}</span>
+                        <button class="mini" data-sub-delete="${item.id}:${sub.id}" aria-label="${tr("מחיקה", "Delete")}">✕</button>
+                      </div>
+                    `).join("")}
+
+                    <div class="sub-add-row">
+                      <input type="text" class="sub-add-input" data-sub-add-input="${item.id}" maxlength="80" placeholder="${tr("הוספת תת-פריט...", "Add sub-item...")}">
+                      <button class="mini" data-sub-add="${item.id}" aria-label="${tr("הוספה", "Add")}">➕</button>
+                    </div>
+                  </div>
+                ` : ""}
               </article>
-            `).join("")
+            `;
+            }).join("")
           : `
               <div class="empty">
                 <span class="emoji">🎒</span>
@@ -2029,6 +2136,89 @@
               ),
               { isPublic: !item.isPublic }
             );
+          };
+        });
+
+      document
+        .querySelectorAll("[data-expand]")
+        .forEach(button => {
+          button.onclick = () => {
+            const id = button.dataset.expand;
+
+            if (expandedItems.has(id)) {
+              expandedItems.delete(id);
+            } else {
+              expandedItems.add(id);
+            }
+
+            renderMine();
+          };
+        });
+
+      document
+        .querySelectorAll("[data-sub-check]")
+        .forEach(checkbox => {
+          checkbox.onchange = () => {
+            const [itemId, subId] = checkbox.dataset.subCheck.split(":");
+
+            update(
+              ref(
+                db,
+                `${userBase()}/items/${activeList}/${itemId}/subItems/${subId}`
+              ),
+              { isDone: checkbox.checked }
+            );
+          };
+        });
+
+      document
+        .querySelectorAll("[data-sub-delete]")
+        .forEach(button => {
+          button.onclick = () => {
+            const [itemId, subId] = button.dataset.subDelete.split(":");
+
+            remove(
+              ref(
+                db,
+                `${userBase()}/items/${activeList}/${itemId}/subItems/${subId}`
+              )
+            );
+          };
+        });
+
+      function addSubItem(itemId) {
+        const input = document.querySelector(`[data-sub-add-input="${itemId}"]`);
+        const name = input.value.trim();
+
+        if (!name) {
+          return;
+        }
+
+        push(
+          ref(
+            db,
+            `${userBase()}/items/${activeList}/${itemId}/subItems`
+          ),
+          { name, isDone: false }
+        );
+
+        input.value = "";
+      }
+
+      document
+        .querySelectorAll("[data-sub-add]")
+        .forEach(button => {
+          button.onclick = () => addSubItem(button.dataset.subAdd);
+        });
+
+      document
+        .querySelectorAll("[data-sub-add-input]")
+        .forEach(input => {
+          input.onkeydown = event => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addSubItem(input.dataset.subAddInput);
+            }
           };
         });
 
