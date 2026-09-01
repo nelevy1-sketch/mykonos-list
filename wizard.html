@@ -107,6 +107,9 @@
         .date-picker-shell:focus-within .date-display { border-color:var(--primary); box-shadow:0 0 0 3px rgba(31,122,140,.15); }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,140,.15); }
         .field-hint { display:block; color:var(--gray); font-size:.76rem; margin-top:6px; line-height:1.45; }
+        .vibe-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .vibe-chip { min-height:48px; border:1.5px solid var(--border); border-radius:var(--radius); background:#fff; color:var(--text); font-size:.88rem; font-weight:700; cursor:pointer; transition:.15s; }
+        .vibe-chip.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary-dark); }
         .inline-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
         /* Participants List Tags */
@@ -250,6 +253,16 @@
                     <option value="reserve" id="optReserve">שירות מילואים / גיבוש 🪖</option>
                 </select>
                 <small class="field-hint" id="tripTypeHint">הבחירה משנה את הצבעים, הפעולות והמודולים בדף הנחיתה.</small>
+            </div>
+            <div class="form-group" id="vibeGroup">
+                <label id="lblVibe">מה האופי של הטיול? (מותאם קטגוריות ורשימות)</label>
+                <div class="vibe-grid" id="vibeGrid">
+                    <button type="button" class="vibe-chip" data-vibe="urban" id="vibeUrban">🏙️ עירוני</button>
+                    <button type="button" class="vibe-chip" data-vibe="beach" id="vibeBeach">🏖️ חוף ומים</button>
+                    <button type="button" class="vibe-chip" data-vibe="nature" id="vibeNature">🥾 טבע והרפתקה</button>
+                    <button type="button" class="vibe-chip" data-vibe="relax" id="vibeRelax">🧘 מנוחה ושלווה</button>
+                </div>
+                <small class="field-hint" id="vibeHint">ניתן לבחור יותר מאופי אחד - זה ישפיע על הצעות המקומות והציוד.</small>
             </div>
             <div class="inline-fields">
                 <div class="form-group">
@@ -397,6 +410,7 @@
     const totalSteps = 4;
     let currentLanguage = 'he';
     let participants = [];
+    let selectedVibes = [];
     let currentUser = null;
     let cloudTrips = {};
     let stopCloudTrips = null;
@@ -413,6 +427,12 @@
             optLocal: "טיול בארץ 🧭",
             optCamping: "קמפינג / טבע 🏕️",
             optReserve: "שירות מילואים / גיבוש 🪖",
+            vibeLabel: "מה האופי של הטיול? (מותאם קטגוריות ורשימות)",
+            vibeHint: "ניתן לבחור יותר מאופי אחד - זה ישפיע על הצעות המקומות והציוד.",
+            vibeUrban: "🏙️ עירוני",
+            vibeBeach: "🏖️ חוף ומים",
+            vibeNature: "🥾 טבע והרפתקה",
+            vibeRelax: "🧘 מנוחה ושלווה",
             startLabel: "מועד התחלה",
             endLabel: "מועד סיום / חזרה",
             checkinLabel: "קישור לצ׳ק־אין (אופציונלי)",
@@ -456,6 +476,12 @@
             optLocal: "Local trip 🧭",
             optCamping: "Camping / Nature 🏕️",
             optReserve: "Reserve Duty / Team Building 🪖",
+            vibeLabel: "What's the trip's vibe? (tailors places & packing)",
+            vibeHint: "You can pick more than one - this shapes place and packing suggestions.",
+            vibeUrban: "🏙️ Urban",
+            vibeBeach: "🏖️ Beach & water",
+            vibeNature: "🥾 Nature & adventure",
+            vibeRelax: "🧘 Relaxation",
             startLabel: "Start date",
             endLabel: "End / return date",
             checkinLabel: "Check-in link (optional)",
@@ -526,6 +552,12 @@
         document.getElementById('optLocal').textContent = t.optLocal;
         document.getElementById('optCamping').textContent = t.optCamping;
         document.getElementById('optReserve').textContent = t.optReserve;
+        document.getElementById('lblVibe').textContent = t.vibeLabel;
+        document.getElementById('vibeHint').textContent = t.vibeHint;
+        document.getElementById('vibeUrban').textContent = t.vibeUrban;
+        document.getElementById('vibeBeach').textContent = t.vibeBeach;
+        document.getElementById('vibeNature').textContent = t.vibeNature;
+        document.getElementById('vibeRelax').textContent = t.vibeRelax;
         document.getElementById('lblStartDate').textContent = t.startLabel;
         document.getElementById('lblEndDate').textContent = t.endLabel;
         document.getElementById('lblCheckin').textContent = t.checkinLabel;
@@ -654,6 +686,7 @@
             const draft = {
                 destination: document.getElementById('tripDestination').value,
                 tripType: document.getElementById('tripType').value,
+                vibes: selectedVibes,
                 start: document.getElementById('tripStart').value,
                 end: document.getElementById('tripEnd').value,
                 checkinUrl: document.getElementById('checkinUrl').value,
@@ -699,6 +732,11 @@
         }
 
         syncTripTypeFields();
+
+        if (Array.isArray(draft.vibes)) {
+            selectedVibes = draft.vibes;
+            renderVibeChips();
+        }
 
         if (draft.step) {
             currentStep = draft.step;
@@ -785,8 +823,33 @@
     });
 
     function syncTripTypeFields() {
-        document.getElementById('checkinGroup').style.display = document.getElementById('tripType').value === 'abroad' ? 'block' : 'none';
+        const type = document.getElementById('tripType').value;
+        document.getElementById('checkinGroup').style.display = type === 'abroad' ? 'block' : 'none';
+
+        const showVibes = type === 'abroad' || type === 'local';
+        document.getElementById('vibeGroup').style.display = showVibes ? 'block' : 'none';
+
+        if (!showVibes) {
+            selectedVibes = [];
+            renderVibeChips();
+        }
     }
+
+    function renderVibeChips() {
+        document.querySelectorAll('.vibe-chip').forEach(chip => {
+            chip.classList.toggle('active', selectedVibes.includes(chip.dataset.vibe));
+        });
+    }
+
+    document.querySelectorAll('.vibe-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const vibe = chip.dataset.vibe;
+            selectedVibes = selectedVibes.includes(vibe)
+                ? selectedVibes.filter(v => v !== vibe)
+                : [...selectedVibes, vibe];
+            renderVibeChips();
+        });
+    });
 
     function addParticipant() {
         const input = document.getElementById('participantName');
@@ -948,6 +1011,7 @@
             schemaVersion: 2,
             destination,
             tripType,
+            vibes: (tripType === 'abroad' || tripType === 'local') ? selectedVibes : [],
             language: currentLanguage,
             participants,
             features: selectedFeatures(),
