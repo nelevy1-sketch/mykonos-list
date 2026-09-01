@@ -96,6 +96,9 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .form-group { margin-bottom: 20px; }
+        .destination-input-row { position: relative; }
+        .destination-preview { position: absolute; inset-inline-end: 14px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; pointer-events: none; }
+        #tripDestination { padding-inline-end: 44px; }
         label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
         input[type="text"], input[type="datetime-local"], input[type="url"], select {
             width: 100%; min-height: 50px; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s; background: #fff; color: var(--text);
@@ -161,6 +164,7 @@
         .recent-card span { color:var(--gray); font-size:.76rem; margin-top:2px; }
         .recent-card-actions { display:flex; gap:6px; flex-shrink:0; }
         .recent-card-actions a, .recent-card-actions button { min-height:38px; border:0; border-radius:11px; padding:8px 11px; background:var(--primary-light); color:var(--primary-dark); text-decoration:none; font:inherit; font-size:.8rem; font-weight:700; cursor:pointer; }
+        .recent-card-actions button.danger { background:#F6DFDA; color:#93372A; }
 
         /* Modal for Preview */
         .modal-overlay {
@@ -263,7 +267,10 @@
         <div class="form-step active" data-step="1">
             <div class="form-group">
                 <label id="lblDestination">שם הטיול / היעד 🌍</label>
-                <input type="text" id="tripDestination" placeholder="למשל: ברלין, תאילנד או קמפינג בגליל" autocomplete="off" required>
+                <div class="destination-input-row">
+                    <input type="text" id="tripDestination" placeholder="למשל: ברלין, תאילנד או קמפינג בגליל" autocomplete="off" required>
+                    <span class="destination-preview hidden" id="destinationPreview"></span>
+                </div>
                 <div class="error-text" id="destinationError" aria-live="polite"></div>
             </div>
             <div class="form-group">
@@ -714,7 +721,7 @@
             const url = item.url || tripUrl(item.tripId);
             const date = item.createdAt ? new Intl.DateTimeFormat(currentLanguage === 'he' ? 'he-IL' : 'en-GB', { dateStyle:'medium' }).format(new Date(item.createdAt)) : '';
             const langBadge = item.language === 'en' ? 'EN' : item.language === 'he' ? 'עברית' : '';
-            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a href="${escapeHtml(url)}">${currentLanguage === 'he' ? 'פתח' : 'Open'}</a><button type="button" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'העתק' : 'Copy'}</button></div></article>`;
+            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a href="${escapeHtml(url)}">${currentLanguage === 'he' ? 'פתח' : 'Open'}</a><button type="button" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'העתק' : 'Copy'}</button><button type="button" class="danger" onclick="deleteRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'מחיקה' : 'Delete'}</button></div></article>`;
         }).join('');
     }
 
@@ -1112,6 +1119,33 @@
         } catch { return {}; }
     }
 
+    function countryCodeToFlag(code) {
+        if (!code || code.length !== 2) return '';
+        return code.toUpperCase().replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
+    }
+
+    let destinationPreviewTimer = null;
+
+    document.getElementById('tripDestination').addEventListener('input', () => {
+        const preview = document.getElementById('destinationPreview');
+        const value = document.getElementById('tripDestination').value.trim();
+
+        if (destinationPreviewTimer) clearTimeout(destinationPreviewTimer);
+        preview.classList.add('hidden');
+
+        if (!value || document.getElementById('tripType').value === 'reserve') return;
+
+        destinationPreviewTimer = setTimeout(async () => {
+            const location = await geocodeDestination(value);
+            const flag = countryCodeToFlag(location.countryCode);
+
+            if (flag && document.getElementById('tripDestination').value.trim() === value) {
+                preview.textContent = flag;
+                preview.classList.remove('hidden');
+            }
+        }, 600);
+    });
+
     async function generateTripAndSave() {
         if (![1,2,3].every(validateStep)) return;
         const organizer = await requireOrganizer();
@@ -1179,6 +1213,38 @@
         try { await navigator.clipboard.writeText(linkInput.value); }
         catch { linkInput.select(); document.execCommand('copy'); }
         alert(translations[currentLanguage].linkCopied);
+    }
+
+    window.deleteRecentTrip = async function(tripId) {
+        const isOwned = Boolean(cloudTrips && cloudTrips[tripId]);
+
+        const confirmMessage = isOwned
+            ? (currentLanguage === 'he'
+                ? 'למחוק את הטיול לצמיתות? הפעולה תמחק אותו עבור כל המשתתפים ולא ניתנת לביטול.'
+                : 'Permanently delete this trip? This removes it for every participant and cannot be undone.')
+            : (currentLanguage === 'he'
+                ? 'להסיר את הטיול הזה מהרשימה שלך? (הטיול עצמו לא יימחק, כי הוא לא שויך לחשבון שלך במכשיר הזה)'
+                : "Remove this trip from your list? (The trip itself won't be deleted, since it isn't linked to your account on this device)");
+
+        if (!confirm(confirmMessage)) return;
+
+        if (isOwned && currentUser) {
+            try {
+                await update(ref(db), {
+                    [`trips/${tripId}`]: null,
+                    [`users/${currentUser.uid}/trips/${tripId}`]: null
+                });
+            } catch (error) {
+                console.error('Error deleting trip:', error);
+                alert(currentLanguage === 'he' ? 'מחיקת הטיול נכשלה. נסו שוב.' : 'Failed to delete the trip. Please try again.');
+                return;
+            }
+        }
+
+        const recent = getLocalTrips().filter(item => item.tripId !== tripId);
+        localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(recent));
+
+        renderRecentTrips();
     }
 
     window.copyRecentTrip = async function(tripId) {
