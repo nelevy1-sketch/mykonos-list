@@ -314,7 +314,7 @@
             <div class="form-group">
                 <label id="lblParticipants">שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥</label>
                 <div class="participant-input-row">
-                    <input type="text" id="participantName" placeholder="שם חבר (למשל: נירה, ברגה...)">
+                    <input type="text" id="participantName" placeholder="שם חבר (למשל: נירה, ברגה...)" autocapitalize="words">
                     <button type="button" class="btn" id="addParticipantBtn" style="background: #e9ecef; color: var(--text); padding: 0 15px;">הוסף</button>
                 </div>
                 <div class="participants-list" id="participantsContainer">
@@ -713,7 +713,8 @@
         list.innerHTML = trips.map(item => {
             const url = item.url || tripUrl(item.tripId);
             const date = item.createdAt ? new Intl.DateTimeFormat(currentLanguage === 'he' ? 'he-IL' : 'en-GB', { dateStyle:'medium' }).format(new Date(item.createdAt)) : '';
-            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}</span></div><div class="recent-card-actions"><a href="${escapeHtml(url)}">${currentLanguage === 'he' ? 'פתח' : 'Open'}</a><button type="button" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'העתק' : 'Copy'}</button></div></article>`;
+            const langBadge = item.language === 'en' ? 'EN' : item.language === 'he' ? 'עברית' : '';
+            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a href="${escapeHtml(url)}">${currentLanguage === 'he' ? 'פתח' : 'Open'}</a><button type="button" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'העתק' : 'Copy'}</button></div></article>`;
         }).join('');
     }
 
@@ -902,10 +903,28 @@
         });
     }
 
+    function syncEndDateMin() {
+        const startInput = document.getElementById('tripStart');
+        const endInput = document.getElementById('tripEnd');
+        if (!startInput.value) return;
+
+        endInput.min = startInput.value;
+
+        if (endInput.value && endInput.value < startInput.value) {
+            const start = new Date(startInput.value);
+            start.setHours(start.getHours() + 1);
+            endInput.value = toInputDate(start);
+            updateDateDisplays();
+        }
+    }
+
     ['tripStart','tripEnd'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateDateDisplays);
         document.getElementById(id).addEventListener('change', updateDateDisplays);
     });
+
+    document.getElementById('tripStart').addEventListener('input', syncEndDateMin);
+    document.getElementById('tripStart').addEventListener('change', syncEndDateMin);
 
     function syncTripTypeFields() {
         const type = document.getElementById('tripType').value;
@@ -1129,6 +1148,7 @@
                 [`users/${organizer.uid}/trips/${tripId}`]: {
                     destination,
                     tripType,
+                    language: currentLanguage,
                     startAt: tripData.startAt,
                     endAt: tripData.endAt,
                     createdAt: tripData.createdAt
@@ -1145,7 +1165,7 @@
             document.getElementById('openTripBtn').href = shareUrl;
             document.getElementById('resultLinkBox').style.display = 'flex';
             document.getElementById('successActions').style.display = 'grid';
-            saveLocalTrip({ tripId, destination, tripType, createdAt:tripData.createdAt, url:shareUrl });
+            saveLocalTrip({ tripId, destination, tripType, language: currentLanguage, createdAt:tripData.createdAt, url:shareUrl });
         } catch (error) {
             console.error('Error saving trip:', error);
             nextBtn.classList.remove('loading');
@@ -1186,6 +1206,7 @@
         ['destinationError','participantsError','featuresError'].forEach(id => { document.getElementById(id).textContent = ''; });
         renderParticipants();
         setDefaultDates();
+        syncEndDateMin();
         syncTripTypeFields();
         const t = translations[currentLanguage];
         document.getElementById('summaryTitle').textContent = t.sumTitle;
@@ -1201,6 +1222,7 @@
     document.getElementById('previewModal').addEventListener('click', e => { if (e.target.id === 'previewModal') closePreview(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
     setDefaultDates();
+    syncEndDateMin();
     syncTripTypeFields();
     updateWizardView();
     updateAuthUI();
