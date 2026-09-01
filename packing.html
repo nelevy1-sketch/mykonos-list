@@ -546,6 +546,33 @@
       justify-content:center;
     }
 
+    .auth-loading {
+      position:fixed;
+      inset:0;
+      z-index:150;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--bg);
+    }
+
+    .auth-loading.hidden {
+      display:none;
+    }
+
+    .auth-spinner {
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      border:3px solid var(--line);
+      border-top-color:var(--primary);
+      animation:auth-spin .8s linear infinite;
+    }
+
+    @keyframes auth-spin {
+      to { transform:rotate(360deg); }
+    }
+
     .sheet {
       width:min(760px,100%);
       background:var(--surface);
@@ -787,7 +814,9 @@
     </a>
   </nav>
 
-  <div class="overlay" id="loginOverlay">
+  <div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
+
+  <div class="overlay hidden" id="loginOverlay">
     <div class="sheet login-card">
       <div class="handle"></div>
       <h2 id="loginTitle">כניסה לטיול</h2>
@@ -973,6 +1002,7 @@
     const tripId = query.get("tripId");
     const tripRoot = tripId ? `trips/${tripId}` : null;
     const themeKey = `trip-${tripId || "legacy"}-theme`;
+    const langKey = `trip-${tripId || "legacy"}-lang`;
 
     let user = null;
     let trip = {};
@@ -1001,6 +1031,15 @@
 
       return url.href;
     };
+
+    try {
+      const cachedLang = localStorage.getItem(langKey);
+
+      if (cachedLang) {
+        trip.language = cachedLang;
+        applyLanguage();
+      }
+    } catch (e) { /* ignore */ }
 
     function toast(text) {
       $("toast").textContent = text;
@@ -2450,6 +2489,10 @@
 
           trip = snapshot.val();
 
+          try {
+            localStorage.setItem(langKey, trip.language || "he");
+          } catch (e) { /* ignore */ }
+
           applyTheme();
           applyLanguage();
           configureLinks();
@@ -2642,6 +2685,8 @@
     onAuthStateChanged(auth, authenticatedUser => {
       user = authenticatedUser;
 
+      $("authLoading").classList.add("hidden");
+
       $("loginOverlay").classList.toggle(
         "hidden",
         Boolean(authenticatedUser)
@@ -2649,8 +2694,8 @@
 
       if (authenticatedUser) {
         $("userChip").textContent =
-          authenticatedUser.email ||
           authenticatedUser.displayName ||
+          authenticatedUser.email ||
           "";
 
         loadTrip();
