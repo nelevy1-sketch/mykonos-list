@@ -1365,7 +1365,44 @@
         ]
       };
 
-      return (trip.language === "en" ? english : hebrew)[type] || [];
+      const lists = (trip.language === "en" ? english : hebrew)[type] || [];
+
+      const vibes = trip.vibes || [];
+
+      if ((type === "abroad" || type === "local") && vibes.length) {
+        const en = trip.language === "en";
+
+        const vibeClothing = {
+          urban: en
+            ? ["Comfortable walking shoes", "Light jacket"]
+            : ["נעליים נוחות להליכה", "מעיל קל"],
+          beach: en
+            ? ["Swimsuit", "Sunglasses", "Sunscreen"]
+            : ["בגד ים", "משקפי שמש", "קרם הגנה"],
+          nature: en
+            ? ["Hiking shoes", "Backpack"]
+            : ["נעלי הליכה", "תרמיל גב"],
+          relax: en
+            ? ["Comfortable clothing", "Robe"]
+            : ["בגדים נוחים", "חלוק"]
+        };
+
+        const clothingList = lists.find(list => list.id === "clothing");
+
+        if (clothingList) {
+          const merged = new Set();
+
+          vibes.forEach(vibe =>
+            (vibeClothing[vibe] || []).forEach(item => merged.add(item))
+          );
+
+          if (merged.size) {
+            clothingList.items = [...merged];
+          }
+        }
+      }
+
+      return lists;
     }
 
     async function ensureStarterLists() {
