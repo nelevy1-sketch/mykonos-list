@@ -168,8 +168,30 @@
             display: none; justify-content: center; align-items: flex-end; z-index: 1000;
         }
         .modal-content { background: #fff; width: 100%; max-width: 640px; padding: 22px 20px calc(24px + env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0; text-align: center; box-shadow:0 -14px 35px rgba(18,50,74,.16); }
-        .modal-content h3 { margin-bottom: 12px; color: var(--primary); }
-        .modal-content p { color: var(--gray); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; }
+        .modal-content h3 { margin-bottom: 6px; color: var(--primary); font-family:'Frank Ruhl Libre',Georgia,serif; }
+        .modal-content p { color: var(--gray); font-size: 0.92rem; margin-bottom: 16px; line-height: 1.5; }
+
+        /* Visual module preview mockups */
+        .preview-mock { text-align:right; background:var(--background); border:1px solid var(--border); border-radius:18px; padding:14px; margin-bottom:18px; }
+        .mock-progress { height:6px; background:var(--border); border-radius:6px; overflow:hidden; margin-bottom:6px; }
+        .mock-progress-fill { height:100%; background:var(--primary); }
+        .mock-progress-label { font-size:.72rem; color:var(--gray); font-weight:700; margin-bottom:10px; }
+        .mock-item { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:9px 10px; margin-bottom:6px; font-size:.86rem; }
+        .mock-check { width:20px; height:20px; border-radius:6px; border:1.5px solid var(--border); display:grid; place-items:center; flex:0 0 auto; font-size:.72rem; color:#fff; }
+        .mock-item.mock-done .mock-check { background:var(--primary); border-color:var(--primary); }
+        .mock-item.mock-done span:nth-child(2) { text-decoration:line-through; color:var(--gray); }
+        .mock-item span:nth-child(2) { flex:1; font-weight:700; }
+        .mock-tag { font-size:.82rem; flex:0 0 auto; }
+        .mock-qty { background:var(--primary-light); color:var(--primary-dark); font-size:.72rem; font-weight:800; border-radius:999px; padding:2px 8px; flex:0 0 auto; }
+        .mock-place-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:10px; margin-bottom:10px; display:flex; gap:10px; align-items:center; }
+        .mock-place-icon { width:38px; height:38px; border-radius:12px; background:var(--primary-light); display:grid; place-items:center; font-size:1.1rem; flex:0 0 auto; }
+        .mock-place-copy strong { display:block; font-size:.86rem; }
+        .mock-place-copy span { font-size:.72rem; color:var(--gray); }
+        .mock-photo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-bottom:10px; }
+        .mock-photo { aspect-ratio:1; border-radius:9px; background:linear-gradient(135deg,var(--primary),var(--sun)); }
+        .mock-music-row { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:8px 10px; font-size:.82rem; }
+        .mock-expense-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:.86rem; font-weight:700; }
+        .mock-expense-row span:last-child { color:var(--primary-dark); }
         .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:right; margin:18px 0; }
         .summary-item { background:var(--primary-light); border:1px solid #CFE3E2; border-radius:14px; padding:12px; }
         .summary-item small { display:block; color:var(--gray); font-size:.7rem; margin-bottom:3px; }
@@ -379,9 +401,72 @@
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <h3 id="modalTitle">תצוגה מקדימה</h3>
         <p id="modalDesc">כאן תוכל לראות הדגמה קצרה או הסבר על מה שהמודול הזה עושה עבור משתמשי הטיול.</p>
+        <div class="preview-mock" id="previewMock"></div>
         <button type="button" class="btn btn-next" id="modalCloseBtn" onclick="closePreview()">הבנתי, סגור</button>
     </div>
 </div>
+
+<template id="mockPacking">
+    <div class="mock-progress"><div class="mock-progress-fill" style="width:50%"></div></div>
+    <div class="mock-progress-label">2/4 · 50%</div>
+    <div class="mock-item mock-done"><span class="mock-check">✓</span><span>דרכון</span><span class="mock-tag">🔒</span></div>
+    <div class="mock-item"><span class="mock-check"></span><span>משקפי שמש</span><span class="mock-tag">🔒</span></div>
+    <div class="mock-item mock-done"><span class="mock-check">✓</span><span>מטען לטלפון</span><span class="mock-tag">🌐</span></div>
+    <div class="mock-item"><span class="mock-check"></span><span>תרופות</span><span class="mock-tag">🌐</span></div>
+</template>
+
+<template id="mockPackingEn">
+    <div class="mock-progress"><div class="mock-progress-fill" style="width:50%"></div></div>
+    <div class="mock-progress-label">2/4 · 50%</div>
+    <div class="mock-item mock-done"><span class="mock-check">✓</span><span>Passport</span><span class="mock-tag">🔒</span></div>
+    <div class="mock-item"><span class="mock-check"></span><span>Sunglasses</span><span class="mock-tag">🔒</span></div>
+    <div class="mock-item mock-done"><span class="mock-check">✓</span><span>Phone charger</span><span class="mock-tag">🌐</span></div>
+    <div class="mock-item"><span class="mock-check"></span><span>Medicine</span><span class="mock-tag">🌐</span></div>
+</template>
+
+<template id="mockShopping">
+    <div class="mock-item"><span class="mock-check">🥖</span><span>לחם</span><span class="mock-qty">×2</span></div>
+    <div class="mock-item"><span class="mock-check">🧴</span><span>קרם הגנה</span><span class="mock-qty">×1</span></div>
+    <div class="mock-item"><span class="mock-check">🍫</span><span>חטיפים</span><span class="mock-qty">×4</span></div>
+</template>
+
+<template id="mockShoppingEn">
+    <div class="mock-item"><span class="mock-check">🥖</span><span>Bread</span><span class="mock-qty">×2</span></div>
+    <div class="mock-item"><span class="mock-check">🧴</span><span>Sunscreen</span><span class="mock-qty">×1</span></div>
+    <div class="mock-item"><span class="mock-check">🍫</span><span>Snacks</span><span class="mock-qty">×4</span></div>
+</template>
+
+<template id="mockPlaces">
+    <div class="mock-place-card">
+        <div class="mock-place-icon">🏖️</div>
+        <div class="mock-place-copy"><strong>חוף נבארון</strong><span>מומלץ ע״י דנה</span></div>
+    </div>
+    <div class="mock-photo-grid">
+        <div class="mock-photo"></div><div class="mock-photo"></div><div class="mock-photo"></div>
+    </div>
+    <div class="mock-music-row">🎵 <span>פלייליסט הטיול - Spotify</span></div>
+</template>
+
+<template id="mockPlacesEn">
+    <div class="mock-place-card">
+        <div class="mock-place-icon">🏖️</div>
+        <div class="mock-place-copy"><strong>Navagio Beach</strong><span>Recommended by Dana</span></div>
+    </div>
+    <div class="mock-photo-grid">
+        <div class="mock-photo"></div><div class="mock-photo"></div><div class="mock-photo"></div>
+    </div>
+    <div class="mock-music-row">🎵 <span>Trip playlist - Spotify</span></div>
+</template>
+
+<template id="mockExpenses">
+    <div class="mock-expense-row"><span>דנה חייבת ליוסי</span><span>₪120</span></div>
+    <div class="mock-expense-row" style="margin-top:6px"><span>ברגה חייב לדנה</span><span>₪45</span></div>
+</template>
+
+<template id="mockExpensesEn">
+    <div class="mock-expense-row"><span>Dana owes Yossi</span><span>$32</span></div>
+    <div class="mock-expense-row" style="margin-top:6px"><span>Berga owes Dana</span><span>$12</span></div>
+</template>
 
 <!-- Firebase SDK & Wizard Logic -->
 <script type="module">
@@ -975,6 +1060,19 @@
         const preview = previewsData[currentLanguage][featureKey];
         document.getElementById('modalTitle').textContent = preview.title;
         document.getElementById('modalDesc').textContent = preview.desc;
+
+        const templateId = currentLanguage === 'en'
+            ? `mock${featureKey.charAt(0).toUpperCase()}${featureKey.slice(1)}En`
+            : `mock${featureKey.charAt(0).toUpperCase()}${featureKey.slice(1)}`;
+
+        const template = document.getElementById(templateId);
+        const mockContainer = document.getElementById('previewMock');
+        mockContainer.innerHTML = '';
+
+        if (template) {
+            mockContainer.appendChild(template.content.cloneNode(true));
+        }
+
         document.getElementById('previewModal').style.display = 'flex';
         document.body.style.overflow = 'hidden';
         document.getElementById('modalCloseBtn').focus();
