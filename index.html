@@ -1302,6 +1302,94 @@
       color: #fff;
       border-color: var(--primary);
     }
+
+    .custom-dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+      animation: dialogFadeIn .15s ease;
+    }
+
+    @keyframes dialogFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .custom-dialog-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 22px 20px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: var(--shadow-float);
+      text-align: center;
+      animation: dialogPopIn .18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes dialogPopIn {
+      from { transform: scale(.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .custom-dialog-brand {
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 10px;
+      opacity: .85;
+    }
+
+    .custom-dialog-message {
+      font-size: .95rem;
+      color: var(--text-main);
+      line-height: 1.5;
+      margin: 0 0 20px;
+      white-space: pre-wrap;
+    }
+
+    .custom-dialog-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .custom-dialog-btn {
+      flex: 1;
+      min-height: 46px;
+      border-radius: 13px;
+      border: 0;
+      font-weight: 800;
+      font-size: .9rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .custom-dialog-btn.cancel {
+      background: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .custom-dialog-btn.confirm {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .custom-dialog-btn.danger {
+      background: #D14343;
+      color: #fff;
+    }
+
+    [data-theme="dark"] .custom-dialog-btn.confirm {
+      box-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
+    }
+
+    [data-theme="dark"] .custom-dialog-btn.danger {
+      box-shadow: 0 0 14px rgba(209, 67, 67, .45);
+    }
   </style>
 </head>
 
@@ -2067,6 +2155,89 @@
       return currentLanguage === "en" ? en : he;
     }
 
+    function customAlert(message) {
+      return new Promise(resolve => {
+        const overlay = document.createElement("div");
+        overlay.className = "custom-dialog-overlay";
+
+        overlay.innerHTML =
+          '<div class="custom-dialog-card">' +
+          '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+          '<p class="custom-dialog-message"></p>' +
+          '<div class="custom-dialog-actions">' +
+          '<button class="custom-dialog-btn confirm">' +
+          tr("הבנתי", "OK") +
+          "</button>" +
+          "</div>" +
+          "</div>";
+
+        overlay.querySelector(".custom-dialog-message").textContent =
+          message;
+
+        document.body.appendChild(overlay);
+
+        const cleanup = () => {
+          overlay.remove();
+          resolve();
+        };
+
+        overlay.querySelector("button").onclick = cleanup;
+
+        overlay.onclick = event => {
+          if (event.target === overlay) {
+            cleanup();
+          }
+        };
+      });
+    }
+
+    function customConfirm(message, options) {
+      const danger = Boolean(options && options.danger);
+
+      return new Promise(resolve => {
+        const overlay = document.createElement("div");
+        overlay.className = "custom-dialog-overlay";
+
+        overlay.innerHTML =
+          '<div class="custom-dialog-card">' +
+          '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+          '<p class="custom-dialog-message"></p>' +
+          '<div class="custom-dialog-actions">' +
+          '<button class="custom-dialog-btn cancel">' +
+          tr("ביטול", "Cancel") +
+          "</button>" +
+          '<button class="custom-dialog-btn ' +
+          (danger ? "danger" : "confirm") +
+          '">' +
+          tr("אישור", "Confirm") +
+          "</button>" +
+          "</div>" +
+          "</div>";
+
+        overlay.querySelector(".custom-dialog-message").textContent =
+          message;
+
+        document.body.appendChild(overlay);
+
+        const cleanup = result => {
+          overlay.remove();
+          resolve(result);
+        };
+
+        overlay.querySelector(".cancel").onclick = () => cleanup(false);
+
+        overlay
+          .querySelector(danger ? ".danger" : ".confirm")
+          .onclick = () => cleanup(true);
+
+        overlay.onclick = event => {
+          if (event.target === overlay) {
+            cleanup(false);
+          }
+        };
+      });
+    }
+
     function applyTripLanguage() {
       const lang = currentLanguage === "en" ? "en" : "he";
       const text = dashboardText[lang];
@@ -2150,14 +2321,14 @@
       }
 
       if (!currentUser) {
-        alert(
+        customAlert(
           tr(
             "כדי לערוך את הטיול יש להתחבר תחילה דרך עמוד יצירת הטיול באמצעות Google.",
             "To edit this trip, first sign in with Google on the trip creation page."
           )
         );
       } else {
-        alert(
+        customAlert(
           tr(
             "רק מארגן הטיול יכול לשנות את ההגדרות האלה.",
             "Only the trip organizer can change these settings."
@@ -2212,7 +2383,7 @@
           try {
             await doGoogleSignIn();
           } catch (error) {
-            alert(
+            customAlert(
               currentLanguage === "en"
                 ? "Google sign-in failed. Please try again."
                 : "הכניסה עם Google נכשלה. נסו שוב."
@@ -2344,7 +2515,7 @@
       const name = document.getElementById("memberGateSelect").value;
 
       if (!name) {
-        return alert(tr("יש לבחור שם", "Choose a name"));
+        return customAlert(tr("יש לבחור שם", "Choose a name"));
       }
 
       const key = participantKey(name);
@@ -2364,7 +2535,7 @@
           !result.committed ||
           result.snapshot.val() !== currentUser.uid
         ) {
-          return alert(
+          return customAlert(
             tr(
               "השם הזה כבר שויך למשתתף אחר",
               "This name is already linked to another participant"
@@ -2404,7 +2575,7 @@
       } catch (error) {
         console.error(error);
 
-        alert(
+        customAlert(
           tr(
             "לא ניתן היה לשייך את השם. נסו שוב.",
             "Could not link the name. Please try again."
@@ -2747,7 +2918,7 @@
           el.classList.add("action-card-disabled");
           el.onclick = event => {
             event.preventDefault();
-            alert(
+            customAlert(
               tr(
                 "המארגן עדיין לא הוסיף קישור להתחשבנות.",
                 "The organizer hasn't added an expenses link yet."
@@ -2777,7 +2948,7 @@
       try {
         new URL(url);
       } catch {
-        alert(tr("הקישור לא תקין.", "That link doesn't look valid."));
+        customAlert(tr("הקישור לא תקין.", "That link doesn't look valid."));
         return;
       }
 
@@ -2790,7 +2961,7 @@
         document.getElementById("spliitGate").classList.add("hidden");
       } catch (error) {
         console.error("Error saving Spliit link:", error);
-        alert(
+        customAlert(
           tr(
             "שמירת הקישור נכשלה. נסו שוב.",
             "Failed to save the link. Please try again."
@@ -3007,15 +3178,19 @@
 
       const profile = memberProfiles[uid];
 
-      if (
-        !profile ||
-        !confirm(
-          tr(
-            `לנתק את ${profile.name} מחשבון Google שלו?`,
-            `Release ${profile.name} from their Google account?`
-          )
-        )
-      ) {
+      if (!profile) {
+        return;
+      }
+
+      const confirmed = await customConfirm(
+        tr(
+          `לנתק את ${profile.name} מחשבון Google שלו?`,
+          `Release ${profile.name} from their Google account?`
+        ),
+        { danger: true }
+      );
+
+      if (!confirmed) {
         return;
       }
 
@@ -3045,7 +3220,7 @@
         tripRoot &&
         participantClaims[participantKey(name)]
       ) {
-        return alert(
+        return customAlert(
           tr(
             "השם משויך לחשבון Google. יש לנתק אותו תחילה ברשימת החשבונות המשויכים.",
             "This name is linked to a Google account. Release it first from the linked accounts list."
@@ -3142,7 +3317,7 @@
 
     window.openLockerModal = () => {
       if (!currentProfile) {
-        return alert(
+        return customAlert(
           tr(
             "יש לבחור תחילה את שמך בקבוצה",
             "Choose your group name first"
@@ -3447,7 +3622,7 @@
           !newEnd ||
           !newDestination
         ) {
-          alert(
+          customAlert(
             tr(
               "נא להזין יעד, מועד התחלה ומועד סיום.",
               "Enter a destination, start date and end date."
@@ -3461,7 +3636,7 @@
           new Date(newEnd) <=
           new Date(newFlight)
         ) {
-          alert(
+          customAlert(
             tr(
               "מועד הסיום חייב להיות מאוחר ממועד ההתחלה.",
               "The end date must be later than the start date."
@@ -3547,7 +3722,7 @@
         updateClockAndPhases();
         fetchWeather();
 
-        alert(
+        customAlert(
           tr(
             "הגדרות הטיול עודכנו בהצלחה!",
             "Trip settings updated successfully!"
