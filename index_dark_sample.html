@@ -101,6 +101,7 @@
       --text-main: #EAF2F1;
       --text-muted: #8CA3AC;
       --border-color: #223038;
+      --expense: #B49CF0;
       --shadow-card: 0 10px 28px rgba(0,0,0,.35);
       --shadow-float: 0 14px 34px rgba(0,0,0,.45);
       --context-bg: #1A2229;
@@ -574,6 +575,26 @@
 
     .action-card.itinerary {
       border-inline-end-color: var(--coral);
+    }
+
+    [data-theme="dark"] .action-card.packing {
+      border-inline-end-color: #6FE0C8;
+    }
+
+    [data-theme="dark"] .action-card.shopping {
+      border-inline-end-color: #FFC862;
+    }
+
+    [data-theme="dark"] .action-card.places {
+      border-inline-end-color: #6FB4F0;
+    }
+
+    [data-theme="dark"] .action-card.expenses {
+      border-inline-end-color: #B49CF0;
+    }
+
+    [data-theme="dark"] .action-card.itinerary {
+      border-inline-end-color: #FF9A72;
     }
 
     .action-card.packing .action-icon {
@@ -3415,6 +3436,8 @@
         phaseBadge.textContent =
           tr("טוען...", "Loading...");
 
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
+
         timerTitle.textContent =
           tr(
             "טוען את פרטי הטיול",
@@ -3493,6 +3516,8 @@
           (diffOut / (1000 * 60 * 60)) % 24
         );
 
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
+
         timerTitle.textContent =
           currentLanguage === "en"
             ? `${config.icon} ${days} days · ${hours} hours to go`
@@ -3552,6 +3577,8 @@
                 "Trip in progress"
               );
 
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
+
         timerTitle.textContent =
           tripType === "reserve"
             ? tr(
@@ -3584,6 +3611,8 @@
             "הטיול הסתיים",
             "Trip completed"
           );
+
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
 
         timerTitle.textContent =
           tr(
