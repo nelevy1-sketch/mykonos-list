@@ -105,21 +105,73 @@
   }
 
   [data-theme="dark"] {
-    --sea:#4da3d9;
-    --sea-deep:#e1ebf2;
-    --white:#1e262c;
-    --whitewash:#12171b;
-    --sun:#f0c05a;
-    --line:#2d3840;
-    --name-tag:#9ab4c2;
-    --bg-gradient-start:#0f1418;
-    --bg-gradient-end:#161c22;
-    --header-bg:rgba(18,23,27,.98);
-    --card-bg:#1e262c;
-    --text-main:#f0f4f8;
-    --text-muted:#9bb0bd;
-    --tab-bg:#253038;
-    --tag-bg:#273540;
+    --white:#151D24;
+    --whitewash:#0B1015;
+    --sun:#FFC862;
+    --line:#223038;
+    --name-tag:#8CA3AC;
+    --bg-gradient-start:#0B1015;
+    --bg-gradient-end:#151D24;
+    --header-bg:rgba(11,16,21,.94);
+    --card-bg:#151D24;
+    --text-main:#EAF2F1;
+    --text-muted:#8CA3AC;
+    --tab-bg:#1C262E;
+    --tag-bg:#1C262E;
+  }
+
+  :root.theme-abroad[data-theme="dark"] {
+    --sea:#2DD4C8;
+    --sea-deep:#2DD4C8;
+    --glow-color:#2DD4C8;
+  }
+
+  :root.theme-local[data-theme="dark"] {
+    --sea:#FFA94D;
+    --sea-deep:#FFA94D;
+    --white:#151D24;
+    --whitewash:#0B1015;
+    --line:#223038;
+    --header-bg:rgba(11,16,21,.94);
+    --tab-bg:#1C262E;
+    --tag-bg:#1C262E;
+    --glow-color:#FFA94D;
+  }
+
+  :root.theme-camping[data-theme="dark"] {
+    --sea:#6EE7A0;
+    --sea-deep:#6EE7A0;
+    --white:#151D24;
+    --whitewash:#0B1015;
+    --line:#223038;
+    --header-bg:rgba(11,16,21,.94);
+    --tab-bg:#1C262E;
+    --tag-bg:#1C262E;
+    --glow-color:#6EE7A0;
+  }
+
+  :root.theme-reserve[data-theme="dark"] {
+    --sea:#7FB3E8;
+    --sea-deep:#7FB3E8;
+    --white:#151D24;
+    --whitewash:#0B1015;
+    --line:#223038;
+    --header-bg:rgba(11,16,21,.94);
+    --tab-bg:#1C262E;
+    --tag-bg:#1C262E;
+    --glow-color:#7FB3E8;
+  }
+
+  [data-theme="dark"] .open-modal-btn {
+    box-shadow:0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
+  }
+
+  [data-theme="dark"] .tab-btn.active {
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--glow-color) 40%, transparent);
+  }
+
+  [data-theme="dark"] .check.done {
+    box-shadow:0 0 8px color-mix(in srgb, var(--glow-color) 55%, transparent);
   }
 
   * {
@@ -999,7 +1051,7 @@
   }
 
   [data-theme="dark"] .bottom-nav {
-    background:rgba(30,38,44,.94);
+    background:var(--header-bg);
   }
 
   .nav-item {
