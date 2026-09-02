@@ -268,6 +268,33 @@
       scrollbar-width:none;
     }
 
+    .ai-suggest-btn {
+      width:100%;
+      min-height:46px;
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--surface-2),var(--surface));
+      color:var(--primary-dark);
+      font-weight:800;
+      font-size:.9rem;
+    }
+
+    .ai-suggest-btn:disabled {
+      opacity:.6;
+    }
+
+    .ai-suggestions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      margin-top:10px;
+    }
+
+    .ai-suggestions .pick {
+      border-color:var(--accent);
+    }
+
     .quick-picks::-webkit-scrollbar {
       display:none;
     }
@@ -780,7 +807,6 @@
 
       <div class="top-actions">
         <button class="icon-btn" id="themeBtn" aria-label="מצב תצוגה">🌙</button>
-        <button class="icon-btn" id="logoutBtn" aria-label="יציאה">↪</button>
       </div>
     </header>
 
@@ -806,6 +832,9 @@
 
         <div class="quick-picks-label hidden" id="quickPicksLabel">מה עוד חסר לך?</div>
         <div class="quick-picks" id="quickPicks"></div>
+
+        <button class="ai-suggest-btn" id="aiSuggestBtn">✨ הצע רשימה עם AI</button>
+        <div class="ai-suggestions hidden" id="aiSuggestions"></div>
       </div>
 
       <div class="list-head">
@@ -1357,6 +1386,9 @@
       $("quickPicksLabel").textContent =
         tr("מה עוד חסר לך?", "What else do you need?");
 
+      $("aiSuggestBtn").textContent =
+        tr("✨ הצע רשימה עם AI", "✨ Suggest a list with AI");
+
       $("editListLabel").textContent =
         tr("רשימה", "List");
 
@@ -1729,6 +1761,106 @@
         .forEach(button => {
           button.onclick = () => {
             addItem(button.dataset.pick);
+          };
+        });
+    }
+
+    const AI_FUNCTION_URL =
+      "https://us-central1-mykonos-list.cloudfunctions.net/suggestPackingList";
+
+    async function requestAiSuggestions() {
+      const button = $("aiSuggestBtn");
+      const originalText = button.textContent;
+
+      button.disabled = true;
+      button.textContent = tr("חושב...", "Thinking...");
+
+      try {
+        const response = await fetch(AI_FUNCTION_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            destination: trip.destination || "",
+            tripType: trip.tripType || "abroad",
+            vibes: trip.vibes || [],
+            startDate: trip.startAt || "",
+            endDate: trip.endAt || "",
+            listName: listLabel(activeList),
+            language: trip.language === "en" ? "en" : "he"
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        const data = await response.json();
+
+        if (!data.items || !data.items.length) {
+          toast(
+            tr(
+              "לא התקבלו הצעות הפעם, נסו שוב",
+              "No suggestions this time, try again"
+            )
+          );
+          return;
+        }
+
+        renderAiSuggestions(data.items);
+      } catch (error) {
+        console.error("AI suggestion error:", error);
+        toast(
+          tr(
+            "לא ניתן היה לקבל הצעות AI כרגע",
+            "Couldn't get AI suggestions right now"
+          )
+        );
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+    function renderAiSuggestions(items) {
+      const existingNames = new Set(
+        Object.values(currentItems())
+          .map(item => (item.name || "").trim().toLowerCase())
+      );
+
+      const fresh = items.filter(
+        item => !existingNames.has(item.trim().toLowerCase())
+      );
+
+      if (!fresh.length) {
+        $("aiSuggestions").classList.add("hidden");
+        toast(
+          tr(
+            "כל ההצעות כבר ברשימה שלך",
+            "All suggestions are already on your list"
+          )
+        );
+        return;
+      }
+
+      $("aiSuggestions").classList.remove("hidden");
+
+      $("aiSuggestions").innerHTML = fresh
+        .map(item =>
+          `<button class="pick" data-ai-pick="${escapeHtml(item)}">` +
+          `✨ ${escapeHtml(item)}</button>`
+        )
+        .join("");
+
+      document
+        .querySelectorAll("[data-ai-pick]")
+        .forEach(button => {
+          button.onclick = () => {
+            addItem(button.dataset.aiPick);
+            button.remove();
+
+            if (!document.querySelector("[data-ai-pick]")) {
+              $("aiSuggestions").classList.add("hidden");
+            }
           };
         });
     }
@@ -2756,10 +2888,6 @@
 
     $("googleBtn").onclick = doGoogleSignIn;
 
-    $("logoutBtn").onclick = () => {
-      signOut(auth);
-    };
-
     $("themeBtn").onclick = () => {
       const isDark =
         document.documentElement.dataset.theme === "dark";
@@ -2796,6 +2924,8 @@
       activeList = event.target.value;
       renderMine();
     };
+
+    $("aiSuggestBtn").onclick = requestAiSuggestions;
 
     $("newListBtn").onclick = () => {
       $("newListName").value = "";
