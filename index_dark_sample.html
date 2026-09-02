@@ -2030,10 +2030,15 @@
     function applyTripLanguage() {
       const lang = currentLanguage === "en" ? "en" : "he";
       const text = dashboardText[lang];
+      const dir = lang === "en" ? "ltr" : "rtl";
 
       document.documentElement.lang = lang;
-      document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
-      document.body.dir = document.documentElement.dir;
+      document.documentElement.dir = dir;
+      document.body.dir = dir;
+
+      document.querySelectorAll(".modal-overlay").forEach(modal => {
+        modal.dir = dir;
+      });
 
       Object.entries(text).forEach(([id, value]) => {
         const element = document.getElementById(id);
