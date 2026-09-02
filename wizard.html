@@ -74,7 +74,7 @@
         .auth-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .auth-btn { min-height:40px; border:1.5px solid var(--border); border-radius:999px; padding:7px 13px; background:var(--surface); color:var(--primary-dark); font-weight:700; cursor:pointer; }
         .lang-btn {
-            background: rgba(255,255,255,.86);
+            background: var(--surface-translucent, rgba(255,255,255,.86));
             border: 1.5px solid var(--border);
             padding: 6px 14px;
             border-radius: 999px;
@@ -261,7 +261,7 @@
             .share-link-box .btn { width:100%; flex:auto !important; }
             .success-actions { grid-template-columns:1fr; }
             .recent-trips { border-radius:20px 20px 0 0; margin-top:10px; }
-            .recent-card-actions button { display:none; }
+            .recent-card-actions button:not(.danger) { display:none; }
         }
 
         @media (prefers-reduced-motion: reduce) {
