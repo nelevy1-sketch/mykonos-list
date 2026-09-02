@@ -388,6 +388,11 @@
       box-shadow: 0 14px 32px rgba(15,42,68,.1);
     }
 
+    .action-card-disabled {
+      opacity: .55;
+      cursor: pointer;
+    }
+
     .action-icon {
       width: 42px;
       height: 42px;
@@ -1037,6 +1042,37 @@
     </div>
   </div>
 
+  <div class="auth-gate hidden" id="spliitGate">
+    <div class="auth-card">
+      <div class="auth-icon">💸</div>
+      <h2 id="spliitGateTitle">הוספת קישור להתחשבנות</h2>
+      <p id="spliitGateText">
+        צרו קבוצה ב-Spliit עם אותם שמות המשתתפים, ואז הדביקו כאן את הקישור.
+      </p>
+      <a
+        href="https://spliit.app"
+        target="_blank"
+        rel="noopener"
+        id="spliitGateOpenLink"
+        style="display:inline-block;margin-bottom:12px;color:var(--primary);font-weight:700;font-size:.85rem;">
+        פתיחת Spliit ליצירת קבוצה ↗
+      </a>
+      <input
+        type="url"
+        id="spliitGateInput"
+        class="admin-input"
+        placeholder="https://spliit.app/..."
+        dir="ltr"
+        style="width:100%;margin-bottom:12px">
+      <button class="google-signin-btn" id="saveSpliitGateBtn">שמירה</button>
+      <button
+        id="closeSpliitGateBtn"
+        style="width:100%;margin-top:8px;background:none;border:0;color:var(--text-muted);font-weight:700;padding:10px;cursor:pointer;">
+        ביטול
+      </button>
+    </div>
+  </div>
+
   <div class="app-container">
 
     <header class="hero-card">
@@ -1172,11 +1208,12 @@
         </span>
       </a>
 
-      <a href="https://startling-torrone-b6c067.netlify.app/"
-         target="_blank"
-         rel="noopener"
+      <a href="#"
+         id="expensesCard"
          class="action-card expenses"
          data-feature="expenses">
+
+        <span class="action-badge hidden" id="expensesBadge"></span>
 
         <span class="action-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1250,9 +1287,8 @@
       <span id="navPlaces">מקומות</span>
     </a>
 
-    <a href="https://startling-torrone-b6c067.netlify.app/"
-       target="_blank"
-       rel="noopener"
+    <a href="#"
+       id="navExpensesLink"
        class="nav-item"
        data-feature="expenses">
 
@@ -1547,6 +1583,7 @@
     let countryCode = "";
     let checkinLink = "";
     let tripOwnerId = "";
+    let currentSpliitUrl = "";
     let currentUser = null;
     let currentProfile = null;
     let participantClaims = {};
@@ -2145,6 +2182,7 @@
       applyTripPresentation();
       applyFeatureVisibility();
       renderActionBadges(data);
+      updateExpensesCard(data);
       fetchWeather();
       updateClockAndPhases();
 
@@ -2213,6 +2251,105 @@
       }
     }
 
+    function updateExpensesCard(data) {
+      const card = document.getElementById("expensesCard");
+      const badge = document.getElementById("expensesBadge");
+      const navLink = document.getElementById("navExpensesLink");
+      const url = data.spliitUrl || "";
+      currentSpliitUrl = url;
+
+      [card, navLink].forEach(el => { if (el) el.onclick = null; });
+
+      if (url) {
+        [card, navLink].forEach(el => {
+          if (!el) return;
+          el.href = url;
+          el.target = "_blank";
+          el.rel = "noopener";
+          el.classList.remove("action-card-disabled");
+        });
+        badge.classList.add("hidden");
+      } else if (isOrganizer()) {
+        card.href = "#";
+        card.removeAttribute("target");
+        card.classList.remove("action-card-disabled");
+        badge.textContent = tr("הוספת קישור", "Add link");
+        badge.classList.remove("hidden");
+        card.onclick = event => {
+          event.preventDefault();
+          openSpliitGate();
+        };
+
+        if (navLink) {
+          navLink.href = "#";
+          navLink.removeAttribute("target");
+          navLink.onclick = event => {
+            event.preventDefault();
+            openSpliitGate();
+          };
+        }
+      } else {
+        badge.classList.add("hidden");
+
+        [card, navLink].forEach(el => {
+          if (!el) return;
+          el.href = "#";
+          el.removeAttribute("target");
+          el.classList.add("action-card-disabled");
+          el.onclick = event => {
+            event.preventDefault();
+            alert(
+              tr(
+                "המארגן עדיין לא הוסיף קישור להתחשבנות.",
+                "The organizer hasn't added an expenses link yet."
+              )
+            );
+          };
+        });
+      }
+    }
+
+    function openSpliitGate() {
+      document.getElementById("spliitGateInput").value = "";
+      document.getElementById("spliitGate").classList.remove("hidden");
+    }
+
+    document.getElementById("closeSpliitGateBtn").addEventListener("click", () => {
+      document.getElementById("spliitGate").classList.add("hidden");
+    });
+
+    document.getElementById("saveSpliitGateBtn").addEventListener("click", async () => {
+      const url = document.getElementById("spliitGateInput").value.trim();
+
+      if (!url) {
+        return;
+      }
+
+      try {
+        new URL(url);
+      } catch {
+        alert(tr("הקישור לא תקין.", "That link doesn't look valid."));
+        return;
+      }
+
+      if (!db || !tripRoot) {
+        return;
+      }
+
+      try {
+        await db.ref(tripRoot).update({ spliitUrl: url });
+        document.getElementById("spliitGate").classList.add("hidden");
+      } catch (error) {
+        console.error("Error saving Spliit link:", error);
+        alert(
+          tr(
+            "שמירת הקישור נכשלה. נסו שוב.",
+            "Failed to save the link. Please try again."
+          )
+        );
+      }
+    });
+
     function preferredFeature(preferred) {
       const order = [
         preferred,
@@ -2225,7 +2362,8 @@
       const feature = order.find(
         (name, index) =>
           order.indexOf(name) === index &&
-          enabledFeatures[name] !== false
+          enabledFeatures[name] !== false &&
+          (name !== "expenses" || currentSpliitUrl)
       );
 
       const map = {
@@ -2272,7 +2410,7 @@
         },
 
         expenses: {
-          href: "https://startling-torrone-b6c067.netlify.app/",
+          href: currentSpliitUrl,
           icon: "💸",
           title: tr(
             "שומרים על סדר בהוצאות",
@@ -2283,7 +2421,8 @@
             "All group expenses in one place"
           ),
           action: tr("להוצאות", "Expenses"),
-          newTab: true
+          newTab: true,
+          scopeToTrip: false
         }
       };
 
