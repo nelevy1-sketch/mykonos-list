@@ -148,6 +148,11 @@
         .success-box { text-align: center; padding: 12px 0; }
         .success-box h3 { font-family: 'Frank Ruhl Libre', Georgia, serif; color: #2F8B68; margin-bottom: 10px; font-size: 1.55rem; font-weight: 700; }
         .share-link-box { display: flex; gap: 10px; margin-top: 20px; }
+        .spliit-box { margin-top: 18px; padding: 14px; background: var(--primary-light); border-radius: var(--radius-lg); text-align: right; }
+        .spliit-box label { font-weight: 700; margin-bottom: 6px; }
+        .spliit-open-link { display: inline-block; margin: 6px 0 10px; color: var(--primary); font-weight: 700; font-size: .85rem; text-decoration: none; }
+        .spliit-input-row { display: flex; gap: 8px; }
+        .spliit-input-row input { flex: 1; }
         .share-link-box input { background: #f8f9fa; color: var(--gray); }
         .success-actions { display:none; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
         .btn-secondary { background:var(--primary-light); color:var(--primary-dark); border:1px solid #CFE3E2; }
@@ -380,6 +385,16 @@
                 <input type="text" id="finalTripLink" readonly>
                 <button type="button" class="btn btn-submit" id="copyLinkBtn" onclick="copyLink()" style="flex: 0 0 100px;">העתק לינק</button>
             </div>
+            <div class="spliit-box" id="spliitBox" style="display:none;">
+                <label id="spliitLabel">קישור להתחשבנות קבוצתית (Spliit) <span style="font-weight:400;color:var(--gray);">(אופציונלי)</span></label>
+                <p class="field-hint" id="spliitHint">צרו קבוצה ב-Spliit עם אותם השמות שהזנתם, ואז הדביקו כאן את הקישור - כך כפתור "הוצאות" יוביל את כל הקבוצה לאותו מקום.</p>
+                <a href="https://spliit.app" target="_blank" rel="noopener" class="spliit-open-link" id="spliitOpenLink">פתיחת Spliit ליצירת קבוצה ↗</a>
+                <div class="spliit-input-row">
+                    <input type="url" id="spliitUrlInput" placeholder="https://spliit.app/..." dir="ltr">
+                    <button type="button" class="btn btn-submit" id="saveSpliitBtn" style="flex:0 0 100px;">שמירה</button>
+                </div>
+                <p class="field-hint" id="spliitSavedMsg" style="display:none;color:var(--primary);font-weight:700;"></p>
+            </div>
             <div class="success-actions" id="successActions">
                 <a class="btn btn-submit" id="openTripBtn" href="index.html" style="text-decoration:none; text-align:center;">פתח את הטיול</a>
                 <button type="button" class="btn btn-outline" id="newTripBtn" onclick="resetWizard()">צור טיול חדש</button>
@@ -506,6 +521,7 @@
     let currentUser = null;
     let cloudTrips = {};
     let stopCloudTrips = null;
+    let lastCreatedTripId = null;
     const RECENT_TRIPS_KEY = 'trip-organizer-recent-v1';
 
     const translations = {
@@ -539,6 +555,10 @@
             previewBtn: "צפה בדוגמה",
             sumTitle: "הכל מוכן ליצירת הטיול! 🎉",
             sumText: "בדקו שהפרטים נכונים לפני יצירת הקישור לקבוצה.",
+            spliitLabel: "קישור להתחשבנות קבוצתית (Spliit)",
+            spliitHint: "צרו קבוצה ב-Spliit עם אותם השמות שהזנתם, ואז הדביקו כאן את הקישור - כך כפתור \"הוצאות\" יוביל את כל הקבוצה לאותו מקום.",
+            spliitOpenLink: "פתיחת Spliit ליצירת קבוצה ↗",
+            spliitSave: "שמירה",
             copyBtn: "העתק לינק",
             prevBtn: "הקודם",
             nextBtn: "הבא",
@@ -588,6 +608,10 @@
             previewBtn: "Preview",
             sumTitle: "All set to create your trip! 🎉",
             sumText: "Review the details before creating the group link.",
+            spliitLabel: "Group expenses link (Spliit)",
+            spliitHint: "Create a Spliit group with the same names you entered, then paste the link here - so the \"Expenses\" button takes the whole group to the same place.",
+            spliitOpenLink: "Open Spliit to create a group ↗",
+            spliitSave: "Save",
             copyBtn: "Copy Link",
             prevBtn: "Back",
             nextBtn: "Next",
@@ -668,6 +692,10 @@
 
         document.getElementById('summaryTitle').textContent = t.sumTitle;
         document.getElementById('summaryText').textContent = t.sumText;
+        document.getElementById('spliitLabel').childNodes[0].textContent = t.spliitLabel + ' ';
+        document.getElementById('spliitHint').textContent = t.spliitHint;
+        document.getElementById('spliitOpenLink').textContent = t.spliitOpenLink;
+        document.getElementById('saveSpliitBtn').textContent = t.spliitSave;
         document.getElementById('copyLinkBtn').textContent = t.copyBtn;
         document.getElementById('prevBtn').textContent = t.prevBtn;
         document.getElementById('modalCloseBtn').textContent = t.modalClose;
@@ -1198,6 +1226,10 @@
             document.getElementById('finalTripLink').value = shareUrl;
             document.getElementById('openTripBtn').href = shareUrl;
             document.getElementById('resultLinkBox').style.display = 'flex';
+            document.getElementById('spliitBox').style.display = 'block';
+            document.getElementById('spliitUrlInput').value = '';
+            document.getElementById('spliitSavedMsg').style.display = 'none';
+            lastCreatedTripId = tripId;
             document.getElementById('successActions').style.display = 'grid';
             saveLocalTrip({ tripId, destination, tripType, language: currentLanguage, createdAt:tripData.createdAt, url:shareUrl });
         } catch (error) {
@@ -1278,12 +1310,37 @@
         document.getElementById('summaryTitle').textContent = t.sumTitle;
         document.getElementById('summaryText').textContent = t.sumText;
         document.getElementById('resultLinkBox').style.display = 'none';
+        document.getElementById('spliitBox').style.display = 'none';
+        lastCreatedTripId = null;
         document.getElementById('successActions').style.display = 'none';
         document.getElementById('nextBtn').style.display = 'block';
         document.getElementById('prevBtn').style.display = 'none';
         updateWizardView();
         document.getElementById('tripDestination').focus();
     }
+
+    document.getElementById('saveSpliitBtn').addEventListener('click', async () => {
+        if (!lastCreatedTripId) return;
+        const url = document.getElementById('spliitUrlInput').value.trim();
+        if (!url) return;
+
+        try {
+            new URL(url);
+        } catch {
+            alert(currentLanguage === 'he' ? 'הקישור לא תקין.' : 'That link doesn\'t look valid.');
+            return;
+        }
+
+        try {
+            await update(ref(db, `trips/${lastCreatedTripId}`), { spliitUrl: url });
+            document.getElementById('spliitSavedMsg').textContent =
+                currentLanguage === 'he' ? '✓ הקישור נשמר' : '✓ Link saved';
+            document.getElementById('spliitSavedMsg').style.display = 'block';
+        } catch (error) {
+            console.error('Error saving Spliit link:', error);
+            alert(currentLanguage === 'he' ? 'שמירת הקישור נכשלה. נסו שוב.' : 'Failed to save the link. Please try again.');
+        }
+    });
 
     document.getElementById('previewModal').addEventListener('click', e => { if (e.target.id === 'previewModal') closePreview(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
