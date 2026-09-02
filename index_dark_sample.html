@@ -150,10 +150,6 @@
     }
 
     /* Selective glow - only on focal moments, never on body text or borders */
-    [data-theme="dark"] .action-icon svg {
-      filter: drop-shadow(0 0 5px var(--glow-color));
-    }
-
     [data-theme="dark"] .google-signin-btn,
     [data-theme="dark"] .logout-link:active {
       box-shadow: 0 0 18px color-mix(in srgb, var(--glow-color) 40%, transparent);
@@ -169,6 +165,20 @@
 
     [data-theme="dark"] .hero-card::after {
       border-color: color-mix(in srgb, var(--glow-color) 30%, transparent);
+    }
+
+    [data-theme="dark"] .smart-context-card {
+      background: var(--card-bg);
+      border-color: var(--glow-color);
+      box-shadow: 0 0 0 1px var(--glow-color), 0 0 20px color-mix(in srgb, var(--glow-color) 45%, transparent);
+    }
+
+    [data-theme="dark"] .context-title {
+      color: var(--glow-color);
+    }
+
+    [data-theme="dark"] .context-sub {
+      color: var(--text-muted);
     }
 
     * {
@@ -397,7 +407,7 @@
     }
 
     .context-action-btn {
-      background: rgba(255,255,255,.82);
+      background: var(--card-bg);
       color: var(--context-title);
       padding: 8px 10px;
       border: 1px solid var(--context-border);
@@ -584,6 +594,37 @@
 
     .action-card.itinerary .action-icon {
       background: #FBE2DA;
+    }
+
+    [data-theme="dark"] .action-icon {
+      background: none;
+      position: relative;
+      width: 56px;
+      height: 56px;
+    }
+
+    [data-theme="dark"] .action-icon::before {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--icon-glow, var(--glow-color)) 0%, transparent 72%);
+      opacity: .35;
+      filter: blur(2px);
+    }
+
+    [data-theme="dark"] .action-card.packing .action-icon { --icon-glow: #6FE0C8; }
+    [data-theme="dark"] .action-card.shopping .action-icon { --icon-glow: #FFC862; }
+    [data-theme="dark"] .action-card.places .action-icon { --icon-glow: #6FB4F0; }
+    [data-theme="dark"] .action-card.expenses .action-icon { --icon-glow: #B49CF0; }
+    [data-theme="dark"] .action-card.itinerary .action-icon { --icon-glow: #FF9A72; }
+
+    [data-theme="dark"] .action-card svg {
+      width: 34px;
+      height: 34px;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 0 7px var(--icon-glow, var(--glow-color)));
     }
 
     .action-card.shopping svg {
@@ -1001,7 +1042,7 @@
     }
 
     .seats-banner-btn {
-      background: #fff;
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 13px 15px;
@@ -1013,6 +1054,7 @@
       font-size: .86rem;
       cursor: pointer;
       box-shadow: var(--shadow-card);
+      color: var(--text-main);
     }
 
     button,
@@ -1928,6 +1970,8 @@
 
       document.getElementById("claimMemberBtn").textContent =
         lang === "en" ? "This is me" : "זה אני";
+
+      applyDarkModeUI();
     }
 
     function isOrganizer() {
@@ -2023,8 +2067,11 @@
 
     function applyDarkModeUI() {
       const isDark = document.body.dataset.theme === "dark";
-      document.getElementById("darkModeToggle").textContent =
-        (isDark ? "☀️ מצב בהיר" : "🌙 מצב כהה");
+      const en = currentLanguage === "en";
+
+      document.getElementById("darkModeToggle").textContent = isDark
+        ? (en ? "☀️ Light mode" : "☀️ מצב בהיר")
+        : (en ? "🌙 Dark mode" : "🌙 מצב כהה");
     }
 
     if (localStorage.getItem("indexDarkMode") === "on") {
@@ -3852,4 +3899,3 @@
   </script>
 </body>
 </html>
-
