@@ -451,6 +451,10 @@
       border-inline-end-color: var(--expense);
     }
 
+    .action-card.itinerary {
+      border-inline-end-color: var(--coral);
+    }
+
     .action-card.packing .action-icon {
       background: #DDF2EE;
     }
@@ -467,6 +471,10 @@
       background: #E4E0F7;
     }
 
+    .action-card.itinerary .action-icon {
+      background: #FBE2DA;
+    }
+
     .action-card.shopping svg {
       fill: #A66D00;
     }
@@ -477,6 +485,10 @@
 
     .action-card.expenses svg {
       fill: var(--expense);
+    }
+
+    .action-card.itinerary svg {
+      fill: var(--coral);
     }
 
     .bottom-nav {
@@ -1208,6 +1220,27 @@
         </span>
       </a>
 
+      <a href="itinerary.html"
+         class="action-card itinerary"
+         data-feature="itinerary">
+
+        <span class="action-badge hidden" id="itineraryBadge"></span>
+
+        <span class="action-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+          </svg>
+        </span>
+
+        <span class="action-card-title" id="itineraryTitle">
+          תוכנית יומית 🗓️
+        </span>
+
+        <span class="action-card-desc" id="itineraryDesc">
+          מה עושים כל יום, ביחד
+        </span>
+      </a>
+
       <a href="#"
          id="expensesCard"
          class="action-card expenses"
@@ -1584,6 +1617,7 @@
     let checkinLink = "";
     let tripOwnerId = "";
     let currentSpliitUrl = "";
+    let currentItineraryDays = {};
     let currentUser = null;
     let currentProfile = null;
     let participantClaims = {};
@@ -1610,6 +1644,8 @@
         shoppingDesc: "מה צריך לקנות לקבוצה",
         placesTitle: "מקומות ותמונות 📍",
         placesDesc: "נקודות עניין ומוזיקה",
+        itineraryTitle: "תוכנית יומית 🗓️",
+        itineraryDesc: "מה עושים כל יום, ביחד",
         expensesTitle: "התחשבנות 💸",
         expensesDesc: "מעקב הוצאות קבוצתי",
         seatsBannerTitle: "✈️ מפת הושבה קבוצתית אינטראקטיבית",
@@ -1648,6 +1684,8 @@
         shoppingDesc: "What the group still needs",
         placesTitle: "Places & photos 📍",
         placesDesc: "Saved spots, photos and music",
+        itineraryTitle: "Itinerary 🗓️",
+        itineraryDesc: "What we're doing each day, together",
         expensesTitle: "Expenses 💸",
         expensesDesc: "Track and split group costs",
         seatsBannerTitle: "✈️ Interactive group seat map",
@@ -2183,6 +2221,7 @@
       applyFeatureVisibility();
       renderActionBadges(data);
       updateExpensesCard(data);
+      currentItineraryDays = data.itinerary?.days || {};
       fetchWeather();
       updateClockAndPhases();
 
@@ -2349,6 +2388,37 @@
         );
       }
     });
+
+    function todaysPlanContext() {
+      const now = new Date();
+      const todayKey =
+        `${now.getFullYear()}-` +
+        `${String(now.getMonth() + 1).padStart(2, "0")}-` +
+        `${String(now.getDate()).padStart(2, "0")}`;
+
+      const activities =
+        currentItineraryDays[todayKey]?.activities || {};
+
+      const count = Object.keys(activities).length;
+
+      if (!count) {
+        return null;
+      }
+
+      return {
+        href: "itinerary.html",
+        icon: "🗓️",
+        title: tr(
+          "התוכנית של היום",
+          "Today's plan"
+        ),
+        sub: tr(
+          `${count} פעילויות מתוכננות להיום`,
+          `${count} activities planned for today`
+        ),
+        action: tr("לתוכנית", "View plan")
+      };
+    }
 
     function preferredFeature(preferred) {
       const order = [
@@ -3263,6 +3333,7 @@
         );
 
         const context =
+          todaysPlanContext() ||
           preferredFeature("places");
 
         if (context) {
