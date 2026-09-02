@@ -516,7 +516,7 @@
       transform:translateX(-50%);
       width:min(760px,100%);
       display:grid;
-      grid-template-columns:repeat(5,1fr);
+      grid-template-columns:repeat(6,1fr);
       background:rgba(255,253,250,.94);
       backdrop-filter:blur(18px);
       border-top:1px solid var(--line);
@@ -532,7 +532,7 @@
       gap:2px;
       text-decoration:none;
       color:var(--muted);
-      font-size:1.16rem;
+      font-size:1.02rem;
       border-radius:13px;
     }
 
@@ -867,6 +867,11 @@
     <a id="navPlaces" data-feature="places" href="places.html">
       📍
       <span>מקומות</span>
+    </a>
+
+    <a id="navItinerary" data-feature="itinerary" href="itinerary.html">
+      🗓️
+      <span>תוכנית</span>
     </a>
 
     <a id="navExpenses" data-feature="expenses" href="expenses.html">
@@ -1381,6 +1386,7 @@
         ["navPacking", "ציוד", "Packing"],
         ["navShopping", "קניות", "Shopping"],
         ["navPlaces", "מקומות", "Places"],
+        ["navItinerary", "תוכנית", "Plan"],
         ["navExpenses", "הוצאות", "Expenses"]
       ].forEach(([id, hebrew, english]) => {
         $(id).querySelector("span").textContent =
@@ -1395,7 +1401,8 @@
         "Home",
         "Packing",
         "Shopping",
-        "Places"
+        "Places",
+        "Itinerary"
       ].forEach(name => {
         const element = $(`nav${name}`);
 
@@ -1435,6 +1442,10 @@
       document
         .querySelectorAll("[data-feature]")
         .forEach(element => {
+          if (element.dataset.feature === "itinerary") {
+            return;
+          }
+
           element.style.display =
             trip.features?.[element.dataset.feature] === false
               ? "none"
