@@ -621,6 +621,11 @@
       background: #FBE2DA;
     }
 
+    [data-theme="dark"] .action-card.packing .action-icon,
+    [data-theme="dark"] .action-card.shopping .action-icon,
+    [data-theme="dark"] .action-card.places .action-icon,
+    [data-theme="dark"] .action-card.expenses .action-icon,
+    [data-theme="dark"] .action-card.itinerary .action-icon,
     [data-theme="dark"] .action-icon {
       background: none;
       position: relative;
@@ -631,11 +636,11 @@
     [data-theme="dark"] .action-icon::before {
       content: "";
       position: absolute;
-      inset: -6px;
+      inset: -10px;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--icon-glow, var(--glow-color)) 0%, transparent 72%);
-      opacity: .35;
-      filter: blur(2px);
+      background: radial-gradient(circle, var(--icon-glow, var(--glow-color)) 0%, transparent 68%);
+      opacity: .55;
+      filter: blur(3px);
     }
 
     [data-theme="dark"] .action-card.packing .action-icon { --icon-glow: #6FE0C8; }
@@ -645,11 +650,12 @@
     [data-theme="dark"] .action-card.itinerary .action-icon { --icon-glow: #FF9A72; }
 
     [data-theme="dark"] .action-card svg {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
+      stroke-width: 2.25;
       position: relative;
       z-index: 1;
-      filter: drop-shadow(0 0 7px var(--icon-glow, var(--glow-color)));
+      filter: drop-shadow(0 0 9px var(--icon-glow, var(--glow-color)));
     }
 
     .action-card.shopping svg {
