@@ -57,13 +57,65 @@
     }
 
     [data-theme="dark"] {
-      --bg:#172126;
-      --surface:#202c32;
-      --surface-2:#26383b;
-      --text:#f4f7f5;
-      --muted:#aab8bb;
-      --line:#35464a;
-      --shadow:0 14px 36px rgba(0,0,0,.25);
+      --bg:#0B1015;
+      --surface:#151D24;
+      --surface-2:#1C262E;
+      --text:#EAF2F1;
+      --muted:#8CA3AC;
+      --line:#223038;
+      --shadow:0 14px 36px rgba(0,0,0,.4);
+    }
+
+    :root.theme-abroad[data-theme="dark"] {
+      --primary:#2DD4C8;
+      --primary-dark:#17B3A8;
+      --bg:#0B1015;
+      --surface:#151D24;
+      --surface-2:#1C262E;
+      --line:#223038;
+      --glow-color:#2DD4C8;
+    }
+
+    :root.theme-local[data-theme="dark"] {
+      --primary:#FFA94D;
+      --primary-dark:#E68A2E;
+      --bg:#0B1015;
+      --surface:#151D24;
+      --surface-2:#1C262E;
+      --line:#223038;
+      --glow-color:#FFA94D;
+    }
+
+    :root.theme-camping[data-theme="dark"] {
+      --primary:#6EE7A0;
+      --primary-dark:#45C97C;
+      --bg:#0B1015;
+      --surface:#151D24;
+      --surface-2:#1C262E;
+      --line:#223038;
+      --glow-color:#6EE7A0;
+    }
+
+    :root.theme-reserve[data-theme="dark"] {
+      --primary:#7FB3E8;
+      --primary-dark:#5590C9;
+      --bg:#0B1015;
+      --surface:#151D24;
+      --surface-2:#1C262E;
+      --line:#223038;
+      --glow-color:#7FB3E8;
+    }
+
+    [data-theme="dark"] .primary-btn {
+      box-shadow:0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
+    }
+
+    [data-theme="dark"] .ai-suggest-btn {
+      box-shadow:0 0 10px color-mix(in srgb, var(--glow-color) 35%, transparent);
+    }
+
+    [data-theme="dark"] .progress > span {
+      box-shadow:0 0 8px color-mix(in srgb, var(--glow-color) 60%, transparent);
     }
 
     * {
@@ -1236,7 +1288,14 @@
         `theme-${trip.tripType || "abroad"}`
       );
 
-      if (localStorage.getItem(themeKey) === "dark") {
+      const stored = localStorage.getItem(themeKey);
+      const systemDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const shouldBeDark =
+        stored === "dark" ? true : stored === "light" ? false : systemDark;
+
+      if (shouldBeDark) {
         document.documentElement.dataset.theme = "dark";
       } else {
         delete document.documentElement.dataset.theme;
