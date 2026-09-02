@@ -666,6 +666,18 @@
       stroke: #F4F8F7;
     }
 
+    [data-theme="dark"] .action-card svg rect,
+    [data-theme="dark"] .action-card svg circle,
+    [data-theme="dark"] .action-card svg ellipse {
+      fill: var(--icon-glow, var(--glow-color));
+      fill-opacity: .28;
+    }
+
+    [data-theme="dark"] .action-card svg circle[r="2"] {
+      fill: #F4F8F7;
+      fill-opacity: 1;
+    }
+
     .action-card.shopping svg {
       stroke: #A66D00;
     }
