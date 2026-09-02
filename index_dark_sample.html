@@ -365,6 +365,12 @@
       color: var(--text-muted);
     }
 
+    .session-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .session-row.hidden {
       display: none;
     }
@@ -1357,13 +1363,12 @@
       </div>
     </header>
 
-    <div class="dark-toggle-row" style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+    <div class="session-row" id="sessionRow">
       <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
-    </div>
-
-    <div class="session-row hidden" id="sessionRow">
-      <span id="sessionUserLabel"></span>
-      <button id="logoutLink" class="logout-link">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
+      <span class="session-right">
+        <span id="sessionUserLabel"></span>
+        <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
+      </span>
     </div>
 
     <div
@@ -2150,7 +2155,7 @@
           Boolean(user)
         );
 
-        document.getElementById("sessionRow").classList.toggle(
+        document.getElementById("logoutLink").classList.toggle(
           "hidden",
           !user
         );
@@ -2207,7 +2212,19 @@
         : (en ? "🌙 Dark mode" : "🌙 מצב כהה");
     }
 
-    if (localStorage.getItem("indexDarkMode") === "on") {
+    const storedDarkPref = localStorage.getItem("indexDarkMode");
+    const systemPrefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const shouldStartDark =
+      storedDarkPref === "on"
+        ? true
+        : storedDarkPref === "off"
+          ? false
+          : systemPrefersDark;
+
+    if (shouldStartDark) {
       document.body.dataset.theme = "dark";
     }
 
@@ -2220,7 +2237,7 @@
 
         if (isDark) {
           delete document.body.dataset.theme;
-          localStorage.removeItem("indexDarkMode");
+          localStorage.setItem("indexDarkMode", "off");
         } else {
           document.body.dataset.theme = "dark";
           localStorage.setItem("indexDarkMode", "on");
