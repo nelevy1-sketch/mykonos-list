@@ -95,6 +95,104 @@
       --context-text: #66705B;
     }
 
+    [data-theme="dark"] {
+      --bg-color: #0B1015;
+      --card-bg: #151D24;
+      --text-main: #EAF2F1;
+      --text-muted: #8CA3AC;
+      --border-color: #223038;
+      --expense: #B49CF0;
+      --shadow-card: 0 10px 28px rgba(0,0,0,.35);
+      --shadow-float: 0 14px 34px rgba(0,0,0,.45);
+      --context-bg: #1A2229;
+      --context-border: #2C3944;
+      --context-title: #F2B84B;
+      --context-text: #A8B8C0;
+    }
+
+    body.theme-abroad[data-theme="dark"] {
+      --primary: #2DD4C8;
+      --primary-dark: #17B3A8;
+      --primary-soft: rgba(45,212,200,.14);
+      --hero-glow: rgba(45,212,200,.35);
+      --hero-bg: linear-gradient(145deg, #071417 0%, #0C2A2B 55%, #114A47 100%);
+      --hero-shadow: rgba(0,0,0,.5);
+      --glow-color: #2DD4C8;
+    }
+
+    body.theme-local[data-theme="dark"] {
+      --primary: #FFA94D;
+      --primary-dark: #E68A2E;
+      --primary-soft: rgba(255,169,77,.14);
+      --hero-glow: rgba(255,169,77,.32);
+      --hero-bg: linear-gradient(145deg, #170F08 0%, #2E1D0C 55%, #4A2E0E 100%);
+      --hero-shadow: rgba(0,0,0,.5);
+      --glow-color: #FFA94D;
+    }
+
+    body.theme-camping[data-theme="dark"] {
+      --primary: #6EE7A0;
+      --primary-dark: #45C97C;
+      --primary-soft: rgba(110,231,160,.14);
+      --hero-glow: rgba(110,231,160,.32);
+      --hero-bg: linear-gradient(145deg, #0A150C 0%, #142B18 55%, #1E4526 100%);
+      --hero-shadow: rgba(0,0,0,.5);
+      --glow-color: #6EE7A0;
+    }
+
+    body.theme-reserve[data-theme="dark"] {
+      --primary: #7FB3E8;
+      --primary-dark: #5590C9;
+      --primary-soft: rgba(127,179,232,.14);
+      --hero-glow: rgba(127,179,232,.3);
+      --hero-bg: linear-gradient(145deg, #0D1218 0%, #1A242F 55%, #263646 100%);
+      --hero-shadow: rgba(0,0,0,.5);
+      --glow-color: #7FB3E8;
+    }
+
+    /* Selective glow - only on focal moments, never on body text or borders */
+    [data-theme="dark"] .google-signin-btn,
+    [data-theme="dark"] .logout-link:active {
+      box-shadow: 0 0 18px color-mix(in srgb, var(--glow-color) 40%, transparent);
+    }
+
+    [data-theme="dark"] .hero-status-row {
+      text-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 50%, transparent);
+    }
+
+    [data-theme="dark"] .bottom-nav {
+      background: rgba(21, 29, 36, 0.92);
+      border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .nav-item {
+      color: var(--text-muted);
+    }
+
+    [data-theme="dark"] .nav-item.active {
+      color: var(--glow-color);
+      background: color-mix(in srgb, var(--glow-color) 14%, transparent);
+      filter: drop-shadow(0 0 4px var(--glow-color));
+    }
+
+    [data-theme="dark"] .hero-card::after {
+      border-color: color-mix(in srgb, var(--glow-color) 30%, transparent);
+    }
+
+    [data-theme="dark"] .smart-context-card {
+      background: var(--card-bg);
+      border-color: var(--glow-color);
+      box-shadow: 0 0 0 1px var(--glow-color), 0 0 20px color-mix(in srgb, var(--glow-color) 45%, transparent);
+    }
+
+    [data-theme="dark"] .context-title {
+      color: var(--glow-color);
+    }
+
+    [data-theme="dark"] .context-sub {
+      color: var(--text-muted);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -267,6 +365,12 @@
       color: var(--text-muted);
     }
 
+    .session-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .session-row.hidden {
       display: none;
     }
@@ -321,7 +425,7 @@
     }
 
     .context-action-btn {
-      background: rgba(255,255,255,.82);
+      background: var(--card-bg);
       color: var(--context-title);
       padding: 8px 10px;
       border: 1px solid var(--context-border);
@@ -425,13 +529,29 @@
     }
 
     .action-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
+      width: 52px;
+      height: 52px;
+      border-radius: 15px;
       display: grid;
       place-items: center;
       background: var(--primary-soft);
       margin-bottom: 4px;
+    }
+
+    .illustrated-icon {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
+    }
+
+    .icon-tilt {
+      transform: rotate(-18deg) scale(1.12);
+    }
+
+    .icon-tilt-right {
+      transform: rotate(14deg) scale(1.1);
     }
 
     .action-badge {
@@ -449,9 +569,13 @@
     }
 
     .action-card svg {
-      width: 22px;
-      height: 22px;
-      fill: var(--primary);
+      width: 30px;
+      height: 30px;
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .action-card-title {
@@ -486,6 +610,30 @@
       border-inline-end-color: var(--coral);
     }
 
+    [data-theme="dark"] .action-card {
+      border-inline-end: 1px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .action-card.packing {
+      box-shadow: 0 0 0 1px #6FE0C8, 0 0 14px color-mix(in srgb, #6FE0C8 35%, transparent);
+    }
+
+    [data-theme="dark"] .action-card.shopping {
+      box-shadow: 0 0 0 1px #FFC862, 0 0 14px color-mix(in srgb, #FFC862 35%, transparent);
+    }
+
+    [data-theme="dark"] .action-card.places {
+      box-shadow: 0 0 0 1px #6FB4F0, 0 0 14px color-mix(in srgb, #6FB4F0 35%, transparent);
+    }
+
+    [data-theme="dark"] .action-card.expenses {
+      box-shadow: 0 0 0 1px #B49CF0, 0 0 14px color-mix(in srgb, #B49CF0 35%, transparent);
+    }
+
+    [data-theme="dark"] .action-card.itinerary {
+      box-shadow: 0 0 0 1px #FF9A72, 0 0 14px color-mix(in srgb, #FF9A72 35%, transparent);
+    }
+
     .action-card.packing .action-icon {
       background: #DDF2EE;
     }
@@ -506,20 +654,77 @@
       background: #FBE2DA;
     }
 
+    [data-theme="dark"] .action-card.packing .action-icon,
+    [data-theme="dark"] .action-card.shopping .action-icon,
+    [data-theme="dark"] .action-card.places .action-icon,
+    [data-theme="dark"] .action-card.expenses .action-icon,
+    [data-theme="dark"] .action-card.itinerary .action-icon,
+    [data-theme="dark"] .action-icon {
+      background: none;
+      position: relative;
+      width: 56px;
+      height: 56px;
+    }
+
+    [data-theme="dark"] .action-icon::before {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--icon-glow, var(--glow-color)) 0%, transparent 68%);
+      opacity: .3;
+      filter: blur(3px);
+    }
+
+    [data-theme="dark"] .action-card.packing .action-icon { --icon-glow: #6FE0C8; }
+    [data-theme="dark"] .action-card.shopping .action-icon { --icon-glow: #FFC862; }
+    [data-theme="dark"] .action-card.places .action-icon { --icon-glow: #6FB4F0; }
+    [data-theme="dark"] .action-card.expenses .action-icon { --icon-glow: #B49CF0; }
+    [data-theme="dark"] .action-card.itinerary .action-icon { --icon-glow: #FF9A72; }
+
+    [data-theme="dark"] .action-card svg {
+      width: 36px;
+      height: 36px;
+      stroke-width: 2.25;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 0 9px var(--icon-glow, var(--glow-color)));
+    }
+
+    [data-theme="dark"] .action-card.packing svg,
+    [data-theme="dark"] .action-card.shopping svg,
+    [data-theme="dark"] .action-card.places svg,
+    [data-theme="dark"] .action-card.expenses svg,
+    [data-theme="dark"] .action-card.itinerary svg {
+      stroke: #F4F8F7;
+    }
+
+    [data-theme="dark"] .action-card svg rect,
+    [data-theme="dark"] .action-card svg circle,
+    [data-theme="dark"] .action-card svg ellipse {
+      fill: var(--icon-glow, var(--glow-color));
+      fill-opacity: .28;
+    }
+
+    [data-theme="dark"] .action-card svg circle[r="2"] {
+      fill: #F4F8F7;
+      fill-opacity: 1;
+    }
+
     .action-card.shopping svg {
-      fill: #A66D00;
+      stroke: #A66D00;
     }
 
     .action-card.places svg {
-      fill: #356FA5;
+      stroke: #356FA5;
     }
 
     .action-card.expenses svg {
-      fill: var(--expense);
+      stroke: var(--expense);
     }
 
     .action-card.itinerary svg {
-      fill: var(--coral);
+      stroke: var(--coral);
     }
 
     .bottom-nav {
@@ -607,7 +812,7 @@
     }
 
     .bottom-sheet {
-      background: #ffffff;
+      background: var(--card-bg);
       color: var(--text-main);
       width: 100%;
       max-width: 480px;
@@ -618,7 +823,6 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      text-align: right;
       box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
       animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -636,7 +840,7 @@
     .sheet-handle {
       width: 40px;
       height: 4px;
-      background: #cbd5e1;
+      background: var(--border-color);
       border-radius: 2px;
       align-self: center;
       margin-bottom: 4px;
@@ -656,7 +860,7 @@
     }
 
     .modal-close {
-      background: #f1f5f9;
+      background: var(--primary-soft);
       border: none;
       width: 30px;
       height: 30px;
@@ -800,12 +1004,21 @@
       gap: 8px;
     }
 
+    [data-theme="dark"] .admin-section-box {
+      background: var(--bg-color);
+    }
+
     .admin-section-title {
       font-size: 0.85rem;
       font-weight: 800;
       color: var(--primary-dark);
       border-bottom: 1px solid #e2e8f0;
       padding-bottom: 4px;
+    }
+
+    [data-theme="dark"] .admin-section-title {
+      color: var(--glow-color);
+      border-bottom-color: var(--border-color);
     }
 
     .admin-field {
@@ -861,6 +1074,19 @@
       font-weight: bold;
     }
 
+    [data-theme="dark"] .admin-input,
+    [data-theme="dark"] select.admin-input,
+    [data-theme="dark"] .tags-input-container {
+      background: var(--bg-color);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .member-tag {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
     .tags-input-container input {
       border: none;
       outline: none;
@@ -899,7 +1125,7 @@
 
     .system-message {
       display: none;
-      background: #fff;
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 18px;
@@ -921,7 +1147,7 @@
     }
 
     .seats-banner-btn {
-      background: #fff;
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 13px 15px;
@@ -933,6 +1159,7 @@
       font-size: .86rem;
       cursor: pointer;
       box-shadow: var(--shadow-card);
+      color: var(--text-main);
     }
 
     button,
@@ -1136,9 +1363,12 @@
       </div>
     </header>
 
-    <div class="session-row hidden" id="sessionRow">
-      <span id="sessionUserLabel"></span>
-      <button id="logoutLink" class="logout-link">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
+    <div class="session-row" id="sessionRow">
+      <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
+      <span class="session-right">
+        <span id="sessionUserLabel"></span>
+        <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
+      </span>
     </div>
 
     <div
@@ -1200,13 +1430,22 @@
         <span class="action-badge hidden" id="packingBadge"></span>
 
         <span class="action-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4zm6 15H7V8h10v11z"/>
+          <img
+            src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Backpack/3D/backpack_3d.png"
+            alt=""
+            class="illustrated-icon icon-tilt"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <svg viewBox="0 0 48 48" aria-hidden="true" class="fallback-icon" style="display:none">
+            <path d="M21 9c0-2 1.3-3 3-3s3 1 3 3"/>
+            <path d="M14 20c0-6 4.5-11 10-11s10 5 10 11"/>
+            <rect x="9" y="18" width="30" height="23" rx="7"/>
+            <rect x="17" y="18" width="14" height="9" rx="2"/>
+            <line x1="20" y1="30" x2="28" y2="30"/>
           </svg>
         </span>
 
         <span class="action-card-title" id="packingTitle">
-          רשימת ציוד 🎒
+          רשימת ציוד
         </span>
 
         <span class="action-card-desc" id="packingDesc">
@@ -1221,13 +1460,23 @@
         <span class="action-badge hidden" id="shoppingBadge"></span>
 
         <span class="action-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          <img
+            src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Shopping%20cart/3D/shopping_cart_3d.png"
+            alt=""
+            class="illustrated-icon"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <svg viewBox="0 0 48 48" aria-hidden="true" class="fallback-icon" style="display:none">
+            <path d="M6 8h4l3 20h20l4-14H14"/>
+            <circle cx="19" cy="14" r="3"/>
+            <circle cx="24" cy="11" r="3.5"/>
+            <circle cx="29" cy="14" r="3"/>
+            <circle cx="17" cy="36" r="3"/>
+            <circle cx="29" cy="36" r="3"/>
           </svg>
         </span>
 
         <span class="action-card-title" id="shoppingTitle">
-          קניות משותפות 🛒
+          קניות משותפות
         </span>
 
         <span class="action-card-desc" id="shoppingDesc">
@@ -1242,13 +1491,21 @@
         <span class="action-badge hidden" id="placesBadge"></span>
 
         <span class="action-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          <img
+            src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Round%20pushpin/3D/round_pushpin_3d.png"
+            alt=""
+            class="illustrated-icon"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <svg viewBox="0 0 48 48" aria-hidden="true" class="fallback-icon" style="display:none">
+            <path d="M24 6c-7 0-13 5.5-13 13 0 10 13 23 13 23s13-13 13-23c0-7.5-6-13-13-13z"/>
+            <circle cx="24" cy="19" r="6"/>
+            <circle cx="24" cy="19" r="2" fill="currentColor" stroke="none"/>
+            <path d="M20.3 16a5.3 5.3 0 0 1 3-1.7" stroke-width="1.4" opacity=".65"/>
           </svg>
         </span>
 
         <span class="action-card-title" id="placesTitle">
-          מקומות ותמונות 📍
+          מקומות ותמונות
         </span>
 
         <span class="action-card-desc" id="placesDesc">
@@ -1263,13 +1520,22 @@
         <span class="action-badge hidden" id="itineraryBadge"></span>
 
         <span class="action-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+          <img
+            src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Spiral%20calendar/3D/spiral_calendar_3d.png"
+            alt=""
+            class="illustrated-icon icon-tilt-right"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <svg viewBox="0 0 48 48" aria-hidden="true" class="fallback-icon" style="display:none">
+            <rect x="8" y="10" width="32" height="28" rx="4"/>
+            <line x1="8" y1="18" x2="40" y2="18"/>
+            <line x1="16" y1="6" x2="16" y2="14"/>
+            <line x1="32" y1="6" x2="32" y2="14"/>
+            <path d="M17 27l4 4 8-8"/>
           </svg>
         </span>
 
         <span class="action-card-title" id="itineraryTitle">
-          תוכנית יומית 🗓️
+          תוכנית יומית
         </span>
 
         <span class="action-card-desc" id="itineraryDesc">
@@ -1285,8 +1551,17 @@
         <span class="action-badge hidden" id="expensesBadge"></span>
 
         <span class="action-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+          <img
+            src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Money%20bag/3D/money_bag_3d.png"
+            alt=""
+            class="illustrated-icon"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <svg viewBox="0 0 48 48" aria-hidden="true" class="fallback-icon" style="display:none">
+            <ellipse cx="24" cy="30" rx="14" ry="5"/>
+            <path d="M10 30v-6c0-2.8 6.3-5 14-5s14 2.2 14 5v6"/>
+            <ellipse cx="24" cy="19" rx="14" ry="5"/>
+            <line x1="24" y1="27" x2="24" y2="33"/>
+            <path d="M14 18.5c1.8-1 4-1.7 6-2.1" stroke-width="1.4" opacity=".6"/>
           </svg>
         </span>
 
@@ -1294,7 +1569,7 @@
           class="action-card-title"
           id="expensesTitle"
           style="color:var(--expense);">
-          התחשבנות 💸
+          התחשבנות
         </span>
 
         <span class="action-card-desc" id="expensesDesc">
@@ -1681,15 +1956,15 @@
     const dashboardText = {
       he: {
         actionsTitle: "מה תרצו לעשות?",
-        packingTitle: "רשימת ציוד 🎒",
+        packingTitle: "רשימת ציוד",
         packingDesc: "מה לארוז ומה לקחת",
-        shoppingTitle: "קניות משותפות 🛒",
+        shoppingTitle: "קניות משותפות",
         shoppingDesc: "מה צריך לקנות לקבוצה",
-        placesTitle: "מקומות ותמונות 📍",
+        placesTitle: "מקומות ותמונות",
         placesDesc: "נקודות עניין ומוזיקה",
-        itineraryTitle: "תוכנית יומית 🗓️",
+        itineraryTitle: "תוכנית יומית",
         itineraryDesc: "מה עושים כל יום, ביחד",
-        expensesTitle: "התחשבנות 💸",
+        expensesTitle: "התחשבנות",
         expensesDesc: "מעקב הוצאות קבוצתי",
         seatsBannerTitle: "✈️ מפת הושבה קבוצתית אינטראקטיבית",
         seatsBannerAction: "הצג מטוס",
@@ -1723,15 +1998,15 @@
 
       en: {
         actionsTitle: "What would you like to do?",
-        packingTitle: "Packing list 🎒",
+        packingTitle: "Packing list",
         packingDesc: "What to pack and bring",
-        shoppingTitle: "Group shopping 🛒",
+        shoppingTitle: "Group shopping",
         shoppingDesc: "What the group still needs",
-        placesTitle: "Places & photos 📍",
+        placesTitle: "Places & photos",
         placesDesc: "Saved spots, photos and music",
-        itineraryTitle: "Itinerary 🗓️",
+        itineraryTitle: "Itinerary",
         itineraryDesc: "What we're doing each day, together",
-        expensesTitle: "Expenses 💸",
+        expensesTitle: "Expenses",
         expensesDesc: "Track and split group costs",
         seatsBannerTitle: "✈️ Interactive group seat map",
         seatsBannerAction: "View plane",
@@ -1771,10 +2046,15 @@
     function applyTripLanguage() {
       const lang = currentLanguage === "en" ? "en" : "he";
       const text = dashboardText[lang];
+      const dir = lang === "en" ? "ltr" : "rtl";
 
       document.documentElement.lang = lang;
-      document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
-      document.body.dir = document.documentElement.dir;
+      document.documentElement.dir = dir;
+      document.body.dir = dir;
+
+      document.querySelectorAll(".modal-overlay").forEach(modal => {
+        modal.dir = dir;
+      });
 
       Object.entries(text).forEach(([id, value]) => {
         const element = document.getElementById(id);
@@ -1828,6 +2108,8 @@
 
       document.getElementById("claimMemberBtn").textContent =
         lang === "en" ? "This is me" : "זה אני";
+
+      applyDarkModeUI();
     }
 
     function isOrganizer() {
@@ -1873,7 +2155,7 @@
           Boolean(user)
         );
 
-        document.getElementById("sessionRow").classList.toggle(
+        document.getElementById("logoutLink").classList.toggle(
           "hidden",
           !user
         );
@@ -1920,6 +2202,49 @@
           auth.signOut();
         });
     }
+
+    function applyDarkModeUI() {
+      const isDark = document.body.dataset.theme === "dark";
+      const en = currentLanguage === "en";
+
+      document.getElementById("darkModeToggle").textContent = isDark
+        ? (en ? "☀️ Light mode" : "☀️ מצב בהיר")
+        : (en ? "🌙 Dark mode" : "🌙 מצב כהה");
+    }
+
+    const storedDarkPref = localStorage.getItem("indexDarkMode");
+    const systemPrefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const shouldStartDark =
+      storedDarkPref === "on"
+        ? true
+        : storedDarkPref === "off"
+          ? false
+          : systemPrefersDark;
+
+    if (shouldStartDark) {
+      document.body.dataset.theme = "dark";
+    }
+
+    applyDarkModeUI();
+
+    document
+      .getElementById("darkModeToggle")
+      .addEventListener("click", () => {
+        const isDark = document.body.dataset.theme === "dark";
+
+        if (isDark) {
+          delete document.body.dataset.theme;
+          localStorage.setItem("indexDarkMode", "off");
+        } else {
+          document.body.dataset.theme = "dark";
+          localStorage.setItem("indexDarkMode", "on");
+        }
+
+        applyDarkModeUI();
+      });
 
     function participantKey(name) {
       const bytes = new TextEncoder().encode(String(name).trim());
@@ -3240,6 +3565,8 @@
         phaseBadge.textContent =
           tr("טוען...", "Loading...");
 
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
+
         timerTitle.textContent =
           tr(
             "טוען את פרטי הטיול",
@@ -3318,6 +3645,8 @@
           (diffOut / (1000 * 60 * 60)) % 24
         );
 
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
+
         timerTitle.textContent =
           currentLanguage === "en"
             ? `${config.icon} ${days} days · ${hours} hours to go`
@@ -3377,6 +3706,8 @@
                 "Trip in progress"
               );
 
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
+
         timerTitle.textContent =
           tripType === "reserve"
             ? tr(
@@ -3409,6 +3740,8 @@
             "הטיול הסתיים",
             "Trip completed"
           );
+
+        timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
 
         timerTitle.textContent =
           tr(
