@@ -496,6 +496,10 @@
       margin-bottom: 14px;
     }
 
+    .action-card.card-hidden {
+      display: none;
+    }
+
     .action-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -3531,6 +3535,47 @@
         );
       });
 
+    let lastCardsPhase = null;
+
+    function applyCardsForPhase(phase) {
+      if (phase === lastCardsPhase) {
+        return;
+      }
+
+      lastCardsPhase = phase;
+
+      const cards = {
+        packing: document.querySelector(".action-card.packing"),
+        shopping: document.querySelector(".action-card.shopping"),
+        places: document.querySelector(".action-card.places"),
+        itinerary: document.querySelector(".action-card.itinerary"),
+        expenses: document.getElementById("expensesCard")
+      };
+
+      Object.values(cards).forEach(card => {
+        if (!card) {
+          return;
+        }
+
+        card.classList.remove("card-hidden");
+        card.style.order = "";
+      });
+
+      if (phase === "during") {
+        if (cards.itinerary) cards.itinerary.style.order = "1";
+        if (cards.places) cards.places.style.order = "2";
+        if (cards.expenses) cards.expenses.style.order = "3";
+        if (cards.packing) cards.packing.style.order = "4";
+        if (cards.shopping) cards.shopping.style.order = "5";
+      } else if (phase === "after") {
+        if (cards.places) cards.places.style.order = "1";
+        if (cards.expenses) cards.expenses.style.order = "2";
+        if (cards.shopping) cards.shopping.style.order = "3";
+        if (cards.packing) cards.packing.classList.add("card-hidden");
+        if (cards.itinerary) cards.itinerary.classList.add("card-hidden");
+      }
+    }
+
     function updateClockAndPhases() {
       const now = new Date();
       const diffOut = flightOut - now;
@@ -3632,6 +3677,8 @@
           : "none";
 
       if (diffOut > 0) {
+        applyCardsForPhase("before");
+
         phaseBadge.textContent =
           currentLanguage === "en"
             ? config.phaseEn
@@ -3695,6 +3742,8 @@
         now >= flightOut &&
         now <= tripEnd
       ) {
+        applyCardsForPhase("during");
+
         phaseBadge.textContent =
           tripType === "reserve"
             ? tr(
@@ -3735,6 +3784,8 @@
             "none";
         }
       } else {
+        applyCardsForPhase("after");
+
         phaseBadge.textContent =
           tr(
             "הטיול הסתיים",
