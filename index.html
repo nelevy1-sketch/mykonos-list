@@ -257,6 +257,37 @@
       background: rgba(255,255,255,.1);
     }
 
+    .session-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+
+    .session-row.hidden {
+      display: none;
+    }
+
+    .logout-link {
+      border: 0;
+      background: none;
+      color: var(--text-muted);
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 6px 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .logout-link:active {
+      color: var(--coral);
+    }
+
     .smart-context-card {
       background: var(--context-bg);
       border: 1px solid var(--context-border);
@@ -1105,6 +1136,11 @@
       </div>
     </header>
 
+    <div class="session-row hidden" id="sessionRow">
+      <span id="sessionUserLabel"></span>
+      <button id="logoutLink" class="logout-link">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
+    </div>
+
     <div
       class="system-message"
       id="systemMessage"
@@ -1663,6 +1699,7 @@
         navPlaces: "מקומות",
         navItinerary: "תוכנית",
         navExpenses: "הוצאות",
+        logoutLinkText: "יציאה מהחשבון",
         lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
         lockerNameLabel: "בחר את השם שלך:",
         lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
@@ -1704,6 +1741,7 @@
         navPlaces: "Places",
         navItinerary: "Plan",
         navExpenses: "Expenses",
+        logoutLinkText: "Sign out",
         lockerModalTitle: "🎟️ Personal ticket & seat vault",
         lockerNameLabel: "Choose your name:",
         lockerSeatLabel: "Plane seat number (for example 20A):",
@@ -1835,6 +1873,14 @@
           Boolean(user)
         );
 
+        document.getElementById("sessionRow").classList.toggle(
+          "hidden",
+          !user
+        );
+
+        document.getElementById("sessionUserLabel").textContent =
+          user ? (user.displayName || user.email || "") : "";
+
         if (!user) {
           currentProfile = null;
 
@@ -1866,6 +1912,12 @@
                 : "הכניסה עם Google נכשלה. נסו שוב."
             );
           }
+        });
+
+      document
+        .getElementById("logoutLink")
+        .addEventListener("click", () => {
+          auth.signOut();
         });
     }
 
