@@ -160,7 +160,18 @@
       text-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 50%, transparent);
     }
 
+    [data-theme="dark"] .bottom-nav {
+      background: rgba(21, 29, 36, 0.92);
+      border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .nav-item {
+      color: var(--text-muted);
+    }
+
     [data-theme="dark"] .nav-item.active {
+      color: var(--glow-color);
+      background: color-mix(in srgb, var(--glow-color) 14%, transparent);
       filter: drop-shadow(0 0 4px var(--glow-color));
     }
 
