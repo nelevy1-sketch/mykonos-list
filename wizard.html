@@ -11,6 +11,8 @@
     <style>
         :root {
             --primary: #1D7A93;
+            --btn-secondary-bg: #e9ecef;
+            --btn-secondary-bg-hover: #dee2e6;
             --primary-dark: #0F3E63;
             --primary-light: #D6EBE9;
             --accent: #E76F51;
@@ -41,19 +43,26 @@
             --background: #0B1015;
             --shadow: 0 14px 38px rgba(0,0,0,.4);
             --glow-color: #2DD4C8;
+            --btn-secondary-bg: #1C262E;
+            --btn-secondary-bg-hover: #26323B;
         }
 
         [data-theme="dark"] .btn-next,
         [data-theme="dark"] .btn-submit {
-            box-shadow: 0 0 18px color-mix(in srgb, var(--glow-color) 45%, transparent);
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color) 30%, transparent);
         }
 
         [data-theme="dark"] .step-dot.active {
-            box-shadow: 0 0 0 5px color-mix(in srgb, var(--glow-color) 20%, transparent), 0 0 14px var(--glow-color);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--glow-color) 16%, transparent), 0 0 8px color-mix(in srgb, var(--glow-color) 55%, transparent);
+        }
+
+        [data-theme="dark"] .step-dot.completed {
+            border-color: var(--gray);
+            color: var(--gray);
         }
 
         [data-theme="dark"] .wizard-container::before {
-            box-shadow: 0 0 12px color-mix(in srgb, var(--glow-color) 60%, transparent);
+            opacity: .7;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
@@ -170,8 +179,8 @@
         /* Buttons */
         .wizard-buttons { display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; }
         .btn { min-height: 48px; padding: 12px 25px; border-radius: var(--radius); font-size: 1rem; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; }
-        .btn-prev { background: #e9ecef; color: var(--gray); }
-        .btn-prev:hover { background: #dee2e6; }
+        .btn-prev { background: var(--btn-secondary-bg); color: var(--gray); }
+        .btn-prev:hover { background: var(--btn-secondary-bg-hover); }
         .btn-next, .btn-submit { background: var(--primary); color: #fff; flex: 1; }
         .btn-next:hover, .btn-submit:hover { background: var(--primary-dark); }
 
@@ -362,7 +371,7 @@
                 <label id="lblParticipants">שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥</label>
                 <div class="participant-input-row">
                     <input type="text" id="participantName" placeholder="שם חבר (למשל: נירה, ברגה...)" autocapitalize="words">
-                    <button type="button" class="btn" id="addParticipantBtn" style="background: #e9ecef; color: var(--text); padding: 0 15px;">הוסף</button>
+                    <button type="button" class="btn" id="addParticipantBtn" style="background: var(--btn-secondary-bg); color: var(--text); padding: 0 15px;">הוסף</button>
                 </div>
                 <div class="participants-list" id="participantsContainer">
                     <!-- Dynamic tags will appear here -->
@@ -397,6 +406,14 @@
                     <label for="featPlaces" id="lblFeatPlaces" style="margin:0; cursor:pointer;">מקומות, תמונות ומוזיקה 📍</label>
                 </div>
                 <button type="button" class="preview-btn" id="previewBtnPlaces" onclick="openPreview('places')">צפה בדוגמה</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-info">
+                    <input type="checkbox" id="featItinerary" checked>
+                    <label for="featItinerary" id="lblFeatItinerary" style="margin:0; cursor:pointer;">תוכנית יומית 🗓️</label>
+                </div>
+                <button type="button" class="preview-btn" id="previewBtnItinerary" onclick="openPreview('itinerary')">צפה בדוגמה</button>
             </div>
 
             <div class="feature-card">
@@ -525,6 +542,18 @@
     <div class="mock-expense-row" style="margin-top:6px"><span>Berga owes Dana</span><span>$12</span></div>
 </template>
 
+<template id="mockItinerary">
+    <div class="mock-item"><span class="mock-check">🕐</span><span>ארוחת בוקר משותפת</span><span class="mock-qty">09:00</span></div>
+    <div class="mock-item"><span class="mock-check">🕑</span><span>סיור בעיר העתיקה</span><span class="mock-qty">✓ 3 באים</span></div>
+    <div class="mock-item"><span class="mock-check">🕕</span><span>ארוחת ערב</span><span class="mock-qty">19:30</span></div>
+</template>
+
+<template id="mockItineraryEn">
+    <div class="mock-item"><span class="mock-check">🕐</span><span>Group breakfast</span><span class="mock-qty">09:00</span></div>
+    <div class="mock-item"><span class="mock-check">🕑</span><span>Old city tour</span><span class="mock-qty">✓ 3 joining</span></div>
+    <div class="mock-item"><span class="mock-check">🕕</span><span>Dinner</span><span class="mock-qty">19:30</span></div>
+</template>
+
 <!-- Firebase SDK & Wizard Logic -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -586,6 +615,7 @@
             packLabel: "רשימת ציוד ומה לארוז 🎒",
             shopLabel: "רשימת קניות קבוצתית 🛒",
             placesLabel: "מקומות, תמונות ומוזיקה 📍",
+            itineraryLabel: "תוכנית יומית 🗓️",
             expensesLabel: "התחשבנות והוצאות קבוצתיות 💸",
             previewBtn: "צפה בדוגמה",
             sumTitle: "הכל מוכן ליצירת הטיול! 🎉",
@@ -639,6 +669,7 @@
             packLabel: "Packing List & Essentials 🎒",
             shopLabel: "Group Shopping List 🛒",
             placesLabel: "Places, Photos & Music 📍",
+            itineraryLabel: "Daily Itinerary 🗓️",
             expensesLabel: "Group Expenses & Split 💸",
             previewBtn: "Preview",
             sumTitle: "All set to create your trip! 🎉",
@@ -673,12 +704,14 @@
             packing: { title: 'רשימת ציוד ומה לארוז 🎒', desc: 'מאפשר לכל משתמש לנהל רשימת פריטים אישית או ציבורית, לסמן מה נארז ולבקש פריטים מחברים בקבוצה.' },
             shopping: { title: 'רשימת קניות קבוצתית 🛒', desc: 'מרכז את כל מה שצריך לקנות בסופר או להביא מהארץ, כולל מנגנון כמויות אישיות ומצב בדיקה לסופר.' },
             places: { title: 'מקומות, תמונות ומוזיקה 📍', desc: 'מרכז את המקומות ששמרתם, קישורי ניווט, תמונות מהטיול ופסקול משותף במקום אחד.' },
+            itinerary: { title: 'תוכנית יומית 🗓️', desc: 'תכנון פעילויות לכל יום בטיול, עם אפשרות לכל משתתף לסמן "אני בא/ה" ולראות מי עוד מגיע לאותה פעילות.' },
             expenses: { title: 'התחשבנות והוצאות 💸', desc: 'מעקב אחר הוצאות הקבוצה וחלוקה ברורה בין המשתתפים לאורך הטיול.' }
         },
         en: {
             packing: { title: 'Packing List & Essentials 🎒', desc: 'Allows each user to manage personal or public items, check off what is packed, and request items from friends.' },
             shopping: { title: 'Group Shopping List 🛒', desc: 'Centralizes everything needed for the supermarket or from home, including personal quantities and audit mode.' },
             places: { title: 'Places, Photos & Music 📍', desc: 'Saved places, navigation, trip photos and a shared soundtrack in one place.' },
+            itinerary: { title: 'Daily Itinerary 🗓️', desc: 'Plan activities for each day of the trip, with each member able to mark themselves as joining and see who else is coming.' },
             expenses: { title: 'Group Expenses 💸', desc: 'Track group expenses and keep the split clear throughout the trip.' }
         }
     };
@@ -721,6 +754,7 @@
         document.getElementById('lblFeatPacking').textContent = t.packLabel;
         document.getElementById('lblFeatShopping').textContent = t.shopLabel;
         document.getElementById('lblFeatPlaces').textContent = t.placesLabel;
+        document.getElementById('lblFeatItinerary').textContent = t.itineraryLabel;
         document.getElementById('lblFeatExpenses').textContent = t.expensesLabel;
 
         document.querySelectorAll('.preview-btn').forEach(btn => btn.textContent = t.previewBtn);
@@ -853,6 +887,7 @@
                     packing: document.getElementById('featPacking').checked,
                     shopping: document.getElementById('featShopping').checked,
                     places: document.getElementById('featPlaces').checked,
+                    itinerary: document.getElementById('featItinerary').checked,
                     expenses: document.getElementById('featExpenses').checked
                 },
                 step: currentStep
@@ -886,6 +921,7 @@
             document.getElementById('featPacking').checked = draft.features.packing !== false;
             document.getElementById('featShopping').checked = draft.features.shopping !== false;
             document.getElementById('featPlaces').checked = draft.features.places !== false;
+            document.getElementById('featItinerary').checked = draft.features.itinerary !== false;
             document.getElementById('featExpenses').checked = draft.features.expenses !== false;
         }
 
@@ -1069,6 +1105,7 @@
             packing: document.getElementById('featPacking').checked,
             shopping: document.getElementById('featShopping').checked,
             places: document.getElementById('featPlaces').checked,
+            itinerary: document.getElementById('featItinerary').checked,
             expenses: document.getElementById('featExpenses').checked
         };
     }
@@ -1337,7 +1374,7 @@
         document.getElementById('tripType').value = 'abroad';
         document.getElementById('checkinUrl').value = '';
         document.getElementById('participantName').value = '';
-        ['featPacking','featShopping','featPlaces','featExpenses'].forEach(id => { document.getElementById(id).checked = true; });
+        ['featPacking','featShopping','featPlaces','featItinerary','featExpenses'].forEach(id => { document.getElementById(id).checked = true; });
         ['destinationError','participantsError','featuresError'].forEach(id => { document.getElementById(id).textContent = ''; });
         renderParticipants();
         setDefaultDates();
