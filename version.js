@@ -6,4 +6,4 @@
 // the way "v4.0.0" had on four of them (as an invisible <!-- --> comment)
 // while two others showed it live in their footer, and CHANGELOG.md had
 // already moved on to v4.0.3.
-window.APP_VERSION = "4.1.0";
+window.APP_VERSION = "4.2.0";
