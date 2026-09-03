@@ -311,6 +311,35 @@
       align-items: center;
     }
 
+    .title-with-admin {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-gear-btn {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .35);
+      background: rgba(255, 255, 255, .12);
+      font-size: 0.95rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      animation: adminGearPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes adminGearPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .25); }
+      50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+    }
+
+    .admin-gear-btn.admin-gear-seen {
+      animation: none;
+    }
+
     h1 {
       font-family: "Assistant",sans-serif;
       font-size: 1.55rem;
@@ -1394,6 +1423,25 @@
 </head>
 
 <body>
+  <script>
+    (function() {
+      var tripId = new URLSearchParams(window.location.search).get("tripId") || "legacy";
+      var cachedType = localStorage.getItem("trip-" + tripId + "-type") || "abroad";
+      var savedTheme = localStorage.getItem("indexDarkMode");
+      var shouldStartDark =
+        savedTheme === "on"
+          ? true
+          : savedTheme === "off"
+            ? false
+            : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+      document.body.className = "theme-" + cachedType;
+
+      if (shouldStartDark) {
+        document.body.dataset.theme = "dark";
+      }
+    })();
+  </script>
 
   <div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
 
@@ -1459,7 +1507,16 @@
 
     <header class="hero-card">
       <div class="hero-top-row">
-        <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">הטיול הבא ✈️</h1>
+        <span class="title-with-admin">
+          <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">הטיול הבא ✈️</h1>
+          <button
+            type="button"
+            class="admin-gear-btn hidden"
+            id="adminGearBtn"
+            aria-label="הגדרות מנהל">
+            ⚙️
+          </button>
+        </span>
         <span class="phase-chip" id="tripPhaseBadge">מתכוננים לטיול</span>
       </div>
 
@@ -2625,6 +2682,10 @@
     }
 
     function applyTripPresentation() {
+      try {
+        localStorage.setItem(`trip-${tripId}-type`, tripType);
+      } catch (e) {}
+
       document.body.classList.remove(
         "theme-abroad",
         "theme-local",
@@ -2649,6 +2710,14 @@
 
       document.getElementById("appTitle").textContent =
         `${destinationName} ${suffix}`;
+
+      const adminGearBtn = document.getElementById("adminGearBtn");
+
+      adminGearBtn.classList.toggle("hidden", !isOrganizer());
+      adminGearBtn.classList.toggle(
+        "admin-gear-seen",
+        Boolean(localStorage.getItem("adminGearSeen"))
+      );
 
       document.getElementById("footerDestination").textContent =
         `${destinationName} • Trip Companion v3.1.0`;
@@ -3548,6 +3617,36 @@
     const appTitleEl =
       document.getElementById("appTitle");
 
+    function openAdminPanelIfAllowed() {
+      if (!requireOrganizerAccess()) {
+        return;
+      }
+
+      document.getElementById(
+        "adminTripType"
+      ).value = tripType;
+
+      syncAdminFields();
+
+      document.getElementById(
+        "adminDestInput"
+      ).value = destinationName;
+
+      document.getElementById(
+        "adminCheckinUrl"
+      ).value = checkinLink;
+
+      document.getElementById(
+        "adminFlightInput"
+      ).value = toLocalInputValue(flightOut);
+
+      document.getElementById(
+        "adminEndInput"
+      ).value = toLocalInputValue(tripEnd);
+
+      openAdminModal();
+    }
+
     if (appTitleEl) {
       appTitleEl.addEventListener("click", () => {
         titleClickCount++;
@@ -3559,33 +3658,18 @@
 
         if (titleClickCount >= 3) {
           titleClickCount = 0;
-
-          if (requireOrganizerAccess()) {
-            document.getElementById(
-              "adminTripType"
-            ).value = tripType;
-
-            syncAdminFields();
-
-            document.getElementById(
-              "adminDestInput"
-            ).value = destinationName;
-
-            document.getElementById(
-              "adminCheckinUrl"
-            ).value = checkinLink;
-
-            document.getElementById(
-              "adminFlightInput"
-            ).value = toLocalInputValue(flightOut);
-
-            document.getElementById(
-              "adminEndInput"
-            ).value = toLocalInputValue(tripEnd);
-
-            openAdminModal();
-          }
+          openAdminPanelIfAllowed();
         }
+      });
+    }
+
+    const adminGearBtn = document.getElementById("adminGearBtn");
+
+    if (adminGearBtn) {
+      adminGearBtn.addEventListener("click", () => {
+        adminGearBtn.classList.add("admin-gear-seen");
+        localStorage.setItem("adminGearSeen", "1");
+        openAdminPanelIfAllowed();
       });
     }
 
