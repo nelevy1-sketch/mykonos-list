@@ -432,6 +432,7 @@
 
 :where([data-tokens="core"]) .sheet h2 {
   margin: 0 0 6px;
+  font-size: 1.15rem;
 }
 
 :where([data-tokens="core"]) .sheet > p {
