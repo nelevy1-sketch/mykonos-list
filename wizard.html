@@ -370,6 +370,21 @@
     </style>
 </head>
 <body>
+<script>
+(function() {
+    var savedTheme = localStorage.getItem('wizardDarkMode');
+    var shouldStartDark =
+        savedTheme === 'on'
+            ? true
+            : savedTheme === 'off'
+                ? false
+                : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    if (shouldStartDark) {
+        document.body.dataset.theme = 'dark';
+    }
+})();
+</script>
 
 <!-- Top Bar with Language Buttons -->
 <div class="top-bar">
