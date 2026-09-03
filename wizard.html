@@ -282,8 +282,13 @@
             .share-link-box .btn { width:100%; flex:auto !important; }
             .success-actions { grid-template-columns:1fr; }
             .recent-trips { border-radius:20px 20px 0 0; margin-top:10px; }
-            .recent-card-actions button:not(.danger) { display:none; }
-            .recent-card-actions a, .recent-card-actions button { min-height:32px; padding:6px 9px; font-size:.72rem; border-radius:9px; }
+            .recent-card-actions { gap:4px; }
+            .recent-card-actions a, .recent-card-actions button { min-height:40px; width:40px; padding:0; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; }
+            .recent-card-actions a span, .recent-card-actions button span { display:none; }
+            .recent-card-actions a::before, .recent-card-actions button::before { font-size:1rem; line-height:1; }
+            .recent-open-btn::before { content:'↗'; }
+            .recent-copy-btn::before { content:'📋'; }
+            .recent-delete-btn::before { content:'🗑️'; }
             .top-bar-group { gap:6px; }
             .lang-btn { padding:6px 9px; font-size:.72rem; min-height:32px; border-radius:9px; }
         }
@@ -907,7 +912,10 @@
             const url = item.url || tripUrl(item.tripId);
             const date = item.createdAt ? new Intl.DateTimeFormat(currentLanguage === 'he' ? 'he-IL' : 'en-GB', { dateStyle:'medium' }).format(new Date(item.createdAt)) : '';
             const langBadge = item.language === 'en' ? 'EN' : item.language === 'he' ? 'עברית' : '';
-            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a href="${escapeHtml(url)}">${currentLanguage === 'he' ? 'פתח' : 'Open'}</a><button type="button" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'העתק' : 'Copy'}</button><button type="button" class="danger" onclick="deleteRecentTrip('${escapeHtml(item.tripId)}')">${currentLanguage === 'he' ? 'מחיקה' : 'Delete'}</button></div></article>`;
+            const openLabel = currentLanguage === 'he' ? 'פתח' : 'Open';
+            const copyLabel = currentLanguage === 'he' ? 'העתק קישור' : 'Copy link';
+            const deleteLabel = currentLanguage === 'he' ? 'מחיקה' : 'Delete';
+            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a class="recent-open-btn" href="${escapeHtml(url)}" aria-label="${escapeHtml(openLabel)}"><span>${escapeHtml(openLabel)}</span></a><button type="button" class="recent-copy-btn" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')" aria-label="${escapeHtml(copyLabel)}"><span>${escapeHtml(copyLabel)}</span></button><button type="button" class="danger recent-delete-btn" onclick="deleteRecentTrip('${escapeHtml(item.tripId)}')" aria-label="${escapeHtml(deleteLabel)}"><span>${escapeHtml(deleteLabel)}</span></button></div></article>`;
         }).join('');
     }
 
