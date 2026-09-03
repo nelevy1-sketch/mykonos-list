@@ -1335,6 +1335,32 @@
       border-color: var(--primary);
     }
 
+    .app-toast {
+      position: fixed;
+      z-index: 9998;
+      bottom: calc(90px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translate(-50%, 16px);
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: var(--shadow-float);
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.25s;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .app-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     .custom-dialog-overlay {
       position: fixed;
       inset: 0;
@@ -1445,6 +1471,8 @@
       }
     })();
   </script>
+
+  <div class="app-toast" id="appToast"></div>
 
   <div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
 
@@ -2215,6 +2243,17 @@
       return currentLanguage === "en" ? en : he;
     }
 
+    function toast(message) {
+      const el = document.getElementById("appToast");
+      el.textContent = message;
+      el.classList.add("show");
+
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        el.classList.remove("show");
+      }, 2300);
+    }
+
     function customAlert(message) {
       return new Promise(resolve => {
         const overlay = document.createElement("div");
@@ -2454,6 +2493,7 @@
       document
         .getElementById("logoutLink")
         .addEventListener("click", () => {
+          toast(tr("התנתקת בהצלחה", "Signed out successfully"));
           auth.signOut();
         });
     }
