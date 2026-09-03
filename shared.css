@@ -522,6 +522,76 @@
   transform: scale(.9);
 }
 
+
+/* ==========================================================================
+   7. CORE ACTION MENU   (places / itinerary)
+   A small "..." menu attached to a list card, for secondary/rare actions
+   (edit, delete) that don't need to sit in the card's main action row.
+   Markup: .action-menu > .action-menu-btn (trigger) + .action-menu-dropdown.
+   Each page wires its own open/close JS - see toggleActionMenu() /
+   closeAllActionMenus() in places.html for the pattern to copy.
+   ========================================================================== */
+
+:where([data-tokens="core"]) .action-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+:where([data-tokens="core"]) .action-menu-btn {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+:where([data-tokens="core"]) .action-menu-btn:active {
+  background: var(--surface-2);
+}
+
+:where([data-tokens="core"]) .action-menu-dropdown {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 112px;
+}
+
+:where([data-tokens="core"]) .action-menu-dropdown button {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 10px 14px;
+  font-size: .82rem;
+  font-weight: 750;
+  text-align: right;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+:where([data-tokens="core"]) .action-menu-dropdown button:hover {
+  background: var(--surface-2);
+}
+
+:where([data-tokens="core"]) .action-menu-dropdown button.danger {
+  color: var(--danger);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :where([data-tokens="core"]) .overlay,
   :where([data-tokens="core"]) .sheet {
