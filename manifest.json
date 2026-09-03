@@ -1,0 +1,24 @@
+{
+  "name": "GitTrip",
+  "short_name": "GitTrip",
+  "description": "תכנון טיולים משותף לקבוצה - ציוד, קניות, מקומות ותוכנית יומית",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#123B63",
+  "theme_color": "#123B63",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
