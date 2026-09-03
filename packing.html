@@ -1,6 +1,25 @@
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
+<script>
+(function() {
+  var tripId = new URLSearchParams(location.search).get('tripId') || 'legacy';
+  var cachedType = localStorage.getItem('trip-' + tripId + '-type') || 'abroad';
+  var savedTheme = localStorage.getItem('trip-' + tripId + '-theme');
+  var shouldStartDark =
+    savedTheme === 'dark'
+      ? true
+      : savedTheme === 'light'
+        ? false
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  document.documentElement.classList.add('theme-' + cachedType);
+
+  if (shouldStartDark) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+})();
+</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#123B63">
@@ -1363,6 +1382,13 @@
     getRedirectResult(auth).catch(error => toast(error.message));
 
     function applyTheme() {
+      try {
+        localStorage.setItem(
+          `trip-${tripId || "legacy"}-type`,
+          trip.tripType || "abroad"
+        );
+      } catch (e) {}
+
       document.documentElement.classList.remove(
         "theme-abroad",
         "theme-local",
