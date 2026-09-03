@@ -2783,6 +2783,11 @@
       document
         .querySelectorAll("[data-feature]")
         .forEach(element => {
+          if (element.dataset.phaseHidden === "true") {
+            element.style.display = "none";
+            return;
+          }
+
           element.style.display =
             enabledFeatures[element.dataset.feature] === false
               ? "none"
@@ -3849,6 +3854,7 @@
         }
 
         card.classList.remove("card-hidden");
+        delete card.dataset.phaseHidden;
         card.style.order = "";
       });
 
@@ -3862,9 +3868,21 @@
         if (cards.places) cards.places.style.order = "1";
         if (cards.expenses) cards.expenses.style.order = "2";
         if (cards.shopping) cards.shopping.style.order = "3";
-        if (cards.packing) cards.packing.classList.add("card-hidden");
-        if (cards.itinerary) cards.itinerary.classList.add("card-hidden");
+
+        if (cards.packing) {
+          cards.packing.classList.add("card-hidden");
+          cards.packing.dataset.phaseHidden = "true";
+          cards.packing.style.display = "none";
+        }
+
+        if (cards.itinerary) {
+          cards.itinerary.classList.add("card-hidden");
+          cards.itinerary.dataset.phaseHidden = "true";
+          cards.itinerary.style.display = "none";
+        }
       }
+
+      applyFeatureVisibility();
     }
 
     function updateClockAndPhases() {
