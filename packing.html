@@ -787,6 +787,12 @@
       display:flex;
       align-items:flex-end;
       justify-content:center;
+      animation:overlayFadeIn .2s ease;
+    }
+
+    @keyframes overlayFadeIn {
+      from { opacity:0; }
+      to { opacity:1; }
     }
 
     .auth-loading {
@@ -823,6 +829,12 @@
       padding:22px 18px max(22px,env(safe-area-inset-bottom));
       max-height:88dvh;
       overflow:auto;
+      animation:sheetSlideUp .28s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    @keyframes sheetSlideUp {
+      from { transform:translateY(100%); }
+      to { transform:translateY(0); }
     }
 
     .handle {
@@ -962,6 +974,15 @@
     .custom-dialog-btn.danger{background:var(--danger);color:#fff}
     [data-theme="dark"] .custom-dialog-btn.confirm{box-shadow:0 0 14px color-mix(in srgb,var(--glow-color) 45%,transparent)}
     [data-theme="dark"] .custom-dialog-btn.danger{box-shadow:0 0 14px color-mix(in srgb,var(--danger) 55%,transparent)}
+
+    @media (prefers-reduced-motion: reduce) {
+      .overlay,
+      .sheet,
+      .custom-dialog-overlay,
+      .custom-dialog-card {
+        animation-duration:.01ms !important;
+      }
+    }
   </style>
 </head>
 
