@@ -58,6 +58,7 @@
 <meta name="apple-mobile-web-app-title" content="GitTrip">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="shared.css">
+<script src="version.js"></script>
 
 <title>רשימת קניות | Trip Companion</title>
 
@@ -1390,9 +1391,10 @@ body.modal-open .modal-card {
 
   <div id="categoriesContainer"></div>
 
-  <div class="app-version-tag">
-    Trip Companion • Shopping v4.0.0
+  <div class="app-version-tag" id="appVersionTag">
+    Trip Companion • Shopping
   </div>
+  <script>document.getElementById("appVersionTag").textContent = `Trip Companion • Shopping v${window.APP_VERSION}`;</script>
 </div>
 
 <nav class="bottom-nav" aria-label="ניווט ראשי">

@@ -16,6 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
+  <script src="version.js"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1023,6 +1024,20 @@
       color: #64748b;
       border: 1px solid #334155;
       position: relative;
+      opacity: 0;
+      transform: scale(.5);
+      transition: opacity .25s ease, transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .seat.reveal {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .seat {
+        transition-duration: .01ms;
+      }
     }
 
     .seat.occupied {
@@ -1709,7 +1724,7 @@
     </button>
 
     <div class="footer-text" id="footerDestination">
-      Trip Companion v4.0.0
+      Trip Companion
     </div>
   </div>
 
@@ -2772,7 +2787,7 @@
       );
 
       document.getElementById("footerDestination").textContent =
-        `${destinationName} • Trip Companion v4.0.0`;
+        `${destinationName} • Trip Companion v${window.APP_VERSION}`;
 
       document.getElementById("weatherRow").style.display =
         tripType === "reserve" ? "none" : "flex";

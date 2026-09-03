@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- GitTrip v4.0.0 -->
+<!-- GitTrip - version tracked in version.js -->
 <html lang="he" dir="rtl" data-tokens="core">
 <head>
 <script>
@@ -43,6 +43,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
+  <script src="version.js"></script>
 
   <style>
     /* design tokens, dark mode, bottom nav, sheets and dialogs live in shared.css
@@ -1026,6 +1027,9 @@
 
     let user = null;
     let trip = {};
+
+    // True once a real trip record has arrived - see applyLanguage() below.
+    let tripDataLoaded = false;
     let profile = null;
     let items = {};
     let allPacking = {};
@@ -1276,9 +1280,16 @@
         `${tr("רשימת ציוד", "Packing list")} • ` +
         `${trip.destination || ""}`;
 
-      $("destination").textContent =
-        trip.destination ||
-        tr("הטיול שלנו", "Our trip");
+      // Guarded: this function also runs once, early, from the cached-
+      // language flash fix below - before trip.destination is known. Only
+      // repaint the name once we actually have (or have confirmed the lack
+      // of) real data, so that early call does not stomp on the name the
+      // bootstrap script already painted from cache.
+      if (trip.destination || tripDataLoaded) {
+        $("destination").textContent =
+          trip.destination ||
+          tr("הטיול שלנו", "Our trip");
+      }
 
       $("pageTitle").textContent =
         tr("רשימת ציוד 🎒", "Packing list 🎒");
@@ -2998,6 +3009,7 @@
           }
 
           trip = snapshot.val();
+          tripDataLoaded = true;
 
           try {
             localStorage.setItem(langKey, trip.language || "he");
