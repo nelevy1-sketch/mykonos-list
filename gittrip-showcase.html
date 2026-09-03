@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GitTrip — תכנון טיולים משותף</title>
+
+<meta property="og:title" content="GitTrip — תכנון טיולים משותף">
+<meta property="og:description" content="לא עוד קבוצת וואטסאפ עמוסה. GitTrip מרכז ציוד, קניות, מקומות ותוכנית יומית במקום אחד, בזמן אמת.">
+<meta property="og:image" content="https://nelevy1-sketch.github.io/mykonos-list/og-preview.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nelevy1-sketch.github.io/mykonos-list/gittrip-showcase.html">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GitTrip — תכנון טיולים משותף">
+<meta name="twitter:description" content="לא עוד קבוצת וואטסאפ עמוסה. GitTrip מרכז ציוד, קניות, מקומות ותוכנית יומית במקום אחד, בזמן אמת.">
+<meta name="twitter:image" content="https://nelevy1-sketch.github.io/mykonos-list/og-preview.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B1015;
+    --surface: #131B22;
+    --surface-2: #1B252D;
+    --text: #EAF2F1;
+    --muted: #8CA3AC;
+    --line: rgba(255,255,255,.08);
+
+    --c-abroad: #2DD4C8;
+    --c-local: #FFA94D;
+    --c-camping: #6EE7A0;
+    --c-reserve: #7FB3E8;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Heebo', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, .display {
+    font-family: 'Frank Ruhl Libre', serif;
+  }
+
+  .shell {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 22px;
+  }
+
+  /* ---------- HERO ---------- */
+
+  .hero {
+    padding: 72px 0 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -20% -20% auto -20%;
+    height: 420px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(45,212,200,.16), transparent 70%);
+    pointer-events: none;
+  }
+
+  .plane {
+    font-size: 2.6rem;
+    display: inline-block;
+    transform: rotate(-8deg);
+    margin-bottom: 6px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 9vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.08;
+    margin: 0 0 18px;
+    background: linear-gradient(135deg, #fff 40%, var(--c-abroad));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero p {
+    font-size: 1.08rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ---------- FLIGHT PATH ---------- */
+
+  .route {
+    position: relative;
+  }
+
+  .route::before {
+    content: "";
+    position: absolute;
+    right: 27px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background-image: linear-gradient(var(--line) 60%, transparent 0%);
+    background-size: 2px 12px;
+    background-repeat: repeat-y;
+  }
+
+  .stop {
+    position: relative;
+    padding: 0 68px 56px 0;
+  }
+
+  .stop:last-child { padding-bottom: 8px; }
+
+  .stop-marker {
+    position: absolute;
+    right: 12px;
+    top: 2px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    background: var(--surface-2);
+    border: 2px solid var(--dot, var(--c-abroad));
+    box-shadow: 0 0 16px color-mix(in srgb, var(--dot, var(--c-abroad)) 55%, transparent);
+    z-index: 1;
+  }
+
+  .stop-eyebrow {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--dot, var(--c-abroad));
+    margin: 4px 0 5px;
+  }
+
+  .stop h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    line-height: 1.25;
+  }
+
+  .stop > p {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: .95rem;
+    margin: 0 0 16px;
+    max-width: 460px;
+  }
+
+  /* module chips grid */
+  .modules {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .module {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 13px 14px;
+  }
+
+  .module .m-icon {
+    font-size: 1.3rem;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .module .m-name {
+    font-weight: 700;
+    font-size: .88rem;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .module .m-desc {
+    font-size: .74rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* smart touches list */
+  .touch {
+    display: flex;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 9px;
+    align-items: flex-start;
+  }
+
+  .touch .t-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .touch .t-name {
+    font-weight: 700;
+    font-size: .92rem;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .touch .t-desc {
+    font-size: .82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* trip-type swatches */
+  .swatches {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .swatch {
+    flex: 1;
+    text-align: center;
+    padding: 12px 6px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .swatch .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin: 0 auto 7px;
+  }
+
+  .swatch .label {
+    font-size: .72rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ---------- CTA ---------- */
+
+  .cta {
+    padding: 24px 0 80px;
+    text-align: center;
+  }
+
+  .cta-card {
+    background: linear-gradient(155deg, #16323D, #0F1D24);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 34px 26px;
+  }
+
+  .cta-card h2 {
+    font-size: 1.5rem;
+    margin: 0 0 10px;
+  }
+
+  .cta-card p {
+    color: var(--muted);
+    font-size: .92rem;
+    line-height: 1.6;
+    margin: 0 0 22px;
+    max-width: 340px;
+    margin-inline: auto;
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--c-abroad), #17B3A8);
+    color: #06231F;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 15px 30px;
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 12px 30px rgba(45,212,200,.25);
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: .76rem;
+    padding-bottom: 34px;
+    opacity: .7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="hero">
+    <span class="plane">✈️</span>
+    <h1>הטיול הבא שלכם<br>מתוכנן ביחד</h1>
+    <p>לא עוד קבוצת וואטסאפ עמוסה ורשימות שאף אחד לא בטוח מי עדכן אחרון. GitTrip — מקום אחד, עדכני לכולם, בזמן אמת.</p>
+  </div>
+
+  <div class="route">
+
+    <div class="stop" style="--dot: var(--c-abroad)">
+      <div class="stop-marker">🧭</div>
+      <div class="stop-eyebrow">לפני הטיול</div>
+      <h2>מתחילים בכמה קליקים</h2>
+      <p>מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד, בוחר את השם שלו, וזהו — כולם על אותו עמוד, תרתי משמע.</p>
+    </div>
+
+    <div class="stop" style="--dot: var(--c-local)">
+      <div class="stop-marker">🎒</div>
+      <div class="stop-eyebrow">במהלך התכנון</div>
+      <h2>הכל במקום אחד, לא מפוזר בין אפליקציות</h2>
+      <p>חמישה כלים שעובדים ביחד, לא חמש אפליקציות נפרדות:</p>
+
+      <div class="modules">
+        <div class="module">
+          <span class="m-icon">🎒</span>
+          <span class="m-name">רשימת ציוד</span>
+          <span class="m-desc">משותפת, עם הצעות AI ואיסוף אוטומטי לתת-קטגוריות</span>
+        </div>
+        <div class="module">
+          <span class="m-icon">🛒</span>
+          <span class="m-name">קניות</span>
+          <span class="m-desc">מה צריך לקנות לקבוצה, בלי לשכפל ולשכוח</span>
+        </div>
+        <div class="module">
+          <span class="m-icon">📍</span>
+          <span class="m-name">מקומות ותמונות</span>
+          <span class="m-desc">שומרים המלצות, מעלים תמונות, בונים פלייליסט משותף</span>
+        </div>
+        <div class="module">
+          <span class="m-icon">🗓️</span>
+          <span class="m-name">תוכנית יומית</span>
+          <span class="m-desc">מה עושים כל יום, עם סימון "קורה עכשיו" בזמן אמת</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop" style="--dot: var(--c-camping)">
+      <div class="stop-marker">✨</div>
+      <div class="stop-eyebrow">הפרטים הקטנים</div>
+      <h2>דברים שגורמים לזה להרגיש חכם</h2>
+
+      <div class="touch">
+        <span class="t-icon">🧠</span>
+        <div>
+          <span class="t-name">קיבוץ אוטומטי ברשימת ציוד</span>
+          <div class="t-desc">מקלידים "אקמול" — האפליקציה מציעה להוסיף לתת-קטגוריית "תרופות" בלי שתצטרכו לארגן ידנית</div>
+        </div>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">🔗</span>
+        <div>
+          <span class="t-name">מקומות מתחברים לתוכנית</span>
+          <div class="t-desc">שמרתם מסעדה? כפתור אחד מוסיף אותה ליום ספציפי בתוכנית — בלי להקליד שוב</div>
+        </div>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">🌗</span>
+        <div>
+          <span class="t-name">מצב כהה, בצבע של הטיול</span>
+          <div class="t-desc">כל סוג טיול מקבל את הגוון שלו — כל עוד אתם בדרכים, גם באמצע הלילה</div>
+        </div>
+      </div>
+
+      <div class="swatches">
+        <div class="swatch"><div class="dot" style="background:var(--c-abroad)"></div><span class="label">חו״ל</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-local)"></div><span class="label">בארץ</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-camping)"></div><span class="label">קמפינג</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-reserve)"></div><span class="label">מילואים</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cta">
+    <div class="cta-card">
+      <h2>מוכנים להמריא?</h2>
+      <p>פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.</p>
+      <a class="cta-btn" href="https://nelevy1-sketch.github.io/mykonos-list/wizard.html" target="_blank" rel="noopener">
+        ✈️ לפתיחת GitTrip
+      </a>
+    </div>
+  </div>
+
+  <footer>GitTrip · תוכנן ונבנה בשביל טיולים טובים יותר</footer>
+
+</div>
+
+</body>
+</html>
