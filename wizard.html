@@ -279,6 +279,94 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
         }
+
+        .custom-dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 20px;
+            animation: dialogFadeIn .15s ease;
+        }
+
+        @keyframes dialogFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .custom-dialog-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 22px 20px;
+            max-width: 360px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: dialogPopIn .18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes dialogPopIn {
+            from { transform: scale(.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .custom-dialog-brand {
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 10px;
+            opacity: .85;
+        }
+
+        .custom-dialog-message {
+            font-size: .95rem;
+            color: var(--text);
+            line-height: 1.5;
+            margin: 0 0 20px;
+            white-space: pre-wrap;
+        }
+
+        .custom-dialog-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .custom-dialog-btn {
+            flex: 1;
+            min-height: 46px;
+            border-radius: 13px;
+            border: 0;
+            font-weight: 800;
+            font-size: .9rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .custom-dialog-btn.cancel {
+            background: var(--btn-secondary-bg);
+            color: var(--text);
+        }
+
+        .custom-dialog-btn.confirm {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .custom-dialog-btn.danger {
+            background: #D14343;
+            color: #fff;
+        }
+
+        [data-theme="dark"] .custom-dialog-btn.confirm {
+            box-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
+        }
+
+        [data-theme="dark"] .custom-dialog-btn.danger {
+            box-shadow: 0 0 14px rgba(209, 67, 67, .45);
+        }
     </style>
 </head>
 <body>
@@ -716,6 +804,66 @@
         }
     };
 
+    function customAlert(message) {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-dialog-overlay';
+
+            overlay.innerHTML =
+                '<div class="custom-dialog-card">' +
+                '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+                '<p class="custom-dialog-message"></p>' +
+                '<div class="custom-dialog-actions">' +
+                '<button class="custom-dialog-btn confirm">' +
+                (currentLanguage === 'he' ? 'הבנתי' : 'OK') +
+                '</button>' +
+                '</div>' +
+                '</div>';
+
+            overlay.querySelector('.custom-dialog-message').textContent = message;
+
+            document.body.appendChild(overlay);
+
+            const cleanup = () => { overlay.remove(); resolve(); };
+
+            overlay.querySelector('button').onclick = cleanup;
+            overlay.onclick = event => { if (event.target === overlay) cleanup(); };
+        });
+    }
+
+    function customConfirm(message, options) {
+        const danger = Boolean(options && options.danger);
+
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-dialog-overlay';
+
+            overlay.innerHTML =
+                '<div class="custom-dialog-card">' +
+                '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+                '<p class="custom-dialog-message"></p>' +
+                '<div class="custom-dialog-actions">' +
+                '<button class="custom-dialog-btn cancel">' +
+                (currentLanguage === 'he' ? 'ביטול' : 'Cancel') +
+                '</button>' +
+                '<button class="custom-dialog-btn ' + (danger ? 'danger' : 'confirm') + '">' +
+                (currentLanguage === 'he' ? 'אישור' : 'Confirm') +
+                '</button>' +
+                '</div>' +
+                '</div>';
+
+            overlay.querySelector('.custom-dialog-message').textContent = message;
+
+            document.body.appendChild(overlay);
+
+            const cleanup = result => { overlay.remove(); resolve(result); };
+
+            overlay.querySelector('.cancel').onclick = () => cleanup(false);
+            overlay.querySelector(danger ? '.danger' : '.confirm').onclick = () => cleanup(true);
+            overlay.onclick = event => { if (event.target === overlay) cleanup(false); };
+        });
+    }
+
     window.changeGlobalLanguage = function(lang) {
         currentLanguage = lang;
         const htmlTag = document.documentElement;
@@ -944,7 +1092,7 @@
 
     async function requireOrganizer() {
         if (currentUser) return currentUser;
-        alert(currentLanguage === 'he' ? 'לפני יצירת הטיול, התחברו למעלה באמצעות Google. לאחר הכניסה לחצו שוב על יצירת הטיול.' : 'Before creating the trip, sign in above with Google, then press Create again.');
+        customAlert(currentLanguage === 'he' ? 'לפני יצירת הטיול, התחברו למעלה באמצעות Google. לאחר הכניסה לחצו שוב על יצירת הטיול.' : 'Before creating the trip, sign in above with Google, then press Create again.');
         document.getElementById('googleAuthBtn').focus();
         window.scrollTo({ top:0, behavior:'smooth' });
         return null;
@@ -954,10 +1102,10 @@
         try { await signInOrganizer(provider); }
         catch (error) {
             if (error?.code === 'auth/account-exists-with-different-credential') {
-                alert(currentLanguage === 'he' ? 'כבר קיים חשבון עם אותו אימייל בשיטת כניסה אחרת. התחברו תחילה בשיטה שבה השתמשתם בעבר.' : 'An account already exists for this email with another sign-in method. Sign in using the original method first.');
+                customAlert(currentLanguage === 'he' ? 'כבר קיים חשבון עם אותו אימייל בשיטת כניסה אחרת. התחברו תחילה בשיטה שבה השתמשתם בעבר.' : 'An account already exists for this email with another sign-in method. Sign in using the original method first.');
             } else if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
                 console.error('Authentication action failed:', error);
-                alert(currentLanguage === 'he' ? 'פעולת ההתחברות נכשלה. בדקו שהספק מופעל ב-Firebase ונסו שוב.' : 'Authentication failed. Check that the provider is enabled in Firebase and try again.');
+                customAlert(currentLanguage === 'he' ? 'פעולת ההתחברות נכשלה. בדקו שהספק מופעל ב-Firebase ונסו שוב.' : 'Authentication failed. Check that the provider is enabled in Firebase and try again.');
             }
         }
     }
@@ -1310,7 +1458,7 @@
             console.error('Error saving trip:', error);
             nextBtn.classList.remove('loading');
             nextBtn.textContent = translations[currentLanguage].createBtn;
-            alert(currentLanguage === 'he' ? 'שגיאה בשמירת הטיול. בדקו את החיבור ונסו שוב.' : 'Could not save the trip. Check your connection and try again.');
+            customAlert(currentLanguage === 'he' ? 'שגיאה בשמירת הטיול. בדקו את החיבור ונסו שוב.' : 'Could not save the trip. Check your connection and try again.');
         }
     }
 
@@ -1318,7 +1466,7 @@
         const linkInput = document.getElementById('finalTripLink');
         try { await navigator.clipboard.writeText(linkInput.value); }
         catch { linkInput.select(); document.execCommand('copy'); }
-        alert(translations[currentLanguage].linkCopied);
+        customAlert(translations[currentLanguage].linkCopied);
     }
 
     window.deleteRecentTrip = async function(tripId) {
@@ -1332,7 +1480,7 @@
                 ? 'להסיר את הטיול הזה מהרשימה שלך? (הטיול עצמו לא יימחק, כי הוא לא שויך לחשבון שלך במכשיר הזה)'
                 : "Remove this trip from your list? (The trip itself won't be deleted, since it isn't linked to your account on this device)");
 
-        if (!confirm(confirmMessage)) return;
+        if (!(await customConfirm(confirmMessage, { danger: true }))) return;
 
         if (isOwned && currentUser) {
             try {
@@ -1342,7 +1490,7 @@
                 });
             } catch (error) {
                 console.error('Error deleting trip:', error);
-                alert(currentLanguage === 'he' ? 'מחיקת הטיול נכשלה. נסו שוב.' : 'Failed to delete the trip. Please try again.');
+                customAlert(currentLanguage === 'he' ? 'מחיקת הטיול נכשלה. נסו שוב.' : 'Failed to delete the trip. Please try again.');
                 return;
             }
         }
@@ -1364,7 +1512,7 @@
             document.execCommand('copy');
             input.remove();
         }
-        alert(translations[currentLanguage].linkCopied);
+        customAlert(translations[currentLanguage].linkCopied);
     }
 
     window.resetWizard = function() {
@@ -1401,7 +1549,7 @@
         try {
             new URL(url);
         } catch {
-            alert(currentLanguage === 'he' ? 'הקישור לא תקין.' : 'That link doesn\'t look valid.');
+            customAlert(currentLanguage === 'he' ? 'הקישור לא תקין.' : 'That link doesn\'t look valid.');
             return;
         }
 
@@ -1412,7 +1560,7 @@
             document.getElementById('spliitSavedMsg').style.display = 'block';
         } catch (error) {
             console.error('Error saving Spliit link:', error);
-            alert(currentLanguage === 'he' ? 'שמירת הקישור נכשלה. נסו שוב.' : 'Failed to save the link. Please try again.');
+            customAlert(currentLanguage === 'he' ? 'שמירת הקישור נכשלה. נסו שוב.' : 'Failed to save the link. Please try again.');
         }
     });
 
