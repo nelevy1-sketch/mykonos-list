@@ -1212,14 +1212,14 @@
       background: var(--primary);
     }
 
-    .btn-new-trip {
+    .btn-admin-outline {
       background: transparent;
       color: var(--primary);
       border: 1.5px solid var(--primary);
       text-decoration: none;
     }
 
-    [data-theme="dark"] .btn-new-trip {
+    [data-theme="dark"] .btn-admin-outline {
       color: var(--glow-color);
       border-color: var(--glow-color);
     }
@@ -2023,6 +2023,25 @@
       </div>
 
       <div class="admin-section-box">
+        <div class="admin-section-title" id="adminShareTitle">
+          🔗 שיתוף הטיול
+        </div>
+
+        <p class="admin-hint" id="adminShareHint">
+          שולחים לחברי הקבוצה קישור לטיול, עם הודעה מוכנה מראש.
+        </p>
+
+        <a
+          class="btn-admin-action btn-admin-outline"
+          id="adminShareWhatsappBtn"
+          target="_blank"
+          rel="noopener"
+          href="#">
+          💬 שיתוף בוואטסאפ
+        </a>
+      </div>
+
+      <div class="admin-section-box">
         <div class="admin-section-title" id="adminNewTripTitle">
           ✈️ טיול נוסף
         </div>
@@ -2032,7 +2051,7 @@
         </p>
 
         <a
-          class="btn-admin-action btn-new-trip"
+          class="btn-admin-action btn-admin-outline"
           id="adminNewTripBtn"
           href="wizard.html">
           יצירת טיול חדש
@@ -2202,6 +2221,9 @@
         adminFeatExpensesLabel: "💸 הוצאות",
         adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
         saveModulesBtn: "שמור מודולים",
+        adminShareTitle: "🔗 שיתוף הטיול",
+        adminShareHint: "שולחים לחברי הקבוצה קישור לטיול, עם הודעה מוכנה מראש.",
+        adminShareWhatsappBtn: "💬 שיתוף בוואטסאפ",
         adminNewTripTitle: "✈️ טיול נוסף",
         adminNewTripHint: "הטיול הנוכחי נשאר כמו שהוא - האשף פותח טיול חדש ונפרד, ואתם תהיו המארגנים שלו.",
         adminNewTripBtn: "יצירת טיול חדש"
@@ -2255,6 +2277,9 @@
         adminFeatExpensesLabel: "💸 Expenses",
         adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
         saveModulesBtn: "Save modules",
+        adminShareTitle: "🔗 Share the trip",
+        adminShareHint: "Send the group a link to the trip, with a ready-made message.",
+        adminShareWhatsappBtn: "💬 Share on WhatsApp",
         adminNewTripTitle: "✈️ Another trip",
         adminNewTripHint: "This trip stays exactly as it is - the wizard opens a new, separate trip, and you will be its organiser.",
         adminNewTripBtn: "Create a new trip"
@@ -3726,6 +3751,19 @@
     const appTitleEl =
       document.getElementById("appTitle");
 
+    function updateAdminShareLink() {
+      const url = scopedTripUrl("index.html");
+
+      const message = tr(
+        `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${url}`,
+        `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${url}`
+      );
+
+      document.getElementById(
+        "adminShareWhatsappBtn"
+      ).href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    }
+
     function openAdminPanelIfAllowed() {
       if (!requireOrganizerAccess()) {
         return;
@@ -3736,6 +3774,8 @@
       ).value = tripType;
 
       syncAdminFields();
+
+      updateAdminShareLink();
 
       document.getElementById(
         "adminDestInput"
