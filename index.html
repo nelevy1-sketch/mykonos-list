@@ -1137,9 +1137,12 @@
     .tags-input-container input {
       border: none;
       outline: none;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
+      color: var(--text-main);
       flex: 1;
-      min-width: 80px;
+      min-width: 140px;
+      min-height: 34px;
+      padding: 4px 2px;
       background: transparent;
     }
 
@@ -3154,6 +3157,15 @@
 
     const adminTagInput =
       document.getElementById("adminTagInput");
+
+    adminTagInput.addEventListener("focus", () => {
+      setTimeout(() => {
+        adminTagInput.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }, 300);
+    });
 
     function syncAdminFields() {
       const selectedType =
