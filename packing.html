@@ -7,6 +7,15 @@
   var tripId = new URLSearchParams(location.search).get('tripId') || 'legacy';
   var cachedType = localStorage.getItem('trip-' + tripId + '-type') || 'abroad';
   var savedTheme = localStorage.getItem('trip-' + tripId + '-theme');
+
+  var cachedName = localStorage.getItem('trip-' + tripId + '-name');
+
+  // Called by a tiny inline script right after the header markup, so the real
+  // trip name is already in the DOM at first paint instead of the placeholder.
+  window.showTripName = function (elementId) {
+    var el = cachedName && document.getElementById(elementId);
+    if (el) el.textContent = cachedName;
+  };
   var shouldStartDark =
     savedTheme === 'dark'
       ? true
@@ -708,6 +717,8 @@
       </div>
     </header>
 
+    <script>showTripName("destination")</script>
+
     <div class="identity-row">
       <select id="participantSelect">
         <option value="">בחר/י את שמך…</option>
@@ -1216,6 +1227,13 @@
           `trip-${tripId || "legacy"}-type`,
           trip.tripType || "abroad"
         );
+
+        if (trip.destination) {
+          localStorage.setItem(
+            `trip-${tripId || "legacy"}-name`,
+            trip.destination
+          );
+        }
       } catch (e) {}
 
       document.documentElement.classList.remove(

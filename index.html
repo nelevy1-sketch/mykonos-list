@@ -1360,6 +1360,7 @@
       var tripId = new URLSearchParams(window.location.search).get("tripId") || "legacy";
       var cachedType = localStorage.getItem("trip-" + tripId + "-type") || "abroad";
       var savedTheme = localStorage.getItem("indexDarkMode");
+      var cachedHeadline = localStorage.getItem("trip-" + tripId + "-headline");
       var shouldStartDark =
         savedTheme === "on"
           ? true
@@ -1372,6 +1373,13 @@
       if (shouldStartDark) {
         document.body.dataset.theme = "dark";
       }
+
+      // Called by a tiny inline script right after the <h1>, so the real trip
+      // headline is already in the DOM at first paint instead of "הטיול הבא".
+      window.showTripName = function (elementId) {
+        var el = cachedHeadline && document.getElementById(elementId);
+        if (el) el.textContent = cachedHeadline;
+      };
     })();
   </script>
 
@@ -1443,6 +1451,7 @@
       <div class="hero-top-row">
         <span class="title-with-admin">
           <h1 id="appTitle" title="לחץ 3 פעמים לכניסת מנהל">הטיול הבא ✈️</h1>
+          <script>showTripName("appTitle")</script>
           <button
             type="button"
             class="admin-gear-btn hidden"
@@ -2116,6 +2125,19 @@
     const tripRoot = tripId ? `trips/${tripId}` : null;
     let tripLoaded = !tripId;
 
+    // True once a real trip record has arrived. Until then we must not write
+    // anything back to the cache, or a slow load would persist the defaults.
+    let hasTripRecord = false;
+
+    // Start from what the last visit cached, so the render that happens before
+    // Firebase answers already matches what the bootstrap painted.
+    try {
+      const cacheKey = "trip-" + (tripId || "legacy");
+      tripType = localStorage.getItem(cacheKey + "-type") || tripType;
+      destinationName = localStorage.getItem(cacheKey + "-name") || destinationName;
+      countryCode = localStorage.getItem(cacheKey + "-country") || countryCode;
+    } catch (e) {}
+
     const dashboardText = {
       he: {
         actionsTitle: "מה תרצו לעשות?",
@@ -2710,9 +2732,11 @@
     }
 
     function applyTripPresentation() {
-      try {
-        localStorage.setItem(`trip-${tripId || "legacy"}-type`, tripType);
-      } catch (e) {}
+      if (hasTripRecord) {
+        try {
+          localStorage.setItem(`trip-${tripId || "legacy"}-type`, tripType);
+        } catch (e) {}
+      }
 
       document.body.classList.remove(
         "theme-abroad",
@@ -2845,7 +2869,17 @@
       tripLoaded = true;
       tripType = data.tripType || tripType;
       currentLanguage = data.language === "en" ? "en" : "he";
+      hasTripRecord = true;
       destinationName = data.destination || destinationName;
+
+      if (data.destination) {
+        try {
+          localStorage.setItem(
+            "trip-" + (tripId || "legacy") + "-name",
+            data.destination
+          );
+        } catch (e) {}
+      }
 
       if (Number.isFinite(Number(data.lat))) {
         latCoord = Number(data.lat);
@@ -2870,6 +2904,13 @@
       countryCode = data.countryCode || countryCode;
       checkinLink = data.checkinLink || "";
       tripOwnerId = data.ownerId || "";
+
+      try {
+        localStorage.setItem(
+          "trip-" + (tripId || "legacy") + "-country",
+          countryCode
+        );
+      } catch (e) {}
 
       if (Array.isArray(data.participants)) {
         groupMembers = data.participants;
@@ -2901,6 +2942,17 @@
       renderMemberChoices();
       updateLockerSummary();
       applyTripPresentation();
+
+      if (data.destination) {
+        try {
+          // the composed "<name> <flag>" headline, so the cached paint is exact
+          localStorage.setItem(
+            "trip-" + (tripId || "legacy") + "-headline",
+            document.getElementById("appTitle").textContent
+          );
+        } catch (e) {}
+      }
+
       applyFeatureVisibility();
       renderActionBadges(data);
       updateExpensesCard(data);

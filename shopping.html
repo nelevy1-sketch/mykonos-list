@@ -6,6 +6,10 @@
   (function() {
     const tripId = new URLSearchParams(window.location.search).get('tripId') || 'legacy';
     const savedTheme = localStorage.getItem(`trip-${tripId}-theme`);
+    const cachedType = localStorage.getItem(`trip-${tripId}-type`) || 'abroad';
+    const cachedName = localStorage.getItem(`trip-${tripId}-name`);
+
+    document.documentElement.classList.add(`theme-${cachedType}`);
 
     if (
       savedTheme === 'dark' ||
@@ -16,6 +20,13 @@
     ) {
       document.documentElement.setAttribute('data-theme', 'dark');
     }
+
+    // Called by a tiny inline script right after the header markup, so the real
+    // trip name is already in the DOM at first paint instead of the placeholder.
+    window.showTripName = function (elementId) {
+      const el = cachedName && document.getElementById(elementId);
+      if (el) el.textContent = cachedName;
+    };
   })();
 </script>
 
@@ -1299,6 +1310,7 @@ body.modal-open .modal-card {
       <div class="header-kicker" id="destinationKicker">
         הטיול שלנו
       </div>
+      <script>showTripName("destinationKicker")</script>
       <h1 id="pageTitle">רשימת קניות</h1>
     </div>
 
@@ -2685,6 +2697,17 @@ body.modal-open .modal-card {
     document
       .getElementById("destinationKicker")
       .textContent = destinationName;
+
+    try {
+      localStorage.setItem(`trip-${tripId || "legacy"}-type`, tripType);
+
+      if (tripData.destination) {
+        localStorage.setItem(
+          `trip-${tripId || "legacy"}-name`,
+          tripData.destination
+        );
+      }
+    } catch (e) {}
 
     applyShoppingLanguage();
 
