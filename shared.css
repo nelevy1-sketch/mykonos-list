@@ -259,7 +259,7 @@
 }
 
 :root:where([data-tokens="core"]).theme-camping {
-  --primary: #4f772d;
+  --primary: #2C7755;
   --primary-dark: #2E4A1B;
   --accent: #d79a45;
   --bg: #E9F0DD;
@@ -269,7 +269,7 @@
 }
 
 :root:where([data-tokens="core"]).theme-reserve {
-  --primary: #55637A;
+  --primary: #6C57A7;
   --primary-dark: #2E3746;
   --accent: #c79b54;
   --bg: #E7EAEE;
@@ -309,23 +309,23 @@
 }
 
 :root:where([data-tokens="core"]).theme-camping[data-theme="dark"] {
-  --primary: #6EE7A0;
+  --primary: #52B788;
   --primary-dark: #45C97C;
   --bg: #0B1015;
   --surface: #151D24;
   --surface-2: #1C262E;
   --line: #223038;
-  --glow-color: #6EE7A0;
+  --glow-color: #52B788;
 }
 
 :root:where([data-tokens="core"]).theme-reserve[data-theme="dark"] {
-  --primary: #7FB3E8;
+  --primary: #A78BFA;
   --primary-dark: #5590C9;
   --bg: #0B1015;
   --surface: #151D24;
   --surface-2: #1C262E;
   --line: #223038;
-  --glow-color: #7FB3E8;
+  --glow-color: #A78BFA;
 }
 
 /* selective dark-mode glow */
