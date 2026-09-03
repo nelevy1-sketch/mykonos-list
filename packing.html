@@ -3189,6 +3189,23 @@
       editingId = null;
     };
 
+    [
+      "newListOverlay",
+      "manageListOverlay",
+      "editOverlay",
+      "bulkMoveOverlay"
+    ].forEach(overlayId => {
+      const cancelId =
+        "cancel" + overlayId.charAt(0).toUpperCase() +
+        overlayId.slice(1).replace("Overlay", "");
+
+      $(overlayId).addEventListener("click", event => {
+        if (event.target.id === overlayId) {
+          $(cancelId).click();
+        }
+      });
+    });
+
     $("saveEdit").onclick = saveEdit;
 
     $("deleteItem").onclick = async () => {
