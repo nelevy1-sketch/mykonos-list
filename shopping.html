@@ -1249,6 +1249,20 @@ body.modal-open .modal-card {
   overscroll-behavior: contain;
   box-sizing: border-box;
 }
+
+.custom-dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;animation:dialogFadeIn .15s ease}
+@keyframes dialogFadeIn{from{opacity:0}to{opacity:1}}
+.custom-dialog-card{background:var(--card-bg);border-radius:20px;padding:22px 20px;max-width:360px;width:100%;box-shadow:var(--shadow-float);text-align:center;animation:dialogPopIn .18s cubic-bezier(0.16,1,0.3,1)}
+@keyframes dialogPopIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.custom-dialog-brand{font-size:.72rem;font-weight:800;color:var(--sea);margin-bottom:10px;opacity:.85}
+.custom-dialog-message{font-size:.95rem;color:var(--text-main);line-height:1.5;margin:0 0 20px;white-space:pre-wrap}
+.custom-dialog-actions{display:flex;gap:8px}
+.custom-dialog-btn{flex:1;min-height:46px;border-radius:13px;border:0;font-weight:800;font-size:.9rem;cursor:pointer;font-family:inherit}
+.custom-dialog-btn.cancel{background:var(--tab-bg);color:var(--text-main)}
+.custom-dialog-btn.confirm{background:var(--sea);color:#fff}
+.custom-dialog-btn.danger{background:#c0533f;color:#fff}
+[data-theme="dark"] .custom-dialog-btn.confirm{box-shadow:0 0 14px color-mix(in srgb,var(--glow-color) 45%,transparent)}
+[data-theme="dark"] .custom-dialog-btn.danger{box-shadow:0 0 14px rgba(192,83,63,.55)}
   </style>
 </head>
 
@@ -2020,6 +2034,62 @@ body.modal-open .modal-card {
     return currentLanguage === "en"
       ? english
       : hebrew;
+  }
+
+  function customAlert(message) {
+    return new Promise(resolve => {
+      const overlay = document.createElement("div");
+      overlay.className = "custom-dialog-overlay";
+
+      overlay.innerHTML =
+        '<div class="custom-dialog-card">' +
+        '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+        '<p class="custom-dialog-message"></p>' +
+        '<div class="custom-dialog-actions">' +
+        '<button class="custom-dialog-btn confirm">' +
+        tr("הבנתי", "OK") +
+        "</button></div></div>";
+
+      overlay.querySelector(".custom-dialog-message").textContent = message;
+
+      document.body.appendChild(overlay);
+
+      const cleanup = () => { overlay.remove(); resolve(); };
+
+      overlay.querySelector("button").onclick = cleanup;
+      overlay.onclick = event => { if (event.target === overlay) cleanup(); };
+    });
+  }
+
+  function customConfirm(message, options) {
+    const danger = Boolean(options && options.danger);
+
+    return new Promise(resolve => {
+      const overlay = document.createElement("div");
+      overlay.className = "custom-dialog-overlay";
+
+      overlay.innerHTML =
+        '<div class="custom-dialog-card">' +
+        '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+        '<p class="custom-dialog-message"></p>' +
+        '<div class="custom-dialog-actions">' +
+        '<button class="custom-dialog-btn cancel">' +
+        tr("ביטול", "Cancel") +
+        "</button>" +
+        '<button class="custom-dialog-btn ' + (danger ? "danger" : "confirm") + '">' +
+        tr("אישור", "Confirm") +
+        "</button></div></div>";
+
+      overlay.querySelector(".custom-dialog-message").textContent = message;
+
+      document.body.appendChild(overlay);
+
+      const cleanup = result => { overlay.remove(); resolve(result); };
+
+      overlay.querySelector(".cancel").onclick = () => cleanup(false);
+      overlay.querySelector(danger ? ".danger" : ".confirm").onclick = () => cleanup(true);
+      overlay.onclick = event => { if (event.target === overlay) cleanup(false); };
+    });
   }
 
   function displayStatus(status) {
@@ -3888,7 +3958,7 @@ body.modal-open .modal-card {
   // הפעלה ראשונית לפי הטאב שנבחר
   switchListTab(currentListType);
 
-  function updateBaseQty(id, delta) {
+  async function updateBaseQty(id, delta) {
     if (!itemsMap[id]) return;
     triggerHapticFeedback(15);
     saveUndoBackup(id);
@@ -3896,7 +3966,7 @@ body.modal-open .modal-card {
     const newBaseQty = currentBaseQty + delta;
 
     if (newBaseQty <= 0) {
-      if (confirm(tr(`האם למחוק את "${itemsMap[id].name || 'המוצר'}" מהרשימה?`, `Delete "${itemsMap[id].name || 'this product'}" from the list?`))) {
+      if (await customConfirm(tr(`האם למחוק את "${itemsMap[id].name || 'המוצר'}" מהרשימה?`, `Delete "${itemsMap[id].name || 'this product'}" from the list?`), { danger: true })) {
         deleteItem(id);
       }
       return;
@@ -3906,7 +3976,7 @@ body.modal-open .modal-card {
     showToast(tr('הכמות עודכנה בהצלחה', 'Quantity updated'), true);
   }
 
-  addModalForm.addEventListener('submit', (e) => {
+  addModalForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const user = requireUserName();
     if (!user) return;
@@ -3932,7 +4002,7 @@ body.modal-open .modal-card {
       const currentQty = parseInt(existingItem.qty) || 1;
       const targetQty = currentQty + inputQty;
 
-      const shouldUpdate = confirm(tr(`המוצר "${normalizedName}" כבר קיים ברשימה בכמות ${currentQty} ${unit}.\n\nהאם לעדכן את הכמות ל-${targetQty} ${unit}?`, `"${normalizedName}" already exists with quantity ${currentQty} ${unit}.\n\nUpdate it to ${targetQty} ${unit}?`));
+      const shouldUpdate = await customConfirm(tr(`המוצר "${normalizedName}" כבר קיים ברשימה בכמות ${currentQty} ${unit}.\n\nהאם לעדכן את הכמות ל-${targetQty} ${unit}?`, `"${normalizedName}" already exists with quantity ${currentQty} ${unit}.\n\nUpdate it to ${targetQty} ${unit}?`));
       
       if (shouldUpdate) {
         saveUndoBackup(existingKey);
@@ -4044,7 +4114,7 @@ body.modal-open .modal-card {
     if (existingKey) {
       const currentQty = parseInt(inPersonItems[existingKey].qty) || 1;
       const targetQty = currentQty + totalQty;
-      const shouldMerge = confirm(tr(`המוצר "${itemName}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`, `"${itemName}" already exists in local shopping with quantity ${currentQty} ${item.unit || 'items'}.\n\nMerge and increase it to ${targetQty}?`));
+      const shouldMerge = await customConfirm(tr(`המוצר "${itemName}" כבר קיים ברשימת "בקנייה עצמית" בכמות ${currentQty} ${item.unit || "יח'"}.\n\nהאם למזג ולהגדיל את הכמות ל-${targetQty}?`, `"${itemName}" already exists in local shopping with quantity ${currentQty} ${item.unit || 'items'}.\n\nMerge and increase it to ${targetQty}?`));
       if (!shouldMerge) return;
     }
 
@@ -4253,10 +4323,10 @@ body.modal-open .modal-card {
     showToast(tr(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`, `${transferredCount} missing items were added to local shopping! 🛒`));
   };
 
-  clearCurrentListBtn.addEventListener('click', () => {
+  clearCurrentListBtn.addEventListener('click', async () => {
     if (!requireOrganizer()) return;
     const currentTabTitle = TAB_NAMES[currentListType] || '';
-    const confirmClear = confirm(tr(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`, `Delete every item from "${currentTabTitle}"?\n\nOnly this list will be cleared; the other lists will remain.`));
+    const confirmClear = await customConfirm(tr(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`, `Delete every item from "${currentTabTitle}"?\n\nOnly this list will be cleared; the other lists will remain.`), { danger: true });
     if (confirmClear) {
       remove(listRef);
       set(listStatusRef, '📝 בהכנה');
