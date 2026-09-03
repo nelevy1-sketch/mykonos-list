@@ -192,7 +192,6 @@
       overflow:hidden;
     }
 
-    #mineView > .card,
     #mineView > .list-head,
     #mineView > .progress-wrap {
       flex-shrink:0;
@@ -946,6 +945,10 @@
       }
     }
 
+    .fab{position:fixed;z-index:40;bottom:calc(90px + env(safe-area-inset-bottom));right:max(18px,calc(50vw - 362px));width:58px;height:58px;border-radius:50%;border:0;background:var(--primary);color:#fff;font-size:1.8rem;font-weight:400;line-height:1;display:grid;place-items:center;box-shadow:0 14px 30px rgba(18,59,99,.32);transition:transform .15s}
+    .fab:active{transform:scale(.9)}
+    [data-theme="dark"] .fab{box-shadow:0 0 0 1px var(--glow-color),0 0 18px color-mix(in srgb,var(--glow-color) 55%,transparent)}
+
     .custom-dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;animation:dialogFadeIn .15s ease}
     @keyframes dialogFadeIn{from{opacity:0}to{opacity:1}}
     .custom-dialog-card{background:var(--surface);border-radius:20px;padding:22px 20px;max-width:360px;width:100%;box-shadow:var(--shadow);text-align:center;animation:dialogPopIn .18s cubic-bezier(0.16,1,0.3,1)}
@@ -991,24 +994,6 @@
     </div>
 
     <section id="mineView">
-      <div class="card">
-        <div class="add-row">
-          <input id="newItem" maxlength="100" placeholder="מה צריך לארוז?">
-          <button class="primary-btn" id="addBtn">הוסף</button>
-        </div>
-
-        <div class="category-suggest" id="categorySuggest">
-          <span id="categorySuggestText"></span>
-          <button id="categorySuggestBtn">הוספה</button>
-        </div>
-
-        <div class="quick-picks-label hidden" id="quickPicksLabel">מה עוד חסר לך?</div>
-        <div class="quick-picks" id="quickPicks"></div>
-
-        <button class="ai-suggest-btn" id="aiSuggestBtn">✨ הצע רשימה עם AI</button>
-        <div class="ai-suggestions hidden" id="aiSuggestions"></div>
-      </div>
-
       <div class="list-head">
         <h2 id="myListHeading">הרשימה שלי</h2>
 
@@ -1048,6 +1033,8 @@
       <div id="groupItems"></div>
     </section>
   </main>
+
+  <button class="fab" id="addItemFab" aria-label="הוספת פריט">+</button>
 
   <nav class="bottom-nav" aria-label="ניווט ראשי">
     <a id="navHome" href="index.html">
@@ -1117,6 +1104,33 @@
         id="saveMemberBtn">
         זה אני
       </button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="addItemOverlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="addItemTitle">הוספת פריט</h2>
+
+      <div class="add-row">
+        <input id="newItem" maxlength="100" placeholder="מה צריך לארוז?">
+        <button class="primary-btn" id="addBtn">הוסף</button>
+      </div>
+
+      <div class="category-suggest" id="categorySuggest">
+        <span id="categorySuggestText"></span>
+        <button id="categorySuggestBtn">הוספה</button>
+      </div>
+
+      <div class="quick-picks-label hidden" id="quickPicksLabel">מה עוד חסר לך?</div>
+      <div class="quick-picks" id="quickPicks"></div>
+
+      <button class="ai-suggest-btn" id="aiSuggestBtn">✨ הצע רשימה עם AI</button>
+      <div class="ai-suggestions hidden" id="aiSuggestions"></div>
+
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="closeAddItemOverlay">סגירה</button>
+      </div>
     </div>
   </div>
 
@@ -3309,6 +3323,24 @@
     $("addBtn").onclick = () => {
       addItem();
     };
+
+    $("addItemFab").onclick = () => {
+      $("addItemOverlay").classList.remove("hidden");
+
+      setTimeout(() => {
+        $("newItem").focus();
+      }, 300);
+    };
+
+    $("closeAddItemOverlay").onclick = () => {
+      $("addItemOverlay").classList.add("hidden");
+    };
+
+    $("addItemOverlay").addEventListener("click", event => {
+      if (event.target.id === "addItemOverlay") {
+        $("closeAddItemOverlay").click();
+      }
+    });
 
     $("newItem").onkeydown = event => {
       if (event.key === "Enter") {
