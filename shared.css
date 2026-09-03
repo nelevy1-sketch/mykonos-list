@@ -33,6 +33,19 @@
 
 
 /* ==========================================================================
+   0. UTILITIES  (all pages)
+   ========================================================================== */
+
+/* Every page toggles a "hidden" class from JS (admin gear, sign-out link,
+   action badges, auth gates, the wizard's destination flag...) but none of
+   them ever declared the rule, so those toggles did nothing. Declared here
+   once, for all pages. */
+.hidden {
+  display: none !important;
+}
+
+
+/* ==========================================================================
    1. SHARED KEYFRAMES  (all pages)
    ========================================================================== */
 
@@ -507,10 +520,6 @@
 
 :where([data-tokens="core"]) .fab:active {
   transform: scale(.9);
-}
-
-:where([data-tokens="core"]) .hidden {
-  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

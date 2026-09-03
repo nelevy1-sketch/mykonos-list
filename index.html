@@ -1197,6 +1197,18 @@
       background: var(--primary);
     }
 
+    .btn-new-trip {
+      background: transparent;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      text-decoration: none;
+    }
+
+    [data-theme="dark"] .btn-new-trip {
+      color: var(--glow-color);
+      border-color: var(--glow-color);
+    }
+
     .footer-text {
       text-align: center;
       font-size: 0.7rem;
@@ -1985,6 +1997,23 @@
           style="display:grid;gap:8px;margin-top:12px;">
         </div>
       </div>
+
+      <div class="admin-section-box">
+        <div class="admin-section-title" id="adminNewTripTitle">
+          ✈️ טיול נוסף
+        </div>
+
+        <p class="admin-hint" id="adminNewTripHint">
+          הטיול הנוכחי נשאר כמו שהוא - האשף פותח טיול חדש ונפרד, ואתם תהיו המארגנים שלו.
+        </p>
+
+        <a
+          class="btn-admin-action btn-new-trip"
+          id="adminNewTripBtn"
+          href="wizard.html">
+          יצירת טיול חדש
+        </a>
+      </div>
     </div>
   </div>
 
@@ -2135,7 +2164,10 @@
         adminFeatItineraryLabel: "🗓️ תוכנית יומית",
         adminFeatExpensesLabel: "💸 הוצאות",
         adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
-        saveModulesBtn: "שמור מודולים"
+        saveModulesBtn: "שמור מודולים",
+        adminNewTripTitle: "✈️ טיול נוסף",
+        adminNewTripHint: "הטיול הנוכחי נשאר כמו שהוא - האשף פותח טיול חדש ונפרד, ואתם תהיו המארגנים שלו.",
+        adminNewTripBtn: "יצירת טיול חדש"
       },
 
       en: {
@@ -2185,7 +2217,10 @@
         adminFeatItineraryLabel: "🗓️ Daily itinerary",
         adminFeatExpensesLabel: "💸 Expenses",
         adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
-        saveModulesBtn: "Save modules"
+        saveModulesBtn: "Save modules",
+        adminNewTripTitle: "✈️ Another trip",
+        adminNewTripHint: "This trip stays exactly as it is - the wizard opens a new, separate trip, and you will be its organiser.",
+        adminNewTripBtn: "Create a new trip"
       }
     };
 
