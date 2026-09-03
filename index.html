@@ -2686,7 +2686,7 @@
 
     function applyTripPresentation() {
       try {
-        localStorage.setItem(`trip-${tripId}-type`, tripType);
+        localStorage.setItem(`trip-${tripId || "legacy"}-type`, tripType);
       } catch (e) {}
 
       document.body.classList.remove(
