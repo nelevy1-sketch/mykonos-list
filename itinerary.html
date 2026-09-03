@@ -1,6 +1,25 @@
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
+<script>
+(function() {
+  var tripId = new URLSearchParams(location.search).get('tripId') || 'legacy';
+  var cachedType = localStorage.getItem('trip-' + tripId + '-type') || 'abroad';
+  var savedTheme = localStorage.getItem('trip-' + tripId + '-theme');
+  var shouldStartDark =
+    savedTheme === 'dark'
+      ? true
+      : savedTheme === 'light'
+        ? false
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  document.documentElement.classList.add('theme-' + cachedType);
+
+  if (shouldStartDark) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+})();
+</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#123B63">
@@ -72,7 +91,7 @@ function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setT
 function canManageEntry(entry){return user&&(entry.createdByUid===user.uid||trip.ownerId===user.uid)}
 function doGoogleSignIn(){signInWithPopup(auth,provider).catch(error=>{if(['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request','auth/web-storage-unsupported','auth/operation-not-supported-in-this-environment'].includes(error?.code)||/missing initial state/i.test(error?.message||'')){signInWithRedirect(auth,provider)}else{toast(error.message)}})}
 getRedirectResult(auth).catch(error=>toast(error.message));
-function applyTheme(){document.documentElement.classList.remove('theme-abroad','theme-local','theme-camping','theme-reserve');document.documentElement.classList.add(`theme-${trip.tripType||'abroad'}`);const stored=localStorage.getItem(themeKey),systemDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches,shouldBeDark=stored==='dark'?true:stored==='light'?false:systemDark;if(shouldBeDark)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;$('themeBtn').textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙'}
+function applyTheme(){try{localStorage.setItem(`trip-${tripId||'legacy'}-type`,trip.tripType||'abroad')}catch(e){}document.documentElement.classList.remove('theme-abroad','theme-local','theme-camping','theme-reserve');document.documentElement.classList.add(`theme-${trip.tripType||'abroad'}`);const stored=localStorage.getItem(themeKey),systemDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches,shouldBeDark=stored==='dark'?true:stored==='light'?false:systemDark;if(shouldBeDark)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;$('themeBtn').textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙'}
 function pad2(n){return String(n).padStart(2,'0')}
 function dateKey(d){return`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
 function tripDayDates(){if(!trip.startAt||!trip.endAt)return[];const start=new Date(trip.startAt),end=new Date(trip.endAt);if(isNaN(start)||isNaN(end))return[];let cursor=new Date(start.getFullYear(),start.getMonth(),start.getDate());const endDay=new Date(end.getFullYear(),end.getMonth(),end.getDate());const days=[];let guard=0;while(cursor<=endDay&&guard<60){days.push(new Date(cursor));cursor.setDate(cursor.getDate()+1);guard++}return days}
