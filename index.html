@@ -15,6 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -48,6 +49,11 @@
       --context-border: #F0D59A;
       --context-title: #704B08;
       --context-text: #876524;
+
+      /* knobs for the shared components in shared.css */
+      --auth-loading-z: 5001;
+      --auth-spinner-size: 34px;
+      --dlg-danger-glow: rgba(209, 67, 67, .45);
     }
 
     body.theme-local {
@@ -1275,59 +1281,6 @@
       }
     }
 
-    .auth-gate {
-      position: fixed;
-      inset: 0;
-      z-index: 5000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(12,28,40,.72);
-      backdrop-filter: blur(10px);
-    }
-
-    .auth-gate.hidden {
-      display: none;
-    }
-
-    .auth-loading {
-      position: fixed;
-      inset: 0;
-      z-index: 5001;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-color);
-    }
-
-    .auth-loading.hidden {
-      display: none;
-    }
-
-    .auth-spinner {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 3px solid var(--border-color);
-      border-top-color: var(--primary);
-      animation: auth-spin .8s linear infinite;
-    }
-
-    @keyframes auth-spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .auth-card {
-      width: min(420px,100%);
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 26px;
-      padding: 26px 20px;
-      text-align: center;
-      box-shadow: var(--shadow-float);
-    }
-
     .auth-card .auth-icon {
       font-size: 42px;
       margin-bottom: 8px;
@@ -1385,94 +1338,6 @@
     .app-toast.show {
       opacity: 1;
       transform: translate(-50%, 0);
-    }
-
-    .custom-dialog-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      padding: 20px;
-      animation: dialogFadeIn .15s ease;
-    }
-
-    @keyframes dialogFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .custom-dialog-card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 22px 20px;
-      max-width: 360px;
-      width: 100%;
-      box-shadow: var(--shadow-float);
-      text-align: center;
-      animation: dialogPopIn .18s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes dialogPopIn {
-      from { transform: scale(.92); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .custom-dialog-brand {
-      font-size: .72rem;
-      font-weight: 800;
-      color: var(--primary);
-      margin-bottom: 10px;
-      opacity: .85;
-    }
-
-    .custom-dialog-message {
-      font-size: .95rem;
-      color: var(--text-main);
-      line-height: 1.5;
-      margin: 0 0 20px;
-      white-space: pre-wrap;
-    }
-
-    .custom-dialog-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .custom-dialog-btn {
-      flex: 1;
-      min-height: 46px;
-      border-radius: 13px;
-      border: 0;
-      font-weight: 800;
-      font-size: .9rem;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .custom-dialog-btn.cancel {
-      background: var(--border-color);
-      color: var(--text-main);
-    }
-
-    .custom-dialog-btn.confirm {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .custom-dialog-btn.danger {
-      background: #D14343;
-      color: #fff;
-    }
-
-    [data-theme="dark"] .custom-dialog-btn.confirm {
-      box-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
-    }
-
-    [data-theme="dark"] .custom-dialog-btn.danger {
-      box-shadow: 0 0 14px rgba(209, 67, 67, .45);
     }
   </style>
 </head>

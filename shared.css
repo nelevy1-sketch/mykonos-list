@@ -1,0 +1,521 @@
+/* ==========================================================================
+   GitTrip - shared.css
+   Code shared by index / wizard / places / packing / shopping / itinerary.
+
+   Two kinds of rules live here:
+
+   1. GLOBAL  - components that exist on every page with the same markup
+                (custom dialogs, auth loading, shared @keyframes).
+                Colours are read through fallback chains so each page keeps
+                using its own token vocabulary:
+                  core pages  --surface  / --text      / --primary / --line
+                  index       --card-bg  / --text-main / --primary / --border-color
+                  shopping    --card-bg  / --text-main / --sea     / --line
+                  wizard      --surface  / --text      / --primary / --border
+
+   2. CORE    - the design-token + layout system used by places / packing /
+                itinerary. Scoped to <html data-tokens="core"> so it can never
+                leak into index / shopping / wizard, which have their own
+                palettes. The guard is written with :where(), which adds zero
+                specificity, so every selector keeps exactly the weight it had
+                when it lived inside the page.
+
+   Per-page knobs (declare in the page's own :root - it wins over this file):
+     --nav-max-width      width of the bottom nav              (default 880px)
+     --sheet-max-width    width of the bottom sheet            (default 620px)
+     --fab-inset          FAB right offset                     (default 422px)
+     --nav-label-size     bottom-nav label size                (default .62rem)
+     --field-label-weight sheet field label weight             (default 750)
+     --auth-loading-z     auth splash z-index                  (default 150)
+     --auth-spinner-size  auth spinner size                    (default 32px)
+     --dlg-danger-glow    dark-mode glow of the danger button
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. SHARED KEYFRAMES  (all pages)
+   ========================================================================== */
+
+@keyframes dialogFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes dialogPopIn {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ==========================================================================
+   2. CUSTOM DIALOG  (all pages - built by showAlert / showConfirm)
+   ========================================================================== */
+
+.custom-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+  animation: dialogFadeIn .15s ease;
+}
+
+.custom-dialog-card {
+  background: var(--surface, var(--card-bg));
+  border-radius: 20px;
+  padding: 22px 20px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: var(--shadow, var(--shadow-float));
+  text-align: center;
+  animation: dialogPopIn .18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-dialog-brand {
+  font-size: .72rem;
+  font-weight: 800;
+  color: var(--primary, var(--sea));
+  margin-bottom: 10px;
+  opacity: .85;
+}
+
+.custom-dialog-message {
+  font-size: .95rem;
+  color: var(--text, var(--text-main));
+  line-height: 1.5;
+  margin: 0 0 20px;
+  white-space: pre-wrap;
+}
+
+.custom-dialog-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.custom-dialog-btn {
+  flex: 1;
+  min-height: 46px;
+  border-radius: 13px;
+  border: 0;
+  font-weight: 800;
+  font-size: .9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.custom-dialog-btn.cancel {
+  background: var(--surface-2, var(--btn-secondary-bg, var(--tab-bg, var(--border-color))));
+  color: var(--text, var(--text-main));
+}
+
+.custom-dialog-btn.confirm {
+  background: var(--primary, var(--sea));
+  color: #fff;
+}
+
+.custom-dialog-btn.danger {
+  background: var(--danger, #D14343);
+  color: #fff;
+}
+
+[data-theme="dark"] .custom-dialog-btn.confirm {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
+}
+
+[data-theme="dark"] .custom-dialog-btn.danger {
+  box-shadow: 0 0 14px var(--dlg-danger-glow, color-mix(in srgb, var(--danger) 55%, transparent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-dialog-overlay,
+  .custom-dialog-card {
+    animation-duration: .01ms !important;
+  }
+}
+
+
+/* ==========================================================================
+   3. AUTH SPLASH / GATE
+   auth-loading + spinner: index, shopping, places, packing, itinerary
+   auth-gate + auth-card:  index, shopping
+   ========================================================================== */
+
+.auth-loading {
+  position: fixed;
+  inset: 0;
+  z-index: var(--auth-loading-z, 150);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg, var(--bg-color, var(--whitewash)));
+}
+
+.auth-loading.hidden {
+  display: none;
+}
+
+.auth-spinner {
+  width: var(--auth-spinner-size, 32px);
+  height: var(--auth-spinner-size, 32px);
+  border-radius: 50%;
+  border: 3px solid var(--line, var(--border-color));
+  border-top-color: var(--primary, var(--sea));
+  animation: auth-spin .8s linear infinite;
+}
+
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(12, 28, 40, .72);
+  backdrop-filter: blur(10px);
+}
+
+.auth-gate.hidden {
+  display: none;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  background: var(--card-bg);
+  border: 1px solid var(--line, var(--border-color));
+  border-radius: 26px;
+  padding: 26px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-float);
+}
+
+
+/* ==========================================================================
+   4. CORE DESIGN TOKENS + DARK MODE   (places / packing / itinerary)
+   Guarded by :where([data-tokens="core"]) - zero added specificity.
+   ========================================================================== */
+
+:root:where([data-tokens="core"]) {
+  --primary: #1D7A93;
+  --primary-dark: #0F3E63;
+  --accent: #f2b84b;
+  --bg: #E8F1F0;
+  --surface: #FFFEFB;
+  --surface-2: #D6EBE9;
+  --text: #17324a;
+  --muted: #6f7f8c;
+  --line: #C7DFDC;
+  --danger: #c0533f;
+  --success: #2f8b68;
+  --shadow: 0 12px 34px rgba(18, 59, 99, .09);
+  --radius: 22px;
+
+  /* layout knobs - pages override these in their own :root */
+  --nav-max-width: 880px;
+  --sheet-max-width: 620px;
+  --fab-inset: 422px;
+  --nav-label-size: .62rem;
+  --field-label-weight: 750;
+}
+
+:root:where([data-tokens="core"]).theme-local {
+  --primary: #BD6E2E;
+  --primary-dark: #7A431A;
+  --accent: #4F8A8B;
+  --bg: #F5E8D8;
+  --surface: #FFFBF4;
+  --surface-2: #F0DCC0;
+  --line: #E3CBA8;
+}
+
+:root:where([data-tokens="core"]).theme-camping {
+  --primary: #4f772d;
+  --primary-dark: #2E4A1B;
+  --accent: #d79a45;
+  --bg: #E9F0DD;
+  --surface: #FBFCF6;
+  --surface-2: #DCE9C8;
+  --line: #CFE0B8;
+}
+
+:root:where([data-tokens="core"]).theme-reserve {
+  --primary: #55637A;
+  --primary-dark: #2E3746;
+  --accent: #c79b54;
+  --bg: #E7EAEE;
+  --surface: #FBFCFD;
+  --surface-2: #D9DEE6;
+  --line: #C7CDD6;
+}
+
+:where([data-tokens="core"])[data-theme="dark"] {
+  --bg: #0B1015;
+  --surface: #151D24;
+  --surface-2: #1C262E;
+  --text: #EAF2F1;
+  --muted: #8CA3AC;
+  --line: #223038;
+  --shadow: 0 14px 36px rgba(0, 0, 0, .4);
+}
+
+:root:where([data-tokens="core"]).theme-abroad[data-theme="dark"] {
+  --primary: #2DD4C8;
+  --primary-dark: #17B3A8;
+  --bg: #0B1015;
+  --surface: #151D24;
+  --surface-2: #1C262E;
+  --line: #223038;
+  --glow-color: #2DD4C8;
+}
+
+:root:where([data-tokens="core"]).theme-local[data-theme="dark"] {
+  --primary: #FFA94D;
+  --primary-dark: #E68A2E;
+  --bg: #0B1015;
+  --surface: #151D24;
+  --surface-2: #1C262E;
+  --line: #223038;
+  --glow-color: #FFA94D;
+}
+
+:root:where([data-tokens="core"]).theme-camping[data-theme="dark"] {
+  --primary: #6EE7A0;
+  --primary-dark: #45C97C;
+  --bg: #0B1015;
+  --surface: #151D24;
+  --surface-2: #1C262E;
+  --line: #223038;
+  --glow-color: #6EE7A0;
+}
+
+:root:where([data-tokens="core"]).theme-reserve[data-theme="dark"] {
+  --primary: #7FB3E8;
+  --primary-dark: #5590C9;
+  --bg: #0B1015;
+  --surface: #151D24;
+  --surface-2: #1C262E;
+  --line: #223038;
+  --glow-color: #7FB3E8;
+}
+
+/* selective dark-mode glow */
+:where([data-tokens="core"])[data-theme="dark"] .primary-btn {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--glow-color) 45%, transparent);
+}
+
+:where([data-tokens="core"])[data-theme="dark"] .fab {
+  box-shadow: 0 0 0 1px var(--glow-color),
+              0 0 18px color-mix(in srgb, var(--glow-color) 55%, transparent);
+}
+
+
+/* ==========================================================================
+   5. CORE BOTTOM NAV   (places / packing / itinerary)
+   ========================================================================== */
+
+:where([data-tokens="core"]) .bottom-nav {
+  position: fixed;
+  z-index: 30;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(var(--nav-max-width), 100%);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  background: rgba(255, 253, 250, .94);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--line);
+  padding: 8px 5px max(8px, env(safe-area-inset-bottom));
+}
+
+:where([data-tokens="core"]) .bottom-nav a {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 1.02rem;
+  border-radius: 13px;
+}
+
+:where([data-tokens="core"]) .bottom-nav a svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+:where([data-tokens="core"]) .bottom-nav a span {
+  font-size: var(--nav-label-size);
+}
+
+:where([data-tokens="core"]) .bottom-nav a.active {
+  color: var(--primary);
+  background: var(--surface-2);
+}
+
+:where([data-tokens="core"])[data-theme="dark"] .bottom-nav {
+  background: var(--surface);
+}
+
+:where([data-tokens="core"])[data-theme="dark"] .bottom-nav a.active {
+  color: var(--glow-color);
+  background: color-mix(in srgb, var(--glow-color) 14%, transparent);
+  filter: drop-shadow(0 0 4px var(--glow-color));
+}
+
+
+/* ==========================================================================
+   6. CORE SHEET / OVERLAY / TOAST / FAB   (places / packing / itinerary)
+   ========================================================================== */
+
+:where([data-tokens="core"]) .overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(10, 25, 35, .58);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: overlayFadeIn .2s ease;
+}
+
+:where([data-tokens="core"]) .sheet {
+  width: min(var(--sheet-max-width), 100%);
+  background: var(--surface);
+  border-radius: 26px 26px 0 0;
+  padding: 22px 18px max(22px, env(safe-area-inset-bottom));
+  max-height: 88dvh;
+  overflow: auto;
+  animation: sheetSlideUp .28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:where([data-tokens="core"]) .handle {
+  width: 42px;
+  height: 5px;
+  background: var(--line);
+  border-radius: 9px;
+  margin: -8px auto 14px;
+}
+
+:where([data-tokens="core"]) .sheet h2 {
+  margin: 0 0 6px;
+}
+
+:where([data-tokens="core"]) .sheet > p {
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+:where([data-tokens="core"]) .field {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+:where([data-tokens="core"]) .field label {
+  font-size: .82rem;
+  font-weight: var(--field-label-weight);
+}
+
+:where([data-tokens="core"]) .sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+:where([data-tokens="core"]) .secondary-btn {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 14px;
+  font-weight: 750;
+}
+
+:where([data-tokens="core"]) .google-btn {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 800;
+}
+
+:where([data-tokens="core"]) .toast {
+  position: fixed;
+  z-index: 200;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translate(-50%, 16px);
+  background: #172a35;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: .2s;
+  max-width: 90%;
+  text-align: center;
+}
+
+:where([data-tokens="core"]) .toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+:where([data-tokens="core"]) .fab {
+  position: fixed;
+  z-index: 40;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  right: max(18px, calc(50vw - var(--fab-inset)));
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 14px 30px rgba(18, 59, 99, .32);
+  transition: transform .15s;
+}
+
+:where([data-tokens="core"]) .fab:active {
+  transform: scale(.9);
+}
+
+:where([data-tokens="core"]) .hidden {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-tokens="core"]) .overlay,
+  :where([data-tokens="core"]) .sheet {
+    animation-duration: .01ms !important;
+  }
+}
