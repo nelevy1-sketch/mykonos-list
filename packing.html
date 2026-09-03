@@ -331,6 +331,41 @@
       margin-top:8px;
     }
 
+    .category-suggest {
+      display:none;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:var(--surface-2);
+      border:1px solid var(--line);
+      border-radius:13px;
+      padding:9px 12px;
+      margin-top:8px;
+      font-size:.82rem;
+      color:var(--text);
+    }
+
+    .category-suggest.show {
+      display:flex;
+    }
+
+    .category-suggest button {
+      flex-shrink:0;
+      min-height:34px;
+      padding:0 12px;
+      border-radius:10px;
+      border:0;
+      background:var(--primary);
+      color:#fff;
+      font-weight:800;
+      font-size:.78rem;
+      cursor:pointer;
+    }
+
+    [data-theme="dark"] .category-suggest button {
+      box-shadow:0 0 10px color-mix(in srgb, var(--glow-color) 45%, transparent);
+    }
+
     .quick-picks {
       display:flex;
       gap:7px;
@@ -925,6 +960,11 @@
         <div class="add-row">
           <input id="newItem" maxlength="100" placeholder="מה צריך לארוז?">
           <button class="primary-btn" id="addBtn">הוסף</button>
+        </div>
+
+        <div class="category-suggest" id="categorySuggest">
+          <span id="categorySuggestText"></span>
+          <button id="categorySuggestBtn">הוספה</button>
         </div>
 
         <div class="quick-picks-label hidden" id="quickPicksLabel">מה עוד חסר לך?</div>
@@ -2866,6 +2906,141 @@
       );
     }
 
+    const CATEGORY_KEYWORDS = [
+      {
+        name: tr("תרופות ועזרה ראשונה", "Medicine & first aid"),
+        icon: "💊",
+        keywords: [
+          "כדור", "כדורים", "תרופה", "תרופות", "אקמול", "נורופן",
+          "אדוויל", "אספירין", "פלסטר", "תחבושת", "ויטמין", "משחה",
+          "מדחום", "טרמומטר", "אנטיביוטיקה", "תרסיס אף", "כדורי הרגעה",
+          "pill", "pills", "medicine", "medication", "tylenol", "advil",
+          "aspirin", "bandage", "band-aid", "vitamin", "ointment",
+          "thermometer", "antibiotic"
+        ]
+      },
+      {
+        name: tr("תיק רחצה", "Toiletries bag"),
+        icon: "🧴",
+        keywords: [
+          "קרם", "סבון", "שמפו", "מרכך", "בושם", "מברשת שיניים",
+          "משחת שיניים", "דאודורנט", "ג'ל רחצה", "קרם פנים", "קרם גוף",
+          "תער", "מסרק", "קרם הגנה",
+          "soap", "shampoo", "conditioner", "perfume", "toothbrush",
+          "toothpaste", "deodorant", "razor", "lotion", "sunscreen",
+          "comb"
+        ]
+      },
+      {
+        name: tr("אלקטרוניקה", "Electronics"),
+        icon: "🔌",
+        keywords: [
+          "מטען", "כבל", "מתאם", "סוללות", "אוזניות", "פאוור בנק",
+          "charger", "cable", "adapter", "batteries", "headphones",
+          "powerbank", "power bank"
+        ]
+      },
+      {
+        name: tr("מסמכים", "Documents"),
+        icon: "📄",
+        keywords: [
+          "דרכון", "כרטיס טיסה", "ביטוח", "אישור", "תעודת זהות", "ויזה",
+          "passport", "ticket", "insurance", "visa", "boarding pass"
+        ]
+      }
+    ];
+
+    function detectSuggestedCategory(rawText) {
+      const text = rawText.trim().toLocaleLowerCase();
+
+      if (!text) {
+        return null;
+      }
+
+      for (const category of CATEGORY_KEYWORDS) {
+        if (text === category.name.toLocaleLowerCase()) {
+          continue;
+        }
+
+        const matched = category.keywords.some(keyword =>
+          text.includes(keyword.toLocaleLowerCase())
+        );
+
+        if (matched) {
+          return category;
+        }
+      }
+
+      return null;
+    }
+
+    function updateCategorySuggestion() {
+      const value = $("newItem").value;
+      const category = detectSuggestedCategory(value);
+      const box = $("categorySuggest");
+
+      if (!category) {
+        box.classList.remove("show");
+        return;
+      }
+
+      $("categorySuggestText").textContent = tr(
+        `${category.icon} זה נשמע כמו "${category.name}" - להוסיף כתת-פריט?`,
+        `${category.icon} This looks like "${category.name}" - add as a sub-item?`
+      );
+
+      box.dataset.categoryName = category.name;
+      box.classList.add("show");
+    }
+
+    async function addToSuggestedCategory() {
+      const box = $("categorySuggest");
+      const categoryName = box.dataset.categoryName;
+      const value = $("newItem").value.trim();
+
+      if (!categoryName || !value || !user || !profile) {
+        return;
+      }
+
+      const items = currentItems();
+
+      let parentId = Object.keys(items).find(id =>
+        items[id].name?.trim().toLocaleLowerCase() ===
+        categoryName.toLocaleLowerCase()
+      );
+
+      if (!parentId) {
+        const newParentRef = await push(
+          ref(db, `${userBase()}/items/${activeList}`),
+          {
+            name: categoryName,
+            isDone: false,
+            isPublic: false,
+            ownerName: profile.name,
+            createdAt: Date.now(),
+            createdByUid: user.uid
+          }
+        );
+
+        parentId = newParentRef.key;
+      }
+
+      await push(
+        ref(db, `${userBase()}/items/${activeList}/${parentId}/subItems`),
+        { name: value, isDone: false }
+      );
+
+      $("newItem").value = "";
+      box.classList.remove("show");
+
+      toast(
+        tr(
+          `נוסף תחת "${categoryName}"`,
+          `Added under "${categoryName}"`
+        )
+      );
+    }
+
     async function addItem(value) {
       const name =
         (value || $("newItem").value).trim();
@@ -2912,6 +3087,7 @@
       );
 
       $("newItem").value = "";
+      $("categorySuggest").classList.remove("show");
 
       toast(
         tr("הפריט נוסף", "Item added")
@@ -3104,6 +3280,10 @@
         addItem();
       }
     };
+
+    $("newItem").addEventListener("input", updateCategorySuggestion);
+
+    $("categorySuggestBtn").onclick = addToSuggestedCategory;
 
     $("listSelect").onchange = event => {
       activeList = event.target.value;
