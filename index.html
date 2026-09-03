@@ -1078,6 +1078,32 @@
       color: var(--text-muted);
     }
 
+    .admin-checkbox-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem !important;
+      font-weight: 700 !important;
+      color: var(--text-main) !important;
+      padding: 8px 4px;
+      cursor: pointer;
+    }
+
+    .admin-checkbox-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .admin-hint {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin: 4px 0 0;
+    }
+
     .admin-input,
     select.admin-input {
       padding: 8px 10px;
@@ -2035,6 +2061,49 @@
       </div>
 
       <div class="admin-section-box">
+        <div class="admin-section-title" id="adminModulesSectionTitle">
+          🧩 מודולים פעילים בטיול
+        </div>
+
+        <div class="admin-field">
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminFeatPacking">
+            <span id="adminFeatPackingLabel">🎒 רשימת ציוד</span>
+          </label>
+
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminFeatShopping">
+            <span id="adminFeatShoppingLabel">🛒 קניות משותפות</span>
+          </label>
+
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminFeatPlaces">
+            <span id="adminFeatPlacesLabel">📍 מקומות ותמונות</span>
+          </label>
+
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminFeatItinerary">
+            <span id="adminFeatItineraryLabel">🗓️ תוכנית יומית</span>
+          </label>
+
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminFeatExpenses">
+            <span id="adminFeatExpensesLabel">💸 הוצאות</span>
+          </label>
+        </div>
+
+        <p class="admin-hint" id="adminModulesHint">
+          כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.
+        </p>
+
+        <button
+          class="btn-admin-action btn-save-flight"
+          id="saveModulesBtn">
+          שמור מודולים
+        </button>
+      </div>
+
+      <div class="admin-section-box">
         <div class="admin-section-title" id="adminMembersTitle">
           👥 ניהול חברי הקבוצה (הקלד והקש Enter)
         </div>
@@ -2193,7 +2262,15 @@
         adminEndLabel: "מועד סיום / חזרה:",
         adminCheckinLabel: "קישור לצ׳ק־אין (URL):",
         saveFlightBtn: "שמור הגדרות טיול",
-        adminMembersTitle: "👥 ניהול חברי הקבוצה (הקלד והקש Enter)"
+        adminMembersTitle: "👥 ניהול חברי הקבוצה (הקלד והקש Enter)",
+        adminModulesSectionTitle: "🧩 מודולים פעילים בטיול",
+        adminFeatPackingLabel: "🎒 רשימת ציוד",
+        adminFeatShoppingLabel: "🛒 קניות משותפות",
+        adminFeatPlacesLabel: "📍 מקומות ותמונות",
+        adminFeatItineraryLabel: "🗓️ תוכנית יומית",
+        adminFeatExpensesLabel: "💸 הוצאות",
+        adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
+        saveModulesBtn: "שמור מודולים"
       },
 
       en: {
@@ -2235,7 +2312,15 @@
         adminEndLabel: "End / return:",
         adminCheckinLabel: "Check-in URL:",
         saveFlightBtn: "Save trip settings",
-        adminMembersTitle: "👥 Group members (type a name and press Enter)"
+        adminMembersTitle: "👥 Group members (type a name and press Enter)",
+        adminModulesSectionTitle: "🧩 Active trip modules",
+        adminFeatPackingLabel: "🎒 Packing list",
+        adminFeatShoppingLabel: "🛒 Group shopping",
+        adminFeatPlacesLabel: "📍 Places & photos",
+        adminFeatItineraryLabel: "🗓️ Daily itinerary",
+        adminFeatExpensesLabel: "💸 Expenses",
+        adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
+        saveModulesBtn: "Save modules"
       }
     };
 
@@ -3701,6 +3786,8 @@
         "adminEndInput"
       ).value = toLocalInputValue(tripEnd);
 
+      syncAdminModuleCheckboxes();
+
       openAdminModal();
     }
 
@@ -3729,6 +3816,55 @@
         openAdminPanelIfAllowed();
       });
     }
+
+    function syncAdminModuleCheckboxes() {
+      document.getElementById("adminFeatPacking").checked =
+        enabledFeatures.packing !== false;
+
+      document.getElementById("adminFeatShopping").checked =
+        enabledFeatures.shopping !== false;
+
+      document.getElementById("adminFeatPlaces").checked =
+        enabledFeatures.places !== false;
+
+      document.getElementById("adminFeatItinerary").checked =
+        enabledFeatures.itinerary !== false;
+
+      document.getElementById("adminFeatExpenses").checked =
+        enabledFeatures.expenses !== false;
+    }
+
+    document
+      .getElementById("saveModulesBtn")
+      .addEventListener("click", async () => {
+        if (!requireOrganizerAccess()) {
+          return;
+        }
+
+        const newFeatures = {
+          packing: document.getElementById("adminFeatPacking").checked,
+          shopping: document.getElementById("adminFeatShopping").checked,
+          places: document.getElementById("adminFeatPlaces").checked,
+          itinerary: document.getElementById("adminFeatItinerary").checked,
+          expenses: document.getElementById("adminFeatExpenses").checked
+        };
+
+        enabledFeatures = { ...enabledFeatures, ...newFeatures };
+
+        if (db && tripRoot) {
+          await db.ref(`${tripRoot}/features`).update(newFeatures);
+        }
+
+        applyFeatureVisibility();
+        closeAdminModal();
+
+        customAlert(
+          tr(
+            "המודולים עודכנו בהצלחה!",
+            "Modules updated successfully!"
+          )
+        );
+      });
 
     document
       .getElementById("saveFlightBtn")
