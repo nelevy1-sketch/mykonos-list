@@ -1083,7 +1083,7 @@
 
   .bottom-nav {
     position:fixed;
-    bottom:8px;
+    bottom:calc(8px + env(safe-area-inset-bottom));
     left:12px;
     right:12px;
     max-width:456px;
@@ -1091,7 +1091,7 @@
     display:flex;
     justify-content:space-around;
     align-items:center;
-    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    padding:8px 6px;
     background:rgba(255,255,255,.94);
     backdrop-filter:blur(12px);
     border:1px solid var(--line);
