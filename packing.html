@@ -450,6 +450,7 @@
 
     .items {
       display:grid;
+      grid-auto-rows:max-content;
       gap:8px;
       align-content:start;
     }
@@ -509,8 +510,14 @@
     }
 
     .expand-toggle {
-      font-size:.72rem;
-      color:var(--muted);
+      font-size:1.05rem;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .expand-toggle.expanded {
+      color:var(--primary-dark);
+      background:color-mix(in srgb, var(--primary) 16%, transparent);
     }
 
     .sub-panel {
@@ -2236,8 +2243,9 @@
 
                 <div class="item-actions">
                   <button
-                    class="mini expand-toggle"
+                    class="mini expand-toggle ${isExpanded ? "expanded" : ""}"
                     data-expand="${item.id}"
+                    aria-expanded="${isExpanded ? "true" : "false"}"
                     aria-label="${tr("תת-פריטים", "Sub-items")}">
                     ${isExpanded ? "▾" : "▸"}
                   </button>
