@@ -1435,9 +1435,10 @@
             saveLocalTrip({ tripId, destination, tripType, language: currentLanguage, createdAt:tripData.createdAt, url:shareUrl });
         } catch (error) {
             console.error('Error saving trip:', error);
-            nextBtn.classList.remove('loading');
             nextBtn.textContent = translations[currentLanguage].createBtn;
             customAlert(currentLanguage === 'he' ? 'שגיאה בשמירת הטיול. בדקו את החיבור ונסו שוב.' : 'Could not save the trip. Check your connection and try again.');
+        } finally {
+            nextBtn.classList.remove('loading');
         }
     }
 
@@ -1497,16 +1498,21 @@
     window.resetWizard = function() {
         currentStep = 1;
         participants = [];
+        selectedVibes = [];
+        if (destinationPreviewTimer) { clearTimeout(destinationPreviewTimer); destinationPreviewTimer = null; }
         document.getElementById('tripDestination').value = '';
         document.getElementById('tripType').value = 'abroad';
         document.getElementById('checkinUrl').value = '';
         document.getElementById('participantName').value = '';
+        document.getElementById('destinationPreview').textContent = '';
+        document.getElementById('destinationPreview').classList.add('hidden');
         ['featPacking','featShopping','featPlaces','featItinerary','featExpenses'].forEach(id => { document.getElementById(id).checked = true; });
         ['destinationError','participantsError','featuresError'].forEach(id => { document.getElementById(id).textContent = ''; });
         renderParticipants();
         setDefaultDates();
         syncEndDateMin();
         syncTripTypeFields();
+        renderVibeChips();
         const t = translations[currentLanguage];
         document.getElementById('summaryTitle').textContent = t.sumTitle;
         document.getElementById('summaryText').textContent = t.sumText;
