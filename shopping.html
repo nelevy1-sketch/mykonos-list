@@ -256,9 +256,9 @@
     background:var(--header-bg);
     backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);
-    padding:max(10px,env(safe-area-inset-top)) 0 8px;
+    padding:max(10px,env(safe-area-inset-top)) 0 6px;
     border-bottom:1px solid var(--line);
-    margin-bottom:10px;
+    margin-bottom:8px;
     width:100%;
     max-width:480px;
     transition:background .3s ease,border-color .3s ease;
@@ -268,7 +268,7 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:8px;
+    margin-bottom:6px;
     padding:0 4px;
   }
 
@@ -362,12 +362,17 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    background:var(--card-bg);
-    border:1px solid var(--line);
-    padding:8px 12px;
-    border-radius:12px;
+    gap:10px;
+  }
+
+  .status-mini {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
     font-size:12px;
     font-weight:700;
+    white-space:nowrap;
   }
 
   .status-tag {
@@ -383,8 +388,8 @@
     background:var(--card-bg);
     border:1px solid var(--line);
     border-radius:16px;
-    padding:11px 14px;
-    margin-bottom:12px;
+    padding:9px 12px;
+    margin-bottom:10px;
     box-shadow:var(--shadow-card);
   }
 
@@ -417,13 +422,13 @@
   .whoami {
     display:flex;
     align-items:center;
-    gap:8px;
-    margin-bottom:12px;
+    gap:6px;
+    min-width:0;
+    flex:1 1 auto;
     background:var(--card-bg);
     border:1.5px solid var(--line);
     border-radius:16px;
-    padding:8px 12px;
-    width:100%;
+    padding:7px 10px;
     transition:border-color .2s ease,box-shadow .2s ease;
   }
 
@@ -439,6 +444,7 @@
     color:var(--sea);
     opacity:.9;
     white-space:nowrap;
+    flex:0 0 auto;
   }
 
   .whoami select {
@@ -447,18 +453,21 @@
     font-family:inherit;
     font-size:14px;
     color:var(--text-main);
-    flex:1;
+    flex:1 1 auto;
     background:transparent;
     font-weight:700;
     min-width:0;
     padding:6px 0;
     cursor:pointer;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
   }
 
   .main-actions-row {
     display:flex;
     gap:8px;
-    margin-bottom:12px;
+    margin-bottom:10px;
   }
 
   .open-modal-btn {
@@ -1337,8 +1346,18 @@ body.modal-open .modal-card {
   </div>
 
   <div class="status-bar">
-    <span id="statusLabel">סטטוס רשימה:</span>
-    <span class="status-tag" id="statusTag">📝 בהכנה</span>
+    <div class="status-mini">
+      <span id="statusLabel">סטטוס:</span>
+      <span class="status-tag" id="statusTag">📝 בהכנה</span>
+    </div>
+
+    <div class="whoami" id="whoamiBox">
+      <label for="myName" id="nameLabel">שם:</label>
+
+      <select id="myName">
+        <option value="">בחר/י את שמך מהרשימה…</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -1359,14 +1378,6 @@ body.modal-open .modal-card {
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressBarFill"></div>
     </div>
-  </div>
-
-  <div class="whoami" id="whoamiBox">
-    <label for="myName" id="nameLabel">שם:</label>
-
-    <select id="myName">
-      <option value="">בחר/י את שמך מהרשימה…</option>
-    </select>
   </div>
 
   <div class="main-actions-row">
@@ -1922,7 +1933,7 @@ body.modal-open .modal-card {
   const shoppingText = {
     he: {
       pageTitle:"רשימת קניות",
-      statusLabel:"סטטוס רשימה:",
+      statusLabel:"סטטוס:",
       progressLabel:"התקדמות ברשימה זו",
       nameLabel:"שם:",
       openModalBtn:"➕ הוסף פריט",
@@ -1975,7 +1986,7 @@ body.modal-open .modal-card {
 
     en: {
       pageTitle:"Shopping list",
-      statusLabel:"List status:",
+      statusLabel:"Status:",
       progressLabel:"Progress in this list",
       nameLabel:"Name:",
       openModalBtn:"➕ Add item",
