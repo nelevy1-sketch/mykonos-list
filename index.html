@@ -403,6 +403,56 @@
       background: rgba(255,255,255,.1);
     }
 
+    .forecast-strip.hidden {
+      display: none;
+    }
+
+    .forecast-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-top: 10px;
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.16);
+      scrollbar-width: none;
+    }
+
+    .forecast-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .forecast-day {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 52px;
+      padding: 8px 6px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      font-size: .68rem;
+      font-weight: 700;
+    }
+
+    .forecast-day-icon {
+      font-size: 1.1rem;
+    }
+
+    .forecast-day.unreliable {
+      opacity: .55;
+    }
+
+    .forecast-day.today {
+      background: #fff;
+      color: var(--primary-dark);
+    }
+
+    [data-theme="dark"] .forecast-day.today {
+      box-shadow: 0 0 0 2px var(--glow-color), 0 0 14px color-mix(in srgb, var(--glow-color) 55%, transparent);
+    }
+
     .session-row {
       display: flex;
       align-items: center;
@@ -1293,6 +1343,11 @@
         font-size: .66rem;
       }
 
+      .forecast-day {
+        min-width: 46px;
+        padding: 6px 4px;
+      }
+
       .nav-item {
         min-width: 50px;
       }
@@ -1488,6 +1543,8 @@
         <span id="weatherUV">UV --</span>
         <span id="weatherStatus">טוען...</span>
       </div>
+
+      <div class="forecast-strip hidden" id="forecastStrip" aria-label="תחזית לימי הטיול"></div>
     </header>
 
     <div class="session-row" id="sessionRow">
@@ -2135,6 +2192,8 @@
     let destinationName = "הטיול הבא";
     let latCoord = 32.0853;
     let lonCoord = 34.7818;
+    let hasRealCoords = false;
+    let lastForecastKey = null;
     let flightOut = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     let tripEnd = new Date(Date.now() + 37 * 24 * 60 * 60 * 1000);
     let countryCode = "";
@@ -2921,6 +2980,8 @@
         } catch (e) {}
       }
 
+      hasRealCoords = Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lon));
+
       if (Number.isFinite(Number(data.lat))) {
         latCoord = Number(data.lat);
       }
@@ -2998,6 +3059,7 @@
       updateExpensesCard(data);
       currentItineraryDays = data.itinerary?.days || {};
       fetchWeather();
+      fetchForecast();
       updateClockAndPhases();
 
       if (currentUser && tripRoot) {
@@ -4579,6 +4641,115 @@
         console.error(
           "Weather error"
         );
+      }
+    }
+
+    function forecastDayIcon(code) {
+      if (code >= 1 && code <= 3) return { icon: "⛅", label: tr("מעונן חלקית", "Partly cloudy") };
+      if (code === 45 || code === 48) return { icon: "🌫️", label: tr("ערפל", "Fog") };
+      if (code >= 51 && code <= 67) return { icon: "🌧️", label: tr("גשום", "Rain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: tr("שלג", "Snow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: tr("ממטרים", "Showers") };
+      if (code >= 95) return { icon: "⛈️", label: tr("סופת רעמים", "Thunderstorm") };
+      return { icon: "☀️", label: tr("בהיר", "Clear") };
+    }
+
+    function renderForecastStrip(days, today) {
+      const strip = document.getElementById("forecastStrip");
+      const todayKey = today.toDateString();
+      const locale = currentLanguage === "en" ? "en-GB" : "he-IL";
+
+      strip.innerHTML = days.map((d) => {
+        const isToday = d.date.toDateString() === todayKey;
+        const daysFromToday = Math.round((d.date - today) / 86400000);
+        const unreliable = daysFromToday >= 7;
+        const meta = forecastDayIcon(d.code);
+        const dayName = isToday
+          ? tr("היום", "Today")
+          : new Intl.DateTimeFormat(locale, { weekday: "short" }).format(d.date);
+        const shortDate = new Intl.DateTimeFormat(locale, { day: "numeric", month: "numeric" }).format(d.date);
+
+        return (
+          `<div class="forecast-day${isToday ? " today" : ""}${unreliable ? " unreliable" : ""}" aria-label="${escapeHtml(meta.label)}">` +
+          `<span class="forecast-day-name">${escapeHtml(dayName)}</span>` +
+          `<span class="forecast-day-date">${escapeHtml(shortDate)}</span>` +
+          `<span class="forecast-day-icon">${meta.icon}</span>` +
+          `<span class="forecast-day-temps">${Math.round(d.max)}°/${Math.round(d.min)}°</span>` +
+          `</div>`
+        );
+      }).join("");
+
+      strip.classList.remove("hidden");
+    }
+
+    async function fetchForecast() {
+      const strip = document.getElementById("forecastStrip");
+
+      if (!hasRealCoords || tripType === "reserve" || !flightOut || !tripEnd || isNaN(flightOut) || isNaN(tripEnd)) {
+        strip.classList.add("hidden");
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const tripStartDay = new Date(flightOut);
+      tripStartDay.setHours(0, 0, 0, 0);
+
+      const tripEndDay = new Date(tripEnd);
+      tripEndDay.setHours(0, 0, 0, 0);
+
+      const rangeStart = tripStartDay > today ? tripStartDay : today;
+
+      if (rangeStart > tripEndDay) {
+        strip.classList.add("hidden");
+        return;
+      }
+
+      const key = `${latCoord},${lonCoord},${tripEndDay.toDateString()}`;
+      if (key === lastForecastKey) {
+        return;
+      }
+      lastForecastKey = key;
+
+      try {
+        const response = await fetch(
+          "https://api.open-meteo.com/v1/forecast" +
+          `?latitude=${latCoord}` +
+          `&longitude=${lonCoord}` +
+          "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
+          "&timezone=auto" +
+          "&forecast_days=16"
+        );
+
+        if (!response.ok) {
+          throw new Error("Forecast request failed");
+        }
+
+        const data = await response.json();
+
+        if (!data?.daily?.time?.length) {
+          throw new Error("No daily forecast data");
+        }
+
+        const days = data.daily.time
+          .map((dateStr, i) => ({
+            date: new Date(`${dateStr}T00:00:00`),
+            code: data.daily.weather_code[i],
+            max: data.daily.temperature_2m_max[i],
+            min: data.daily.temperature_2m_min[i]
+          }))
+          .filter((d) => d.date >= rangeStart && d.date <= tripEndDay);
+
+        if (days.length < 2) {
+          strip.classList.add("hidden");
+          return;
+        }
+
+        renderForecastStrip(days, today);
+      } catch (error) {
+        strip.classList.add("hidden");
+        console.error("Forecast error");
       }
     }
 
