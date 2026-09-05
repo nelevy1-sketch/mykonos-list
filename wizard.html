@@ -2,6 +2,24 @@
 <!-- GitTrip - version tracked in version.js -->
 <html lang="he" dir="rtl">
 <head>
+    <script>
+      // WebKit bug: after a scroll-triggered toolbar show/hide cycle, dvh's
+      // computed value can get stuck stale, clipping content pinned to it
+      // (the toolbar returns from the top, over content sized by the old,
+      // too-large value). --vh is the classic JS-computed workaround: real
+      // window.innerHeight, not a CSS unit that can go stale on its own.
+      (function () {
+        function setVh() {
+          document.documentElement.style.setProperty(
+            "--vh",
+            window.innerHeight * 0.01 + "px"
+          );
+        }
+        setVh();
+        window.addEventListener("resize", setVh);
+        window.addEventListener("orientationchange", setVh);
+      })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#123B63">
@@ -77,7 +95,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
-        body { background: var(--background); color: var(--text); min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
+        body { background: var(--background); color: var(--text); min-height: 100vh; min-height: calc(var(--vh, 1vh) * 100); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
 
         /* Top Language Toggle Bar */
         .top-bar {
