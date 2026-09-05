@@ -157,7 +157,7 @@
         .date-picker-shell { position:relative; min-height:50px; }
         .date-picker-shell::after { content:'📅'; position:absolute; inset-inline-end:15px; top:50%; transform:translateY(-50%); pointer-events:none; z-index:1; font-size:.9rem; }
         .date-picker-shell .date-display { position:absolute; inset:0; direction:ltr; text-align:center; font-variant-numeric:tabular-nums; background:var(--surface); pointer-events:none; }
-        .date-picker-shell input[type="datetime-local"] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2; }
+        .date-picker-shell input[type="datetime-local"], .date-picker-shell input[type="date"] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2; }
         .date-picker-shell:focus-within .date-display { border-color:var(--primary); box-shadow:0 0 0 3px rgba(31,122,140,.15); }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,122,140,.15); }
         .field-hint { display:block; color:var(--gray); font-size:.76rem; margin-top:6px; line-height:1.45; }
@@ -1148,6 +1148,20 @@
 
     document.getElementById('tripStart').addEventListener('input', syncEndDateMin);
     document.getElementById('tripStart').addEventListener('change', syncEndDateMin);
+
+    // date-only fields only open the native picker on an icon click, not a click
+    // anywhere in the field, unlike datetime-local - force it open on touch devices
+    // (where there's no keyboard-driven manual entry to preserve). Leave
+    // datetime-local alone: it already opens on click, and re-triggering showPicker()
+    // while it's already open can flicker it closed-then-open.
+    ['tripStart', 'tripEnd'].forEach(id => {
+        const input = document.getElementById(id);
+        input.addEventListener('click', () => {
+            if (input.type === 'date' && typeof input.showPicker === 'function' && window.matchMedia('(pointer: coarse)').matches) {
+                try { input.showPicker(); } catch {}
+            }
+        });
+    });
 
     function syncTripTypeFields() {
         const type = document.getElementById('tripType').value;
