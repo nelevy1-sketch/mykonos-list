@@ -4093,6 +4093,10 @@
               countryCode =
                 geoData.results[0].country_code ||
                 countryCode;
+
+              tripTimezone =
+                geoData.results[0].timezone ||
+                tripTimezone;
             }
           } catch (error) {
             console.error(
@@ -4109,6 +4113,7 @@
             lat: latCoord,
             lon: lonCoord,
             countryCode,
+            timezone: tripTimezone,
             checkinLink
           };
 
