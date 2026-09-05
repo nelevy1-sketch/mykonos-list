@@ -385,28 +385,34 @@
       margin:16px 2px 9px;
     }
 
-    .list-head h2 {
-      font-family:'Assistant', system-ui, sans-serif;
-      font-size:1rem;
-      font-weight:800;
-      margin:0;
+    .progress-count {
+      flex:0 0 auto;
+      font-size:.78rem;
+      font-weight:700;
+      color:var(--muted);
     }
 
     .list-select {
       min-height:42px;
-      max-width:58%;
+      min-width:0;
+      flex:1 1 auto;
       border:1px solid var(--line);
       border-radius:13px;
       background:var(--surface);
       color:var(--text);
       padding:0 10px;
       font-weight:700;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
     .list-head-actions {
       display:flex;
       gap:6px;
       align-items:center;
+      min-width:0;
+      flex:1 1 auto;
     }
 
     .list-icon-btn {
@@ -423,14 +429,6 @@
 
     .progress-wrap {
       margin-bottom:11px;
-    }
-
-    .progress-copy {
-      display:flex;
-      justify-content:space-between;
-      font-size:.78rem;
-      color:var(--muted);
-      margin-bottom:6px;
     }
 
     .progress {
@@ -758,22 +756,17 @@
 
     <section id="mineView">
       <div class="list-head">
-        <h2 id="myListHeading">הרשימה שלי</h2>
-
         <div class="list-head-actions">
           <select class="list-select" id="listSelect"></select>
           <button class="list-icon-btn" id="selectModeBtn" aria-label="בחירה מרובה" title="בחירה מרובה">☑️</button>
           <button class="list-icon-btn" id="manageListBtn" aria-label="ניהול רשימה" title="ניהול רשימה">⚙️</button>
           <button class="list-icon-btn" id="newListBtn" aria-label="רשימה חדשה" title="רשימה חדשה">➕</button>
         </div>
+
+        <strong class="progress-count" id="progressText">0/0</strong>
       </div>
 
       <div class="progress-wrap">
-        <div class="progress-copy">
-          <span id="progressLabel">התקדמות</span>
-          <strong id="progressText">0/0</strong>
-        </div>
-
         <div class="progress">
           <span id="progressBar" style="width:0"></span>
         </div>
@@ -1331,12 +1324,6 @@
 
       $("addBtn").textContent =
         tr("הוסף", "Add");
-
-      $("myListHeading").textContent =
-        tr("הרשימה שלי", "My list");
-
-      $("progressLabel").textContent =
-        tr("התקדמות", "Progress");
 
       $("loginTitle").textContent =
         tr("כניסה לטיול", "Trip sign-in");
@@ -2100,9 +2087,7 @@
 
     function syncIdentity() {
       $("userChip").textContent =
-        profile
-          ? `${profile.name} · ${user?.displayName || ""}`
-          : user?.displayName || user?.email || "";
+        user?.displayName || user?.email || "";
 
       participantOptions();
 
@@ -2200,6 +2185,11 @@
 
       $("progressText").textContent =
         `${doneUnits}/${totalUnits} · ${unitPercentage}%`;
+
+      $("progressText").setAttribute(
+        "aria-label",
+        `${tr("התקדמות", "Progress")}: ${doneUnits}/${totalUnits}, ${unitPercentage}%`
+      );
 
       $("progressBar").style.width =
         `${unitPercentage}%`;
