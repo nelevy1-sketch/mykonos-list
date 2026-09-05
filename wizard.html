@@ -1003,9 +1003,14 @@
 
         if (draft.destination) document.getElementById('tripDestination').value = draft.destination;
         if (draft.tripType) document.getElementById('tripType').value = draft.tripType;
+        // Must run before writing draft.start/end below: it puts tripStart/tripEnd's
+        // input type in sync with the restored trip type, so a date-only draft value
+        // isn't rejected by an input still left over as datetime-local (or vice versa).
+        syncTripTypeFields();
         if (draft.start) document.getElementById('tripStart').value = draft.start;
         if (draft.end) document.getElementById('tripEnd').value = draft.end;
         if (draft.checkinUrl) document.getElementById('checkinUrl').value = draft.checkinUrl;
+        updateDateDisplays();
 
         if (Array.isArray(draft.participants)) {
             participants = draft.participants;
@@ -1019,8 +1024,6 @@
             document.getElementById('featItinerary').checked = draft.features.itinerary !== false;
             document.getElementById('featExpenses').checked = draft.features.expenses !== false;
         }
-
-        syncTripTypeFields();
 
         if (Array.isArray(draft.vibes)) {
             selectedVibes = draft.vibes;
@@ -1079,30 +1082,42 @@
         return new Date(date - offset).toISOString().slice(0, 16);
     }
 
+    function toInputDateOnly(date) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
     function setDefaultDates() {
         const start = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         start.setMinutes(0, 0, 0);
         const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
-        document.getElementById('tripStart').value = toInputDate(start);
-        document.getElementById('tripEnd').value = toInputDate(end);
+        const startInput = document.getElementById('tripStart');
+        const endInput = document.getElementById('tripEnd');
+        startInput.value = startInput.type === 'date' ? toInputDateOnly(start) : toInputDate(start);
+        endInput.value = endInput.type === 'date' ? toInputDateOnly(end) : toInputDate(end);
         updateDateDisplays();
     }
 
-    function formatInputDate(value) {
-        if (!value) return currentLanguage === 'he' ? 'בחרו תאריך ושעה' : 'Choose date and time';
-        const date = new Date(value);
+    function formatInputDate(value, hasTime) {
+        if (!value) return currentLanguage === 'he'
+            ? (hasTime ? 'בחרו תאריך ושעה' : 'בחרו תאריך')
+            : (hasTime ? 'Choose date and time' : 'Choose a date');
+        // date-only values ("YYYY-MM-DD") must NOT go through new Date(string) - that
+        // parses a date-only ISO string as UTC midnight, which can display as the
+        // wrong calendar day (or a stray time) depending on the viewer's own offset.
+        const date = hasTime ? new Date(value) : (([y, m, d]) => new Date(y, m - 1, d))(value.split('-').map(Number));
         if (!Number.isFinite(date.getTime())) return '';
         const parts = new Intl.DateTimeFormat('en-GB', {
-            day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+            day:'2-digit', month:'2-digit', year:'numeric',
+            ...(hasTime ? { hour:'2-digit', minute:'2-digit', hourCycle:'h23' } : {})
         }).formatToParts(date).reduce((acc, part) => ({ ...acc, [part.type]:part.value }), {});
-        return `${parts.day}/${parts.month}/${parts.year} · ${parts.hour}:${parts.minute}`;
+        return hasTime ? `${parts.day}/${parts.month}/${parts.year} · ${parts.hour}:${parts.minute}` : `${parts.day}/${parts.month}/${parts.year}`;
     }
 
     function updateDateDisplays() {
         ['tripStart','tripEnd'].forEach(id => {
             const nativeInput = document.getElementById(id);
             const display = document.getElementById(`${id}Display`);
-            if (nativeInput && display) display.value = formatInputDate(nativeInput.value);
+            if (nativeInput && display) display.value = formatInputDate(nativeInput.value, nativeInput.type === 'datetime-local');
         });
     }
 
@@ -1114,9 +1129,14 @@
         endInput.min = startInput.value;
 
         if (endInput.value && endInput.value < startInput.value) {
-            const start = new Date(startInput.value);
-            start.setHours(start.getHours() + 1);
-            endInput.value = toInputDate(start);
+            if (startInput.type === 'date') {
+                const [y, m, d] = startInput.value.split('-').map(Number);
+                endInput.value = toInputDateOnly(new Date(y, m - 1, d + 1));
+            } else {
+                const start = new Date(startInput.value);
+                start.setHours(start.getHours() + 1);
+                endInput.value = toInputDate(start);
+            }
             updateDateDisplays();
         }
     }
@@ -1140,6 +1160,22 @@
             selectedVibes = [];
             renderVibeChips();
         }
+
+        // Only abroad trips have a flight departure time worth asking for - every
+        // other type just needs a date. Swap the input type in place and carry the
+        // date the user already picked over, rather than clearing the field.
+        const wantsTime = type === 'abroad';
+        ['tripStart', 'tripEnd'].forEach(id => {
+            const input = document.getElementById(id);
+            const desiredType = wantsTime ? 'datetime-local' : 'date';
+            if (input.type === desiredType) return;
+            const datePart = input.value ? input.value.slice(0, 10) : '';
+            input.type = desiredType;
+            input.value = desiredType === 'date' ? datePart : (datePart ? `${datePart}T12:00` : '');
+        });
+
+        syncEndDateMin();
+        updateDateDisplays();
     }
 
     function renderVibeChips() {
@@ -1215,8 +1251,14 @@
         const t = translations[currentLanguage];
         if (step === 1) {
             const destination = document.getElementById('tripDestination').value.trim();
-            const start = new Date(document.getElementById('tripStart').value);
-            const end = new Date(document.getElementById('tripEnd').value);
+            const hasTime = document.getElementById('tripStart').type === 'datetime-local';
+            const startValue = document.getElementById('tripStart').value;
+            const endValue = document.getElementById('tripEnd').value;
+            // Date-only fields compare start-of-day to end-of-day, same as the values
+            // that get saved - otherwise a legitimate single-day trip (same date in
+            // both fields) would fail here since the two instants would be equal.
+            const start = new Date(hasTime ? startValue : `${startValue}T00:00`);
+            const end = new Date(hasTime ? endValue : `${endValue}T23:59`);
             document.getElementById('destinationError').textContent = destination ? '' : t.alertDest;
             if (!destination) return false;
             if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
@@ -1383,6 +1425,13 @@
         const tripType = document.getElementById('tripType').value;
         const location = tripType === 'reserve' ? {} : await geocodeDestination(destination);
         const tripId = 'trip_' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+        // Non-abroad trips only collect a date (no flight time to ask for) - the day
+        // still needs to be represented in full, so it's start-of-day through
+        // end-of-day rather than midnight-to-midnight (which would exclude the last
+        // day almost entirely).
+        const hasTime = document.getElementById('tripStart').type === 'datetime-local';
+        const startInputValue = hasTime ? document.getElementById('tripStart').value : `${document.getElementById('tripStart').value}T00:00`;
+        const endInputValue = hasTime ? document.getElementById('tripEnd').value : `${document.getElementById('tripEnd').value}T23:59`;
         const tripData = {
             schemaVersion: 2,
             destination,
@@ -1391,10 +1440,10 @@
             language: currentLanguage,
             participants,
             features: selectedFeatures(),
-            startAt: new Date(document.getElementById('tripStart').value).toISOString(),
+            startAt: new Date(startInputValue).toISOString(),
             endAt: (location.timezone
-                ? localInputToUtcInZone(document.getElementById('tripEnd').value, location.timezone)
-                : new Date(document.getElementById('tripEnd').value)
+                ? localInputToUtcInZone(endInputValue, location.timezone)
+                : new Date(endInputValue)
             ).toISOString(),
             checkinLink: tripType === 'abroad' ? document.getElementById('checkinUrl').value.trim() : '',
             lat: location.lat ?? null,

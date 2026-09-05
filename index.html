@@ -3443,6 +3443,24 @@
 
       document.getElementById("checkinField").style.display =
         selectedType === "abroad" ? "flex" : "none";
+
+      // Only abroad trips have a flight departure time worth asking for - every
+      // other type just needs a date. Swap the input type in place and carry the
+      // date already entered over, rather than clearing the field.
+      const wantsTime = selectedType === "abroad";
+
+      ["adminFlightInput", "adminEndInput"].forEach((id) => {
+        const input = document.getElementById(id);
+        const desiredType = wantsTime ? "datetime-local" : "date";
+
+        if (input.type === desiredType) {
+          return;
+        }
+
+        const datePart = input.value ? input.value.slice(0, 10) : "";
+        input.type = desiredType;
+        input.value = desiredType === "date" ? datePart : (datePart ? `${datePart}T12:00` : "");
+      });
     }
 
     document
@@ -3933,15 +3951,17 @@
         "adminCheckinUrl"
       ).value = checkinLink;
 
+      const adminHasTime = document.getElementById("adminFlightInput").type === "datetime-local";
+
       document.getElementById(
         "adminFlightInput"
-      ).value = toLocalInputValue(flightOut);
+      ).value = adminHasTime ? toLocalInputValue(flightOut) : dateKeyInZone(flightOut, null);
 
       document.getElementById(
         "adminEndInput"
-      ).value = tripTimezone
-        ? toZonedInputValue(tripEnd, tripTimezone)
-        : toLocalInputValue(tripEnd);
+      ).value = adminHasTime
+        ? (tripTimezone ? toZonedInputValue(tripEnd, tripTimezone) : toLocalInputValue(tripEnd))
+        : dateKeyInZone(tripEnd, tripTimezone);
 
       syncAdminModuleCheckboxes();
 
@@ -4033,11 +4053,24 @@
         const newTripType =
           document.getElementById("adminTripType").value;
 
-        const newFlight =
+        const adminHasTime =
+          document.getElementById("adminFlightInput").type === "datetime-local";
+
+        const rawFlight =
           document.getElementById("adminFlightInput").value;
 
-        const newEnd =
+        const rawEnd =
           document.getElementById("adminEndInput").value;
+
+        // Date-only fields (non-abroad) fill in start-of-day / end-of-day, so the
+        // whole first and last day are included - not just their midnight instant.
+        const newFlight = adminHasTime
+          ? rawFlight
+          : (rawFlight ? `${rawFlight}T00:00` : "");
+
+        const newEnd = adminHasTime
+          ? rawEnd
+          : (rawEnd ? `${rawEnd}T23:59` : "");
 
         const newDestination =
           document
@@ -4052,8 +4085,8 @@
             .trim();
 
         if (
-          !newFlight ||
-          !newEnd ||
+          !rawFlight ||
+          !rawEnd ||
           !newDestination
         ) {
           customAlert(
