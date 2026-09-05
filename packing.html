@@ -126,14 +126,14 @@
       flex:1;
       min-height:0;
       overflow-y:auto;
-      padding-bottom:calc(86px + env(safe-area-inset-bottom));
+      padding-bottom:calc(160px + env(safe-area-inset-bottom));
     }
 
     #groupView {
       flex:1;
       min-height:0;
       overflow-y:auto;
-      padding-bottom:calc(86px + env(safe-area-inset-bottom));
+      padding-bottom:calc(160px + env(safe-area-inset-bottom));
     }
 
     .top {
@@ -2460,6 +2460,18 @@
 
       $("selectModeBtn").classList.toggle("active", selectionMode);
       renderMine();
+
+      // The button's own title/aria-label ("בחירה מרובה") never shows on touch -
+      // there's no hover state on mobile - so entering the mode needs its own
+      // explanation of what just changed.
+      if (next) {
+        toast(
+          tr(
+            "מצב בחירה מרובה: סמנו פריטים ובחרו פעולה למטה",
+            "Multi-select mode: check items, then pick an action below"
+          )
+        );
+      }
     }
 
     async function bulkDelete() {
