@@ -2127,12 +2127,6 @@
   </div>
 
   <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(() => {});
-      });
-    }
-
     const firebaseConfig = {
       apiKey: "AIzaSyDhTtqVrBiKfKLxdOVmd_XwBEJm5oh_vMg",
       authDomain: "mykonos-list.firebaseapp.com",
