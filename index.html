@@ -408,10 +408,10 @@
 
     .forecast-strip {
       display: flex;
-      gap: 8px;
+      gap: 5px;
       overflow-x: auto;
-      padding-top: 10px;
-      margin-top: 10px;
+      padding-top: 8px;
+      margin-top: 8px;
       border-top: 1px solid rgba(255,255,255,.16);
       scrollbar-width: none;
     }
@@ -426,17 +426,27 @@
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      min-width: 52px;
-      padding: 8px 6px;
-      border-radius: 12px;
+      min-width: 44px;
+      padding: 4px 6px;
+      border-radius: 10px;
       background: rgba(255,255,255,.14);
       color: #fff;
-      font-size: .68rem;
+      font-size: .6rem;
       font-weight: 700;
     }
 
+    .forecast-day-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
     .forecast-day-icon {
-      font-size: 1.1rem;
+      font-size: .78rem;
+    }
+
+    .forecast-day-temps {
+      font-size: .62rem;
     }
 
     .forecast-day.unreliable {
@@ -1343,8 +1353,8 @@
       }
 
       .forecast-day {
-        min-width: 46px;
-        padding: 6px 4px;
+        min-width: 40px;
+        padding: 3px 4px;
       }
 
       .nav-item {
@@ -4666,14 +4676,11 @@
         const dayName = isToday
           ? tr("היום", "Today")
           : new Intl.DateTimeFormat(locale, { weekday: "short" }).format(d.date);
-        const shortDate = new Intl.DateTimeFormat(locale, { day: "numeric", month: "numeric" }).format(d.date);
 
         return (
           `<div class="forecast-day${isToday ? " today" : ""}${unreliable ? " unreliable" : ""}" aria-label="${escapeHtml(meta.label)}">` +
           `<span class="forecast-day-name">${escapeHtml(dayName)}</span>` +
-          `<span class="forecast-day-date">${escapeHtml(shortDate)}</span>` +
-          `<span class="forecast-day-icon">${meta.icon}</span>` +
-          `<span class="forecast-day-temps">${Math.round(d.max)}°/${Math.round(d.min)}°</span>` +
+          `<span class="forecast-day-row"><span class="forecast-day-icon">${meta.icon}</span><span class="forecast-day-temps">${Math.round(d.max)}°/${Math.round(d.min)}°</span></span>` +
           `</div>`
         );
       }).join("");
