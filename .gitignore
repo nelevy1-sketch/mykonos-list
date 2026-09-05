@@ -1,0 +1,14 @@
+# Cloud Functions (functions/) - dependencies are reinstalled from
+# package-lock.json, never committed.
+functions/node_modules/
+node_modules/
+
+# Firebase CLI local state and logs.
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Local-only overrides / secrets - never committed.
+*.local
+.env
+.env.*
