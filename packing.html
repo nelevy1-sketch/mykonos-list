@@ -460,7 +460,7 @@
       grid-template-columns:auto 1fr auto;
       align-items:center;
       gap:10px;
-      min-height:58px;
+      min-height:44px;
       border:1px solid var(--line);
       border-radius:16px;
       padding:9px 10px;
@@ -563,21 +563,37 @@
       font-size:.84rem;
     }
 
+    .item-info {
+      display:flex;
+      align-items:baseline;
+      gap:6px;
+      min-width:0;
+    }
+
     .item-name {
       font-weight:700;
-      word-break:break-word;
+      flex:1 1 auto;
+      min-width:30%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
     .meta {
+      flex:0 1 auto;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
       font-size:.72rem;
       color:var(--muted);
-      margin-top:2px;
+      white-space:nowrap;
     }
 
     .item-actions {
       display:flex;
       align-items:center;
       gap:6px;
+      margin-block:-9px;
     }
 
     .mini {
@@ -2226,19 +2242,19 @@
                     ${item.isDone ? "checked" : ""}>
                 `}
 
-                <div>
-                  <div class="item-name">
+                <div class="item-info">
+                  <span class="item-name">
                     ${escapeHtml(item.name)}
-                  </div>
+                  </span>
 
-                  <div class="meta">
+                  <span class="meta">
                     ${item.isPublic
-                      ? tr("גלוי לקבוצה", "Visible to group")
+                      ? tr("משותף", "Shared")
                       : tr("פרטי", "Private")}
                     ${item.importedFrom
                       ? ` · ${tr("יובא מ ", "Imported from ")}${escapeHtml(item.importedFrom)}`
                       : ""}
-                  </div>
+                  </span>
                 </div>
 
                 <div class="item-actions">
