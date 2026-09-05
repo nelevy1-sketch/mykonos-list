@@ -6,7 +6,7 @@
 // the way "v4.0.0" had on four of them (as an invisible <!-- --> comment)
 // while two others showed it live in their footer, and CHANGELOG.md had
 // already moved on to v4.0.3.
-window.APP_VERSION = "4.3.1";
+window.APP_VERSION = "4.3.2";
 
 // GitHub Pages caches every file (HTML included) for up to 10 minutes, so a tab
 // left open - or a PWA resumed from the home screen - never re-fetches anything
