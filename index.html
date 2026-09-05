@@ -2202,6 +2202,7 @@
     let latCoord = 32.0853;
     let lonCoord = 34.7818;
     let hasRealCoords = false;
+    let tripTimezone = null;
     let lastForecastKey = null;
     let flightOut = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     let tripEnd = new Date(Date.now() + 37 * 24 * 60 * 60 * 1000);
@@ -2894,6 +2895,55 @@
         .slice(0, 16);
     }
 
+    function localInputToUtcInZone(inputValue, timeZone) {
+      // Interprets a naive "YYYY-MM-DDTHH:MM" datetime-local value as wall-clock
+      // time in `timeZone` (not the browser's own timezone) and returns the
+      // correct UTC instant. Uses Intl.DateTimeFormat only - no libraries.
+      if (!inputValue) return new Date(NaN);
+      const [datePart, timePart] = inputValue.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute] = (timePart || "00:00").split(":").map(Number);
+      const target = Date.UTC(year, month - 1, day, hour, minute);
+
+      const partsInZone = (utcMillis) => {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone,
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hour12: false
+        }).formatToParts(new Date(utcMillis)).reduce((acc, p) => {
+          if (p.type !== "literal") acc[p.type] = parseInt(p.value, 10);
+          return acc;
+        }, {});
+
+        if (parts.hour === 24) parts.hour = 0;
+
+        return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+      };
+
+      let guess = target;
+
+      for (let i = 0; i < 2; i++) {
+        guess -= partsInZone(guess) - target;
+      }
+
+      return new Date(guess);
+    }
+
+    function toZonedInputValue(date, timeZone) {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false
+      }).formatToParts(date).reduce((acc, p) => {
+        if (p.type !== "literal") acc[p.type] = p.value;
+        return acc;
+      }, {});
+
+      const hour = parts.hour === "24" ? "00" : parts.hour;
+
+      return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
+    }
+
     function tripDataPath(key) {
       if (!tripRoot) {
         return key;
@@ -2990,6 +3040,7 @@
       }
 
       hasRealCoords = Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lon));
+      tripTimezone = data.timezone || null;
 
       if (Number.isFinite(Number(data.lat))) {
         latCoord = Number(data.lat);
@@ -3862,7 +3913,9 @@
 
       document.getElementById(
         "adminEndInput"
-      ).value = toLocalInputValue(tripEnd);
+      ).value = tripTimezone
+        ? toZonedInputValue(tripEnd, tripTimezone)
+        : toLocalInputValue(tripEnd);
 
       syncAdminModuleCheckboxes();
 
@@ -4002,7 +4055,9 @@
         }
 
         flightOut = new Date(newFlight);
-        tripEnd = new Date(newEnd);
+        tripEnd = tripTimezone
+          ? localInputToUtcInZone(newEnd, tripTimezone)
+          : new Date(newEnd);
         destinationName = newDestination;
         tripType = newTripType;
 

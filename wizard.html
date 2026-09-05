@@ -1306,6 +1306,34 @@
         document.body.style.overflow = '';
     }
 
+    function localInputToUtcInZone(inputValue, timeZone) {
+        // Interprets a naive "YYYY-MM-DDTHH:MM" datetime-local value as wall-clock
+        // time in `timeZone` (not the browser's own timezone) and returns the
+        // correct UTC instant. Uses Intl.DateTimeFormat only - no libraries.
+        if (!inputValue) return new Date(NaN);
+        const [datePart, timePart] = inputValue.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = (timePart || '00:00').split(':').map(Number);
+        const target = Date.UTC(year, month - 1, day, hour, minute);
+        const partsInZone = (utcMillis) => {
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone,
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            }).formatToParts(new Date(utcMillis)).reduce((acc, p) => {
+                if (p.type !== 'literal') acc[p.type] = parseInt(p.value, 10);
+                return acc;
+            }, {});
+            if (parts.hour === 24) parts.hour = 0;
+            return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+        };
+        let guess = target;
+        for (let i = 0; i < 2; i++) {
+            guess -= partsInZone(guess) - target;
+        }
+        return new Date(guess);
+    }
+
     async function geocodeDestination(destination) {
         try {
             const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=${currentLanguage}&format=json`);
@@ -1364,7 +1392,10 @@
             participants,
             features: selectedFeatures(),
             startAt: new Date(document.getElementById('tripStart').value).toISOString(),
-            endAt: new Date(document.getElementById('tripEnd').value).toISOString(),
+            endAt: (location.timezone
+                ? localInputToUtcInZone(document.getElementById('tripEnd').value, location.timezone)
+                : new Date(document.getElementById('tripEnd').value)
+            ).toISOString(),
             checkinLink: tripType === 'abroad' ? document.getElementById('checkinUrl').value.trim() : '',
             lat: location.lat ?? null,
             lon: location.lon ?? null,
