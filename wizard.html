@@ -1312,7 +1312,7 @@
             if (!response.ok) return {};
             const data = await response.json();
             const match = data.results?.[0];
-            return match ? { lat: match.latitude, lon: match.longitude, countryCode: match.country_code || '' } : {};
+            return match ? { lat: match.latitude, lon: match.longitude, countryCode: match.country_code || '', timezone: match.timezone || '' } : {};
         } catch { return {}; }
     }
 
@@ -1369,6 +1369,7 @@
             lat: location.lat ?? null,
             lon: location.lon ?? null,
             countryCode: location.countryCode || '',
+            timezone: location.timezone || null,
             ownerId: organizer.uid,
             createdAt: Date.now()
         };
