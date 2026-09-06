@@ -4395,20 +4395,94 @@ body.modal-open .modal-card {
     if (!requireOrganizer()) return;
     const currentTabTitle = TAB_NAMES[currentListType] || '';
     const confirmClear = await customConfirm(tr(`האם אתה בטוח שברצונך למחוק את כל הפריטים מרשימת "${currentTabTitle}"?\n\nפעולה זו תמחק רק רשימה זו ותשמור על שאר הרשימות.`, `Delete every item from "${currentTabTitle}"?\n\nOnly this list will be cleared; the other lists will remain.`), { danger: true });
-    if (confirmClear) {
-      remove(listRef);
-      set(listStatusRef, '📝 בהכנה');
-      settingsModalOverlay.classList.remove('show');
-      showToast(tr('הרשימה אופסה בהצלחה', 'The list was reset'));
+    if (!confirmClear) return;
+
+    // Immediate optimistic feedback stays exactly as before - not delayed.
+    // Only the write's outcome is watched afterward, in the background.
+    settingsModalOverlay.classList.remove('show');
+    showToast(tr('הרשימה אופסה בהצלחה', 'The list was reset'));
+
+    // One atomic multi-path update instead of two separate remove()/set()
+    // calls - a partial failure (items cleared but status stuck, or vice
+    // versa) is worse than a full failure.
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+
+      // RTDB writes made while offline don't reject - they queue locally
+      // and the promise just never settles until reconnection. The user
+      // already saw the success toast above and moved on; a second toast
+      // now, about a connection problem they can't act on, would only
+      // worry them for nothing. Diagnostics only.
+      console.warn('clearCurrentList write timed out after 4s on shopping.html');
+      window.__gtWriteTimeout = { op: 'clearList', at: Date.now() };
+    }, 4000);
+
+    try {
+      await update(ref(db), {
+        [listPath(currentListType)]: null,
+        [statusPath(currentListType)]: '📝 בהכנה'
+      });
+
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+    } catch (error) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+
+      console.warn('clearCurrentList write failed on shopping.html', error);
+      showToast(tr('איפוס הרשימה נכשל - נסו שוב', 'Resetting the list failed - try again'));
     }
   });
 
-  undoBtn.onclick = () => {
-    if (lastStateBackup && lastStateBackup.itemId) {
-      set(ref(db, `${listPath(currentListType)}/${lastStateBackup.itemId}`), lastStateBackup.data);
+  undoBtn.onclick = async () => {
+    if (!(lastStateBackup && lastStateBackup.itemId)) {
+      return;
+    }
+
+    const { itemId, data } = lastStateBackup;
+
+    // Immediate optimistic feedback stays exactly as before - not delayed.
+    // The only change from before: lastStateBackup is no longer cleared
+    // synchronously here - only once the write below actually confirms.
+    document.getElementById('toast').classList.remove('show');
+    showToast(tr('השינוי בוטל בהצלחה!', 'Change undone!'));
+
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+
+      // Same reasoning as clearCurrentListBtn above: stay silent, the user
+      // already moved on. Deliberately do NOT reset lastStateBackup here -
+      // we don't actually know whether this write will land.
+      console.warn('undo write timed out after 4s on shopping.html');
+      window.__gtWriteTimeout = { op: 'undo', at: Date.now() };
+    }, 4000);
+
+    try {
+      await set(ref(db, `${listPath(currentListType)}/${itemId}`), data);
+
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+
       lastStateBackup = null;
-      document.getElementById('toast').classList.remove('show');
-      showToast(tr('השינוי בוטל בהצלחה!', 'Change undone!'));
+    } catch (error) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+
+      console.warn('undo write failed on shopping.html', error);
+
+      // Keep lastStateBackup - re-show the undo button (showUndo:true) on
+      // this failure toast so the same backup can be retried.
+      showToast(tr('שחזור השינוי נכשל - נסו שוב', 'Undo failed - try again'), true);
     }
   };
 
