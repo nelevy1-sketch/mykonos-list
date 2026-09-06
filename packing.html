@@ -1049,6 +1049,19 @@
     // True once a real trip record has arrived - see applyLanguage() below.
     let tripDataLoaded = false;
     let profile = null;
+
+    // loadProfile() is called on every firing of the trip's onValue
+    // listener (not just once) - and that listener re-fires on ANY change
+    // under tripRoot, packing items included. profileLoadGen makes an
+    // older, still-pending call a no-op once a newer one has started, so a
+    // slow first call can never overwrite what a faster second call already
+    // wrote. profileLoadTimer is a best-effort cleanup of the previous
+    // call's timer - it reduces how often the stale timeout fires at all,
+    // but the generation check above is what actually prevents a stale
+    // write if it does.
+    let profileLoadGen = 0;
+    let profileLoadTimer = null;
+
     let items = {};
     let allPacking = {};
     let activeList = "main";
@@ -3098,16 +3111,71 @@
     }
 
     async function loadProfile() {
-      const snapshot = await get(
-        ref(
-          db,
-          `${tripRoot}/memberProfiles/${user.uid}`
-        )
-      );
+      if (profileLoadTimer) {
+        clearTimeout(profileLoadTimer);
+      }
 
-      profile = snapshot.val();
+      const gen = ++profileLoadGen;
+      let resolved = false;
 
-      syncIdentity();
+      // If the get() below never resolves, fall back to exactly the "no
+      // profile" path after 8s - reveal #memberOverlay, let the user pick
+      // their name manually. No new UI, no retry button - see CHANGELOG.
+      const timer = setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+
+        if (gen !== profileLoadGen) return;
+
+        console.warn("loadProfile timed out after 8s on packing.html - treating as no profile");
+        window.__gtProfileTimeout = { page: "packing.html", at: Date.now() };
+
+        profile = null;
+        syncIdentity();
+      }, 8000);
+
+      profileLoadTimer = timer;
+
+      try {
+        const snapshot = await get(
+          ref(
+            db,
+            `${tripRoot}/memberProfiles/${user.uid}`
+          )
+        );
+
+        if (resolved) {
+          return;
+        }
+
+        resolved = true;
+        clearTimeout(timer);
+
+        if (gen !== profileLoadGen) {
+          return;
+        }
+
+        profile = snapshot.val();
+
+        syncIdentity();
+      } catch (error) {
+        if (resolved) {
+          return;
+        }
+
+        resolved = true;
+        clearTimeout(timer);
+
+        if (gen !== profileLoadGen) {
+          return;
+        }
+
+        console.warn("loadProfile failed on packing.html - treating as no profile", error);
+        window.__gtProfileTimeout = { page: "packing.html", at: Date.now() };
+
+        profile = null;
+        syncIdentity();
+      }
     }
 
     $("googleBtn").onclick = doGoogleSignIn;
