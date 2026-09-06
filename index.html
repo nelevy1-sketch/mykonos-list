@@ -17,6 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
   <script src="version.js"></script>
+  <script src="auth-gate.js"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -2550,7 +2551,7 @@
     }
 
     if (auth) {
-      auth.onAuthStateChanged(user => {
+      function handleAuthStateChanged(user) {
         currentUser = user;
 
         document.getElementById("authLoading").classList.add("hidden");
@@ -2585,7 +2586,17 @@
         }
 
         renderLinkedMembers();
-      });
+      }
+
+      auth.onAuthStateChanged(handleAuthStateChanged);
+
+      if (window.armAuthGate) {
+        window.armAuthGate(() => {
+          if (auth.currentUser) {
+            handleAuthStateChanged(auth.currentUser);
+          }
+        });
+      }
 
       document
         .getElementById("dashboardGoogleBtn")

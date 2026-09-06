@@ -193,6 +193,50 @@
   animation: auth-spin .8s linear infinite;
 }
 
+/* Safety-net shown by auth-gate.js if #authLoading isn't hidden within a
+   reasonable time - see that file for why. Sits one layer above
+   .auth-loading (never touches its hidden class, just paints over it). */
+.auth-gate-timeout {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--auth-loading-z, 150) + 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg, var(--bg-color, var(--whitewash)));
+}
+
+.auth-gate-timeout.hidden {
+  display: none;
+}
+
+.auth-gate-timeout-card {
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.auth-gate-timeout-text {
+  margin: 0;
+  font: 600 .92rem/1.5 'Assistant', system-ui, sans-serif;
+  color: var(--text, var(--text-main));
+}
+
+.auth-gate-timeout-btn {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary, var(--sea));
+  color: #fff;
+  font: 700 .92rem/1 'Assistant', system-ui, sans-serif;
+  cursor: pointer;
+}
+
 .auth-gate {
   position: fixed;
   inset: 0;
