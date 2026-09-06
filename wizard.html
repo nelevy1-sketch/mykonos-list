@@ -1167,16 +1167,16 @@
     document.getElementById('tripStart').addEventListener('input', syncEndDateMin);
     document.getElementById('tripStart').addEventListener('change', syncEndDateMin);
 
-    // date-only fields only open the native picker when the click lands on the
-    // control's internal icon hit-region, not anywhere in the (CSS-enlarged) field,
-    // unlike datetime-local - force it open explicitly on every click. Typing still
-    // works with the popup open, it doesn't lock the field. Leave datetime-local
-    // alone: it already opens on click, and re-triggering showPicker() while it's
-    // already open can flicker it closed-then-open.
+    // Neither date-only nor datetime-local fields reliably open the native picker
+    // on a click anywhere in the (CSS-enlarged) field - only a click on the
+    // control's internal icon hit-region does that natively, on desktop. Force it
+    // open explicitly on every click, for both types. Typing still works with the
+    // popup open, it doesn't lock the field. Verified: calling showPicker() again
+    // while it's already open doesn't blur/refocus or throw - no flicker.
     ['tripStart', 'tripEnd'].forEach(id => {
         const input = document.getElementById(id);
         input.addEventListener('click', () => {
-            if (input.type === 'date' && typeof input.showPicker === 'function') {
+            if (typeof input.showPicker === 'function') {
                 try { input.showPicker(); } catch {}
             }
         });
