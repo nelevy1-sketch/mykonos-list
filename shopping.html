@@ -1917,6 +1917,12 @@ body.modal-open .modal-card {
     expenses:true
   };
 
+  // Run once immediately from the URL's tripId, before Firebase answers, so
+  // the home button (and other nav links) carry tripId even if tapped before
+  // the trip finishes loading. Re-run from syncTripUI() once the real trip
+  // data (spliitUrl, features) arrives.
+  configureLinks();
+
   let itemsMap = {};
   let listStatus = "📝 בהכנה";
   let hideDoneItems = false;
@@ -2421,6 +2427,64 @@ body.modal-open .modal-card {
     return url.href;
   }
 
+  // Patches every nav link (home button included) with tripId, and swaps the
+  // expenses link to tripData.spliitUrl once it's known. Called once early
+  // (synchronously, from the URL's tripId) so the home button carries tripId
+  // immediately - not only after Firebase resolves - and again from
+  // syncTripUI() once the real trip data (spliitUrl, features) arrives.
+  function configureLinks() {
+    document
+      .querySelectorAll("[data-feature]")
+      .forEach(element => {
+        element.style.display =
+          enabledFeatures[element.dataset.feature] === false
+            ? "none"
+            : "flex";
+      });
+
+    document
+      .querySelectorAll(".bottom-nav a")
+      .forEach(link => {
+        if (
+          link.dataset.feature !== "expenses" &&
+          link.getAttribute("href")?.endsWith(".html")
+        ) {
+          link.href =
+            scopedUrl(
+              link.getAttribute("href")
+            );
+        }
+      });
+
+    const expensesLink =
+      document.querySelector('.bottom-nav a[data-feature="expenses"]');
+
+    if (expensesLink) {
+      if (tripData?.spliitUrl) {
+        expensesLink.href = tripData.spliitUrl;
+        expensesLink.target = "_blank";
+        expensesLink.rel = "noopener";
+        expensesLink.onclick = null;
+      } else {
+        expensesLink.href = "#";
+        expensesLink.removeAttribute("target");
+
+        expensesLink.onclick = event => {
+          event.preventDefault();
+          showToast(
+            tr(
+              "המארגן עדיין לא הוסיף קישור להתחשבנות - ניתן להוסיף מדף הבית",
+              "The organizer hasn't added an expenses link yet - it can be added from the home page"
+            )
+          );
+        };
+      }
+    }
+
+    document.getElementById("homeBtn").href =
+      scopedUrl("index.html");
+  }
+
   function showSystemMessage(message) {
     const box =
       document.getElementById("systemMessage");
@@ -2831,56 +2895,7 @@ body.modal-open .modal-card {
       .getElementById("tabFromIsraelBtn")
       .textContent = TAB_NAMES.fromIsrael;
 
-    document
-      .querySelectorAll("[data-feature]")
-      .forEach(element => {
-        element.style.display =
-          enabledFeatures[element.dataset.feature] === false
-            ? "none"
-            : "flex";
-      });
-
-    document
-      .querySelectorAll(".bottom-nav a")
-      .forEach(link => {
-        if (
-          link.dataset.feature !== "expenses" &&
-          link.getAttribute("href")?.endsWith(".html")
-        ) {
-          link.href =
-            scopedUrl(
-              link.getAttribute("href")
-            );
-        }
-      });
-
-    const expensesLink =
-      document.querySelector('.bottom-nav a[data-feature="expenses"]');
-
-    if (expensesLink) {
-      if (tripData.spliitUrl) {
-        expensesLink.href = tripData.spliitUrl;
-        expensesLink.target = "_blank";
-        expensesLink.rel = "noopener";
-        expensesLink.onclick = null;
-      } else {
-        expensesLink.href = "#";
-        expensesLink.removeAttribute("target");
-
-        expensesLink.onclick = event => {
-          event.preventDefault();
-          showToast(
-            tr(
-              "המארגן עדיין לא הוסיף קישור להתחשבנות - ניתן להוסיף מדף הבית",
-              "The organizer hasn't added an expenses link yet - it can be added from the home page"
-            )
-          );
-        };
-      }
-    }
-
-    document.getElementById("homeBtn").href =
-      scopedUrl("index.html");
+    configureLinks();
 
     document
       .getElementById("exportGreekBtn")
