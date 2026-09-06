@@ -1155,6 +1155,12 @@
       }
     } catch (e) { /* ignore */ }
 
+    // Run once immediately, synchronously from the URL's tripId - before
+    // Firebase answers - so the home button (and other nav links) carry
+    // tripId even if tapped before the trip finishes loading. Re-run once
+    // the real trip data arrives, which also fixes up spliitUrl/features.
+    configureLinks();
+
     function toast(text) {
       $("toast").textContent = text;
       $("toast").classList.add("show");
@@ -3058,6 +3064,7 @@
 
           try {
             localStorage.setItem(langKey, trip.language || "he");
+            localStorage.setItem("lastTripId", tripId);
           } catch (e) { /* ignore */ }
 
           applyTheme();

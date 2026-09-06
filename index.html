@@ -1316,6 +1316,61 @@
       line-height: 1.45;
     }
 
+    .trip-picker-empty {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .85rem;
+    }
+
+    .trip-picker-list {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .trip-picker-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 13px 15px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .trip-picker-card-info {
+      min-width: 0;
+    }
+
+    .trip-picker-card-info strong {
+      display: block;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .trip-picker-card-info span {
+      display: block;
+      color: var(--text-muted);
+      font-size: .76rem;
+      margin-top: 2px;
+    }
+
+    .trip-picker-card-arrow {
+      flex-shrink: 0;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
     .seats-banner-btn {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -1571,6 +1626,22 @@
       id="systemMessage"
       role="status"
       aria-live="polite">
+    </div>
+
+    <div class="trip-picker" id="tripPicker" style="display:none;">
+      <div class="trip-picker-empty" id="tripPickerEmpty" style="display:none;">
+        <span id="tripPickerEmptyText">עדיין לא הצטרפת לאף טיול.</span>
+        <div style="margin-top:10px;">
+          <a
+            href="wizard.html"
+            id="tripPickerCreateBtn"
+            class="btn-sm-action"
+            style="display:inline-block;text-decoration:none;">
+            יצירת טיול חדש
+          </a>
+        </div>
+      </div>
+      <div class="trip-picker-list" id="tripPickerList"></div>
     </div>
 
     <a
@@ -2228,6 +2299,11 @@
     // anything back to the cache, or a slow load would persist the defaults.
     let hasTripRecord = false;
 
+    // True once the trip picker (no tripId, or an invalid one) has taken
+    // over the screen. Blocks updateClockAndPhases() from re-showing the
+    // hero/banner/locker with hardcoded placeholder data on its next tick.
+    let tripPickerActive = false;
+
     // Start from what the last visit cached, so the render that happens before
     // Firebase answers already matches what the bootstrap painted.
     try {
@@ -2583,6 +2659,8 @@
 
         if (user && tripRoot) {
           startTripListener();
+        } else if (user && !tripRoot) {
+          resolveTripSelection();
         }
 
         renderLinkedMembers();
@@ -3064,6 +3142,10 @@
       currentLanguage = data.language === "en" ? "en" : "he";
       hasTripRecord = true;
       destinationName = data.destination || destinationName;
+
+      try {
+        localStorage.setItem("lastTripId", tripId);
+      } catch (e) {}
 
       if (data.destination) {
         try {
@@ -3843,6 +3925,122 @@
         tr("ערוך ›", "Edit ›");
     }
 
+    // Shown when a signed-in user has no tripId at all (fresh sign-in, home
+    // icon launch with no query param) or a tripId that no longer resolves to
+    // a real trip (deleted). Reads users/{uid}/trips - written both at trip
+    // creation (wizard.html) and at join time in packing/places/itinerary/
+    // shopping.html - so organizers and joined participants see the same list.
+    const TRIP_PICKER_HIDE_SELECTORS = [
+      ".hero-card",
+      "#smartContextBanner",
+      "#lockerCardContainer",
+      ".section-heading",
+      ".quick-actions-grid",
+      "#seatsBannerBtn",
+      "#footerDestination",
+      ".bottom-nav"
+    ];
+
+    function enterTripPickerMode() {
+      tripPickerActive = true;
+
+      TRIP_PICKER_HIDE_SELECTORS.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.style.display = "none";
+        });
+      });
+
+      document.getElementById("tripPicker").style.display = "block";
+    }
+
+    let tripPickerStarted = false;
+
+    function resolveTripSelection(options = {}) {
+      if (tripPickerStarted) {
+        return;
+      }
+
+      tripPickerStarted = true;
+
+      // A last-known-good trip (set once a trip has actually loaded, on any
+      // of the 5 trip-scoped pages) lets a returning user skip the picker
+      // entirely - the common case for the home button / PWA icon launch.
+      // Skipped when we're here because that very trip just proved invalid.
+      if (!options.skipLastTripId) {
+        let lastTripId = null;
+
+        try {
+          lastTripId = localStorage.getItem("lastTripId");
+        } catch (e) {}
+
+        if (lastTripId) {
+          location.replace("index.html?tripId=" + encodeURIComponent(lastTripId));
+          return;
+        }
+      }
+
+      enterTripPickerMode();
+
+      if (!db || !currentUser) {
+        renderTripPickerList({});
+        return;
+      }
+
+      db.ref("users/" + currentUser.uid + "/trips")
+        .once("value")
+        .then(snapshot => renderTripPickerList(snapshot.val() || {}))
+        .catch(() => renderTripPickerList({}));
+    }
+
+    const TRIP_PICKER_TYPE_META = {
+      abroad: { icon: "✈️", he: "טיסה לחו\"ל", en: "Abroad trip" },
+      local: { icon: "🧭", he: "טיול בארץ", en: "Local trip" },
+      camping: { icon: "🏕️", he: "קמפינג / טבע", en: "Camping" },
+      reserve: { icon: "🪖", he: "מילואים / שטח", en: "Reserve duty" }
+    };
+
+    function renderTripPickerList(trips) {
+      const entries = Object.entries(trips || {});
+
+      document.getElementById("tripPickerEmpty").style.display =
+        entries.length === 0 ? "block" : "none";
+
+      if (entries.length === 0) {
+        document.getElementById("tripPickerList").innerHTML = "";
+        return;
+      }
+
+      // Exactly one trip - no real choice to make, skip straight to it.
+      if (entries.length === 1) {
+        location.replace("index.html?tripId=" + encodeURIComponent(entries[0][0]));
+        return;
+      }
+
+      entries.sort((a, b) => (b[1]?.createdAt || 0) - (a[1]?.createdAt || 0));
+
+      document.getElementById("tripPickerList").innerHTML = entries.map(([id, item]) => {
+        const meta = TRIP_PICKER_TYPE_META[item?.tripType] || {};
+
+        const date = item?.startAt
+          ? new Intl.DateTimeFormat(
+              currentLanguage === "en" ? "en-GB" : "he-IL",
+              { day: "2-digit", month: "2-digit" }
+            ).format(new Date(item.startAt))
+          : "";
+
+        const typeLabel = currentLanguage === "en" ? meta.en : meta.he;
+        const typeText = [meta.icon, typeLabel].filter(Boolean).join(" ");
+        const sub = [typeText, date].filter(Boolean).join(" · ");
+
+        return (
+          `<a class="trip-picker-card" href="index.html?tripId=${encodeURIComponent(id)}">` +
+          `<div class="trip-picker-card-info"><strong>${escapeHtml(item?.destination || id)}</strong>` +
+          `<span>${escapeHtml(sub)}</span></div>` +
+          `<span class="trip-picker-card-arrow">›</span></a>`
+        );
+      }).join("");
+    }
+
     function startTripListener() {
       if (!db || !tripRoot) {
         return;
@@ -3863,10 +4061,18 @@
             showSystemMessage(
               tr("הטיול לא נמצא", "Trip not found"),
               tr(
-                "ייתכן שהקישור שגוי או שהטיול הוסר על ידי המארגן.",
-                "The link may be incorrect or the organizer may have removed the trip."
+                "ייתכן שהקישור שגוי או שהטיול הוסר על ידי המארגן. בחרו טיול אחר למטה.",
+                "The link may be incorrect or the organizer may have removed the trip. Choose another trip below."
               )
             );
+
+            try {
+              if (localStorage.getItem("lastTripId") === tripId) {
+                localStorage.removeItem("lastTripId");
+              }
+            } catch (e) {}
+
+            resolveTripSelection({ skipLastTripId: true });
           }
         },
         () => {
@@ -4230,6 +4436,10 @@
     }
 
     function updateClockAndPhases() {
+      if (tripPickerActive) {
+        return;
+      }
+
       const now = new Date();
       const diffOut = flightOut - now;
       const hoursToStart =

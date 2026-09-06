@@ -2911,6 +2911,10 @@ body.modal-open .modal-card {
 
         if (data) {
           syncTripUI(data);
+
+          try {
+            localStorage.setItem("lastTripId", tripId);
+          } catch (e) {}
         } else {
           showSystemMessage(
             tr(
