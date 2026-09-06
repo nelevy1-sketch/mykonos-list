@@ -2639,6 +2639,24 @@ body.modal-open .modal-card {
 
       currentProfile = profile;
 
+      // Best-effort: also record this trip under the joining user's own
+      // uid - same shape wizard.html writes for the organizer at
+      // creation - so index.html's trip picker can list it. The join
+      // above has already fully succeeded at this point; if this fails,
+      // don't surface it to the user, just log it.
+      update(ref(db), {
+        [`users/${currentUser.uid}/trips/${tripId}`]: {
+          destination: tripData?.destination || "",
+          tripType: tripData?.tripType || "",
+          language: tripData?.language || "he",
+          startAt: tripData?.startAt || null,
+          endAt: tripData?.endAt || null,
+          createdAt: tripData?.createdAt || Date.now()
+        }
+      }).catch(error => {
+        console.error("Could not record trip under user's trip list:", error);
+      });
+
       document
         .getElementById("memberGate")
         .classList

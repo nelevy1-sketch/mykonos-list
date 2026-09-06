@@ -2074,6 +2074,24 @@
 
         syncIdentity();
         listenPacking();
+
+        // Best-effort: also record this trip under the joining user's own
+        // uid - same shape wizard.html writes for the organizer at
+        // creation - so index.html's trip picker can list it. The join
+        // above has already fully succeeded at this point; if this fails,
+        // don't surface it to the user, just log it.
+        update(ref(db), {
+          [`users/${user.uid}/trips/${tripId}`]: {
+            destination: trip.destination || "",
+            tripType: trip.tripType || "",
+            language: trip.language || "he",
+            startAt: trip.startAt || null,
+            endAt: trip.endAt || null,
+            createdAt: trip.createdAt || Date.now()
+          }
+        }).catch(error => {
+          console.error("Could not record trip under user's trip list:", error);
+        });
       } catch (error) {
         console.error(error);
 
