@@ -2981,10 +2981,6 @@
     }
 
     function tripDataPath(key) {
-      if (!tripRoot) {
-        return key;
-      }
-
       const keyMap = {
         group_members: "participants",
         personal_locker: "personalLocker"
@@ -2993,8 +2989,11 @@
       return `${tripRoot}/${keyMap[key] || key}`;
     }
 
+    // No tripRoot means no trip is loaded - there is nothing to save to.
+    // (Used to fall back to a bare, unscoped root key like "group_members"
+    // shared across every visitor with no tripId - removed, see CHANGELOG.)
     function saveTripCollection(key, value) {
-      if (db) {
+      if (db && tripRoot) {
         return db.ref(tripDataPath(key)).set(value);
       }
 
@@ -3801,11 +3800,6 @@
         ).set(
           personalLockerCards[currentUser.uid]
         );
-      } else {
-        saveTripCollection(
-          "personal_locker",
-          personalLockerCards
-        );
       }
 
       updateLockerSummary();
@@ -3886,42 +3880,6 @@
               "Check your internet connection and refresh the page."
             )
           );
-        }
-      );
-    }
-
-    if (db && !tripRoot) {
-      db.ref("trip_settings").on(
-        "value",
-        snapshot => {
-          hydrateTripData(snapshot.val());
-        }
-      );
-
-      db.ref("group_members").on(
-        "value",
-        snapshot => {
-          const data = snapshot.val();
-
-          if (Array.isArray(data)) {
-            groupMembers = data;
-            renderAdminTags();
-          }
-        }
-      );
-
-      db.ref("personal_locker").on(
-        "value",
-        snapshot => {
-          const data = snapshot.val();
-
-          if (
-            data &&
-            typeof data === "object"
-          ) {
-            personalLockerCards = data;
-            updateLockerSummary();
-          }
         }
       );
     }
@@ -4186,7 +4144,7 @@
           }
         }
 
-        if (db) {
+        if (db && tripRoot) {
           const settings = {
             tripType,
             destination: destinationName,
@@ -4197,19 +4155,11 @@
             checkinLink
           };
 
-          if (tripRoot) {
-            db.ref(tripRoot).update({
-              ...settings,
-              startAt: flightOut.toISOString(),
-              endAt: tripEnd.toISOString()
-            });
-          } else {
-            db.ref("trip_settings").set({
-              ...settings,
-              flightOut: newFlight,
-              tripEnd: newEnd
-            });
-          }
+          db.ref(tripRoot).update({
+            ...settings,
+            startAt: flightOut.toISOString(),
+            endAt: tripEnd.toISOString()
+          });
         }
 
         closeAdminModal();
