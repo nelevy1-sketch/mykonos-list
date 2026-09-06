@@ -16,6 +16,23 @@
 // very plausibly guess `lng` and silently get `undefined` back instead of
 // an error. Use `lon`.
 //
+// DATE FORMAT: startAt/endAt are ISO 8601 strings (e.g.
+// "2026-10-06T20:00:00.000Z"), not numeric epoch timestamps - confirmed
+// against real data and both write sites (wizard.html's trip creation,
+// index.html's admin date edit both call .toISOString()). The schema doc
+// said "timestamps"; the data on disk is strings - same kind of mistake as
+// lng/lon above, data wins again. getLegForDate already handles this
+// correctly (every comparison goes through `new Date(x).getTime()`, which
+// accepts a string, a number or a Date interchangeably - verified against
+// real ISO values, not just numbers). But a leg object returned by
+// getLegs() carries startAt/endAt through unchanged, as whatever type the
+// source data had - any future code that reads leg.startAt/leg.endAt
+// directly and does arithmetic on it (leg.startAt + 86400000, say) instead
+// of wrapping it in new Date(...) first will silently misbehave on real
+// data. Every existing consumer elsewhere in the app (itinerary.html's and
+// places.html's tripDayDates()) already wraps in new Date() first - do the
+// same in any new code.
+//
 // index.html is a classic (non-module) script; the other 5 pages load
 // their own script as type="module". This file is loaded as a classic
 // script on all 6 (no type="module" on its own <script> tag) and attaches
