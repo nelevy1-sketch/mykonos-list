@@ -3073,6 +3073,13 @@
           configureLinks();
           participantOptions();
 
+          // Independent of identity - the packing list itself doesn't need
+          // to know who the user is (it's keyed by uid, not by claimed
+          // name), same as places.html/itinerary.html's content render.
+          // Self-guards on !user/!tripRoot/packingListening, so this is
+          // safe to call unconditionally here.
+          listenPacking();
+
           if (user) {
             loadProfile();
           }
@@ -3101,10 +3108,6 @@
       profile = snapshot.val();
 
       syncIdentity();
-
-      if (profile) {
-        listenPacking();
-      }
     }
 
     $("googleBtn").onclick = doGoogleSignIn;
