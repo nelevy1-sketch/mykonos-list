@@ -643,3 +643,66 @@
     animation-duration: .01ms !important;
   }
 }
+
+
+/* ==========================================================================
+   8. GLOBAL TOAST  (all pages - shown via window.toast(message, type), see
+   toast.js)
+   Not scoped to [data-tokens="core"] - unlike the section 6 .toast above
+   (which stays untouched, still used by places/packing/itinerary's own
+   toast()), this is meant for every page including index/shopping/wizard.
+   Colours are fixed rather than theme-token-based on purpose: a solid pill
+   reads fine over any of the 4 trip themes and both light/dark mode without
+   needing per-theme overrides - same reasoning the untouched .toast above
+   already relies on (it has no [data-theme="dark"] override either).
+   Centered via left:50%/transform, so RTL vs LTR needs no separate rule.
+   ========================================================================== */
+
+.gt-toast {
+  position: fixed;
+  z-index: 200;
+  /* Deliberately NOT the same 88-90px offset the three pre-existing toast
+     implementations use (core .toast, index.html's .app-toast) - both can
+     be visible at the same time as this one until they're deleted in a
+     later commit, and stacking on the exact same line would overlap them.
+     160px clears the core .fab too: bottom:90px + 58px height puts the
+     FAB's own top edge at 148px, so 146px (tried first) left only a ~2px
+     gap - not enough once a longer message widens the pill toward the
+     FAB's horizontal position too. Verified on a 375x667 viewport (iPhone
+     SE) with getBoundingClientRect: at 160px there's a real ~12px gap
+     above the FAB and the pre-existing toast stays clearly below both. */
+  bottom: calc(160px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translate(-50%, 16px);
+  background: #172a35;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  max-width: min(90%, 420px);
+  text-align: center;
+  font: 700 .85rem/1.4 'Assistant', system-ui, sans-serif;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
+}
+
+.gt-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.gt-toast.gt-toast-error {
+  /* Same --danger token + fallback the global .custom-dialog-btn.danger
+     above already uses (section 2) - a semantic color stays semantic
+     across the app, unlike the base pill's colour which is fixed on
+     purpose (see the section header) because that one has no equivalent
+     "this is what danger looks like here" meaning to preserve. */
+  background: var(--danger, #D14343);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gt-toast {
+    transition-duration: .01ms;
+  }
+}

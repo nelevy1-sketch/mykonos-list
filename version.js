@@ -6,7 +6,32 @@
 // the way "v4.0.0" had on four of them (as an invisible <!-- --> comment)
 // while two others showed it live in their footer, and CHANGELOG.md had
 // already moved on to v4.0.3.
-window.APP_VERSION = "4.9.1";
+window.APP_VERSION = "4.10.0";
+
+// Minimal foreground-callback registry: registers exactly one visibilitychange
+// listener total (not one per consumer) and runs every registered callback
+// when the tab becomes visible again. checkForUpdate below is the first
+// consumer - a future connection-monitor script can register through this
+// same window.onForeground() instead of adding its own separate listener.
+window.onForeground = (function () {
+    const callbacks = [];
+    let registered = false;
+
+    function runAll() {
+        if (document.visibilityState !== 'visible') return;
+        callbacks.forEach(fn => {
+            try { fn(); } catch (e) { console.error(e); }
+        });
+    }
+
+    return function onForeground(fn) {
+        callbacks.push(fn);
+        if (!registered) {
+            registered = true;
+            document.addEventListener('visibilitychange', runAll);
+        }
+    };
+})();
 
 // GitHub Pages caches every file (HTML included) for up to 10 minutes, so a tab
 // left open - or a PWA resumed from the home screen - never re-fetches anything
@@ -59,7 +84,5 @@ window.APP_VERSION = "4.9.1";
             .finally(() => { checking = false; });
     }
 
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') checkForUpdate();
-    });
+    window.onForeground(checkForUpdate);
 })();
