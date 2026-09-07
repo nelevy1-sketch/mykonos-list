@@ -1492,6 +1492,31 @@
           : "🌙";
     }
 
+    // docs/schema-legs.md §3.4 - tripType (applyTheme above) still owns
+    // all color. This only ever adds --accent-gradient via a class, never
+    // touches --glow-color or any existing token. On documentElement on
+    // all 6 pages by convention (CLAUDE.md) - not document.body, unlike
+    // applyTheme's theme-X classes on this page.
+    function applyAccent() {
+      document.documentElement.classList.remove(
+        "character-pride",
+        "character-ski"
+      );
+
+      if (trip.showAccent === false) {
+        return;
+      }
+
+      if (
+        trip.tripCharacter === "pride" ||
+        trip.tripCharacter === "ski"
+      ) {
+        document.documentElement.classList.add(
+          `character-${trip.tripCharacter}`
+        );
+      }
+    }
+
     function applyLanguage() {
       const isEnglish = trip.language === "en";
 
@@ -3901,6 +3926,7 @@
           } catch (e) { /* ignore */ }
 
           applyTheme();
+          applyAccent();
           applyLanguage();
           configureLinks();
           participantOptions();

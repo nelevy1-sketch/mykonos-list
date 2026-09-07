@@ -110,8 +110,16 @@ index.html הוא היוצא מן הכלל היחיד מבין 6 העמודים,
 
 **`--glow-color` משוכפל ב-4 מקומות עצמאיים** (shared.css + שלושה
 בלוקי `<style>` inline נפרדים ב-index/shopping/wizard) ולא מוגדר
-במקום אחד - שכבת המבטא העתידית (`--accent-gradient`, §3.4) תצטרך
-את אותו שכפול.
+במקום אחד - כי index/shopping/wizard לא רשומים ל-`[data-tokens="core"]`
+ויש להם כבר ערך מקומי משלהם ל-`--primary`/`--glow-color` שכלל גורף
+היה דורס. **`--accent-gradient` (§3.4, מומש ב-v4.17.0) נמנע מהשכפול
+הזה** - הוא משתנה חדש בלי ערך קודם בשום עמוד, אז כלל top-level יחיד
+ב-shared.css (לא מגודר ב-`[data-tokens="core"]`) מספיק לכל 6 העמודים.
+
+**מחלקות `character-X` (מבטא לפי `tripCharacter`) תמיד על `documentElement`,
+בכל 6 העמודים - כולל ב-index.html, למרות ש-`theme-X` שם דווקא על `document.body`.**
+עקביות מכוונת בין העמודים למחלקות *חדשות* - כדי שלא יתווסף עוד פיצול
+כמו זה של `theme-X` (`documentElement` בחלק, `body` באחרים).
 
 **באג ידוע ב-`starterLists()` (packing.html): `vibes` דורס את
 `clothing.items` במקום למזג עם מה ש-`tripType` כבר שם שם** -

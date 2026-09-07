@@ -384,6 +384,75 @@
 
 
 /* ==========================================================================
+   4b. TRIP-CHARACTER ACCENT   (docs/schema-legs.md §3.4)
+   --------------------------------------------------------------------------
+   tripType still owns all color (--primary/--glow-color/etc. above never
+   change here). tripCharacter only adds --accent-gradient, a bar under the
+   page title, on the 2 characters (of 7) that carry an accent.
+
+   Deliberately NOT gated behind [data-tokens="core"] the way --primary/
+   --glow-color are above: those are gated because index/shopping/wizard
+   already have their own local values that a shared reset would clobber.
+   --accent-gradient is brand new - no page has a prior value to conflict
+   with - so one top-level definition here covers all 6 pages with zero
+   per-page duplication. See CLAUDE.md's note on this pattern: keep new
+   classes like this on documentElement everywhere, don't let them split
+   the way theme-X did (documentElement on some pages, body on others).
+   ========================================================================== */
+:root {
+  --accent-gradient: none;
+  --accent-bar-height: 0px;
+  --accent-bar-margin: 0px;
+}
+
+.character-pride {
+  --accent-gradient: linear-gradient(90deg, #E4405F, #FF8C42, #FFD23F, #4CAF6D, #4D9DE0, #9B6EF3);
+  --accent-bar-height: 3px;
+  --accent-bar-margin: 8px;
+}
+
+.character-ski {
+  --accent-gradient: linear-gradient(90deg, #4FC3F7, #B3E5FC);
+  --accent-bar-height: 3px;
+  --accent-bar-margin: 8px;
+}
+
+/* One rule covers all 3 header shapes across the 6 pages (see the doc
+   section above): packing/places/itinerary's shared .page-head, index's
+   .hero-top-row, shopping's plain <header> inside .sticky-header-container.
+   wizard has no trip and no page header, so it needs no selector here.
+   height/margin default to 0 above, so an unmatched or accent-less
+   character (or showAccent:false, applied in each page's JS by simply not
+   adding either class) takes up zero space - not just an invisible bar.
+
+   All 3 targets are `display:flex` header rows (icon + title + button),
+   so a plain block ::after would become a flex *item* squeezed into that
+   same row, not a bar underneath it. flex-basis:100% forces the pseudo-
+   element onto its own wrapped line instead - the standard technique for
+   "one more flex item, but on its own full-width row" - which is why
+   flex-wrap:wrap is added below too (these headers don't set it
+   otherwise, so this doesn't change how their real content behaves; only
+   the forced-100%-basis ::after ever wraps). */
+.page-head,
+.hero-top-row,
+.sticky-header-container > header {
+  flex-wrap: wrap;
+}
+
+.page-head::after,
+.hero-top-row::after,
+.sticky-header-container > header::after {
+  content: "";
+  flex-basis: 100%;
+  height: var(--accent-bar-height);
+  margin-top: var(--accent-bar-margin);
+  border-radius: 2px;
+  background: var(--accent-gradient);
+  overflow: hidden;
+}
+
+
+/* ==========================================================================
    5. CORE BOTTOM NAV   (places / packing / itinerary)
    ========================================================================== */
 

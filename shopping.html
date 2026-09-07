@@ -2801,6 +2801,26 @@ body.modal-open .modal-card {
       `theme-${tripType}`
     );
 
+    // docs/schema-legs.md §3.4 - documentElement here too, same as the
+    // theme-X classes just above on this page (unlike index.html, where
+    // theme-X is on document.body but character-X still goes on
+    // documentElement - see CLAUDE.md). Never touches --glow-color.
+    document.documentElement.classList.remove(
+      "character-pride",
+      "character-ski"
+    );
+
+    if (tripData.showAccent !== false) {
+      if (
+        tripData.tripCharacter === "pride" ||
+        tripData.tripCharacter === "ski"
+      ) {
+        document.documentElement.classList.add(
+          `character-${tripData.tripCharacter}`
+        );
+      }
+    }
+
     updateThemeUI();
 
     document

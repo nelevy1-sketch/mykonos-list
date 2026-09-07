@@ -2096,6 +2096,13 @@
             style="direction:ltr;">
         </div>
 
+        <div class="admin-field">
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminShowAccent" checked>
+            <span id="adminShowAccentLabel">🎨 הצג מבטא צבעוני לפי אופי הטיול</span>
+          </label>
+        </div>
+
         <button
           class="btn-admin-action btn-save-flight"
           id="saveFlightBtn">
@@ -2268,6 +2275,8 @@
     ];
 
     let tripType = "abroad";
+    let tripCharacter = "";
+    let showAccent = true;
     let destinationName = "הטיול הבא";
     let latCoord = 32.0853;
     let lonCoord = 34.7818;
@@ -2355,6 +2364,7 @@
         adminStartLabel: "מועד התחלת הטיול:",
         adminEndLabel: "מועד סיום / חזרה:",
         adminCheckinLabel: "קישור לצ׳ק־אין (URL):",
+        adminShowAccentLabel: "🎨 הצג מבטא צבעוני לפי אופי הטיול",
         saveFlightBtn: "שמור הגדרות טיול",
         adminMembersTitle: "👥 ניהול חברי הקבוצה (הקלד והקש Enter)",
         adminModulesSectionTitle: "🧩 מודולים פעילים בטיול",
@@ -2418,6 +2428,7 @@
         adminStartLabel: "Trip start:",
         adminEndLabel: "End / return:",
         adminCheckinLabel: "Check-in URL:",
+        adminShowAccentLabel: "🎨 Show a color accent for trip character",
         saveFlightBtn: "Save trip settings",
         adminMembersTitle: "👥 Group members (type a name and press Enter)",
         adminModulesSectionTitle: "🧩 Active trip modules",
@@ -3003,6 +3014,29 @@
         tripType === "reserve" ? "none" : "flex";
     }
 
+    // docs/schema-legs.md §3.4 - documentElement, not document.body, even
+    // though applyTripPresentation above puts theme-X on document.body on
+    // this page specifically. Deliberate: character-X stays consistent on
+    // documentElement across all 6 pages (see CLAUDE.md), theme-X's
+    // documentElement/body split is pre-existing and not being copied.
+    // Never touches --glow-color/--primary or any existing token.
+    function applyAccent() {
+      document.documentElement.classList.remove(
+        "character-pride",
+        "character-ski"
+      );
+
+      if (!showAccent) {
+        return;
+      }
+
+      if (tripCharacter === "pride" || tripCharacter === "ski") {
+        document.documentElement.classList.add(
+          `character-${tripCharacter}`
+        );
+      }
+    }
+
     function toLocalInputValue(date) {
       const offset = date.getTimezoneOffset() * 60000;
 
@@ -3146,6 +3180,8 @@
 
       tripLoaded = true;
       tripType = data.tripType || tripType;
+      tripCharacter = data.tripCharacter || "";
+      showAccent = data.showAccent !== false;
       currentLanguage = data.language === "en" ? "en" : "he";
       hasTripRecord = true;
 
@@ -3260,6 +3296,7 @@
       renderMemberChoices();
       updateLockerSummary();
       applyTripPresentation();
+      applyAccent();
 
       if (data.destination) {
         try {
@@ -4176,6 +4213,10 @@
         "adminCheckinUrl"
       ).value = checkinLink;
 
+      document.getElementById(
+        "adminShowAccent"
+      ).checked = showAccent;
+
       const adminHasTime = document.getElementById("adminFlightInput").type === "datetime-local";
 
       document.getElementById(
@@ -4309,6 +4350,9 @@
             .value
             .trim();
 
+        const newShowAccent =
+          document.getElementById("adminShowAccent").checked;
+
         if (
           !rawFlight ||
           !rawEnd ||
@@ -4344,6 +4388,7 @@
           : new Date(newEnd);
         destinationName = newDestination;
         tripType = newTripType;
+        showAccent = newShowAccent;
 
         checkinLink =
           tripType === "abroad"
@@ -4398,7 +4443,8 @@
             lon: lonCoord,
             countryCode,
             timezone: tripTimezone,
-            checkinLink
+            checkinLink,
+            showAccent
           };
 
           db.ref(tripRoot).update({
@@ -4410,6 +4456,7 @@
 
         closeAdminModal();
         applyTripPresentation();
+        applyAccent();
         updateClockAndPhases();
         fetchWeather();
 
