@@ -20,6 +20,7 @@
   <script src="toast.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="legBuilder.js"></script>
   <script src="auth-gate.js"></script>
 
   <!-- Firebase SDKs -->
@@ -1214,6 +1215,29 @@
       align-items: center;
     }
 
+    /* Multi-destination leg editor (docs/schema-legs.md §5.7, step 11ב.1) -
+       mirrors wizard.html's .legs-list/.leg-row/.transition-row (same class
+       shapes, index.html's own --var names). Text inputs reuse .admin-input
+       directly (below) rather than a parallel color/border ruleset, so light/
+       dark theming comes for free instead of being duplicated a third time. */
+    .admin-legs-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+    .admin-leg-row { display: flex; align-items: center; gap: 8px; }
+    .admin-leg-ordinal { flex: 0 0 auto; width: 16px; text-align: center; font-weight: 800; color: var(--text-muted); font-size: 0.78rem; }
+    .admin-leg-row .admin-input { flex: 1; min-width: 0; }
+    .admin-leg-up-btn, .admin-leg-remove-btn {
+      flex: 0 0 auto; width: 40px; min-height: 44px; border: 1.5px solid var(--border-color); border-radius: 8px;
+      background: var(--card-bg); color: var(--text-main); font-size: 0.95rem; cursor: pointer;
+    }
+    .admin-leg-up-btn:disabled { opacity: 0.35; cursor: default; }
+    .admin-leg-remove-btn { color: #B3432F; }
+    .admin-transition-row { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+    .admin-transition-label { flex: 0 0 auto; font-size: 0.72rem; color: var(--text-muted); }
+    .admin-transition-row .admin-input { min-height: 38px; font-size: 0.82rem; padding: 5px 10px; direction: ltr; text-align: center; }
+    .admin-add-leg-btn {
+      margin-top: 8px; min-height: 40px; width: 100%; border: 1.5px dashed var(--border-color); border-radius: 8px;
+      background: none; color: var(--primary); font-weight: 700; font-size: 0.84rem; cursor: pointer;
+    }
+
     .member-tag {
       background: #e0f2fe;
       color: #0369a1;
@@ -2066,6 +2090,10 @@
             id="adminDestInput"
             class="admin-input"
             placeholder="לדוגמה: ברלין, תאילנד או הגליל">
+          <div class="admin-legs-list" id="adminLegsList"></div>
+          <button type="button" class="admin-add-leg-btn" id="adminAddLegBtn">
+            + הוספת יעד
+          </button>
         </div>
 
         <div class="admin-field">
@@ -2378,7 +2406,8 @@
         adminFeatPlacesLabel: "📍 מקומות ותמונות",
         adminFeatItineraryLabel: "🗓️ תוכנית יומית",
         adminFeatExpensesLabel: "💸 הוצאות",
-        adminMultiLegHint: "עריכת יעדים ותאריכים בטיול מרובה יעדים תתאפשר בקרוב",
+        adminAddLegBtn: "+ הוספת יעד",
+        adminMultiLegHint: "עריכת מועד ההתחלה/סיום הכולל בטיול מרובה יעדים תתאפשר בקרוב - את היעדים כבר אפשר לערוך למעלה",
         adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
         saveModulesBtn: "שמור מודולים",
         adminShareTitle: "🔗 שיתוף הטיול",
@@ -2443,7 +2472,8 @@
         adminFeatPlacesLabel: "📍 Places & photos",
         adminFeatItineraryLabel: "🗓️ Daily itinerary",
         adminFeatExpensesLabel: "💸 Expenses",
-        adminMultiLegHint: "Editing destinations and dates in a multi-destination trip will be available soon",
+        adminAddLegBtn: "+ Add destination",
+        adminMultiLegHint: "Editing the overall start/end date of a multi-destination trip will be available soon - you can already edit destinations above",
         adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
         saveModulesBtn: "Save modules",
         adminShareTitle: "🔗 Share the trip",
@@ -4176,6 +4206,282 @@
       ).href = `https://wa.me/?text=${encodeURIComponent(message)}`;
     }
 
+    // Multi-destination leg editor for the admin panel (docs/schema-legs.md
+    // §5.7, step 11ব.1 - see the investigation report for the full design
+    // reasoning). IN-MEMORY ONLY: no geocoding, no RTDB write here - that's
+    // 11ব.2. saveFlightBtn's handler is untouched by this block; on a
+    // currently single-leg trip it still reads only adminDestInput.value
+    // (row 0), so a second row added here and never followed by 11ব.2 is
+    // silently not saved - the exact same accepted gap wizard.html's own
+    // commit א left between adding the list UI and commit ב's actual save
+    // wiring (CHANGELOG v4.19.0).
+    //
+    // Seeded from `currentLegs` - already window.getLegs()'s output,
+    // refreshed by hydrateTripData() on every trip update - never by
+    // calling getLegs() again with a hand-built trip object (index.html
+    // doesn't hold one; see docs/schema-legs.md §8ব.1 and legs.js's own
+    // header). This is also the concrete answer to "which is the single
+    // code path for single-leg vs multi-leg": there isn't a branch anywhere
+    // below for it - a single-leg trip is just legs.length === 1, seeded by
+    // the exact same loop as any other leg count.
+    const MAX_ADMIN_LEGS = 6;
+    let adminLegRowCount = 1;
+    const adminLegRowEls = [];
+    const adminTransitionRowEls = [];
+
+    function buildAdminTransitionRow(i) {
+      const row = document.createElement("div");
+      row.className = "admin-transition-row hidden";
+
+      const label = document.createElement("span");
+      label.className = "admin-transition-label";
+      label.textContent = tr("מעבר", "Transition");
+
+      const input = document.createElement("input");
+      input.type = document.getElementById("adminFlightInput").type;
+      input.className = "admin-input";
+      input.addEventListener("click", () => {
+        if (typeof input.showPicker === "function") {
+          try { input.showPicker(); } catch {}
+        }
+      });
+
+      row.append(label, input);
+      document.getElementById("adminLegsList").appendChild(row);
+
+      adminTransitionRowEls[i] = { row, input, label };
+    }
+
+    // index > 0: builds the preceding transition row first (if it doesn't
+    // exist yet) so DOM order stays leg0, transition0, leg1, transition1,
+    // ... - same lazy-build-alongside-the-leg-it-precedes pattern as
+    // wizard.html's buildLegRow, for the same reason (never needs reordering
+    // DOM nodes later).
+    function buildAdminLegRow(index, inputEl) {
+      if (index > 0 && !adminTransitionRowEls[index - 1]) {
+        buildAdminTransitionRow(index - 1);
+      }
+
+      const row = document.createElement("div");
+      row.className = "admin-leg-row";
+
+      const ordinal = document.createElement("span");
+      ordinal.className = "admin-leg-ordinal";
+
+      const upBtn = document.createElement("button");
+      upBtn.type = "button";
+      upBtn.className = "admin-leg-up-btn";
+      upBtn.textContent = "▲";
+      upBtn.addEventListener("click", () => moveAdminLegUp(index));
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "admin-leg-remove-btn";
+      removeBtn.textContent = "✕";
+      removeBtn.addEventListener("click", () => removeAdminLeg(index));
+
+      row.append(ordinal, inputEl, upBtn, removeBtn);
+      document.getElementById("adminLegsList").appendChild(row);
+
+      // dirty: whether this leg's NAME has changed since it was last seeded
+      // from RTDB (or is brand new) - not acted on here, just tracked. 11ব.2
+      // reads it to decide which legs actually need re-geocoding on save
+      // (approved: only changed/new legs, not every leg on every save).
+      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, dirty: false, originalName: inputEl.value };
+      inputEl.addEventListener("input", () => {
+        descriptor.dirty = inputEl.value.trim() !== descriptor.originalName;
+      });
+
+      adminLegRowEls[index] = descriptor;
+      return descriptor;
+    }
+
+    function updateAdminLegChrome() {
+      const multi = adminLegRowCount > 1;
+
+      adminLegRowEls.forEach((r, i) => {
+        if (!r) return;
+        const visible = i < adminLegRowCount;
+        r.row.classList.toggle("hidden", !visible);
+        if (!visible) return;
+        r.ordinal.textContent = String(i + 1);
+        r.ordinal.classList.toggle("hidden", !multi);
+        r.upBtn.classList.toggle("hidden", !multi);
+        r.upBtn.disabled = i === 0;
+        r.removeBtn.classList.toggle("hidden", !multi);
+      });
+
+      adminTransitionRowEls.forEach((t, i) => {
+        if (!t) return;
+        t.row.classList.toggle("hidden", i >= adminLegRowCount - 1);
+      });
+
+      document.getElementById("adminAddLegBtn").classList.toggle("hidden", adminLegRowCount >= MAX_ADMIN_LEGS);
+    }
+
+    // Same math as wizard.html's recomputeTransitionDefaults - shared via
+    // window.splitEqualBoundaries (legBuilder.js), not reimplemented. Reads
+    // the overall span from adminFlightInput/adminEndInput, which stay the
+    // source of truth for the trip's overall start/end even while per-leg
+    // editing is in progress (they're read-only for a multi-leg trip today,
+    // not touched by this block - see openAdminPanelIfAllowed).
+    //
+    // UNLIKE the wizard, this OVERWRITES every visible transition value
+    // unconditionally on every add/remove - deliberately, not an oversight.
+    // The wizard's version does the same and it's already an accepted,
+    // documented simplification there ("a manually-edited transition date
+    // does NOT survive a later add/remove of a leg") - here it additionally
+    // means a REAL persisted transition date doesn't survive either. That's
+    // a real cost (editing an existing 3-leg trip's list re-guesses all
+    // transition dates, not just the new one) - accepted because nothing
+    // saves automatically: the admin sees the guessed values sitting in the
+    // fields and can fix them before 11ব.2's save exists at all. A version
+    // that tried to preserve untouched transitions would need to reason
+    // about which transition "belongs" to which leg across an add/remove/
+    // reorder - genuinely ambiguous (see the investigation report) - so this
+    // keeps the same simple, already-approved rule instead of inventing a
+    // new one.
+    function recomputeAdminTransitionDefaults() {
+      const hasTime = document.getElementById("adminFlightInput").type === "datetime-local";
+      const rawStart = document.getElementById("adminFlightInput").value;
+      const rawEnd = document.getElementById("adminEndInput").value;
+      if (!rawStart || !rawEnd) return;
+
+      const startMs = new Date(hasTime ? rawStart : `${rawStart}T00:00`).getTime();
+      const endMs = new Date(hasTime ? rawEnd : `${rawEnd}T23:59`).getTime();
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return;
+
+      const boundaries = window.splitEqualBoundaries(startMs, endMs, adminLegRowCount);
+      boundaries.forEach((boundaryMs, i) => {
+        const t = adminTransitionRowEls[i];
+        if (!t) return;
+        const boundaryDate = new Date(boundaryMs);
+        t.input.value = hasTime ? toLocalInputValue(boundaryDate) : window.dateKeyInZone(boundaryDate, null);
+      });
+    }
+
+    function addAdminLeg() {
+      if (adminLegRowCount >= MAX_ADMIN_LEGS) return;
+      const index = adminLegRowCount;
+
+      if (!adminLegRowEls[index]) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "admin-input";
+        input.autocomplete = "off";
+        input.placeholder = tr("יעד נוסף", "Additional destination");
+        buildAdminLegRow(index, input);
+      }
+
+      adminLegRowEls[index].input.value = "";
+      adminLegRowEls[index].originalName = "";
+      adminLegRowEls[index].dirty = true; // brand new (or reused, cleared) row - always geocode on save
+
+      adminLegRowCount++;
+      updateAdminLegChrome();
+      recomputeAdminTransitionDefaults();
+      adminLegRowEls[index].input.focus();
+    }
+
+    function removeAdminLeg(index) {
+      if (adminLegRowCount <= 1) return;
+
+      for (let i = index; i < adminLegRowCount - 1; i++) {
+        const cur = adminLegRowEls[i];
+        const next = adminLegRowEls[i + 1];
+        cur.input.value = next.input.value;
+        cur.originalName = next.originalName;
+        cur.dirty = next.dirty;
+      }
+
+      const last = adminLegRowEls[adminLegRowCount - 1];
+      last.input.value = "";
+      last.originalName = "";
+      last.dirty = false;
+
+      adminLegRowCount--;
+      updateAdminLegChrome();
+      recomputeAdminTransitionDefaults();
+    }
+
+    function moveAdminLegUp(index) {
+      if (index === 0) return;
+      const a = adminLegRowEls[index - 1];
+      const b = adminLegRowEls[index];
+
+      [a.input.value, b.input.value] = [b.input.value, a.input.value];
+      [a.originalName, b.originalName] = [b.originalName, a.originalName];
+      [a.dirty, b.dirty] = [b.dirty, a.dirty];
+    }
+
+    // Re-seeds the editor from currentLegs every time the panel opens -
+    // discards any in-progress edits from a previous open, same as every
+    // other admin field already does (openAdminPanelIfAllowed always
+    // re-populates from the live globals, never carries over stale form
+    // state). This is also where single-leg and multi-leg trips become
+    // indistinguishable code: currentLegs.length is just whatever it is,
+    // synthesized-single or real-multi, and the loop below doesn't care
+    // which (approved: seeding from getLegs()'s output, not a hand-rolled
+    // single-vs-multi branch, is what actually makes going from one
+    // destination to several - and back - possible from this panel).
+    function seedAdminLegsEditor() {
+      const legs = currentLegs;
+      const hasTime = document.getElementById("adminFlightInput").type === "datetime-local";
+
+      legs.forEach((leg, i) => {
+        if (!adminLegRowEls[i]) {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "admin-input";
+          input.autocomplete = "off";
+          input.placeholder = tr("יעד נוסף", "Additional destination");
+          buildAdminLegRow(i, input);
+        }
+        adminLegRowEls[i].input.value = leg.name || "";
+        adminLegRowEls[i].originalName = leg.name || "";
+        adminLegRowEls[i].dirty = false;
+      });
+
+      // Rows left over in the DOM from a previous open where more legs were
+      // added and then the modal was closed without saving - clear them so
+      // a stale name can't resurface if the panel is reopened later.
+      for (let i = legs.length; i < adminLegRowEls.length; i++) {
+        adminLegRowEls[i].input.value = "";
+        adminLegRowEls[i].originalName = "";
+        adminLegRowEls[i].dirty = false;
+      }
+
+      for (let i = 0; i < legs.length - 1; i++) {
+        if (!adminTransitionRowEls[i]) buildAdminTransitionRow(i);
+        const boundaryDate = new Date(legs[i].endAt);
+        const leg = legs[i];
+        adminTransitionRowEls[i].input.value = leg.timezone
+          ? (hasTime ? toZonedInputValue(boundaryDate, leg.timezone) : window.dateKeyInZone(boundaryDate, leg.timezone))
+          : (hasTime ? toLocalInputValue(boundaryDate) : window.dateKeyInZone(boundaryDate, null));
+        // Refreshed here, every open, rather than wired into
+        // applyTripLanguage() (which runs before adminTransitionRowEls
+        // exists on initial page load - a language toggle mid-session with
+        // the panel already opened once would otherwise leave a stale-
+        // language label on a row built before the switch).
+        adminTransitionRowEls[i].label.textContent = tr("מעבר", "Transition");
+      }
+      for (let i = Math.max(0, legs.length - 1); i < adminTransitionRowEls.length; i++) {
+        if (adminTransitionRowEls[i]) adminTransitionRowEls[i].input.value = "";
+      }
+
+      adminLegRowCount = legs.length;
+      updateAdminLegChrome();
+    }
+
+    // One-time: row 0 is the EXISTING #adminDestInput element, moved into
+    // #adminLegsList's chrome wrapper - never a second, separate input. All
+    // pre-existing code that reads adminDestInput.value (syncAdminFields,
+    // saveFlightBtn's handler) keeps working unchanged, exactly like
+    // wizard.html kept #tripDestination as legRowEls[0] (docs/schema-legs.md
+    // step 10, commit א).
+    buildAdminLegRow(0, document.getElementById("adminDestInput"));
+    document.getElementById("adminAddLegBtn").addEventListener("click", addAdminLeg);
+
     function openAdminPanelIfAllowed() {
       if (!requireOrganizerAccess()) {
         return;
@@ -4189,23 +4495,17 @@
 
       updateAdminShareLink();
 
-      document.getElementById(
-        "adminDestInput"
-      ).value = destinationName;
-
-      // Step 11 (docs/schema-legs.md §5.7): a multi-leg trip's destination/
-      // date fields are derived from legs[0]/legs[last] (§4), not free-
-      // standing values - this single-destination form can't edit them
-      // without desyncing legs (see the investigation report this commit
-      // implements). Blocked, not synced: a partial sync would leave a leg
-      // internally inconsistent (name/timezone updated, startAt/endAt left
-      // as instants computed for the old timezone) - worse than today's bug.
-      // Disabled, not hidden - a vanished field looks like data loss; a
-      // disabled one with an explanation doesn't. Real leg editing (§5.7)
-      // replaces this block once it exists, not sooner.
+      // Step 11ব (docs/schema-legs.md §5.7): destination editing is now the
+      // leg list below (seedAdminLegsEditor, called after the date fields
+      // are populated) - adminDestInput is row 0 of that list, not set
+      // directly here anymore. The overall start/end date fields are still
+      // derived from legs[0]/legs[last] (§4) and stay blocked for a
+      // multi-leg trip until per-leg date editing exists (11ব.2+) - editing
+      // them without going through buildLegs/deriveTripFields would desync
+      // legs again, the exact bug step 11א fixed.
       const multiLeg = currentLegs.length > 1;
 
-      ["adminDestInput", "adminFlightInput", "adminEndInput"].forEach(id => {
+      ["adminFlightInput", "adminEndInput"].forEach(id => {
         document.getElementById(id).disabled = multiLeg;
       });
 
@@ -4230,6 +4530,8 @@
       ).value = adminHasTime
         ? (tripTimezone ? toZonedInputValue(tripEnd, tripTimezone) : toLocalInputValue(tripEnd))
         : window.dateKeyInZone(tripEnd, tripTimezone);
+
+      seedAdminLegsEditor();
 
       syncAdminModuleCheckboxes();
 
