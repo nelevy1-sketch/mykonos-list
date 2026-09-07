@@ -168,10 +168,29 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .form-group { margin-bottom: 20px; }
-        .destination-input-row { position: relative; }
-        .destination-preview { position: absolute; inset-inline-end: 14px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; pointer-events: none; }
-        #tripDestination { padding-inline-end: 44px; }
         label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
+
+        /* Multi-destination legs list (docs/schema-legs.md §5.6, §10) */
+        .legs-list { display: flex; flex-direction: column; gap: 8px; }
+        .leg-row { display: flex; align-items: center; gap: 8px; }
+        .leg-row.hidden { display: none; }
+        .leg-ordinal { flex: 0 0 auto; width: 16px; text-align: center; font-weight: 800; color: var(--gray); font-size: .82rem; }
+        .leg-row input[type="text"] { flex: 1; min-width: 0; text-overflow: ellipsis; }
+        .leg-flag { flex: 0 0 auto; width: 22px; text-align: center; font-size: 1.15rem; }
+        .leg-up-btn, .leg-remove-btn {
+            flex: 0 0 auto; width: 44px; min-height: 48px; border: 1.5px solid var(--border); border-radius: var(--radius);
+            background: var(--surface); color: var(--text); font-size: 1rem; cursor: pointer;
+        }
+        .leg-up-btn:disabled { opacity: .35; cursor: default; }
+        .leg-remove-btn { color: #B3432F; }
+        .multi-leg-toggle-btn {
+            display: inline-block; margin-top: 10px; background: none; border: none; color: var(--primary);
+            font-weight: 700; font-size: .92rem; cursor: pointer; padding: 0; text-decoration: underline;
+        }
+        .btn-add-leg {
+            margin-top: 8px; min-height: 44px; width: 100%; border: 1.5px dashed var(--border); border-radius: var(--radius);
+            background: none; color: var(--primary); font-weight: 700; font-size: .88rem; cursor: pointer;
+        }
         input[type="text"], input[type="datetime-local"], input[type="url"], select {
             width: 100%; min-height: 50px; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: 0.2s; background: var(--surface); color: var(--text);
         }
@@ -369,11 +388,13 @@
         <div class="form-step active" data-step="1">
             <div class="form-group">
                 <label id="lblDestination">שם הטיול / היעד 🌍</label>
-                <div class="destination-input-row">
-                    <input type="text" id="tripDestination" placeholder="למשל: ברלין, תאילנד או קמפינג בגליל" autocomplete="off" required>
-                    <span class="destination-preview hidden" id="destinationPreview"></span>
-                </div>
+                <input type="text" id="tripDestination" placeholder="למשל: ברלין, תאילנד או קמפינג בגליל" autocomplete="off" required>
+                <div class="legs-list" id="legsList"></div>
                 <div class="error-text" id="destinationError" aria-live="polite"></div>
+                <button type="button" class="multi-leg-toggle-btn" id="multiLegToggleBtn">נוסעים ליותר ממקום אחד? 🗺️</button>
+                <small class="field-hint" id="multiLegExamplesHint">למשל: יורוטריפ, טיול חוף לחוף, כמה ערים באיטליה</small>
+                <small class="field-hint" id="multiLegReversibleHint">אפשר להוסיף יעדים גם אחר כך</small>
+                <button type="button" class="btn-add-leg hidden" id="addLegBtn">+ הוספת יעד</button>
             </div>
             <div class="form-group">
                 <label id="lblTripType">סוג הטיול (משפיע על קטגוריות ומבנה)</label>
@@ -685,6 +706,13 @@
             endLabel: "מועד סיום / חזרה",
             checkinLabel: "קישור לצ׳ק־אין (אופציונלי)",
             checkinHint: "יוצג בדף הנחיתה רק ב־48 השעות שלפני הטיסה.",
+            multiLegToggle: "נוסעים ליותר ממקום אחד? 🗺️",
+            multiLegExamples: "למשל: יורוטריפ, טיול חוף לחוף, כמה ערים באיטליה",
+            multiLegReversible: "אפשר להוסיף יעדים גם אחר כך",
+            addLegBtn: "+ הוספת יעד",
+            legPlaceholder: "יעד נוסף",
+            moveLegUp: "הזז למעלה",
+            removeLeg: "הסרת היעד",
             partLabel: "שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥",
             partPlaceholder: "שם חבר (למשל: נירה, ברגה...)",
             addBtn: "הוסף",
@@ -750,6 +778,13 @@
             endLabel: "End / return date",
             checkinLabel: "Check-in link (optional)",
             checkinHint: "Shown on the landing page only in the 48 hours before the flight.",
+            multiLegToggle: "Traveling to more than one place? 🗺️",
+            multiLegExamples: "e.g. a Eurotrip, coast-to-coast, a few cities in Italy",
+            multiLegReversible: "You can add destinations later too",
+            addLegBtn: "+ Add destination",
+            legPlaceholder: "Additional destination",
+            moveLegUp: "Move up",
+            removeLeg: "Remove destination",
             partLabel: "Group Participant Names (For Split & Lists) 👥",
             partPlaceholder: "Member name (e.g., Nira, Berga...)",
             addBtn: "Add",
@@ -878,6 +913,14 @@
         document.getElementById('uiSubtitle').textContent = t.subtitle;
         document.getElementById('lblDestination').textContent = t.destLabel;
         document.getElementById('tripDestination').placeholder = t.destPlaceholder;
+        document.getElementById('multiLegToggleBtn').textContent = t.multiLegToggle;
+        document.getElementById('multiLegExamplesHint').textContent = t.multiLegExamples;
+        document.getElementById('multiLegReversibleHint').textContent = t.multiLegReversible;
+        document.getElementById('addLegBtn').textContent = t.addLegBtn;
+        // Rebuilds each additional row's placeholder/aria-labels from
+        // currentLanguage (just updated above) - same reasoning as the
+        // renderParticipants() call below for participant tags.
+        updateLegRowLanguage();
         document.getElementById('lblTripType').textContent = t.typeLabel;
         document.getElementById('tripTypeHint').textContent = t.typeHint;
 
@@ -1044,6 +1087,11 @@
         try {
             const draft = {
                 destination: document.getElementById('tripDestination').value,
+                // legs[0] duplicates `destination` above (kept only as a fallback
+                // for a draft saved by an older version of this page, before this
+                // field existed - see restoreWizardDraft). Every consumer going
+                // forward reads legs, not destination.
+                legs: legRowEls.slice(0, legRowCount).map(r => r.input.value),
                 tripType: document.getElementById('tripType').value,
                 tripCharacter: document.getElementById('tripCharacter').value,
                 vibes: selectedVibes,
@@ -1075,6 +1123,27 @@
         if (!draft) return;
 
         if (draft.destination) document.getElementById('tripDestination').value = draft.destination;
+
+        // legs (if present) is the current format and overrides destination
+        // above, including row 0 - draft.destination only matters as a
+        // fallback for a draft saved before this field existed.
+        if (Array.isArray(draft.legs) && draft.legs.length) {
+            for (let i = 1; i < draft.legs.length && i < MAX_LEGS; i++) {
+                if (!legRowEls[i]) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.autocomplete = 'off';
+                    input.placeholder = translations[currentLanguage].legPlaceholder;
+                    buildLegRow(i, input);
+                }
+            }
+            legRowCount = Math.min(draft.legs.length, MAX_LEGS);
+            draft.legs.slice(0, legRowCount).forEach((value, i) => {
+                legRowEls[i].input.value = value;
+            });
+            updateLegChrome();
+        }
+
         if (draft.tripType) document.getElementById('tripType').value = draft.tripType;
         if (draft.tripCharacter) document.getElementById('tripCharacter').value = draft.tripCharacter;
         // Must run before writing draft.start/end below: it puts tripStart/tripEnd's
@@ -1481,27 +1550,201 @@
         return code.toUpperCase().replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
     }
 
-    let destinationPreviewTimer = null;
+    // Multi-destination legs list (docs/schema-legs.md §5.6, §10, commit א).
+    // Fixed pool of up to MAX_LEGS row "slots", built lazily as needed and
+    // never destroyed once built - only their value/visibility change. This
+    // is the reason slot 0 is always the pre-existing #tripDestination
+    // element itself (moved into the list, not cloned): every other piece
+    // of code in this file (validateStep, generateTripAndSave,
+    // saveWizardDraft/restoreWizardDraft, resetWizard, renderSummary)
+    // already reads document.getElementById('tripDestination').value and
+    // must keep working unchanged - if a middle row were ever physically
+    // removed/reordered as a DOM node instead of having its value shifted,
+    // #tripDestination could end up on a different row than "the first
+    // destination", or vanish from the DOM entirely on removal. Add/
+    // remove/move-up all work by shifting VALUES between fixed slots, never
+    // by creating/destroying/reparenting nodes after the initial build -
+    // "one code path" per §1, not a second one for row 1 vs rows 2+ (the
+    // exact pattern already fixed once for tripDayDates in step 4a).
+    const MAX_LEGS = 6;
+    let legRowCount = 1;
+    const legRowEls = [];
 
-    document.getElementById('tripDestination').addEventListener('input', () => {
-        const preview = document.getElementById('destinationPreview');
-        const value = document.getElementById('tripDestination').value.trim();
+    function wireLegPreview(descriptor) {
+        descriptor.input.addEventListener('input', () => {
+            const value = descriptor.input.value.trim();
 
-        if (destinationPreviewTimer) clearTimeout(destinationPreviewTimer);
-        preview.classList.add('hidden');
+            if (descriptor.previewTimer) clearTimeout(descriptor.previewTimer);
+            descriptor.flag.classList.add('hidden');
+            descriptor.flag.textContent = '';
 
-        if (!value || document.getElementById('tripType').value === 'reserve') return;
+            if (!value || document.getElementById('tripType').value === 'reserve') return;
 
-        destinationPreviewTimer = setTimeout(async () => {
-            const location = await geocodeDestination(value);
-            const flag = countryCodeToFlag(location.countryCode);
+            descriptor.previewTimer = setTimeout(async () => {
+                const location = await geocodeDestination(value);
+                const flag = countryCodeToFlag(location.countryCode);
 
-            if (flag && document.getElementById('tripDestination').value.trim() === value) {
-                preview.textContent = flag;
-                preview.classList.remove('hidden');
-            }
-        }, 600);
-    });
+                if (flag && descriptor.input.value.trim() === value) {
+                    descriptor.flag.textContent = flag;
+                    descriptor.flag.classList.remove('hidden');
+                }
+            }, 600);
+        });
+    }
+
+    function buildLegRow(index, inputEl) {
+        const row = document.createElement('div');
+        row.className = 'leg-row';
+
+        const ordinal = document.createElement('span');
+        ordinal.className = 'leg-ordinal';
+
+        const flag = document.createElement('span');
+        flag.className = 'leg-flag hidden';
+
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.className = 'leg-up-btn';
+        upBtn.textContent = '▲';
+        upBtn.addEventListener('click', () => moveLegUp(index));
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'leg-remove-btn';
+        removeBtn.textContent = '✕';
+        removeBtn.addEventListener('click', () => removeLeg(index));
+
+        row.append(ordinal, inputEl, flag, upBtn, removeBtn);
+        document.getElementById('legsList').appendChild(row);
+
+        const descriptor = { row, input: inputEl, flag, upBtn, removeBtn, ordinal, previewTimer: null };
+        legRowEls[index] = descriptor;
+        wireLegPreview(descriptor);
+        return descriptor;
+    }
+
+    function updateLegChrome() {
+        const multi = legRowCount > 1;
+
+        legRowEls.forEach((r, i) => {
+            if (!r) return;
+            const visible = i < legRowCount;
+            r.row.classList.toggle('hidden', !visible);
+            if (!visible) return;
+            r.ordinal.textContent = String(i + 1);
+            r.ordinal.classList.toggle('hidden', !multi);
+            // Not gated on `multi` - the flag preview predates the legs list
+            // (it's row 0's original single-destination behavior) and must
+            // keep working identically regardless of leg count. Currently
+            // only reachable via addLeg/removeLeg/moveLegUp, never while
+            // sitting collapsed with unrelated content already showing, but
+            // gating it on `multi` anyway would silently hide a legitimate
+            // flag the moment that ever changes.
+            r.flag.classList.toggle('hidden', !r.flag.textContent);
+            r.upBtn.classList.toggle('hidden', !multi);
+            r.upBtn.disabled = i === 0;
+            r.removeBtn.classList.toggle('hidden', !multi);
+        });
+
+        document.getElementById('multiLegToggleBtn').classList.toggle('hidden', multi);
+        document.getElementById('multiLegExamplesHint').classList.toggle('hidden', multi);
+        document.getElementById('multiLegReversibleHint').classList.toggle('hidden', multi);
+        document.getElementById('addLegBtn').classList.toggle('hidden', !multi || legRowCount >= MAX_LEGS);
+    }
+
+    function updateLegRowLanguage() {
+        const t = translations[currentLanguage];
+        legRowEls.forEach((r, i) => {
+            if (!r) return;
+            if (i > 0) r.input.placeholder = t.legPlaceholder;
+            r.upBtn.setAttribute('aria-label', t.moveLegUp);
+            r.removeBtn.setAttribute('aria-label', t.removeLeg);
+        });
+    }
+
+    function addLeg() {
+        if (legRowCount >= MAX_LEGS) return;
+        const index = legRowCount;
+
+        if (!legRowEls[index]) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.autocomplete = 'off';
+            input.placeholder = translations[currentLanguage].legPlaceholder;
+            buildLegRow(index, input);
+        }
+
+        legRowCount++;
+        updateLegChrome();
+        legRowEls[index].input.focus();
+    }
+
+    function removeLeg(index) {
+        if (legRowCount <= 1) return;
+
+        for (let i = index; i < legRowCount - 1; i++) {
+            const cur = legRowEls[i];
+            const next = legRowEls[i + 1];
+            if (cur.previewTimer) { clearTimeout(cur.previewTimer); cur.previewTimer = null; }
+            cur.input.value = next.input.value;
+            cur.flag.textContent = next.flag.textContent;
+            cur.flag.classList.toggle('hidden', !next.flag.textContent);
+        }
+
+        const last = legRowEls[legRowCount - 1];
+        if (last.previewTimer) { clearTimeout(last.previewTimer); last.previewTimer = null; }
+        last.input.value = '';
+        last.flag.textContent = '';
+        last.flag.classList.add('hidden');
+
+        legRowCount--;
+        updateLegChrome();
+    }
+
+    function moveLegUp(index) {
+        if (index === 0) return;
+        const a = legRowEls[index - 1];
+        const b = legRowEls[index];
+
+        if (a.previewTimer) { clearTimeout(a.previewTimer); a.previewTimer = null; }
+        if (b.previewTimer) { clearTimeout(b.previewTimer); b.previewTimer = null; }
+
+        const tmpValue = a.input.value;
+        a.input.value = b.input.value;
+        b.input.value = tmpValue;
+
+        const tmpFlagText = a.flag.textContent;
+        const tmpFlagHidden = a.flag.classList.contains('hidden');
+        a.flag.textContent = b.flag.textContent;
+        a.flag.classList.toggle('hidden', b.flag.classList.contains('hidden'));
+        b.flag.textContent = tmpFlagText;
+        b.flag.classList.toggle('hidden', tmpFlagHidden);
+    }
+
+    function resetLegs() {
+        for (let i = legRowEls.length - 1; i >= 0; i--) {
+            const r = legRowEls[i];
+            if (!r) continue;
+            if (r.previewTimer) { clearTimeout(r.previewTimer); r.previewTimer = null; }
+            if (i > 0) r.input.value = '';
+            r.flag.textContent = '';
+            r.flag.classList.add('hidden');
+        }
+        legRowCount = 1;
+        updateLegChrome();
+    }
+
+    document.getElementById('multiLegToggleBtn').addEventListener('click', addLeg);
+    document.getElementById('addLegBtn').addEventListener('click', addLeg);
+
+    buildLegRow(0, document.getElementById('tripDestination'));
+    updateLegChrome();
+    // changeGlobalLanguage() (which normally sets these) only runs on an
+    // explicit language-button click, never automatically at startup - the
+    // static HTML text is already Hebrew, but row 0's aria-labels are only
+    // ever set here or there, so they need this call too or they'd be
+    // missing on a plain page load.
+    updateLegRowLanguage();
 
     async function generateTripAndSave() {
         if (![1,2,3].every(validateStep)) return;
@@ -1645,14 +1888,12 @@
         currentStep = 1;
         participants = [];
         selectedVibes = [];
-        if (destinationPreviewTimer) { clearTimeout(destinationPreviewTimer); destinationPreviewTimer = null; }
+        resetLegs();
         document.getElementById('tripDestination').value = '';
         document.getElementById('tripType').value = 'abroad';
         document.getElementById('tripCharacter').value = '';
         document.getElementById('checkinUrl').value = '';
         document.getElementById('participantName').value = '';
-        document.getElementById('destinationPreview').textContent = '';
-        document.getElementById('destinationPreview').classList.add('hidden');
         ['featPacking','featShopping','featPlaces','featItinerary','featExpenses'].forEach(id => { document.getElementById(id).checked = true; });
         ['destinationError','participantsError','featuresError'].forEach(id => { document.getElementById(id).textContent = ''; });
         renderParticipants();

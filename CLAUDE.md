@@ -121,6 +121,8 @@ index.html הוא היוצא מן הכלל היחיד מבין 6 העמודים,
 עקביות מכוונת בין העמודים למחלקות *חדשות* - כדי שלא יתווסף עוד פיצול
 כמו זה של `theme-X` (`documentElement` בחלק, `body` באחרים).
 
+**`wizard.html` כותבת `tripData.schemaVersion: 2` בכל טיול חדש, אבל שום קוד באפליקציה לא קורא את השדה הזה** - לא `getLegs()`, לא שום מקום אחר. אל תניחו שהוא משפיע על משהו.
+
 **באג ידוע ב-`starterLists()` (packing.html): `vibes` דורס את
 `clothing.items` במקום למזג עם מה ש-`tripType` כבר שם שם** -
 `clothingList.items = [...merged]` מחליף לגמרי, לא מוסיף. לא
