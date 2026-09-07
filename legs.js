@@ -60,10 +60,26 @@
             return trip.legs;
         }
 
-        if (trip.lat == null || trip.lon == null) {
+        // Warn only when this looks like a real trip missing real data -
+        // trip.destination is set but lat/lon isn't. A trip object with
+        // no destination either hasn't loaded yet (every page here builds
+        // trip as an empty object/module var and populates it once
+        // Firebase answers - see docs/schema-legs.md's CLAUDE.md entry)
+        // or was never given one; either way that's not a data problem to
+        // report. Not keying this off trip.language or any other field -
+        // a pre-load object can look different from page to page, but
+        // "no destination yet" is the one thing they all share. This
+        // narrower check is what actually distinguishes "not loaded yet"
+        // from "loaded, and something's wrong": itinerary.html, places.html
+        // and packing.html all synchronously call functions that reach
+        // getLegs() before Firebase responds (a cached-language flash-fix
+        // that runs on a bare {} trip) - confirmed to fire this warning
+        // 2-6 times on every single page load before this fix, which is
+        // exactly the kind of noise that gets an alert ignored.
+        if (trip.destination && (trip.lat == null || trip.lon == null)) {
             console.warn(
                 "[legs.js] getLegs: trip missing lat/lon" +
-                (tripId ? " (tripId: " + tripId + ")" : trip.destination ? " (" + trip.destination + ")" : ""),
+                (tripId ? " (tripId: " + tripId + ")" : " (" + trip.destination + ")"),
                 trip
             );
         }
