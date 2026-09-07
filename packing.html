@@ -1883,15 +1883,115 @@
       }
     }
 
-    function renderAiSuggestions(items) {
-      const existingNames = new Set(
-        Object.values(currentItems())
-          .map(item => (item.name || "").trim().toLowerCase())
-      );
+    // Safety net for the AI-suggestion prompt, not the fix itself - see
+    // functions/index.js and CHANGELOG.md. Semantic near-duplicates
+    // ("מעיל מעבר עמיד למים ולרוח" vs "מעיל סתווי עמיד לרוח ולגשם") are
+    // not text-detectable at all and can only be fixed in the prompt.
+    // What *is* text-detectable, and did slip through even after the
+    // prompt fix, is one phrasing being a whole-word prefix of another
+    // ("צעיף קל" / "צעיף קל לסתיו", "מטרייה מתקפלת" / "מטרייה מתקפלת קלה").
+    function normalizeForDedup(value) {
+      return String(value)
+        .replace(/\([^)]*\)/g, " ") // "(Power Bank)" etc. - noise for comparison
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
 
-      const fresh = items.filter(
-        item => !existingNames.has(item.trim().toLowerCase())
-      );
+    function wordsOfItem(value) {
+      const normalized = normalizeForDedup(value);
+      return normalized ? normalized.split(" ") : [];
+    }
+
+    // True if `aWords`/`bWords` name the same real item: identical after
+    // normalization, or one is a whole-*word* prefix of the other
+    // ("צעיף קל" is a prefix of "צעיף קל לסתיו"). Word-level, not
+    // character-level - "מעיל" must not match "מעילים" or "מעילון" just
+    // because the characters line up; splitting on whitespace already
+    // guarantees that, since those are simply different single tokens.
+    //
+    // The shorter side must have at least 2 words. A single generic word
+    // ("מעיל") being a prefix of a more specific one ("מעיל גשם") is too
+    // weak a signal to treat as certainly the same item - those could
+    // legitimately be two different, deliberately-added things - so
+    // single-word items only match by exact equality, never by prefix.
+    function isSameItem(aWords, bWords) {
+      if (aWords.join(" ") === bWords.join(" ")) {
+        return true;
+      }
+
+      const [shorter, longer] =
+        aWords.length <= bWords.length ? [aWords, bWords] : [bWords, aWords];
+
+      if (shorter.length < 2 || shorter.length >= longer.length) {
+        return false;
+      }
+
+      return shorter.every((word, i) => word === longer[i]);
+    }
+
+    function renderAiSuggestions(aiItems) {
+      // Every list, not just the active one - a suggestion that duplicates
+      // something already on a *different* list is still a duplicate.
+      const existingWordLists = Object.values(items)
+        .flatMap(list => Object.values(list || {}))
+        .map(item => wordsOfItem(item.name || ""))
+        .filter(words => words.length);
+
+      let filteredAgainstExisting = 0;
+      let filteredAsDuplicate = 0;
+      const accepted = [];
+
+      aiItems.forEach(item => {
+        const words = wordsOfItem(item);
+
+        if (!words.length) {
+          return;
+        }
+
+        if (existingWordLists.some(existing => isSameItem(words, existing))) {
+          filteredAgainstExisting++;
+          return;
+        }
+
+        const dupIndex = accepted.findIndex(a => isSameItem(words, a.words));
+
+        if (dupIndex === -1) {
+          accepted.push({ item, words });
+          return;
+        }
+
+        filteredAsDuplicate++;
+
+        // Keep whichever phrasing is shorter, regardless of arrival order -
+        // it's the more canonical name, and it's also the smaller one.
+        if (words.length < accepted[dupIndex].words.length) {
+          accepted[dupIndex] = { item, words };
+        }
+      });
+
+      // Diagnostic only, not user-facing: this is here to find out whether
+      // the prompt fix alone is enough or this filter is still doing real
+      // work. Revisit after a few weeks of production use.
+      if (filteredAgainstExisting || filteredAsDuplicate) {
+        console.log(
+          `AI suggestions: filtered ${filteredAgainstExisting} already on a list, ` +
+          `${filteredAsDuplicate} duplicate within the batch itself ` +
+          `(of ${aiItems.length} suggested)`
+        );
+      }
+
+      const fresh = accepted.map(a => a.item);
+
+      // Not a failure, just a signal something upstream (prompt or
+      // filtering) may need another look - never blocks the suggestions
+      // that did survive from showing.
+      if (fresh.length < 3) {
+        console.warn(
+          `AI suggestions: only ${fresh.length} left after filtering ` +
+          `(of ${aiItems.length} suggested)`
+        );
+      }
 
       if (!fresh.length) {
         $("aiSuggestions").classList.add("hidden");
