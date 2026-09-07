@@ -1,5 +1,15 @@
 # GitTrip — CHANGELOG
 
+## v4.13.7 — `datetime.js`: ריכוז `zonedParts`/`todayKeyInZone`/`nowHHMMInZone`/`dateKeyInZone` (commit א מתוך 2)
+
+### ✨ תשתית
+- **קובץ חדש ברמת השורש, `datetime.js`, אותה תבנית טעינה בדיוק כמו `legs.js`** - IIFE, script קלאסי בכל 6 העמודים (`<script src="datetime.js">` מיד אחרי `legs.js`), מצמיד ל-`window` במפורש כדי שיהיה נגיש גם מ-index.html (script קלאסי) וגם מחמשת המודולים
+- **הסיבה שזה לא נכנס ל-legs.js**: הפונקציות האלה לא קשורות לרגליים - הן עונות "מה השעה/היום ב-timezone X", בלי שום ידע על מבנה טיול. לערבב את השניים היה הופך את legs.js לקובץ אוסף
+- **למה עכשיו, לא רק "עוד ניקוי"**: `zonedParts` היה כבר קיים כעותק זהה ביט-ביט בשני קבצים (`itinerary.html`, `index.html` - אומת ב-git log: שניהם עצמאיים, לא אחד הועתק מהשני). היה עומד להיווצר עותק שלישי בתיקון של `tripDayDates()` ב-places.html (commit ב). שלושה עותקים של פונקציה עם קצה אמיתי (`hour===24`→`0`) זה כבר לא תקדים כמו `dateKey`/`--glow-color` (חד-שורתי/CSS) - זה דפוס שיחזור. רוכז לפני שהעותק השלישי נכתב, לא אחריו
+- **אומת לפני הכתיבה, לא רק אחריה**: השוואה בין שלוש המימושים (itinerary.html, index.html, והגרסה המתוכננת ל-datetime.js) על 5 תאריכים × 3 timezones (כולל שתי נקודות DST של ארה"ב, אזור עם היסט חצי-שעה - Asia/Kolkata, ומופע מדויק של קצה ה-hour===24 ב-Asia/Bangkok) - 20/20 השוואות זהות. אפס הבדל, כולל הקצה
+- **אפס שינוי התנהגות**: שום קוד קיים לא קורא ל-`datetime.js` עדיין - העותקים המקומיים ב-itinerary.html/index.html עדיין קיימים ומוצללים (shadowing) על ידי הצהרות הפונקציה המקומיות שלהם, בדיוק כמו ש-legs.js לא שינה כלום ביום שנוסף. הוחלפה בפועל רק ב-commit ב
+- נבדק בפועל: כל 6 העמודים נטענו מחדש, `window.zonedParts`/`window.dateKeyInZone`/`window.todayKeyInZone`/`window.nowHHMMInZone` הם `function` בכולם (גם ב-index.html הקלאסי, גם במודול כמו packing.html), קצה ה-`hour===24` נבדק חי דרך `window.zonedParts` (לא רק בבדיקת ה-Node) - `Asia/Bangkok` בחצות מקומי בדיוק מחזיר `hour:0`. אין שגיאות קונסולה חדשות באף עמוד
+
 ## v4.13.6 — תיקון: aria-label "הסר X" לא מתעדכן, ולא מתעדכן חי (commit ג2 מתוך 3, `scripts/i18n-audit.js`)
 
 ### 🐛 תיקון
