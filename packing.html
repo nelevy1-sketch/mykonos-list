@@ -1110,6 +1110,7 @@
     const tripRoot = tripId ? `trips/${tripId}` : null;
     const themeKey = `trip-${tripId || "legacy"}-theme`;
     const langKey = `trip-${tripId || "legacy"}-lang`;
+    const activeListKey = `trip-${tripId || "legacy"}-activeList`;
 
     let user = null;
     let trip = {};
@@ -1132,7 +1133,17 @@
 
     let items = {};
     let allPacking = {};
+
+    // Restored per trip (not global - a different trip means a different
+    // list). Falls back to "main" like before when there's nothing saved
+    // yet. Deliberately NOT guarded against a stale/deleted list here -
+    // renderLists()'s existing fallback (below) already catches that on
+    // the very next render, no need for a second copy of the same check.
     let activeList = "main";
+    try {
+      const savedActiveList = localStorage.getItem(activeListKey);
+      if (savedActiveList) activeList = savedActiveList;
+    } catch (e) {}
     let editingId = null;
     let packingListening = false;
     let stopTrip = null;
@@ -2514,6 +2525,16 @@
       }
 
       $("listSelect").value = activeList;
+
+      // Single save point for all 7 places activeList gets reassigned
+      // (list switch, create/duplicate/delete, ensureStarterLists, the
+      // fallback right above, moving an item to another list) - every one
+      // of them ends up calling renderMine() -> renderLists(), either
+      // directly or via the RTDB listener echoing the write back. Cheaper
+      // and lower-risk than duplicating a save call at each site.
+      try {
+        localStorage.setItem(activeListKey, activeList);
+      } catch (e) {}
     }
 
     function renderMine() {
