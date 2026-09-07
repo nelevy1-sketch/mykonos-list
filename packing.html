@@ -466,15 +466,19 @@
        scrollbar, trailing spacer instead of padding alone - see that
        block's comments for why each exists), but the interaction model is
        .day-tab's (itinerary.html), not .pick's: single persistent
-       selection, not one-shot action buttons. min-width:0 lets it actually
-       shrink/scroll as a flex child of .list-head-actions instead of
-       overflowing the row - the .list-select it replaces needed the same. */
+       selection, not one-shot action buttons.
+       Its own full-width row below .list-head, not a flex item competing
+       with the icon buttons for space - that's what made the fade
+       imperceptible on mobile (confirmed: only ~137px of 375px was left
+       for it once squeezed next to 3 buttons, showing barely two and a
+       half chips). The fade/scroll mechanics themselves needed no changes
+       for this - they were already relative to the container's own width,
+       same as .quick-picks always was. */
     .category-chips {
       display:flex;
       gap:7px;
       overflow:auto;
-      min-width:0;
-      flex:1 1 auto;
+      margin:0 2px 9px;
       padding-block:10px 2px;
       padding-inline:2px 14px;
       scrollbar-width:none;
@@ -542,12 +546,13 @@
       box-shadow:0 0 10px color-mix(in srgb, var(--glow-color) 45%, transparent);
     }
 
+    /* Just the 3 icon buttons now (chips moved to their own row below) -
+       sized to its own content, not stretched to fill .list-head. */
     .list-head-actions {
       display:flex;
       gap:6px;
       align-items:center;
-      min-width:0;
-      flex:1 1 auto;
+      flex:0 0 auto;
     }
 
     .list-icon-btn {
@@ -892,7 +897,6 @@
     <section id="mineView">
       <div class="list-head">
         <div class="list-head-actions">
-          <div class="category-chips" id="categoryChips"></div>
           <button class="list-icon-btn" id="selectModeBtn" aria-label="בחירה מרובה" title="בחירה מרובה">☑️</button>
           <button class="list-icon-btn" id="manageListBtn" aria-label="ניהול רשימה" title="ניהול רשימה">⚙️</button>
           <button class="list-icon-btn" id="newListBtn" aria-label="רשימה חדשה" title="רשימה חדשה">➕</button>
@@ -900,6 +904,8 @@
 
         <strong class="progress-count" id="progressText">0/0</strong>
       </div>
+
+      <div class="category-chips" id="categoryChips"></div>
 
       <div class="progress-wrap">
         <div class="progress">
