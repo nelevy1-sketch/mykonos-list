@@ -1,5 +1,14 @@
 # GitTrip — CHANGELOG
 
+## v4.13.11 — `renderMine` מתייגת `data-category` (שלב 2 מתוך 6, רשימת ציוד מסוננת)
+
+### 🔧 תשתית
+- **`renderMine()` צורכת `itemsForCategoryFilter(activeList)` במקום `currentItems()`** - אותה קבוצת פריטים בדיוק (המסנן הוא `activeList`, זהה למה שהיה מוצג), אבל כל item בתוצאה נושא עכשיו `categoryId`
+- **כל אלמנט אינטראקטיבי בשורת פריט מתויג ב-`data-category`**: `data-select`, `data-check`, `data-expand`, `data-toggle-visibility`, `data-edit`, `data-sub-check`, `data-sub-delete`, `data-sub-add-input`, `data-sub-add` - 9 סוגי אלמנטים, `data-check` על תת-פריט מקבל את הקטגוריה **של ההורה** (תת-פריטים לא נושאים קטגוריה עצמאית)
+- **אפס שינוי התנהגות**: שום קוד לא קורא ל-`data-category` עדיין - שלב 3 יקרא. כל הפעולות ממשיכות לכתוב דרך `activeList`, בדיוק כמו קודם
+- **מיפוי מלא של 14 נקודות הכתיבה** מול השינוי: 9 מהן מתויגות (ישירות או דרך `data-select`/`data-edit` שמזינות אותן בשלבים הבאים). 5 לא רלוונטיות לשלב הזה כי אין להן שורת-פריט קיימת לתייג - `setListVisibility` (פעולה על כל הרשימה), `importItem` (ב-`renderGroup()`, פונקציה אחרת לגמרי), `addToSuggestedCategory` ושתי הענפים של הוספת פריט חדש (`addItem`) - כולן פועלות לפני שיש item שרונדר, הקטגוריה שלהן תיפתר אחרת (שלב 6)
+- נבדק בפועל (hook זמני, הוסר ואומת): 3 פריטים (אחד עם 2 תת-פריטים, מצב בחירה מרובה + תת-פריטים פתוחים) - 20 אלמנטים אינטראקטיביים בשורות, **20** נושאים `data-category` תקין (לא ריק, לא `undefined`). צילום מסך מאמת תצוגה זהה למה ש-`currentItems()` הייתה מציגה. אין שגיאות קונסולה
+
 ## v4.13.10 — `itemsForCategoryFilter()` ב-packing.html (שלב 1 מתוך 6, רשימת ציוד מסוננת במקום בורר רשימות)
 
 ### 🔧 תשתית

@@ -2577,7 +2577,14 @@
       renderLists();
       renderQuickPicks();
 
-      const map = currentItems();
+      // Same source as currentItems() would give today (activeList only) -
+      // this is step 2 of the filtered-list rework: every interactive
+      // element below gets tagged with its item's categoryId (from
+      // itemsForCategoryFilter, see step 1), but the filter passed in is
+      // still just activeList, so the actual set of items shown is
+      // byte-identical to before. Nothing reads data-category yet - it's
+      // wiring for step 3, not a behavior change.
+      const map = itemsForCategoryFilter(activeList);
 
       const entries =
         Object.entries(map)
@@ -2645,6 +2652,7 @@
                     class="select-check"
                     type="checkbox"
                     data-select="${item.id}"
+                    data-category="${item.categoryId}"
                     ${selectedIds.has(item.id) ? "checked" : ""}
                     aria-label="${tr("בחירה", "Select")}">
                 ` : ""}
@@ -2656,6 +2664,7 @@
                     class="check"
                     type="checkbox"
                     data-check="${item.id}"
+                    data-category="${item.categoryId}"
                     ${item.isDone ? "checked" : ""}>
                 `}
 
@@ -2678,6 +2687,7 @@
                   <button
                     class="mini expand-toggle ${isExpanded ? "expanded" : ""}"
                     data-expand="${item.id}"
+                    data-category="${item.categoryId}"
                     aria-expanded="${isExpanded ? "true" : "false"}"
                     aria-label="${tr("תת-פריטים", "Sub-items")}">
                     ${isExpanded ? "▾" : "▸"}
@@ -2686,6 +2696,7 @@
                   <button
                     class="mini visibility-toggle"
                     data-toggle-visibility="${item.id}"
+                    data-category="${item.categoryId}"
                     aria-label="${item.isPublic
                       ? tr("הפוך לפרטי", "Make private")
                       : tr("שתף עם הקבוצה", "Share with group")}">
@@ -2695,6 +2706,7 @@
                   <button
                     class="mini"
                     data-edit="${item.id}"
+                    data-category="${item.categoryId}"
                     aria-label="${tr("אפשרויות", "Options")}">
                     •••
                   </button>
@@ -2704,15 +2716,15 @@
                   <div class="sub-panel">
                     ${subs.map(sub => `
                       <div class="sub-item">
-                        <input class="check" type="checkbox" data-sub-check="${item.id}:${sub.id}" ${sub.isDone ? "checked" : ""}>
+                        <input class="check" type="checkbox" data-sub-check="${item.id}:${sub.id}" data-category="${item.categoryId}" ${sub.isDone ? "checked" : ""}>
                         <span class="sub-name ${sub.isDone ? "sub-done" : ""}">${escapeHtml(sub.name)}</span>
-                        <button class="mini" data-sub-delete="${item.id}:${sub.id}" aria-label="${tr("מחיקה", "Delete")}">✕</button>
+                        <button class="mini" data-sub-delete="${item.id}:${sub.id}" data-category="${item.categoryId}" aria-label="${tr("מחיקה", "Delete")}">✕</button>
                       </div>
                     `).join("")}
 
                     <div class="sub-add-row">
-                      <input type="text" class="sub-add-input" data-sub-add-input="${item.id}" maxlength="80" placeholder="${tr("הוספת תת-פריט...", "Add sub-item...")}">
-                      <button class="mini" data-sub-add="${item.id}" aria-label="${tr("הוספה", "Add")}">➕</button>
+                      <input type="text" class="sub-add-input" data-sub-add-input="${item.id}" data-category="${item.categoryId}" maxlength="80" placeholder="${tr("הוספת תת-פריט...", "Add sub-item...")}">
+                      <button class="mini" data-sub-add="${item.id}" data-category="${item.categoryId}" aria-label="${tr("הוספה", "Add")}">➕</button>
                     </div>
                   </div>
                 ` : ""}
