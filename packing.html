@@ -462,19 +462,84 @@
       color:var(--muted);
     }
 
-    .list-select {
-      min-height:42px;
+    /* Same scroll mechanics as .quick-picks (fade mask, thin desktop-only
+       scrollbar, trailing spacer instead of padding alone - see that
+       block's comments for why each exists), but the interaction model is
+       .day-tab's (itinerary.html), not .pick's: single persistent
+       selection, not one-shot action buttons. min-width:0 lets it actually
+       shrink/scroll as a flex child of .list-head-actions instead of
+       overflowing the row - the .list-select it replaces needed the same. */
+    .category-chips {
+      display:flex;
+      gap:7px;
+      overflow:auto;
       min-width:0;
       flex:1 1 auto;
+      padding-block:10px 2px;
+      padding-inline:2px 14px;
+      scrollbar-width:none;
+    }
+
+    [dir="rtl"] .category-chips.has-more {
+      -webkit-mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+      mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+    }
+
+    [dir="ltr"] .category-chips.has-more {
+      -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+      mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    }
+
+    .category-chips-end-spacer {
+      flex:0 0 12px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .category-chips {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+        padding-block-end: 0;
+      }
+
+      .category-chips::-webkit-scrollbar {
+        display: block;
+        height: 5px;
+      }
+
+      .category-chips::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .category-chips::-webkit-scrollbar-thumb {
+        background: var(--line);
+        border-radius: 999px;
+      }
+    }
+
+    .category-chips::-webkit-scrollbar {
+      display:none;
+    }
+
+    .chip {
       border:1px solid var(--line);
-      border-radius:13px;
-      background:var(--surface);
+      background:var(--surface-2);
       color:var(--text);
-      padding:0 10px;
-      font-weight:700;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      border-radius:999px;
+      padding:7px 11px;
       white-space:nowrap;
+      font-size:.8rem;
+      font-weight:700;
+      flex-shrink:0;
+    }
+
+    .chip.active {
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+    }
+
+    [data-theme="dark"] .chip.active {
+      box-shadow:0 0 10px color-mix(in srgb, var(--glow-color) 45%, transparent);
     }
 
     .list-head-actions {
@@ -827,7 +892,7 @@
     <section id="mineView">
       <div class="list-head">
         <div class="list-head-actions">
-          <select class="list-select" id="listSelect"></select>
+          <div class="category-chips" id="categoryChips"></div>
           <button class="list-icon-btn" id="selectModeBtn" aria-label="בחירה מרובה" title="בחירה מרובה">☑️</button>
           <button class="list-icon-btn" id="manageListBtn" aria-label="ניהול רשימה" title="ניהול רשימה">⚙️</button>
           <button class="list-icon-btn" id="newListBtn" aria-label="רשימה חדשה" title="רשימה חדשה">➕</button>
@@ -937,6 +1002,11 @@
     <div class="sheet">
       <div class="handle"></div>
       <h2 id="addItemTitle">הוספת פריט</h2>
+
+      <div class="field hidden" id="addItemCategoryField">
+        <label id="addItemCategoryLabel">קטגוריה</label>
+        <select id="addItemCategorySelect"></select>
+      </div>
 
       <div class="add-row">
         <input id="newItem" maxlength="100" placeholder="מה צריך לארוז?">
@@ -1447,6 +1517,8 @@
       $("addItemFab").setAttribute("aria-label", addItemLabel);
       $("addItemTitle").textContent = addItemLabel;
 
+      $("addItemCategoryLabel").textContent = tr("קטגוריה", "Category");
+
       $("closeAddItemOverlay").textContent =
         tr("סגירה", "Close");
 
@@ -1557,14 +1629,12 @@
       $("quickPicksLabel").textContent =
         tr("מה עוד חסר לך?", "What else do you need?");
 
-      $("aiSuggestBtn").textContent =
-        tr("✨ הצע רשימה עם AI", "✨ Suggest a list with AI");
+      updateAiSuggestBtnState();
 
       $("editListLabel").textContent =
         tr("רשימה", "List");
 
-      $("manageListBtn").title = tr("ניהול רשימה", "Manage list");
-      $("manageListBtn").setAttribute("aria-label", tr("ניהול רשימה", "Manage list"));
+      updateManageListBtnState();
 
       $("newListBtn").title = tr("רשימה חדשה", "New list");
       $("newListBtn").setAttribute("aria-label", tr("רשימה חדשה", "New list"));
@@ -2579,23 +2649,55 @@
     function renderLists() {
       const ids = allListIds();
 
-      $("listSelect").innerHTML =
-        ids
-          .map(id =>
-            `<option value="${escapeHtml(id)}">` +
-            `${escapeHtml(listLabel(id))}</option>`
-          )
-          .join("");
-
-      if (!ids.includes(activeList)) {
+      // "all" is a valid activeList value (persisted like any other, see
+      // below) but is never a real category, so it can never appear in
+      // `ids` - the check has to special-case it explicitly, or a restored
+      // "all" gets silently overwritten back to "main" on every load. This
+      // is corrected BEFORE building the chips below, not after (unlike
+      // the old <select>, a chip's "active" look has to be baked into the
+      // HTML at generation time - there's no equivalent of setting
+      // .value on an already-populated element afterward).
+      if (activeList !== "all" && !ids.includes(activeList)) {
         activeList = "main";
       }
 
-      $("listSelect").value = activeList;
+      const chipIds = ["all", ...ids];
+
+      $("categoryChips").innerHTML =
+        chipIds
+          .map(id => {
+            const label = id === "all" ? tr("הכל", "All") : listLabel(id);
+            const isActive = id === activeList;
+
+            return (
+              `<button class="chip${isActive ? " active" : ""}" ` +
+              `data-chip="${escapeHtml(id)}">` +
+              `${escapeHtml(label)}</button>`
+            );
+          })
+          .join("") +
+        `<span class="category-chips-end-spacer" aria-hidden="true"></span>`;
+
+      // Same reset as quick-picks needed (v4.13.1): swapping the strip's
+      // content doesn't reset scroll position on its own, so switching
+      // categories could leave it mid-scrolled from whatever the previous
+      // set of chips happened to be.
+      $("categoryChips").scrollLeft = 0;
+
+      document
+        .querySelectorAll("[data-chip]")
+        .forEach(chip => {
+          chip.onclick = () => {
+            activeList = chip.dataset.chip;
+            renderMine();
+          };
+        });
+
+      updateCategoryChipsFade();
 
       // Single save point for all 7 places activeList gets reassigned
       // (list switch, create/duplicate/delete, ensureStarterLists, the
-      // fallback right above, moving an item to another list) - every one
+      // fallback above, moving an item to another list) - every one
       // of them ends up calling renderMine() -> renderLists(), either
       // directly or via the RTDB listener echoing the write back. Cheaper
       // and lower-risk than duplicating a save call at each site.
@@ -2604,9 +2706,50 @@
       } catch (e) {}
     }
 
+    function updateCategoryChipsFade() {
+      const el = $("categoryChips");
+      const hasMore = Math.abs(el.scrollLeft) + el.clientWidth < el.scrollWidth - 1;
+      el.classList.toggle("has-more", hasMore);
+    }
+
+    // Shared by renderMine() (data/state-driven) and applyLanguage()
+    // (language-driven) - two independent triggers that both need the
+    // disabled state to stay in sync with activeList, not just with
+    // whichever one happened to run more recently. Icon-only button, so
+    // "why disabled" goes through title/aria-label like the rest of this
+    // file's icon buttons - the same as themeBtn/homeTop elsewhere.
+    function updateManageListBtnState() {
+      const btn = $("manageListBtn");
+      const disabled = activeList === "all";
+      const label = disabled
+        ? tr("בחרו קטגוריה לניהול", "Choose a category to manage")
+        : tr("ניהול רשימה", "Manage list");
+
+      btn.disabled = disabled;
+      btn.title = label;
+      btn.setAttribute("aria-label", label);
+    }
+
+    // Same reasoning as updateManageListBtnState(), but the button has its
+    // own visible text (not icon-only) - the explanation replaces that
+    // text directly instead of going through title/aria-label, since a
+    // hover-only tooltip is never discoverable on touch (see
+    // setSelectionMode()'s own comment on the same limitation).
+    function updateAiSuggestBtnState() {
+      const btn = $("aiSuggestBtn");
+      const disabled = activeList === "all";
+
+      btn.disabled = disabled;
+      btn.textContent = disabled
+        ? tr("בחרו קטגוריה לקבלת הצעות AI", "Choose a category for AI suggestions")
+        : tr("✨ הצע רשימה עם AI", "✨ Suggest a list with AI");
+    }
+
     function renderMine() {
       renderLists();
       renderQuickPicks();
+      updateManageListBtnState();
+      updateAiSuggestBtnState();
 
       // Same source as currentItems() would give today (activeList only) -
       // this is step 2 of the filtered-list rework: every interactive
@@ -3332,9 +3475,23 @@
     }
 
     function updateCategorySuggestion() {
+      const box = $("categorySuggest");
+
+      // addToSuggestedCategory() (below) writes to activeList unchanged -
+      // it was never converted to take an explicit category the way
+      // addItem() was, since building a second category picker just for
+      // this secondary feature would be real scope creep. Simplest correct
+      // fix: don't offer the suggestion at all while browsing "all" - the
+      // keyword-grouping feature simply isn't available until the user is
+      // looking at one specific real category, same as it always required
+      // an active list before cross-category filtering existed.
+      if (activeList === "all") {
+        box.classList.remove("show");
+        return;
+      }
+
       const value = $("newItem").value;
       const category = detectSuggestedCategory(value);
-      const box = $("categorySuggest");
 
       if (!category) {
         box.classList.remove("show");
@@ -3398,7 +3555,11 @@
       );
     }
 
-    async function addItem(value) {
+    // explicitCategoryId is only passed by the "all" picker in the
+    // add-item overlay (addBtn/newItem's Enter handler, below) - every
+    // other existing caller (quick-picks, AI suggestions) still just
+    // passes a name, so they keep targeting activeList exactly as before.
+    async function addItem(value, explicitCategoryId) {
       const name =
         (value || $("newItem").value).trim();
 
@@ -3410,8 +3571,22 @@
         return;
       }
 
+      const targetCategory = explicitCategoryId || activeList;
+
+      // No fallback, same rule as steps 3-4: "all" is never a real category
+      // to write into. The addBtn/Enter handlers always resolve an explicit
+      // category before calling addItem() while filtered to "all" - this
+      // only fires if something upstream forgot to.
+      assertCategory(targetCategory !== "all" ? targetCategory : null, "addItem");
+
+      // Across every category, not just targetCategory - decided
+      // deliberately for consistency with AI suggestions' own dedup
+      // (renderAiSuggestions), which already checks every list for the
+      // same reason: a duplicate of something on a *different* list is
+      // still a duplicate the user doesn't want two copies of.
       const alreadyExists =
-        Object.values(currentItems())
+        Object.values(items || {})
+          .flatMap(list => Object.values(list || {}))
           .some(item =>
             item.name
               ?.trim()
@@ -3431,7 +3606,7 @@
       await push(
         ref(
           db,
-          `${userBase()}/items/${activeList}`
+          `${userBase()}/items/${targetCategory}`
         ),
         {
           name,
@@ -3692,11 +3867,35 @@
       saveProfile(event.target.value);
     };
 
+    // Shared by the add button and Enter-in-the-input (below) so the two
+    // trigger paths can't drift - exactly the kind of gap step 3 found in
+    // addSubItem's own two paths.
+    function addItemFromModal() {
+      const categoryId =
+        activeList === "all" ? $("addItemCategorySelect").value : undefined;
+
+      addItem(undefined, categoryId);
+    }
+
     $("addBtn").onclick = () => {
-      addItem();
+      addItemFromModal();
     };
 
     $("addItemFab").onclick = () => {
+      const isAll = activeList === "all";
+
+      $("addItemCategoryField").classList.toggle("hidden", !isAll);
+
+      if (isAll) {
+        $("addItemCategorySelect").innerHTML =
+          allListIds()
+            .map(id =>
+              `<option value="${escapeHtml(id)}">` +
+              `${escapeHtml(listLabel(id))}</option>`
+            )
+            .join("");
+      }
+
       $("addItemOverlay").classList.remove("hidden");
 
       setTimeout(() => {
@@ -3715,21 +3914,17 @@
     });
 
     $("quickPicks").addEventListener("scroll", updateQuickPicksFade);
+    $("categoryChips").addEventListener("scroll", updateCategoryChipsFade);
 
     $("newItem").onkeydown = event => {
       if (event.key === "Enter") {
-        addItem();
+        addItemFromModal();
       }
     };
 
     $("newItem").addEventListener("input", updateCategorySuggestion);
 
     $("categorySuggestBtn").onclick = addToSuggestedCategory;
-
-    $("listSelect").onchange = event => {
-      activeList = event.target.value;
-      renderMine();
-    };
 
     $("aiSuggestBtn").onclick = requestAiSuggestions;
 
