@@ -4383,9 +4383,6 @@
         }
 
         flightOut = new Date(newFlight);
-        tripEnd = tripTimezone
-          ? localInputToUtcInZone(newEnd, tripTimezone)
-          : new Date(newEnd);
         destinationName = newDestination;
         tripType = newTripType;
         showAccent = newShowAccent;
@@ -4434,6 +4431,17 @@
             );
           }
         }
+
+        // Computed after geocoding, not before: tripTimezone may have
+        // just changed above (a new destination search result), and
+        // tripEnd must be interpreted in whichever timezone is current
+        // by the time this save completes - not the one from before the
+        // admin's edit. Reading it earlier silently kept the old
+        // destination's timezone baked into endAt whenever destination
+        // and end date/time were changed in the same save.
+        tripEnd = tripTimezone
+          ? localInputToUtcInZone(newEnd, tripTimezone)
+          : new Date(newEnd);
 
         if (db && tripRoot) {
           const settings = {

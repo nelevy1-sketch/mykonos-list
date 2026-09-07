@@ -584,6 +584,28 @@ function getLegs(trip) {
    **צריך להכריע לפני שלב 4**, לא תוך כדי: fallback לרגל שכנה?
    ל-`trip.timezone`? הצגת שגיאה למשתמש? המסמך לא קובע.
 
+7. **⚠️ קטגוריה שלישית של אזור-זמן שגוי: "היום" צריך את הרגל הפעילה
+   עכשיו — לא ראשונה ולא אחרונה.** בניגוד ל-`startAt` (רגל ראשונה,
+   קבוע) ול-`endAt` (רגל אחרונה, קבוע) — "מה התאריך היום" תלוי באיפה
+   הטיול נמצא **כרגע**, שמשתנה תוך כדי הטיול עצמו. אין global קבוע
+   (לא `getPrimaryLeg`, לא `getLastLeg`) שפותר את זה נכון - הפתרון
+   היחיד הוא `getLegForDate(trip, new Date())?.timezone`, מחושב מחדש
+   בכל קריאה, לא נשמר כמשתנה.
+
+   נמצאו 4 מקומות שחולים באותה מחלה, בשני קבצים:
+   - `index.html`: `todaysPlanContext()` — `dateKeyInZone(new Date(), tripTimezone)`
+   - `index.html`: `fetchForecast()`'s `todayKey` — `dateKeyInZone(new Date(), tripTimezone)`
+   - `itinerary.html`: `renderDayTabs()`'s `todayKey` — `todayKeyInZone(getLastLeg(trip).timezone)`
+   - `itinerary.html`: `computeLiveActivityId()` — `todayKeyInZone`/`nowHHMMInZone` דרך `getLastLeg(trip).timezone`
+
+   **תיקון לדוח קודם (חקירת שלב 4)**: נטען שם ש-`renderDayTabs()`/
+   `computeLiveActivityId()` "לא באגיות" כי הן לא מפרשות גבול טווח
+   (start/end של הטיול) - זה נכון לשאלה שנשאלה אז, אבל לא שלם: שתיהן
+   כן חולות בבעיית "היום" הזו, באותה צורה בדיוק כמו שני המקומות
+   ב-index.html. ארבעתן ניתנות לתיקון יחד, במנגנון אחד, כשמגיעים
+   לזה - נדחה לאחרי שלבים 10-11 (ר' §8), כי אין דרך ליצור טיול
+   מרובה-רגליים לבדוק עליו לפני כן.
+
 ---
 
 ### הלקח המתודולוגי
