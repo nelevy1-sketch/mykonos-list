@@ -55,6 +55,19 @@ exports.suggestPackingList = onRequest(
     const vibeText =
       Array.isArray(vibes) && vibes.length ? vibes.join(", ") : "not specified";
 
+    // Examples are language-matched, not bilingual: the model is told to
+    // respond in a single language (see "Respond in ${lang}" below), and
+    // mixing Hebrew/English example items in the same instruction risks
+    // it mixing languages in the actual output too.
+    const shortItemExamples =
+      language === "en"
+        ? `"rain jacket", "power bank", "reef-safe sunscreen"`
+        : `"מעיל גשם", "מטען נייד", "מטרייה מתקפלת"`;
+    const wordyItemExample =
+      language === "en"
+        ? `"a rain jacket that's waterproof and windproof for the transitional season"`
+        : `"מטען נייד חזק ליום שלם מחוץ למלון"`;
+
     const prompt = `You are a helpful, concise packing assistant inside a group trip planning app.
 
 Trip destination: ${destination}
@@ -63,7 +76,11 @@ Trip vibe(s): ${vibeText}
 Trip dates: ${startDate || "unknown"} to ${endDate || "unknown"}
 Packing list category this is for: ${listName || "general"}
 
-Suggest a focused packing list of 8 to 14 specific items appropriate for this trip, considering the destination's typical climate and conditions during those dates, the trip type, and the chosen vibe(s). Avoid vague filler items (like "clothes" or "toiletries") - be concrete and specific (e.g. "rain jacket", "reef-safe sunscreen", "power adapter for [region] outlets").
+Suggest a focused packing list of 8 to 14 specific items appropriate for this trip, considering the destination's typical climate and conditions during those dates, the trip type, and the chosen vibe(s). Avoid vague filler items like "clothes" or "toiletries" - be concrete and specific.
+
+Each item is a short NAME, not a description: 2-4 words, no sub-clauses, no explanation of why it's needed. Good: ${shortItemExamples}. Bad: ${wordyItemExample}.
+
+Each item is one distinct real-world need. Never suggest the same item twice under a different wording - one rain jacket, one power bank, one umbrella. If a second phrasing of something you already listed comes to mind, skip it and suggest something genuinely different instead.
 
 Respond in ${lang}.
 Respond ONLY with a raw JSON array of strings. No explanation, no markdown formatting, no code fences. Example: ["item one","item two"]`;
