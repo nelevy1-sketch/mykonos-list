@@ -1,5 +1,13 @@
 # GitTrip — CHANGELOG
 
+## v4.13.5 — תיקון: 4 aria-label/title שלא תורגמו (commit ב מתוך 3, `scripts/i18n-audit.js`)
+
+### 🐛 תיקון
+- **`index.html` (3)**: `#appTitle` (`title`, "לחץ 3 פעמים לכניסת מנהל"), `#adminGearBtn` (`aria-label`, "הגדרות מנהל" - תורגם "Organizer settings", עקבי עם `adminModalTitle` הקיים ולא "Admin settings"), `#forecastStrip` (`aria-label` על הרצועה עצמה - התוכן הדינמי בפנים כבר היה מתורגם, רק התווית של הקונטיינר לא). כל השלוש נוספו כשורות ישירות ב-`applyTripLanguage()`, אותו דפוס כמו `weatherRow`/`.bottom-nav` הקיימים
+- **`itinerary.html` (1)**: `#fab` (`aria-label`, "הוספת פעילות") - שורה אחת ב-`applyLanguage()`, משתמשת באותו זוג `tr()` שכבר קיים לכותרת המודאל
+- **אלה תיקונים שלא נראים למשתמש** (אף אחד מהארבעה לא טקסט גלוי) - **הבדיקה בוצעה אך ורק דרך `getAttribute` בקונסול, לא בעין**: `index.html` דרך `currentLanguage`/`applyTripLanguage()` הגלובליים, `itinerary.html` דרך hook זמני (`window.__test`) שנוסף, שימש לבדיקה, הוסר, ואומת שהוסר (`grep` ל-`__test` - "No files found"). שתי הפעולות בשתי השפות: אנגלית ואז חזרה לעברית, שתיהן נכונות
+- נבדק גם: `node scripts/i18n-audit.js index.html itinerary.html` אחרי התיקון - 0 ממצאים סטטיים (נשארו רק 2 המועמדים הדינמיים של `renderActionBadges()`, שייכים ל-commit ג)
+
 ## v4.13.4 — תיקון: 12 טקסטים גלויים שלא תורגמו, ב-3 עמודים (commit א מתוך 3, `scripts/i18n-audit.js`)
 
 ### 🐛 תיקון

@@ -2580,6 +2580,21 @@
         lang === "en" ? "Main navigation" : "ניווט ראשי"
       );
 
+      document.getElementById("appTitle").title =
+        lang === "en"
+          ? "Tap 3 times for organizer access"
+          : "לחץ 3 פעמים לכניסת מנהל";
+
+      document.getElementById("adminGearBtn").setAttribute(
+        "aria-label",
+        lang === "en" ? "Organizer settings" : "הגדרות מנהל"
+      );
+
+      document.getElementById("forecastStrip").setAttribute(
+        "aria-label",
+        lang === "en" ? "Forecast for the trip days" : "תחזית לימי הטיול"
+      );
+
       document.getElementById("weatherRow").setAttribute(
         "aria-label",
         lang === "en" ? "Destination weather" : "מזג האוויר ביעד"
