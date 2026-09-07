@@ -3143,7 +3143,44 @@
       tripType = data.tripType || tripType;
       currentLanguage = data.language === "en" ? "en" : "he";
       hasTripRecord = true;
-      destinationName = data.destination || destinationName;
+
+      // getLegs()/getPrimaryLeg()/getLastLeg() (legs.js) only read
+      // trip.startAt/trip.endAt - they don't know the legacy flightOut/
+      // tripEnd/flightBack field names this function used to fall back to
+      // directly. Normalize on a shallow copy first so a real trip that
+      // only has the legacy names doesn't silently lose its dates; `data`
+      // itself is never mutated. See docs/schema-legs.md §4.
+      const legInput = { ...data };
+      let usedLegacyDateFallback = false;
+
+      if (!legInput.startAt && data.flightOut) {
+        legInput.startAt = data.flightOut;
+        usedLegacyDateFallback = true;
+      }
+
+      if (!legInput.endAt && (data.tripEnd || data.flightBack)) {
+        legInput.endAt = data.tripEnd || data.flightBack;
+        usedLegacyDateFallback = true;
+      }
+
+      if (usedLegacyDateFallback) {
+        console.warn(
+          "[hydrateTripData] trip has no startAt/endAt, falling back to legacy flightOut/tripEnd/flightBack" +
+          (tripId ? " (tripId: " + tripId + ")" : ""),
+          data
+        );
+      }
+
+      // destination/lat/lon/hasRealCoords come from the first leg;
+      // timezone/endAt come from the last leg - per docs/schema-legs.md §4.
+      // trip.startAt (flightOut, below) deliberately stays untouched: it's
+      // the creator's device clock, not any leg's own startAt, and the two
+      // are semantically different even when their values happen to match
+      // on a single-leg trip.
+      const primaryLeg = window.getPrimaryLeg(legInput);
+      const lastLeg = window.getLastLeg(legInput);
+
+      destinationName = primaryLeg.name || destinationName;
 
       try {
         localStorage.setItem("lastTripId", tripId);
@@ -3158,27 +3195,23 @@
         } catch (e) {}
       }
 
-      hasRealCoords = Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lon));
-      tripTimezone = data.timezone || null;
+      hasRealCoords = Number.isFinite(Number(primaryLeg.lat)) && Number.isFinite(Number(primaryLeg.lon));
+      tripTimezone = lastLeg.timezone || null;
 
-      if (Number.isFinite(Number(data.lat))) {
-        latCoord = Number(data.lat);
+      if (Number.isFinite(Number(primaryLeg.lat))) {
+        latCoord = Number(primaryLeg.lat);
       }
 
-      if (Number.isFinite(Number(data.lon))) {
-        lonCoord = Number(data.lon);
+      if (Number.isFinite(Number(primaryLeg.lon))) {
+        lonCoord = Number(primaryLeg.lon);
       }
 
       if (data.startAt || data.flightOut) {
         flightOut = new Date(data.startAt || data.flightOut);
       }
 
-      if (data.endAt || data.tripEnd || data.flightBack) {
-        tripEnd = new Date(
-          data.endAt ||
-          data.tripEnd ||
-          data.flightBack
-        );
+      if (lastLeg.endAt) {
+        tripEnd = new Date(lastLeg.endAt);
       }
 
       countryCode = data.countryCode || countryCode;
