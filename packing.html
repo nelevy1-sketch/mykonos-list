@@ -1628,6 +1628,121 @@
         }
       }
 
+      // tripCharacter (docs/schema-legs.md §3.2) - same idea as vibes above
+      // (suggest extra items for an existing category) but a properly
+      // MERGING version. vibes above does `clothingList.items = [...merged]`,
+      // which replaces the category outright instead of combining with what
+      // tripType already put there - that's a real bug (see CLAUDE.md), not
+      // fixed here since it's out of scope for this change. This block reads
+      // whatever each category currently holds (tripType's own items, and/or
+      // whatever vibes left behind) and appends to it instead, so both
+      // mechanisms actually run in parallel rather than one clobbering the
+      // other - which is also why this runs AFTER the vibes block above, not
+      // before: tripCharacter's own contribution must survive regardless of
+      // whether vibes touched clothing on this trip.
+      //
+      // Applies to all 4 trip types - unlike vibes (abroad/local only),
+      // nothing in the schema restricts tripCharacter that way. Only ever
+      // adds to gear/clothing, never creates a category a trip type doesn't
+      // have: reserve has no "clothing", so a pride/bachelor + reserve trip
+      // silently skips its one clothing item; everything else in gear still
+      // lands normally.
+      const character = trip.tripCharacter;
+
+      if (character) {
+        const en = trip.language === "en";
+
+        const characterGear = {
+          family: en
+            ? ["First aid kit", "Personal medication", "Snacks for the road", "Extra power bank"]
+            : ["ערכת עזרה ראשונה", "תרופות אישיות", "חטיפים לדרך", "מטען נייד נוסף"],
+          // Deliberately empty. "friends" is this app's own default trip
+          // character (no particular skew), and a couple's trip doesn't need
+          // different gear from any other trip - do not "fix" this by
+          // inventing items for either.
+          friends: [],
+          couple: [],
+          ski: en
+            ? ["Ski gloves", "Ski goggles", "Sunscreen", "Thermal socks", "Beanie"]
+            : ["כפפות סקי", "משקפי סקי", "קרם הגנה", "גרבי תרמיות", "כובע גרב"],
+          pride: en
+            ? ["Hand fan", "Water bottle", "Sunscreen", "Power bank", "Earplugs"]
+            : ["מניפה", "בקבוק מים", "קרם הגנה", "מטען נייד", "אטמי אוזניים"],
+          bachelor: en
+            ? ["Power bank", "Backup credit card", "Painkillers"]
+            : ["מטען נייד", "כרטיס אשראי נוסף", "כדורי כאב ראש"],
+          festival: en
+            ? ["Earplugs", "Closed-toe shoes", "Sleeping bag", "Toilet paper", "Flashlight"]
+            : ["אטמי אוזניים", "נעליים סגורות", "שק שינה", "נייר טואלט", "פנס"]
+        };
+
+        const characterClothing = {
+          pride: en ? ["Party outfits"] : ["תלבושות למסיבות"],
+          bachelor: en ? ["Party outfits"] : ["תלבושות למסיבות"]
+        };
+
+        // Dedup only - never shown, never changes what's displayed. Kept
+        // deliberately small (one real-world item, "charger/power bank",
+        // named five different ways across the existing tables and the new
+        // character lists). "מטען נייד נוסף"/"Extra power bank" is left OUT
+        // of this map on purpose: family is meant to add a second one even
+        // when a charger is already listed - "with kids you really do want
+        // two." Other near-miss pairs were considered and deliberately left
+        // separate, not added here: "מטען לטלפון"/"Phone charger" already
+        // coexists with "פאוור בנק"/"Power bank" as two distinct items in
+        // abroad's own gear list, which is itself evidence they're not the
+        // same item; "תרופות אישיות"/"Personal medication" (family) and
+        // "כדורי כאב ראש"/"Painkillers" (bachelor) both read as specific
+        // additions alongside a generic "תרופות"/"Medicine" entry, the same
+        // shape as the charger exception above, not a restatement of it.
+        const DEDUP_SYNONYMS = {
+          "פאוור בנק": "charger",
+          "מטען": "charger",
+          "מטען נייד": "charger",
+          "power bank": "charger",
+          "charger": "charger"
+        };
+
+        const dedupKey = name => {
+          const normalized = name.trim().toLowerCase();
+          return DEDUP_SYNONYMS[normalized] || normalized;
+        };
+
+        // Cross-category on purpose: an item already suggested anywhere in
+        // this trip type (e.g. "שק שינה" under camping's own "לינה"/shelter
+        // list) shouldn't be re-suggested under gear just because that's
+        // where the character table happens to put it.
+        const allExistingKeys = new Set(
+          lists.flatMap(list => list.items).map(dedupKey)
+        );
+
+        function appendDeduped(categoryId, newItems) {
+          if (!newItems || !newItems.length) {
+            return;
+          }
+
+          const targetList = lists.find(list => list.id === categoryId);
+
+          if (!targetList) {
+            return;
+          }
+
+          newItems.forEach(item => {
+            const key = dedupKey(item);
+
+            if (allExistingKeys.has(key)) {
+              return;
+            }
+
+            allExistingKeys.add(key);
+            targetList.items.push(item);
+          });
+        }
+
+        appendDeduped("gear", characterGear[character]);
+        appendDeduped("clothing", characterClothing[character]);
+      }
+
       return lists;
     }
 
