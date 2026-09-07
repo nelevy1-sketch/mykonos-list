@@ -487,7 +487,15 @@ function getLegs(trip) {
 5. ⬜ **`index.html` — אשכול הספירה לאחור / שלב / מזג אוויר** — commit נפרד.
 6. ⬜ **תצוגה: ציוד** — צ׳יפים ומסנן.
 7. ⬜ **תצוגה: תוכנית יומית** — מפרידים.
-8. ⬜ **תצוגה: מזג אוויר** — רצף עם מפריד.
+8. ⬜ **תצוגה: מזג אוויר** — רצף עם מפריד. **כולל באג ידוע**: `fetchForecast()`
+   (index.html) מפרשת את `flightOut`/`trip.startAt` לפי `tripTimezone`
+   (=`getLastLeg`) - אותה טעות סמנטית כמו ב-`tripDayDates()` (§4), אבל
+   ב-`fetchForecast()`, לא ב-`hydrateTripData()` שקובעת את `tripTimezone`
+   (הקביעה שם נכונה - `trip.timezone` באמת אמור להיות רגל אחרונה).
+   **הכרעה**: לא נוסף `primaryLegTimezone` גלובלי ב-`hydrateTripData()`
+   בשלב 4 - אין להוסיף משתנה שאף קוד לא קורא לו רק לקראת תיקון עתידי.
+   כשמגיעים לשלב הזה, להכריע אם הוא מוצדק או שעדיף קריאה ישירה ל-
+   `window.getPrimaryLeg(trip).timezone` בתוך `fetchForecast()` עצמה.
 9. ⬜ **מקומות** — מסנן.
 10. ⬜ **ויזרד — קלט רגליים.** ⚠️ **הגדול מכולם, ולא refactor.**
     אין ב-`wizard.html` אובייקט `trip` לנרמל — יש מצב טופס מפוזר

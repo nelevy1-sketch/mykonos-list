@@ -148,9 +148,144 @@
         return null;
     }
 
+    // One calendar day per entry from trip.startAt to the last leg's
+    // endAt, each tagged with the leg it belongs to. Moved here from
+    // itinerary.html/places.html (docs/schema-legs.md §8, step 4) - those
+    // two pages held byte-for-byte identical copies of this function, and
+    // a fix applied to one and not the other has already happened once
+    // (see CHANGELOG, v4.13.x). A single shared definition, with both
+    // local copies deleted rather than left dormant, is the actual fix
+    // for that pattern - not "remember to update both".
+    //
+    // startAt is interpreted in the FIRST leg's timezone, endAt in the
+    // LAST leg's - these are genuinely different legs on a multi-leg
+    // trip, and were both being read via getLastLeg before this fix
+    // (docs/schema-legs.md §4). A single-leg trip has
+    // getPrimaryLeg(trip) === getLastLeg(trip), which is exactly why this
+    // was wrong for months without a regression test catching it: every
+    // test run so far used a single-leg trip, where the two calls are
+    // indistinguishable.
+    function tripDayDates(trip, tripId) {
+        trip = trip || {};
+
+        const lastLeg = getLastLeg(trip);
+
+        if (!trip.startAt || !lastLeg.endAt) {
+            return [];
+        }
+
+        const start = new Date(trip.startAt);
+        const end = new Date(lastLeg.endAt);
+
+        if (isNaN(start) || isNaN(end)) {
+            return [];
+        }
+
+        const startTz = getPrimaryLeg(trip).timezone || null;
+        const endTz = lastLeg.timezone || null;
+
+        const startP = window.zonedParts(start, startTz);
+        const endP = window.zonedParts(end, endTz);
+
+        let cursor = new Date(startP.year, startP.month - 1, startP.day);
+        const endDay = new Date(endP.year, endP.month - 1, endP.day);
+
+        const days = [];
+        let guard = 0;
+
+        while (cursor <= endDay && guard < 60) {
+            days.push(new Date(cursor));
+            cursor.setDate(cursor.getDate() + 1);
+            guard++;
+        }
+
+        // Tag each day with its leg - deliberately NOT via
+        // getLegForDate(trip, date). That function is instant-based (it
+        // compares date.getTime() against leg.startAt/endAt), which is
+        // exactly right for a real timestamp (an activity's time) but
+        // wrong here: `date` above is built with `new Date(year, month,
+        // day)`, which JS interprets in the *browser's own* local
+        // timezone, not the leg's - so its actual instant can land
+        // outside the correct leg's range near a boundary whenever the
+        // viewer's device timezone doesn't match the leg's (caught in
+        // testing: a Rome/Bangkok fixture viewed from an Israel-timezone
+        // browser produced false gaps on both legs' boundary days).
+        // Comparing "YYYY-MM-DD" day-key strings, each computed via that
+        // leg's OWN timezone, sidesteps the instant entirely - same
+        // reasoning index.html's fetchForecast() already uses for its
+        // own start/end-key comparison.
+        const legs = getLegs(trip, tripId);
+
+        const dayKeyOf = d =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+        const legRanges = legs
+            .map(leg => {
+                if (!leg.startAt || !leg.endAt) {
+                    return null;
+                }
+
+                const legStart = new Date(leg.startAt);
+                const legEnd = new Date(leg.endAt);
+
+                if (isNaN(legStart) || isNaN(legEnd)) {
+                    return null;
+                }
+
+                const legTz = leg.timezone || null;
+                const legStartP = window.zonedParts(legStart, legTz);
+                const legEndP = window.zonedParts(legEnd, legTz);
+
+                return {
+                    leg,
+                    startKey: `${legStartP.year}-${String(legStartP.month).padStart(2, "0")}-${String(legStartP.day).padStart(2, "0")}`,
+                    endKey: `${legEndP.year}-${String(legEndP.month).padStart(2, "0")}-${String(legEndP.day).padStart(2, "0")}`
+                };
+            })
+            .filter(Boolean);
+
+        // A shared transition-day key (both legs' own zoning agree it's
+        // the same calendar day) matches both legs' ranges - array order
+        // is chronological, so .find's first match is the outgoing leg,
+        // per docs/schema-legs.md §5.2 ("יום המעבר שייך לרגל היוצאת").
+        //
+        // A gap between legs, or a day before every leg, matches none -
+        // not a bug (contiguous, valid legs per §2.2 never produce this),
+        // but real fallout from malformed leg data. Decision (§8): fall
+        // back to the PRECEDING leg in sequence, or the first leg if the
+        // day is before every leg. Warn loudly and record it rather than
+        // silently absorbing it - a gap is corrupted data, not normal.
+        return days.map(date => {
+            const key = dayKeyOf(date);
+            const match = legRanges.find(r => r.startKey <= key && key <= r.endKey);
+            let leg = match ? match.leg : null;
+
+            if (!leg) {
+                const preceding = [...legRanges].reverse().find(r => r.endKey <= key);
+
+                leg = preceding ? preceding.leg : legs[0];
+
+                console.warn(
+                    "[legs.js] tripDayDates: day falls in a leg gap" +
+                    (tripId ? " (tripId: " + tripId + ")" : ""),
+                    { date, trip }
+                );
+
+                window.__gtLegGap = {
+                    tripId: tripId || null,
+                    date,
+                    at: Date.now()
+                };
+            }
+
+            return { date, leg };
+        });
+    }
+
     window.getLegs = getLegs;
     window.getPrimaryLeg = getPrimaryLeg;
     window.getLastLeg = getLastLeg;
     window.isMultiLeg = isMultiLeg;
     window.getLegForDate = getLegForDate;
+    window.tripDayDates = tripDayDates;
 })();
