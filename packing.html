@@ -331,12 +331,42 @@
       box-shadow:0 0 10px color-mix(in srgb, var(--glow-color) 45%, transparent);
     }
 
+    /* No -webkit-overflow-scrolling: touch here on purpose - it's a legacy
+       pre-iOS-13 property iOS Safari has ignored for years now (momentum
+       scrolling on overflow:auto is automatic since then). Don't add it
+       back just because it's "missing" - it wouldn't change anything on
+       any device this app still needs to support. */
     .quick-picks {
       display:flex;
       gap:7px;
       overflow:auto;
-      padding:10px 1px 2px;
+      padding-block:10px 2px;
+      padding-inline:2px 14px;
       scrollbar-width:none;
+    }
+
+    /* Content-fade at the trailing edge, not a decoration - toggled by JS
+       (.has-more) only while there's actually more to scroll to, so a short
+       list that already fits shows no fade at all. mask-image, not an
+       overlay element, so a partially-visible last pick fades smoothly
+       instead of being hard-clipped by the container's own edge - itself a
+       cue that there's more. RTL vs LTR isn't a mirror-image tweak: the
+       "far" edge - where hidden content actually is - is physically the
+       LEFT in Hebrew and the RIGHT in English, so the two need opposite
+       gradient directions, not the same one flipped by the browser. -webkit-
+       prefix required - unprefixed mask-image alone isn't enough on Safari. */
+    [dir="rtl"] .quick-picks.has-more {
+      -webkit-mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+      mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+    }
+
+    [dir="ltr"] .quick-picks.has-more {
+      -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+      mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    }
+
+    .quick-picks-end-spacer {
+      flex:0 0 12px;
     }
 
     .ai-suggest-btn {
@@ -378,6 +408,7 @@
       padding:7px 11px;
       white-space:nowrap;
       font-size:.8rem;
+      flex-shrink:0;
     }
 
     .list-head {
@@ -1931,7 +1962,20 @@
               `</button>`
             );
           })
-          .join("");
+          .join("") +
+        // Trailing spacer, not CSS padding alone: padding at the scroll
+        // end of an overflow container isn't reliably honored at true
+        // max-scroll on every engine. A real flex child guarantees the
+        // breathing room is actually reachable.
+        `<span class="quick-picks-end-spacer" aria-hidden="true"></span>`;
+
+      // Found while testing the fade below: replacing the content here
+      // doesn't reset scroll position on its own, so switching categories
+      // (e.g. gear -> clothing) could leave the strip mid-scrolled from
+      // whatever the previous category's content happened to be, showing
+      // the wrong slice of the new list and - since the fade reflects
+      // actual scroll position - a wrong fade state too.
+      $("quickPicks").scrollLeft = 0;
 
       document
         .querySelectorAll("[data-pick]")
@@ -1940,6 +1984,21 @@
             addItem(button.dataset.pick);
           };
         });
+
+      updateQuickPicksFade();
+    }
+
+    // Shows the trailing-edge fade only while there's actually more to
+    // scroll to - never on a short list that already fits, and it turns
+    // off by itself once a scroll reaches the true end. Math.abs() because
+    // RTL scrollLeft direction isn't standardized the same way across
+    // engines (this one uses negative values going toward the end); abs()
+    // makes the "how far from the end" math identical either way instead
+    // of branching on direction.
+    function updateQuickPicksFade() {
+      const el = $("quickPicks");
+      const hasMore = Math.abs(el.scrollLeft) + el.clientWidth < el.scrollWidth - 1;
+      el.classList.toggle("has-more", hasMore);
     }
 
     const AI_FUNCTION_URL =
@@ -3439,6 +3498,8 @@
         $("closeAddItemOverlay").click();
       }
     });
+
+    $("quickPicks").addEventListener("scroll", updateQuickPicksFade);
 
     $("newItem").onkeydown = event => {
       if (event.key === "Enter") {
