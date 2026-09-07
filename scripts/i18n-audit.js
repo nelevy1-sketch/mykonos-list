@@ -110,6 +110,8 @@ function scanStaticMarkup(source) {
     const id = idMatch[1];
     const tagStart = m.index;
     const tagEnd = tagRe.lastIndex;
+    const classMatch = attrsStr.match(/\bclass=["']([^"']*)["']/);
+    const classes = classMatch ? classMatch[1].trim().split(/\s+/) : [];
 
     if (hasInlineIgnoreHTML(stripped, tagStart)) continue;
 
@@ -121,6 +123,7 @@ function scanStaticMarkup(source) {
           index: tagStart,
           line: lineAt(source, tagStart),
           id,
+          classes,
           kind: `attr:${attr}`,
           text: am[1].trim(),
         });
@@ -139,6 +142,7 @@ function scanStaticMarkup(source) {
             index: tagStart,
             line: lineAt(source, tagStart),
             id,
+            classes,
             kind: "text",
             text: text.trim().slice(0, 80),
           });
@@ -196,7 +200,7 @@ function findCachedVarNames(source, id) {
   return names;
 }
 
-function isCoveredElsewhere(source, id, kind) {
+function isCoveredElsewhere(source, id, kind, classes) {
   const setter = setterPatternFor(kind);
 
   // Pattern A: lookup chained directly into a matching setter in the same
@@ -217,6 +221,22 @@ function isCoveredElsewhere(source, id, kind) {
   // set the matching attribute - checked by real accessor, not proximity.
   for (const v of findCachedVarNames(source, id)) {
     if (new RegExp(`\\b${v}\\s*\\.\\s*(?:${setter})`).test(source)) return true;
+  }
+
+  // Pattern D: element also carries a class targeted by a batch update -
+  // querySelectorAll(".cls").forEach(el => el.textContent = ...). Found via
+  // wizard.html's #previewBtnPacking etc: covered as a group via
+  // ".preview-btn", never individually by id. Windowed (not chained) since
+  // the setter is inside a forEach callback, at an arbitrary distance from
+  // the selector call - narrow enough to matter only because it's gated on
+  // a specific class match first.
+  for (const cls of classes || []) {
+    const clsRe = new RegExp(`querySelectorAll\\(\\s*["']\\.${cls}["']\\s*\\)`, "g");
+    let cm;
+    while ((cm = clsRe.exec(source))) {
+      const windowText = source.slice(cm.index, cm.index + 400);
+      if (new RegExp(`\\.\\s*(?:${setter})`).test(windowText)) return true;
+    }
   }
 
   return false;
@@ -283,7 +303,7 @@ function main() {
     const source = fs.readFileSync(filePath, "utf8");
 
     const staticFindings = scanStaticMarkup(source).filter(
-      (f) => !isCoveredElsewhere(source, f.id, f.kind)
+      (f) => !isCoveredElsewhere(source, f.id, f.kind, f.classes)
     );
     const dynamicFindings = scanDynamicTemplates(source);
 

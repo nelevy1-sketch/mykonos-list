@@ -660,6 +660,7 @@
             destLabel: "שם הטיול / היעד 🌍",
             destPlaceholder: "למשל: ברלין, תאילנד או קמפינג בגליל",
             typeLabel: "סוג הטיול (משפיע על קטגוריות ומבנה)",
+            typeHint: "הבחירה משנה את הצבעים, הפעולות והמודולים בדף הנחיתה.",
             optAbroad: "טיסה לחו\"ל ✈️",
             optLocal: "טיול בארץ 🧭",
             optCamping: "קמפינג / טבע 🏕️",
@@ -682,6 +683,7 @@
             startLabel: "מועד התחלה",
             endLabel: "מועד סיום / חזרה",
             checkinLabel: "קישור לצ׳ק־אין (אופציונלי)",
+            checkinHint: "יוצג בדף הנחיתה רק ב־48 השעות שלפני הטיסה.",
             partLabel: "שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥",
             partPlaceholder: "שם חבר (למשל: נירה, ברגה...)",
             addBtn: "הוסף",
@@ -723,6 +725,7 @@
             destLabel: "Trip Destination / Name 🌍",
             destPlaceholder: "e.g., Berlin, Thailand or Galilee camping",
             typeLabel: "Trip Type (Affects categories & structure)",
+            typeHint: "The choice changes the colors, actions and modules on the landing page.",
             optAbroad: "International flight ✈️",
             optLocal: "Local trip 🧭",
             optCamping: "Camping / Nature 🏕️",
@@ -745,6 +748,7 @@
             startLabel: "Start date",
             endLabel: "End / return date",
             checkinLabel: "Check-in link (optional)",
+            checkinHint: "Shown on the landing page only in the 48 hours before the flight.",
             partLabel: "Group Participant Names (For Split & Lists) 👥",
             partPlaceholder: "Member name (e.g., Nira, Berga...)",
             addBtn: "Add",
@@ -874,7 +878,8 @@
         document.getElementById('lblDestination').textContent = t.destLabel;
         document.getElementById('tripDestination').placeholder = t.destPlaceholder;
         document.getElementById('lblTripType').textContent = t.typeLabel;
-        
+        document.getElementById('tripTypeHint').textContent = t.typeHint;
+
         document.getElementById('optAbroad').textContent = t.optAbroad;
         document.getElementById('optLocal').textContent = t.optLocal;
         document.getElementById('optCamping').textContent = t.optCamping;
@@ -897,6 +902,7 @@
         document.getElementById('lblStartDate').textContent = t.startLabel;
         document.getElementById('lblEndDate').textContent = t.endLabel;
         document.getElementById('lblCheckin').textContent = t.checkinLabel;
+        document.getElementById('checkinHint').textContent = t.checkinHint;
 
         document.getElementById('lblParticipants').textContent = t.partLabel;
         document.getElementById('participantName').placeholder = t.partPlaceholder;
