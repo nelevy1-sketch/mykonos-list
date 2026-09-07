@@ -1153,7 +1153,14 @@
     let packingListening = false;
     let stopTrip = null;
     let selectionMode = false;
-    let selectedIds = new Set();
+    // itemId -> categoryId. Not a flat Set: a selection can span categories
+    // in a merged view, and every bulk action needs each item's own
+    // category, not one shared activeList. A Map avoids splitting a
+    // compound "categoryId:itemId" string at every consumer - item ids are
+    // already relied on as globally unique across categories elsewhere
+    // (itemsForCategoryFilter's flat merge), so keying by bare itemId here
+    // carries no collision risk.
+    let selectedIds = new Map();
     let celebratedLists = new Set();
     let expandedItems = new Set();
 
@@ -2527,20 +2534,23 @@
       return merged;
     }
 
-    // Step 3 rule: no fallback to activeList. A missing data-category means
-    // renderMine() (or whatever else renders item-row elements later)
-    // forgot to tag one - a real bug. Writing to activeList anyway would
-    // hide it as a silent wrong-category write instead of a loud failure.
-    // Every write site converted in this step goes through this first.
-    function requireCategory(el, context) {
-      const categoryId = el?.dataset?.category;
-
+    // Step 3 rule: no fallback to activeList. A missing category means
+    // something upstream forgot to tag an element or a selectedIds entry -
+    // a real bug. Writing to activeList anyway would hide it as a silent
+    // wrong-category write instead of a loud failure.
+    function assertCategory(categoryId, context) {
       if (!categoryId) {
-        console.error(`[packing] missing data-category on ${context}`, el);
-        throw new Error(`packing.html: missing data-category (${context})`);
+        console.error(`[packing] missing category for ${context}`);
+        throw new Error(`packing.html: missing category (${context})`);
       }
 
       return categoryId;
+    }
+
+    // DOM-element form of assertCategory - every per-item write site
+    // converted in step 3 goes through this first.
+    function requireCategory(el, context) {
+      return assertCategory(el?.dataset?.category, context);
     }
 
     function allListIds() {
@@ -2907,7 +2917,8 @@
             const id = checkbox.dataset.select;
 
             if (checkbox.checked) {
-              selectedIds.add(id);
+              const categoryId = requireCategory(checkbox, "data-select");
+              selectedIds.set(id, categoryId);
             } else {
               selectedIds.delete(id);
             }
@@ -2939,7 +2950,7 @@
       selectionMode = next;
 
       if (!next) {
-        selectedIds = new Set();
+        selectedIds = new Map();
       }
 
       $("selectModeBtn").classList.toggle("active", selectionMode);
@@ -2977,8 +2988,9 @@
 
       const updates = {};
 
-      selectedIds.forEach(id => {
-        updates[`${userBase()}/items/${activeList}/${id}`] = null;
+      selectedIds.forEach((categoryId, id) => {
+        assertCategory(categoryId, "bulkDelete");
+        updates[`${userBase()}/items/${categoryId}/${id}`] = null;
       });
 
       await update(ref(db), updates);
@@ -2991,15 +3003,18 @@
         return;
       }
 
-      const map = currentItems();
-
+      // Reads each item from its own category bucket, not currentItems()
+      // (activeList-scoped) - a cross-category selection would otherwise
+      // silently read undefined for every item outside the active list,
+      // and "are they all done" would come out wrong for no visible reason.
       const allDone =
-        [...selectedIds].every(id => map[id]?.isDone);
+        [...selectedIds].every(([id, categoryId]) => items?.[categoryId]?.[id]?.isDone);
 
       const updates = {};
 
-      selectedIds.forEach(id => {
-        updates[`${userBase()}/items/${activeList}/${id}/isDone`] = !allDone;
+      selectedIds.forEach((categoryId, id) => {
+        assertCategory(categoryId, "bulkToggleDone");
+        updates[`${userBase()}/items/${categoryId}/${id}/isDone`] = !allDone;
       });
 
       await update(ref(db), updates);
@@ -3011,9 +3026,20 @@
         return;
       }
 
+      // Excludes the shared source category only when the whole selection
+      // came from one category (the common case, and what this dropdown
+      // always did before cross-category selection existed). A selection
+      // spanning categories has no single "current" one to hide - every
+      // real category is a valid target for at least some selected items,
+      // and confirmBulkMove() below skips per-item no-ops (already at the
+      // target) on its own.
+      const selectedCategories = new Set(selectedIds.values());
+      const sharedCategory =
+        selectedCategories.size === 1 ? [...selectedCategories][0] : null;
+
       $("bulkMoveTarget").innerHTML =
         allListIds()
-          .filter(id => id !== activeList)
+          .filter(id => id !== sharedCategory)
           .map(id =>
             `<option value="${escapeHtml(id)}">` +
             `${escapeHtml(listLabel(id))}</option>`
@@ -3039,22 +3065,51 @@
         return;
       }
 
-      const map = currentItems();
       const updates = {};
+      let movedCount = 0;
 
-      selectedIds.forEach(id => {
-        if (!map[id]) {
+      selectedIds.forEach((categoryId, id) => {
+        assertCategory(categoryId, "confirmBulkMove");
+
+        // Already at the target (possible in a cross-category selection,
+        // even though openBulkMove() excludes the target when EVERY
+        // selected item shares it) - nothing to write for this one.
+        if (categoryId === targetList) {
           return;
         }
 
-        updates[`${userBase()}/items/${activeList}/${id}`] = null;
-        updates[`${userBase()}/items/${targetList}/${id}`] = map[id];
+        const item = items?.[categoryId]?.[id];
+
+        if (!item) {
+          return;
+        }
+
+        updates[`${userBase()}/items/${categoryId}/${id}`] = null;
+        updates[`${userBase()}/items/${targetList}/${id}`] = item;
+        movedCount++;
       });
+
+      if (!movedCount) {
+        $("bulkMoveOverlay").classList.add("hidden");
+        setSelectionMode(false);
+        toast(tr("הפריטים כבר ברשימה הזו", "Items are already on that list"));
+        return;
+      }
 
       await update(ref(db), updates);
       $("bulkMoveOverlay").classList.add("hidden");
       setSelectionMode(false);
-      toast(tr("הפריטים הועברו", "Items moved"));
+
+      // Deliberately NOT jumping activeList to targetList here, unlike
+      // saveEdit()'s single-item move. The user just finished a multi-select
+      // action, often spanning several source categories - yanking the view
+      // to targetList would lose the context of whatever's left selected/
+      // visible, for no single "where it went" that makes sense across a
+      // whole batch. Single-item edit still jumps on purpose; don't "fix"
+      // bulk to match it.
+      toast(
+        tr(`${movedCount} הועברו`, `${movedCount} moved`)
+      );
     }
 
     function renderGroup() {
