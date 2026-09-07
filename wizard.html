@@ -183,6 +183,12 @@
         }
         .leg-up-btn:disabled { opacity: .35; cursor: default; }
         .leg-remove-btn { color: #B3432F; }
+        /* Transition date between two legs (commit ב) - deliberately thin,
+           a separator, not another full form-group like tripStart/tripEnd. */
+        .transition-row { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+        .transition-row.hidden { display: none; }
+        .transition-label { flex: 0 0 auto; font-size: .74rem; color: var(--gray); }
+        .transition-row input { flex: 1; min-height: 38px; font-size: .85rem; padding: 6px 10px; direction: ltr; text-align: center; }
         .multi-leg-toggle-btn {
             display: inline-block; margin-top: 10px; background: none; border: none; color: var(--primary);
             font-weight: 700; font-size: .92rem; cursor: pointer; padding: 0; text-decoration: underline;
@@ -713,6 +719,7 @@
             legPlaceholder: "יעד נוסף",
             moveLegUp: "הזז למעלה",
             removeLeg: "הסרת היעד",
+            transitionLabel: "מעבר",
             partLabel: "שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥",
             partPlaceholder: "שם חבר (למשל: נירה, ברגה...)",
             addBtn: "הוסף",
@@ -735,6 +742,7 @@
             createBtn: "צור טיול ב-Firebase 🚀",
             modalClose: "הבנתי, סגור",
             alertDest: "נא להזין את שם היעד או הטיול",
+            alertLegEmpty: "נא למלא את כל היעדים ברשימה, או להסיר את השורה הריקה",
             alertDates: "נא לבחור מועד התחלה ומועד סיום תקינים",
             alertParticipants: "יש להוסיף לפחות חבר קבוצה אחד",
             alertFeatures: "יש לבחור לפחות מודול אחד",
@@ -785,6 +793,7 @@
             legPlaceholder: "Additional destination",
             moveLegUp: "Move up",
             removeLeg: "Remove destination",
+            transitionLabel: "Transition",
             partLabel: "Group Participant Names (For Split & Lists) 👥",
             partPlaceholder: "Member name (e.g., Nira, Berga...)",
             addBtn: "Add",
@@ -807,6 +816,7 @@
             createBtn: "Create Trip in Firebase 🚀",
             modalClose: "Got it, close",
             alertDest: "Please enter a trip destination or name",
+            alertLegEmpty: "Please fill in every destination in the list, or remove the empty row",
             alertDates: "Please choose valid start and end dates",
             alertParticipants: "Add at least one group member",
             alertFeatures: "Select at least one module",
@@ -1092,6 +1102,7 @@
                 // field existed - see restoreWizardDraft). Every consumer going
                 // forward reads legs, not destination.
                 legs: legRowEls.slice(0, legRowCount).map(r => r.input.value),
+                transitions: transitionRowEls.slice(0, legRowCount - 1).map(t => t.input.value),
                 tripType: document.getElementById('tripType').value,
                 tripCharacter: document.getElementById('tripCharacter').value,
                 vibes: selectedVibes,
@@ -1152,6 +1163,14 @@
         syncTripTypeFields();
         if (draft.start) document.getElementById('tripStart').value = draft.start;
         if (draft.end) document.getElementById('tripEnd').value = draft.end;
+        // After syncTripTypeFields() above (transition inputs' type already
+        // matches draft.tripType) and after legs are restored (the rows/
+        // transitionRowEls they need already exist).
+        if (Array.isArray(draft.transitions)) {
+            draft.transitions.forEach((value, i) => {
+                if (transitionRowEls[i]) transitionRowEls[i].input.value = value;
+            });
+        }
         if (draft.checkinUrl) document.getElementById('checkinUrl').value = draft.checkinUrl;
         updateDateDisplays();
 
@@ -1323,13 +1342,22 @@
         // other type just needs a date. Swap the input type in place and carry the
         // date the user already picked over, rather than clearing the field.
         const wantsTime = type === 'abroad';
+        const desiredType = wantsTime ? 'datetime-local' : 'date';
         ['tripStart', 'tripEnd'].forEach(id => {
             const input = document.getElementById(id);
-            const desiredType = wantsTime ? 'datetime-local' : 'date';
             if (input.type === desiredType) return;
             const datePart = input.value ? input.value.slice(0, 10) : '';
             input.type = desiredType;
             input.value = desiredType === 'date' ? datePart : (datePart ? `${datePart}T12:00` : '');
+        });
+
+        // Transition inputs follow the same type, same reasoning - carry the
+        // date part over rather than clearing.
+        transitionRowEls.forEach(t => {
+            if (!t || t.input.type === desiredType) return;
+            const datePart = t.input.value ? t.input.value.slice(0, 10) : '';
+            t.input.type = desiredType;
+            t.input.value = desiredType === 'date' ? datePart : (datePart ? `${datePart}T12:00` : '');
         });
 
         syncEndDateMin();
@@ -1420,6 +1448,16 @@
             const end = new Date(hasTime ? endValue : `${endValue}T23:59`);
             document.getElementById('destinationError').textContent = destination ? '' : t.alertDest;
             if (!destination) return false;
+            // Rows 1+ weren't checked in commit א (their values were never
+            // read into the saved payload) - now that generateTripAndSave
+            // actually saves every visible row, an empty one would silently
+            // become a garbage leg with no name.
+            for (let i = 1; i < legRowCount; i++) {
+                if (!legRowEls[i].input.value.trim()) {
+                    document.getElementById('destinationError').textContent = t.alertLegEmpty;
+                    return false;
+                }
+            }
             if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
                 document.getElementById('destinationError').textContent = t.alertDates;
                 return false;
@@ -1446,8 +1484,17 @@
         const labels = currentLanguage === 'he'
             ? { packing:'ציוד', shopping:'קניות', places:'מקומות', expenses:'הוצאות' }
             : { packing:'Packing', shopping:'Shopping', places:'Places', expenses:'Expenses' };
+        const destinationLabel = currentLanguage === 'he'
+            ? (legRowCount > 1 ? 'יעדים' : 'יעד')
+            : (legRowCount > 1 ? 'Destinations' : 'Destination');
+        // Arrow direction must match reading direction, not be fixed - "←"
+        // reads correctly right-to-left (he) but backwards left-to-right (en).
+        const destinationValue = legRowEls
+            .slice(0, legRowCount)
+            .map(r => r.input.value.trim())
+            .join(currentLanguage === 'he' ? ' ← ' : ' → ');
         const rows = [
-            [currentLanguage === 'he' ? 'יעד' : 'Destination', document.getElementById('tripDestination').value.trim()],
+            [destinationLabel, destinationValue],
             [currentLanguage === 'he' ? 'סוג טיול' : 'Trip type', typeSelect.options[typeSelect.selectedIndex].textContent],
             [currentLanguage === 'he' ? 'התחלה' : 'Starts', formatTripDate(document.getElementById('tripStart').value)],
             [currentLanguage === 'he' ? 'חברי קבוצה' : 'Group members', participants.length],
@@ -1569,6 +1616,13 @@
     const MAX_LEGS = 6;
     let legRowCount = 1;
     const legRowEls = [];
+    // transitionRowEls[i] is the boundary between leg i and leg i+1 - it IS
+    // legs[i].endAt and legs[i+1].startAt, the same value (docs/schema-legs.md
+    // §2.2, §5.2: the transition instant belongs to the outgoing leg - see
+    // generateTripAndSave for where that's actually resolved to UTC; this
+    // input only ever holds a naive datetime-local/date string, same as
+    // tripStart/tripEnd before save).
+    const transitionRowEls = [];
 
     function wireLegPreview(descriptor) {
         descriptor.input.addEventListener('input', () => {
@@ -1592,7 +1646,37 @@
         });
     }
 
+    function buildTransitionRow(i) {
+        const row = document.createElement('div');
+        row.className = 'transition-row hidden';
+
+        const label = document.createElement('span');
+        label.className = 'transition-label';
+        label.textContent = translations[currentLanguage].transitionLabel;
+
+        const input = document.createElement('input');
+        input.type = document.getElementById('tripStart').type;
+        input.addEventListener('click', () => {
+            if (typeof input.showPicker === 'function') {
+                try { input.showPicker(); } catch {}
+            }
+        });
+
+        row.append(label, input);
+        document.getElementById('legsList').appendChild(row);
+
+        transitionRowEls[i] = { row, input, label };
+    }
+
     function buildLegRow(index, inputEl) {
+        // Every leg row after the first needs the transition row for the
+        // boundary right before it built (and appended) first, so the DOM
+        // order stays leg0, transition0, leg1, transition1, leg2, ... - built
+        // lazily alongside the leg it precedes, never out of order.
+        if (index > 0 && !transitionRowEls[index - 1]) {
+            buildTransitionRow(index - 1);
+        }
+
         const row = document.createElement('div');
         row.className = 'leg-row';
 
@@ -1646,10 +1730,46 @@
             r.removeBtn.classList.toggle('hidden', !multi);
         });
 
+        transitionRowEls.forEach((t, i) => {
+            if (!t) return;
+            t.row.classList.toggle('hidden', i >= legRowCount - 1);
+        });
+
         document.getElementById('multiLegToggleBtn').classList.toggle('hidden', multi);
         document.getElementById('multiLegExamplesHint').classList.toggle('hidden', multi);
         document.getElementById('multiLegReversibleHint').classList.toggle('hidden', multi);
         document.getElementById('addLegBtn').classList.toggle('hidden', !multi || legRowCount >= MAX_LEGS);
+    }
+
+    // Equal division of the overall #tripStart..#tripEnd span into legRowCount
+    // segments, as naive local Date arithmetic - no timezone is known for any
+    // leg yet at this point (geocoding only runs at save time, in
+    // generateTripAndSave), so this can only ever be a starting suggestion in
+    // the same representation tripStart/tripEnd themselves already are.
+    // Always non-degenerate: for a positive total span and legRowCount<=6,
+    // dividing by legRowCount can never produce a zero-length or duplicate
+    // boundary, only a short one (e.g. a 3-day trip split into 4 legs gives
+    // 18-hour legs) - accepted as-is, exactly what "ניתנות לתיקון ידני" is for.
+    // Recomputed on every add/remove (not on every tripStart/tripEnd
+    // keystroke) - a deliberate simplification: a manual transition edit
+    // does not survive a later add/remove of a leg.
+    function recomputeTransitionDefaults() {
+        const hasTime = document.getElementById('tripStart').type === 'datetime-local';
+        const rawStart = document.getElementById('tripStart').value;
+        const rawEnd = document.getElementById('tripEnd').value;
+        if (!rawStart || !rawEnd) return;
+
+        const startMs = new Date(hasTime ? rawStart : `${rawStart}T00:00`).getTime();
+        const endMs = new Date(hasTime ? rawEnd : `${rawEnd}T23:59`).getTime();
+        if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return;
+
+        for (let i = 0; i < legRowCount - 1; i++) {
+            const t = transitionRowEls[i];
+            if (!t) continue;
+            const boundaryMs = startMs + Math.round((endMs - startMs) * (i + 1) / legRowCount);
+            const boundaryDate = new Date(boundaryMs);
+            t.input.value = hasTime ? toInputDate(boundaryDate) : toInputDateOnly(boundaryDate);
+        }
     }
 
     function updateLegRowLanguage() {
@@ -1659,6 +1779,9 @@
             if (i > 0) r.input.placeholder = t.legPlaceholder;
             r.upBtn.setAttribute('aria-label', t.moveLegUp);
             r.removeBtn.setAttribute('aria-label', t.removeLeg);
+        });
+        transitionRowEls.forEach(tr => {
+            if (tr) tr.label.textContent = t.transitionLabel;
         });
     }
 
@@ -1676,6 +1799,7 @@
 
         legRowCount++;
         updateLegChrome();
+        recomputeTransitionDefaults();
         legRowEls[index].input.focus();
     }
 
@@ -1699,6 +1823,7 @@
 
         legRowCount--;
         updateLegChrome();
+        recomputeTransitionDefaults();
     }
 
     function moveLegUp(index) {
@@ -1730,6 +1855,7 @@
             r.flag.textContent = '';
             r.flag.classList.add('hidden');
         }
+        transitionRowEls.forEach(t => { if (t) t.input.value = ''; });
         legRowCount = 1;
         updateLegChrome();
     }
@@ -1754,10 +1880,8 @@
         nextBtn.classList.add('loading');
         nextBtn.textContent = currentLanguage === 'he' ? 'יוצר את הטיול...' : 'Creating trip...';
 
-        const destination = document.getElementById('tripDestination').value.trim();
         const tripType = document.getElementById('tripType').value;
         const tripCharacter = document.getElementById('tripCharacter').value;
-        const location = tripType === 'reserve' ? {} : await geocodeDestination(destination);
         const tripId = 'trip_' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         // Non-abroad trips only collect a date (no flight time to ask for) - the day
         // still needs to be represented in full, so it's start-of-day through
@@ -1766,6 +1890,84 @@
         const hasTime = document.getElementById('tripStart').type === 'datetime-local';
         const startInputValue = hasTime ? document.getElementById('tripStart').value : `${document.getElementById('tripStart').value}T00:00`;
         const endInputValue = hasTime ? document.getElementById('tripEnd').value : `${document.getElementById('tripEnd').value}T23:59`;
+
+        const legNames = legRowEls.slice(0, legRowCount).map(r => r.input.value.trim());
+        const legVibes = (tripType === 'abroad' || tripType === 'local') ? selectedVibes : [];
+
+        // Geocoded in parallel, not one at a time - N legs is N network calls
+        // regardless, no reason to pay for them sequentially.
+        const legLocations = await Promise.all(
+            legNames.map(name => tripType === 'reserve' ? Promise.resolve({}) : geocodeDestination(name))
+        );
+
+        legLocations.forEach((loc, i) => {
+            if (tripType !== 'reserve' && !loc.timezone) {
+                // Decided: a failed leg saves without lat/lon/timezone, the rest
+                // save normally, the trip is still created - no UI blocks or
+                // warns the user, this is the same silent-degrade the single-
+                // destination path already had (an unresolved geocode just
+                // means null coordinates), only now per-leg instead of once.
+                console.warn(`[wizard] geocoding failed for leg "${legNames[i]}" - saving without lat/lon/timezone`, { tripId, leg: legNames[i] });
+            }
+        });
+
+        // Boundary instants: boundaries[0] is the trip start, boundaries[N] is
+        // the trip end, boundaries[1..N-1] are the transition dates - each
+        // computed exactly once and shared by both the leg ending there and
+        // the leg starting there, so legs[i].endAt and legs[i+1].startAt are
+        // byte-identical (§2.2's continuity requirement), never two separate
+        // computations that could drift apart.
+        //
+        // boundaries[0] = trip.startAt exactly, no re-zoning. docs/schema-
+        // legs.md §4 already treats trip.startAt (creator's device clock) and
+        // legs[0].startAt (first leg's own local time) as semantically
+        // different values that happen to coincide today, and explicitly
+        // defers actually separating them to a future departureTimezone
+        // field - out of scope here. Don't "fix" this to look more
+        // consistent; it would reopen a question §4 already closed.
+        const startBoundary = new Date(startInputValue);
+
+        // boundaries[N] = trip.endAt exactly - both already mean "the last
+        // leg's own timezone", so this isn't a special case, just the
+        // existing formula unchanged.
+        const lastLegTimezone = legLocations[legLocations.length - 1].timezone;
+        const endBoundary = lastLegTimezone
+            ? localInputToUtcInZone(endInputValue, lastLegTimezone)
+            : new Date(endInputValue);
+
+        const boundaries = [startBoundary];
+        for (let i = 0; i < legRowCount - 1; i++) {
+            const rawTransition = transitionRowEls[i].input.value;
+            const transitionValue = rawTransition
+                ? (hasTime ? rawTransition : `${rawTransition}T00:00`)
+                : '';
+            // Interpreted in the OUTGOING leg's own timezone (leg i, not leg
+            // i+1) - docs/schema-legs.md §5.2: the transition day belongs to
+            // the outgoing leg, extended from a calendar day to an instant,
+            // and the same asymmetric "endAt uses its own leg's zone" rule §4
+            // already uses for trip.endAt/legs[last].endAt.
+            const outgoingTimezone = legLocations[i].timezone;
+            boundaries.push(
+                outgoingTimezone
+                    ? localInputToUtcInZone(transitionValue, outgoingTimezone)
+                    : new Date(transitionValue)
+            );
+        }
+        boundaries.push(endBoundary);
+
+        const legs = legNames.map((name, i) => ({
+            id: `leg_${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`,
+            name,
+            lat: legLocations[i].lat ?? null,
+            lon: legLocations[i].lon ?? null,
+            timezone: legLocations[i].timezone || null,
+            startAt: boundaries[i].toISOString(),
+            endAt: boundaries[i + 1].toISOString(),
+            vibes: legVibes
+        }));
+
+        const destination = legs[0].name;
+
         const tripData = {
             schemaVersion: 2,
             destination,
@@ -1776,20 +1978,22 @@
             // indistinguishable for every trip created before this field
             // existed.
             ...(tripCharacter ? { tripCharacter } : {}),
-            vibes: (tripType === 'abroad' || tripType === 'local') ? selectedVibes : [],
+            vibes: legVibes,
             language: currentLanguage,
             participants,
             features: selectedFeatures(),
-            startAt: new Date(startInputValue).toISOString(),
-            endAt: (location.timezone
-                ? localInputToUtcInZone(endInputValue, location.timezone)
-                : new Date(endInputValue)
-            ).toISOString(),
+            startAt: legs[0].startAt,
+            endAt: legs[legs.length - 1].endAt,
             checkinLink: tripType === 'abroad' ? document.getElementById('checkinUrl').value.trim() : '',
-            lat: location.lat ?? null,
-            lon: location.lon ?? null,
-            countryCode: location.countryCode || '',
-            timezone: location.timezone || null,
+            lat: legs[0].lat,
+            lon: legs[0].lon,
+            countryCode: legLocations[0].countryCode || '',
+            timezone: legs[0].timezone,
+            // Written only past a single destination - a single-leg trip
+            // stays byte-identical to before this commit, and getLegs()
+            // already synthesizes an equivalent single leg from the fields
+            // above when this key is absent (docs/schema-legs.md §2.1, §10).
+            ...(legs.length > 1 ? { legs } : {}),
             ownerId: organizer.uid,
             createdAt: Date.now()
         };
