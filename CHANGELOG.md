@@ -1,5 +1,14 @@
 # GitTrip — CHANGELOG
 
+## v4.20.2 — תיקון: trip.timezone נכתב מהרגל הראשונה במקום האחרונה (שלב 11, commit א.5)
+
+### 🐛 תיקון
+- **כל טיול מרובה-רגליים שנוצר מאז v4.20.0 (2026-09-07) נשמר עם `timezone` שגוי.** `generateTripAndSave()` ([wizard.html](wizard.html)) כתבה `timezone: legs[0].timezone` - הרגל **הראשונה** - בעוד `destination`/`lat`/`lon` נכונים מהראשונה (§2.1) ו-`endAt` נכון מהאחרונה (§4). `trip.timezone` צריך לשקף את **אותה רגל** כמו `endAt` (שתיהן "הרגל האחרונה", אותו נימוק) - `index.html`'s `hydrateTripData()` כבר קורא לפי ההנחה הזו (`tripTimezone = lastLeg.timezone`), אז כל טיול מרובה-רגליים היה עם `timezone` שלא תואם לאזור הזמן שבו `endAt` בפועל מחושב
+- נבדק את שאר השדות ברמת הטיול (`destination`/`lat`/`lon`/`countryCode`/`startAt` מהרגל הראשונה, `endAt` מהאחרונה) - כולם נכונים, `timezone` היה החריג היחיד
+- **תוקן**: `timezone: legs[legs.length - 1].timezone`
+- `scripts/find-desynced-legs.js` (נוסף ב-v4.20.1) כבר בודק בדיוק את זה - `trip.timezone !== legs[last].timezone` - לא נדרש שינוי בסקריפט
+- נבדק בפועל (console fixture, לכידת ה-payload לפני הכתיבה): טיול 3 רגליים (רומא/בנגקוק/טוקיו) - `trip.timezone` כעת `"Asia/Tokyo"`, תואם ל-`legs[2].timezone` ול-`trip.endAt`; טיול רגל אחת (ברלין) - רגרסיה, ללא שינוי
+
 ## v4.20.1 — תיקון: פאנל האדמין דרס legs בשינוי יעד/תאריכים (שלב 11, commit דחוף)
 
 ### 🐛 תיקון

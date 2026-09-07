@@ -1988,7 +1988,13 @@
             lat: legs[0].lat,
             lon: legs[0].lon,
             countryCode: legLocations[0].countryCode || '',
-            timezone: legs[0].timezone,
+            // Last leg, not first - trip.timezone always mirrors endAt's own
+            // leg (docs/schema-legs.md §4), same as endAt itself two lines
+            // up. hydrateTripData() in index.html already reads it that way
+            // (tripTimezone = lastLeg.timezone) - this was writing legs[0]
+            // instead, silently contradicting every multi-leg trip's own
+            // endAt from the moment it was created.
+            timezone: legs[legs.length - 1].timezone,
             // Written only past a single destination - a single-leg trip
             // stays byte-identical to before this commit, and getLegs()
             // already synthesizes an equivalent single leg from the fields
