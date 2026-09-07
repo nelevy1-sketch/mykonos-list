@@ -1,5 +1,16 @@
 # GitTrip — CHANGELOG
 
+## v4.18.2 — תיקון: fetchForecast פירשה flightOut לפי אזור הזמן הלא נכון (שלב 5, commit ב מתוך 3)
+
+### 🐛 תיקון
+- **`tripStartKey` ב-`fetchForecast()` פירשה `flightOut` (=`trip.startAt`) לפי `tripTimezone` (רגל אחרונה) במקום רגל ראשונה** - אותה משפחת באג שתוקנה ב-`tripDayDates()` בשלב 4א. שורה אחת בלבד שונתה - `todayKey` ו-`tripEndKey`, השורות מעליה ומתחתיה, נשארו כפי שהיו (שתיהן תקינות)
+
+### ✨ תכונה חדשה
+- **`currentLegs` - מערך רגליים גלובלי חדש ב-index.html**, מוגדר ב-`hydrateTripData()` ליד `tripTimezone` (`window.getLegs(legInput, tripId)` - לא מ-`data` הגולמי, כדי להתאים ל-`primaryLeg`/`lastLeg` שכבר מחושבים מ-`legInput` באותה פונקציה, כולל נפילת התאריכים הישנים ל-`flightOut`/`tripEnd`). לא `primaryLegTimezone` בודד - מערך שלם, כי הקטגוריה הבאה (§8ב סעיף 7, "הרגל הפעילה עכשיו") לא ניתנת לפתרון עם משתנה קבוע יחיד, ואין טעם להוסיף משתנה גלובלי חדש לכל צורך עתידי
+- **`tripStartKey` משתמשת ב-`currentLegs[0].timezone`** - לא ב-`getPrimaryLeg(trip)` ישיר כפי שהוצע קודם ב-§8: אומת ש-`index.html` לא מחזיקה אובייקט `trip` בשום מקום (הכל משוטח למשתנים ב-`hydrateTripData` ונזרק) - קריאה ישירה ל-`getPrimaryLeg(trip)` הייתה דורשת בניית אובייקט מזויף, שהיה חסר את ה-`legs` האמיתיים ומחזיר בדיוק את אותו ערך שגוי מחדש
+- נבדק בפועל: ברלין (רגל אחת) - הרצועה נטענת עם נתונים אמיתיים מ-Open-Meteo, `tripStartKey` תואם ליום הראשון, אפס שינוי. טיול מזויף רומא/בנגקוק (2 רגליים, timezone שונה) - נוסחה ישנה (`tripTimezone`) נותנת `2026-10-06` (שגוי), `currentLegs[0].timezone` נותן `2026-10-05` (נכון) - אותם ערכים בדיוק כמו בדיקה 10 של שלב 4א. אין שגיאות קונסולה חדשות
+- `node scripts/i18n-audit.js index.html` - 0 ממצאים
+
 ## v4.18.1 — תיקון: פאנל האדמין כתב endAt לפי אזור הזמן הישן (שלב 5, commit א מתוך 3)
 
 ### 🐛 תיקון

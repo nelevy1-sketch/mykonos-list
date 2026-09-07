@@ -2282,6 +2282,7 @@
     let lonCoord = 34.7818;
     let hasRealCoords = false;
     let tripTimezone = null;
+    let currentLegs = [];
     let lastForecastKey = null;
     let flightOut = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     let tripEnd = new Date(Date.now() + 37 * 24 * 60 * 60 * 1000);
@@ -3211,6 +3212,13 @@
           data
         );
       }
+
+      // Kept as the actual legs array, not just first/last shortcuts -
+      // tripTimezone (last leg) covers most consumers, but a future one
+      // (docs/schema-legs.md §8b's "currently active leg" category) needs
+      // an arbitrary leg, not a fixed end. One global here instead of a
+      // new one per consumer.
+      currentLegs = window.getLegs(legInput, tripId);
 
       // destination/lat/lon/hasRealCoords come from the first leg;
       // timezone/endAt come from the last leg - per docs/schema-legs.md §4.
@@ -5094,7 +5102,11 @@
       // date-only strings sidesteps device-vs-destination instant confusion
       // entirely, and "2026-09-05" < "2026-09-06" compares correctly as text.
       const todayKey = window.dateKeyInZone(new Date(), tripTimezone);
-      const tripStartKey = window.dateKeyInZone(flightOut, tripTimezone);
+      // flightOut is trip.startAt, belongs to the trip's first day - needs
+      // the FIRST leg's timezone, not tripTimezone (=last leg). Same bug
+      // family as tripDayDates() (docs/schema-legs.md §4, fixed in step
+      // 4a).
+      const tripStartKey = window.dateKeyInZone(flightOut, currentLegs[0]?.timezone || null);
       const tripEndKey = window.dateKeyInZone(tripEnd, tripTimezone);
       const rangeStartKey = tripStartKey > todayKey ? tripStartKey : todayKey;
 
