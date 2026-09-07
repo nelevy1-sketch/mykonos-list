@@ -412,7 +412,13 @@
 }
 
 .character-ski {
-  --accent-gradient: linear-gradient(90deg, #4FC3F7, #B3E5FC);
+  /* v4.17.0's original #4FC3F7 -> #B3E5FC was too close in hue/value to
+     --glow-color on theme-abroad (#2DD4C8) - both light, both cyan-ish -
+     the bar read as "more teal" instead of a distinct accent. Deep navy
+     anchor gives real contrast against teal (different hue family, dark
+     enough to stand out) without going so dark it disappears into --bg
+     (#0B1015) the way an almost-black anchor did in testing. */
+  --accent-gradient: linear-gradient(90deg, #0B3D91, #4FC3F7, #FFFFFF);
   --accent-bar-height: 3px;
   --accent-bar-margin: 8px;
 }
