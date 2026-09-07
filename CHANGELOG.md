@@ -1,5 +1,13 @@
 # GitTrip — CHANGELOG
 
+## v4.11.5 — קריאות destination/endAt דרך getLegs ב-packing.html (אפס שינוי התנהגות)
+
+### ✨ תכונה חדשה
+- **שלב 2ב-ב מתוך docs/schema-legs.md**: `packing.html` בלבד, מבודד מהקומיט הקודם (itinerary/places/shopping) כי שני מתוך ארבעת אתרי הקריאה כאן הם ה-payload ל-Cloud Function של הצעות ה-AI (`requestAiSuggestions()`) - חוזה חיצוני, לא תצוגה פנימית. אם משהו שם נשבר, רוצים שזה יהיה מבודד לקומיט משלו
+- **אותו מיפוי כמו בקומיטים הקודמים**: `destination` ← `getPrimaryLeg()`; `endAt`/`endDate` ← `getLastLeg()`; `startAt`/`startDate` נשאר נקרא ישירות מ-`trip.startAt` - כולל בתוך ה-payload ל-AI (`startDate: trip.startAt`, ללא שינוי)
+- **ארבע נקודות עדכון**: `applyTheme()` (מטמון localStorage), `applyLanguage()` (`document.title` + `#destination`), `requestAiSuggestions()` (ה-payload שנשלח ל-Cloud Function), וכתיבת הסיכום ל-`users/{uid}/trips/{tripId}` (אותו דפוס כמו בשלושת העמודים הקודמים)
+- נבדק בפועל, לא רק נקרא, עם אותו דפוס `window.__test` זמני (הוסר ואומת שהוסר לפני ה-commit): **א.** טיול אמיתי (ברלין) - `document.title`, `#destination`, וה-**payload המלא** ל-AI הודפסו לפני ואחרי והושוו מול השדות הגולמיים, זהים בייט-לבייט. **ב.** טיול מזויף עם 2 רגליים ו-timezone/`endAt` שונים (רומא/ניו יורק) - הכותרת הציגה את הרגל הראשונה (רומא), ה-payload ל-AI הכיל `destination:"רומא"`, `startDate` זהה ל-`trip.startAt` הגולמי (ללא שינוי), ו-`endDate` מהרגל **האחרונה** (20/10, לא 9/10 של הרגל הראשונה) - אותה בדיקה שתפסה את הטעות הפוטנציאלית ב-2א. **ג.** אין שגיאות קונסול חדשות מעבר לכשלי הרשת הצפויים בסביבת הבדיקה (ושתי שגיאות `console.error` צפויות מיירוט ה-`fetch` המכוון בבדיקה עצמה, כדי לתפוס את ה-payload בלי לפגוע ברשת אמיתית)
+
 ## v4.11.4 — קריאות destination/lat/lon/timezone/endAt דרך getLegs (itinerary/places/shopping, אפס שינוי התנהגות)
 
 ### ✨ תכונה חדשה

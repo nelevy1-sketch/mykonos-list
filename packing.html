@@ -1270,10 +1270,10 @@
           trip.tripType || "abroad"
         );
 
-        if (trip.destination) {
+        if (window.getPrimaryLeg(trip).name) {
           localStorage.setItem(
             `trip-${tripId || "legacy"}-name`,
-            trip.destination
+            window.getPrimaryLeg(trip).name
           );
         }
       } catch (e) {}
@@ -1316,16 +1316,16 @@
 
       document.title =
         `${tr("רשימת ציוד", "Packing list")} • ` +
-        `${trip.destination || ""}`;
+        `${window.getPrimaryLeg(trip).name || ""}`;
 
       // Guarded: this function also runs once, early, from the cached-
       // language flash fix below - before trip.destination is known. Only
       // repaint the name once we actually have (or have confirmed the lack
       // of) real data, so that early call does not stomp on the name the
       // bootstrap script already painted from cache.
-      if (trip.destination || tripDataLoaded) {
+      if (window.getPrimaryLeg(trip).name || tripDataLoaded) {
         $("destination").textContent =
-          trip.destination ||
+          window.getPrimaryLeg(trip).name ||
           tr("הטיול שלנו", "Our trip");
       }
 
@@ -1842,11 +1842,11 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            destination: trip.destination || "",
+            destination: window.getPrimaryLeg(trip).name || "",
             tripType: trip.tripType || "abroad",
             vibes: trip.vibes || [],
             startDate: trip.startAt || "",
-            endDate: trip.endAt || "",
+            endDate: window.getLastLeg(trip).endAt || "",
             listName: listLabel(activeList),
             language: trip.language === "en" ? "en" : "he"
           })
@@ -2103,11 +2103,11 @@
         // don't surface it to the user, just log it.
         update(ref(db), {
           [`users/${user.uid}/trips/${tripId}`]: {
-            destination: trip.destination || "",
+            destination: window.getPrimaryLeg(trip).name || "",
             tripType: trip.tripType || "",
             language: trip.language || "he",
             startAt: trip.startAt || null,
-            endAt: trip.endAt || null,
+            endAt: window.getLastLeg(trip).endAt || null,
             createdAt: trip.createdAt || Date.now()
           }
         }).catch(error => {
