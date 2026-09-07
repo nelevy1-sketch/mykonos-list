@@ -384,6 +384,19 @@
                 </select>
                 <small class="field-hint" id="tripTypeHint">הבחירה משנה את הצבעים, הפעולות והמודולים בדף הנחיתה.</small>
             </div>
+            <div class="form-group">
+                <label id="lblTripCharacter">אופי הטיול (אופציונלי)</label>
+                <select id="tripCharacter">
+                    <option value="" id="optCharacterNone">לא צוין</option>
+                    <option value="family" id="optCharacterFamily">משפחה</option>
+                    <option value="friends" id="optCharacterFriends">חברים</option>
+                    <option value="couple" id="optCharacterCouple">זוגי</option>
+                    <option value="ski" id="optCharacterSki">סקי</option>
+                    <option value="pride" id="optCharacterPride">גאווה</option>
+                    <option value="bachelor" id="optCharacterBachelor">חתונה / רווקים</option>
+                    <option value="festival" id="optCharacterFestival">פסטיבל</option>
+                </select>
+            </div>
             <div class="form-group" id="vibeGroup">
                 <label id="lblVibe">מה האופי של הטיול? (מותאם קטגוריות ורשימות)</label>
                 <div class="vibe-grid" id="vibeGrid">
@@ -651,6 +664,15 @@
             optLocal: "טיול בארץ 🧭",
             optCamping: "קמפינג / טבע 🏕️",
             optReserve: "שירות מילואים / גיבוש 🪖",
+            characterLabel: "אופי הטיול (אופציונלי)",
+            optCharacterNone: "לא צוין",
+            optCharacterFamily: "משפחה",
+            optCharacterFriends: "חברים",
+            optCharacterCouple: "זוגי",
+            optCharacterSki: "סקי",
+            optCharacterPride: "גאווה",
+            optCharacterBachelor: "חתונה / רווקים",
+            optCharacterFestival: "פסטיבל",
             vibeLabel: "מה האופי של הטיול? (מותאם קטגוריות ורשימות)",
             vibeHint: "ניתן לבחור יותר מאופי אחד - זה ישפיע על הצעות המקומות והציוד.",
             vibeUrban: "🏙️ עירוני",
@@ -705,6 +727,15 @@
             optLocal: "Local trip 🧭",
             optCamping: "Camping / Nature 🏕️",
             optReserve: "Reserve Duty / Team Building 🪖",
+            characterLabel: "Trip character (optional)",
+            optCharacterNone: "Not specified",
+            optCharacterFamily: "Family",
+            optCharacterFriends: "Friends",
+            optCharacterCouple: "Couple",
+            optCharacterSki: "Ski",
+            optCharacterPride: "Pride",
+            optCharacterBachelor: "Wedding / Bachelor(ette)",
+            optCharacterFestival: "Festival",
             vibeLabel: "What's the trip's vibe? (tailors places & packing)",
             vibeHint: "You can pick more than one - this shapes place and packing suggestions.",
             vibeUrban: "🏙️ Urban",
@@ -848,6 +879,15 @@
         document.getElementById('optLocal').textContent = t.optLocal;
         document.getElementById('optCamping').textContent = t.optCamping;
         document.getElementById('optReserve').textContent = t.optReserve;
+        document.getElementById('lblTripCharacter').textContent = t.characterLabel;
+        document.getElementById('optCharacterNone').textContent = t.optCharacterNone;
+        document.getElementById('optCharacterFamily').textContent = t.optCharacterFamily;
+        document.getElementById('optCharacterFriends').textContent = t.optCharacterFriends;
+        document.getElementById('optCharacterCouple').textContent = t.optCharacterCouple;
+        document.getElementById('optCharacterSki').textContent = t.optCharacterSki;
+        document.getElementById('optCharacterPride').textContent = t.optCharacterPride;
+        document.getElementById('optCharacterBachelor').textContent = t.optCharacterBachelor;
+        document.getElementById('optCharacterFestival').textContent = t.optCharacterFestival;
         document.getElementById('lblVibe').textContent = t.vibeLabel;
         document.getElementById('vibeHint').textContent = t.vibeHint;
         document.getElementById('vibeUrban').textContent = t.vibeUrban;
@@ -993,6 +1033,7 @@
             const draft = {
                 destination: document.getElementById('tripDestination').value,
                 tripType: document.getElementById('tripType').value,
+                tripCharacter: document.getElementById('tripCharacter').value,
                 vibes: selectedVibes,
                 start: document.getElementById('tripStart').value,
                 end: document.getElementById('tripEnd').value,
@@ -1023,6 +1064,7 @@
 
         if (draft.destination) document.getElementById('tripDestination').value = draft.destination;
         if (draft.tripType) document.getElementById('tripType').value = draft.tripType;
+        if (draft.tripCharacter) document.getElementById('tripCharacter').value = draft.tripCharacter;
         // Must run before writing draft.start/end below: it puts tripStart/tripEnd's
         // input type in sync with the restored trip type, so a date-only draft value
         // isn't rejected by an input still left over as datetime-local (or vice versa).
@@ -1458,6 +1500,7 @@
 
         const destination = document.getElementById('tripDestination').value.trim();
         const tripType = document.getElementById('tripType').value;
+        const tripCharacter = document.getElementById('tripCharacter').value;
         const location = tripType === 'reserve' ? {} : await geocodeDestination(destination);
         const tripId = 'trip_' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         // Non-abroad trips only collect a date (no flight time to ask for) - the day
@@ -1471,6 +1514,12 @@
             schemaVersion: 2,
             destination,
             tripType,
+            // Optional, single-select (§3.2 in docs/schema-legs.md) - omitted
+            // entirely when not chosen, not written as an empty string, so
+            // "no character" and "character not yet asked about" stay
+            // indistinguishable for every trip created before this field
+            // existed.
+            ...(tripCharacter ? { tripCharacter } : {}),
             vibes: (tripType === 'abroad' || tripType === 'local') ? selectedVibes : [],
             language: currentLanguage,
             participants,
@@ -1586,6 +1635,7 @@
         if (destinationPreviewTimer) { clearTimeout(destinationPreviewTimer); destinationPreviewTimer = null; }
         document.getElementById('tripDestination').value = '';
         document.getElementById('tripType').value = 'abroad';
+        document.getElementById('tripCharacter').value = '';
         document.getElementById('checkinUrl').value = '';
         document.getElementById('participantName').value = '';
         document.getElementById('destinationPreview').textContent = '';
