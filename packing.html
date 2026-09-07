@@ -2655,19 +2655,58 @@
     function renderLists() {
       const ids = allListIds();
 
+      // main is a ghost list - allListIds() always includes it, unconditionally,
+      // whether or not the user has ever put anything in it (see docs/
+      // schema-legs.md-style history: it predates the categories-as-lists
+      // feature by a few hours and was never reconciled with it). Hide it
+      // from the chip strip specifically - not from the data, not from
+      // editListSelect/bulkMoveTarget/addItemCategorySelect, which are
+      // "pick a destination" contexts where an empty-but-real target is
+      // still legitimate to offer - when it has neither real items nor an
+      // explicit listMeta entry (the latter can't actually happen through
+      // any UI path today - rename is blocked for main - but checked
+      // anyway rather than assumed impossible).
+      const mainHasContent =
+        Object.keys(items?.main || {}).length > 0;
+      const mainHasExplicitMeta =
+        !!(allPacking?.users?.[user?.uid]?.listMeta?.main);
+      const hideMain = !mainHasContent && !mainHasExplicitMeta;
+
       // "all" is a valid activeList value (persisted like any other, see
       // below) but is never a real category, so it can never appear in
       // `ids` - the check has to special-case it explicitly, or a restored
-      // "all" gets silently overwritten back to "main" on every load. This
-      // is corrected BEFORE building the chips below, not after (unlike
-      // the old <select>, a chip's "active" look has to be baked into the
-      // HTML at generation time - there's no equivalent of setting
-      // .value on an already-populated element afterward).
-      if (activeList !== "all" && !ids.includes(activeList)) {
-        activeList = "main";
+      // "all" gets silently overwritten on every load. This is corrected
+      // BEFORE building the chips below, not after (unlike the old
+      // <select>, a chip's "active" look has to be baked into the HTML at
+      // generation time - there's no equivalent of setting .value on an
+      // already-populated element afterward).
+      //
+      // Falls back to "all", not "main": a stale/deleted category is one
+      // reason activeList can be invalid, but "was on main, and main just
+      // emptied out and got hidden" is a second, distinct one - `ids`
+      // always contains "main" (it's a ghost, not a real gap), so the
+      // naive "!ids.includes(activeList)" check alone would never catch
+      // that second case, leaving no chip marked active and a blank list
+      // with no visible explanation. "all" is always rendered and always
+      // a sensible landing spot either way - not just a fallback, an
+      // improvement over dumping someone on a list that might be empty.
+      //
+      // Deliberately not touching deleteList()'s own "activeList = main" -
+      // renderMine() calls renderLists() immediately after any change that
+      // reassigns activeList, so this one central check corrects it
+      // regardless of which of the several call sites set it, the same
+      // reasoning already used for why the localStorage save point below
+      // lives here alone instead of being duplicated at each site.
+      const activeListIsValid =
+        activeList === "all" ||
+        (ids.includes(activeList) && !(activeList === "main" && hideMain));
+
+      if (!activeListIsValid) {
+        activeList = "all";
       }
 
-      const chipIds = ["all", ...ids];
+      const visibleIds = hideMain ? ids.filter(id => id !== "main") : ids;
+      const chipIds = ["all", ...visibleIds];
 
       $("categoryChips").innerHTML =
         chipIds
