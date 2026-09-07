@@ -2486,6 +2486,42 @@
       return items?.[activeList] || {};
     }
 
+    // Filtered view over every category's items - step 1 of replacing the
+    // single-list <select> with a filtered strip. Not wired to anything
+    // yet: currentItems() stays exactly as-is, and every existing caller
+    // (renderMine, renderQuickPicks, the 14 per-item write sites, AI
+    // dedup, etc.) keeps using it unchanged until the later steps.
+    //
+    // filter === "all" merges every real category bucket in `items` into
+    // one flat map, tagging each item with the categoryId it actually
+    // came from. That tag is the whole point: every per-item write site
+    // today assumes activeList IS the item's category, because rendering
+    // has only ever shown one category at a time. The moment a merged
+    // view exists, that assumption breaks everywhere at once unless each
+    // item carries its own category forward from here.
+    //
+    // A specific filter (a real category id) returns just that category,
+    // tagged the same way - "all" and "one category" are the same shape,
+    // just a different source set, so callers don't need two code paths.
+    function itemsForCategoryFilter(filter) {
+      const sourceIds =
+        filter === "all"
+          ? Object.keys(items || {})
+          : [filter];
+
+      const merged = {};
+
+      sourceIds.forEach(categoryId => {
+        const bucket = items?.[categoryId] || {};
+
+        Object.entries(bucket).forEach(([id, item]) => {
+          merged[id] = { ...item, categoryId };
+        });
+      });
+
+      return merged;
+    }
+
     function allListIds() {
       const metadata =
         allPacking?.users?.[user?.uid]?.listMeta || {};
