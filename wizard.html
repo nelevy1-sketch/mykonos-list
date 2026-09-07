@@ -907,6 +907,11 @@
         document.getElementById('lblParticipants').textContent = t.partLabel;
         document.getElementById('participantName').placeholder = t.partPlaceholder;
         document.getElementById('addParticipantBtn').textContent = t.addBtn;
+        // renderParticipants() rebuilds each tag's "remove" aria-label from
+        // currentLanguage (just updated above) - without this call, tags
+        // already on screen keep whatever language they were rendered in
+        // until the next add/remove, not the one just chosen.
+        renderParticipants();
 
         document.getElementById('lblModules').textContent = t.modLabel;
         document.getElementById('lblFeatPacking').textContent = t.packLabel;
@@ -1304,8 +1309,9 @@
 
     function renderParticipants() {
         const container = document.getElementById('participantsContainer');
+        const removeLabel = currentLanguage === 'he' ? 'הסר' : 'Remove';
         container.innerHTML = participants.map((p, index) => `
-            <div class="participant-tag">${escapeHtml(p)} <span role="button" aria-label="הסר ${escapeHtml(p)}" onclick="removeParticipant(${index})">&times;</span></div>
+            <div class="participant-tag">${escapeHtml(p)} <span role="button" aria-label="${escapeHtml(removeLabel)} ${escapeHtml(p)}" onclick="removeParticipant(${index})">&times;</span></div>
         `).join('');
     }
 
