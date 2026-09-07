@@ -92,8 +92,52 @@
         return `${pad2(p.hour)}:${pad2(p.minute)}`;
     }
 
+    // Interprets a naive "YYYY-MM-DDTHH:MM" datetime-local value as wall-clock
+    // time in `timeZone` (not the browser's own timezone) and returns the
+    // correct UTC instant. Uses Intl.DateTimeFormat only - no libraries.
+    //
+    // Moved here (docs/schema-legs.md §11, the legBuilder.js extraction) from
+    // wizard.html and index.html, which each carried a byte-for-byte
+    // identical copy (confirmed via diff before the move - only whitespace/
+    // quote-style differed, same as every other duplication this file exists
+    // to end). legBuilder.js's buildLegs() depends on this, and both existing
+    // call sites (index.html's admin panel, wizard.html's trip creation)
+    // already load this file - the same "about to become a third copy"
+    // trigger that justified this file's own creation for zonedParts.
+    function localInputToUtcInZone(inputValue, timeZone) {
+        if (!inputValue) return new Date(NaN);
+        const [datePart, timePart] = inputValue.split("T");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const [hour, minute] = (timePart || "00:00").split(":").map(Number);
+        const target = Date.UTC(year, month - 1, day, hour, minute);
+
+        const partsInZone = (utcMillis) => {
+            const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone,
+                year: "numeric", month: "2-digit", day: "2-digit",
+                hour: "2-digit", minute: "2-digit", hour12: false
+            }).formatToParts(new Date(utcMillis)).reduce((acc, p) => {
+                if (p.type !== "literal") acc[p.type] = parseInt(p.value, 10);
+                return acc;
+            }, {});
+
+            if (parts.hour === 24) parts.hour = 0;
+
+            return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+        };
+
+        let guess = target;
+
+        for (let i = 0; i < 2; i++) {
+            guess -= partsInZone(guess) - target;
+        }
+
+        return new Date(guess);
+    }
+
     window.zonedParts = zonedParts;
     window.dateKeyInZone = dateKeyInZone;
     window.todayKeyInZone = todayKeyInZone;
     window.nowHHMMInZone = nowHHMMInZone;
+    window.localInputToUtcInZone = localInputToUtcInZone;
 })();

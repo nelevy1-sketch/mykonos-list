@@ -1,5 +1,16 @@
 # GitTrip — CHANGELOG
 
+## v4.20.3 — חילוץ `legBuilder.js` מ-wizard.html (שלב 11, commit ב - רה-פקטור)
+
+### ♻️ רה-פקטור (אפס שינוי התנהגות)
+- **קובץ חדש `legBuilder.js`** - פונקציות טהורות לבניית `legs[]` מקלט גולמי (בלי DOM, בלי מצב גלובלי): `splitEqualBoundaries` (חלוקה לינארית טהורה), `buildLegs` (בניית `boundaries[]` והנגזרת ל-`legs[]`, כולל אכיפת הרציפות המבנית וכלל שעון-הרגל-היוצאת), `deriveTripFields` (גזירת `destination`/`lat`/`lon`/`countryCode`/`timezone`/`startAt`/`endAt` מ-`legs[0]`/`legs[legs.length-1]`). נטען כרגע רק ב-`wizard.html` - לא ב-4 העמודים שלעולם לא בונים `legs` (packing/places/shopping/itinerary), ולא עדיין ב-`index.html` (יתווסף ב-11ב/ג כשהפאנל בונה רגליים בפועל)
+- **לא ב-`legs.js`, במכוון** - `legs.js` הוא קריאה/נרמול בלבד ("בהינתן טיול שכבר יש לו legs, תחזיר תצוגה"); הפונקציות החדשות הן בנייה ("בהינתן קלט גולמי, תבנה legs חדש"). אותו נימוק בדיוק שהוציא את `datetime.js` מ-`legs.js` (ר' הערת הכותרת של `datetime.js`) - ציר שונה (זמן-ביום מול מבנה-טיול), אותה מסקנה: לא לערבב שתי אחריות בקובץ אחד
+- **`wizard.html`'s `generateTripAndSave()` ו-`recomputeTransitionDefaults()` עוברות לקרוא ל-`window.buildLegs`/`window.deriveTripFields`/`window.splitEqualBoundaries`** - הלוגיקה המקומית נמחקה פיזית, לא הוקפאה. קריאות DOM (ערכי טופס, כתיבה ל-`<input>`) נשארות בוויזרד; החישוב עצמו זז
+- **`localInputToUtcInZone` הועברה ל-`datetime.js`** - הייתה משוכפלת בית-לבית בין `wizard.html` ו-`index.html` (אומת ב-diff לפני ההעברה - רק סגנון מרכאות/הזחה שונה, שתי הפעמים העתק זהה בהתנהגות). שני העותקים נמחקו פיזית; `index.html`'s קריאה נשארה `localInputToUtcInZone(...)` ללא שינוי (script קלאסי - הזיהוי הגלובלי עובד אוטומטית מ-`datetime.js` שכבר נטען שם)
+- **ולידציית רציפות (`legsAreContiguous`) - נדחתה ל-11ב במכוון**, לא חולצה עכשיו. אין קוד קיים לה היום - הרציפות מובטחת מבנית ב-`buildLegs`, לא נבדקת בנפרד, ובוויזרד אין דרך למשתמש לשבור אותה. תוסיף ערך רק כשהפאנל (11ב) בונה רגליים מעריכת משתמש בפועל
+- נבדק בפועל: **בדיקה 2 (ההוכחה)** - טיול רומא/בנגקוק/טוקיו, אותו קלט בדיוק לפני ואחרי החילוץ - payload זהה בית-לבית (חוץ מ-`id`/`createdAt` האקראיים): `destination`/`lat`/`lon`/`countryCode`/`timezone`/`startAt`/`endAt` ברמת הטיול, ושלוש הרגליים (שם/קואורדינטות/timezone/`startAt`/`endAt`) זהים; טיול ברלין יעד יחיד - payload זהה בית-לבית להיום, `legs` לא נכתב; `splitEqualBoundaries` בקונסול - טיול 3 ימים/4 רגליים מייצר 3 גבולות שונים (לא באורך אפס, לא כפולים); רציפות `legs[n].endAt === legs[n+1].startAt` מאומתת בבדיקה 2. אין שגיאות קונסולה חדשות בטעינת `wizard.html`/`index.html` (רק רעש `PERMISSION_DENIED` הרגיל של הסביבה)
+- `node scripts/i18n-audit.js wizard.html index.html` - 0 ממצאים (לא נוספו מחרוזות משתמש)
+
 ## v4.20.2 — תיקון: trip.timezone נכתב מהרגל הראשונה במקום האחרונה (שלב 11, commit א.5)
 
 ### 🐛 תיקון

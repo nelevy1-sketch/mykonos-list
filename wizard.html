@@ -37,6 +37,7 @@
     <script src="toast.js"></script>
     <script src="legs.js"></script>
     <script src="datetime.js"></script>
+    <script src="legBuilder.js"></script>
     <style>
         :root {
             --primary: #1D7A93;
@@ -1554,34 +1555,6 @@
         document.body.style.overflow = '';
     }
 
-    function localInputToUtcInZone(inputValue, timeZone) {
-        // Interprets a naive "YYYY-MM-DDTHH:MM" datetime-local value as wall-clock
-        // time in `timeZone` (not the browser's own timezone) and returns the
-        // correct UTC instant. Uses Intl.DateTimeFormat only - no libraries.
-        if (!inputValue) return new Date(NaN);
-        const [datePart, timePart] = inputValue.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute] = (timePart || '00:00').split(':').map(Number);
-        const target = Date.UTC(year, month - 1, day, hour, minute);
-        const partsInZone = (utcMillis) => {
-            const parts = new Intl.DateTimeFormat('en-US', {
-                timeZone,
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', hour12: false
-            }).formatToParts(new Date(utcMillis)).reduce((acc, p) => {
-                if (p.type !== 'literal') acc[p.type] = parseInt(p.value, 10);
-                return acc;
-            }, {});
-            if (parts.hour === 24) parts.hour = 0;
-            return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
-        };
-        let guess = target;
-        for (let i = 0; i < 2; i++) {
-            guess -= partsInZone(guess) - target;
-        }
-        return new Date(guess);
-    }
-
     async function geocodeDestination(destination) {
         try {
             const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=${currentLanguage}&format=json`);
@@ -1745,11 +1718,11 @@
     // segments, as naive local Date arithmetic - no timezone is known for any
     // leg yet at this point (geocoding only runs at save time, in
     // generateTripAndSave), so this can only ever be a starting suggestion in
-    // the same representation tripStart/tripEnd themselves already are.
-    // Always non-degenerate: for a positive total span and legRowCount<=6,
-    // dividing by legRowCount can never produce a zero-length or duplicate
-    // boundary, only a short one (e.g. a 3-day trip split into 4 legs gives
-    // 18-hour legs) - accepted as-is, exactly what "ניתנות לתיקון ידני" is for.
+    // the same representation tripStart/tripEnd themselves already are. The
+    // math itself lives in window.splitEqualBoundaries (legBuilder.js, see
+    // its own comment for the non-degeneracy note) - this wrapper only reads
+    // the DOM values it needs and writes the results back into the
+    // transition inputs.
     // Recomputed on every add/remove (not on every tripStart/tripEnd
     // keystroke) - a deliberate simplification: a manual transition edit
     // does not survive a later add/remove of a leg.
@@ -1763,13 +1736,13 @@
         const endMs = new Date(hasTime ? rawEnd : `${rawEnd}T23:59`).getTime();
         if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return;
 
-        for (let i = 0; i < legRowCount - 1; i++) {
+        const boundaries = window.splitEqualBoundaries(startMs, endMs, legRowCount);
+        boundaries.forEach((boundaryMs, i) => {
             const t = transitionRowEls[i];
-            if (!t) continue;
-            const boundaryMs = startMs + Math.round((endMs - startMs) * (i + 1) / legRowCount);
+            if (!t) return;
             const boundaryDate = new Date(boundaryMs);
             t.input.value = hasTime ? toInputDate(boundaryDate) : toInputDateOnly(boundaryDate);
-        }
+        });
     }
 
     function updateLegRowLanguage() {
@@ -1911,62 +1884,22 @@
             }
         });
 
-        // Boundary instants: boundaries[0] is the trip start, boundaries[N] is
-        // the trip end, boundaries[1..N-1] are the transition dates - each
-        // computed exactly once and shared by both the leg ending there and
-        // the leg starting there, so legs[i].endAt and legs[i+1].startAt are
-        // byte-identical (§2.2's continuity requirement), never two separate
-        // computations that could drift apart.
-        //
-        // boundaries[0] = trip.startAt exactly, no re-zoning. docs/schema-
-        // legs.md §4 already treats trip.startAt (creator's device clock) and
-        // legs[0].startAt (first leg's own local time) as semantically
-        // different values that happen to coincide today, and explicitly
-        // defers actually separating them to a future departureTimezone
-        // field - out of scope here. Don't "fix" this to look more
-        // consistent; it would reopen a question §4 already closed.
-        const startBoundary = new Date(startInputValue);
+        // Boundary construction, continuity (§2.2), and the outgoing-leg-
+        // timezone rule for transitions (§5.2) all live in window.buildLegs
+        // now (legBuilder.js) - see that function's own comment for the
+        // full reasoning, unchanged from when it was inline here.
+        const transitionInputValues = transitionRowEls.slice(0, legRowCount - 1).map(t => t.input.value);
+        const legs = window.buildLegs({
+            legNames, legLocations, legVibes,
+            startInputValue, endInputValue, transitionInputValues, hasTime
+        });
 
-        // boundaries[N] = trip.endAt exactly - both already mean "the last
-        // leg's own timezone", so this isn't a special case, just the
-        // existing formula unchanged.
-        const lastLegTimezone = legLocations[legLocations.length - 1].timezone;
-        const endBoundary = lastLegTimezone
-            ? localInputToUtcInZone(endInputValue, lastLegTimezone)
-            : new Date(endInputValue);
-
-        const boundaries = [startBoundary];
-        for (let i = 0; i < legRowCount - 1; i++) {
-            const rawTransition = transitionRowEls[i].input.value;
-            const transitionValue = rawTransition
-                ? (hasTime ? rawTransition : `${rawTransition}T00:00`)
-                : '';
-            // Interpreted in the OUTGOING leg's own timezone (leg i, not leg
-            // i+1) - docs/schema-legs.md §5.2: the transition day belongs to
-            // the outgoing leg, extended from a calendar day to an instant,
-            // and the same asymmetric "endAt uses its own leg's zone" rule §4
-            // already uses for trip.endAt/legs[last].endAt.
-            const outgoingTimezone = legLocations[i].timezone;
-            boundaries.push(
-                outgoingTimezone
-                    ? localInputToUtcInZone(transitionValue, outgoingTimezone)
-                    : new Date(transitionValue)
-            );
-        }
-        boundaries.push(endBoundary);
-
-        const legs = legNames.map((name, i) => ({
-            id: `leg_${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`,
-            name,
-            lat: legLocations[i].lat ?? null,
-            lon: legLocations[i].lon ?? null,
-            timezone: legLocations[i].timezone || null,
-            startAt: boundaries[i].toISOString(),
-            endAt: boundaries[i + 1].toISOString(),
-            vibes: legVibes
-        }));
-
-        const destination = legs[0].name;
+        // destination/lat/lon/countryCode from legs[0], timezone/startAt/
+        // endAt from legs[legs.length-1] (except startAt, itself legs[0]'s -
+        // see window.deriveTripFields's own comment) - docs/schema-legs.md
+        // §2.1, §4.
+        const tripFields = window.deriveTripFields(legs, legLocations);
+        const destination = tripFields.destination;
 
         const tripData = {
             schemaVersion: 2,
@@ -1982,19 +1915,13 @@
             language: currentLanguage,
             participants,
             features: selectedFeatures(),
-            startAt: legs[0].startAt,
-            endAt: legs[legs.length - 1].endAt,
+            startAt: tripFields.startAt,
+            endAt: tripFields.endAt,
             checkinLink: tripType === 'abroad' ? document.getElementById('checkinUrl').value.trim() : '',
-            lat: legs[0].lat,
-            lon: legs[0].lon,
-            countryCode: legLocations[0].countryCode || '',
-            // Last leg, not first - trip.timezone always mirrors endAt's own
-            // leg (docs/schema-legs.md §4), same as endAt itself two lines
-            // up. hydrateTripData() in index.html already reads it that way
-            // (tripTimezone = lastLeg.timezone) - this was writing legs[0]
-            // instead, silently contradicting every multi-leg trip's own
-            // endAt from the moment it was created.
-            timezone: legs[legs.length - 1].timezone,
+            lat: tripFields.lat,
+            lon: tripFields.lon,
+            countryCode: tripFields.countryCode,
+            timezone: tripFields.timezone,
             // Written only past a single destination - a single-leg trip
             // stays byte-identical to before this commit, and getLegs()
             // already synthesizes an equivalent single leg from the fields
