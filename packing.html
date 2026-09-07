@@ -1145,6 +1145,11 @@
       if (savedActiveList) activeList = savedActiveList;
     } catch (e) {}
     let editingId = null;
+    // Captured by openEdit() at click time, from data-edit's data-category -
+    // NOT read from activeList when the modal opens. saveEdit()/deleteItem
+    // read the item's real category from here, not from whatever list
+    // happens to be active while the modal is open.
+    let editingCategoryId = null;
     let packingListening = false;
     let stopTrip = null;
     let selectionMode = false;
@@ -2522,6 +2527,22 @@
       return merged;
     }
 
+    // Step 3 rule: no fallback to activeList. A missing data-category means
+    // renderMine() (or whatever else renders item-row elements later)
+    // forgot to tag one - a real bug. Writing to activeList anyway would
+    // hide it as a silent wrong-category write instead of a loud failure.
+    // Every write site converted in this step goes through this first.
+    function requireCategory(el, context) {
+      const categoryId = el?.dataset?.category;
+
+      if (!categoryId) {
+        console.error(`[packing] missing data-category on ${context}`, el);
+        throw new Error(`packing.html: missing data-category (${context})`);
+      }
+
+      return categoryId;
+    }
+
     function allListIds() {
       const metadata =
         allPacking?.users?.[user?.uid]?.listMeta || {};
@@ -2745,10 +2766,12 @@
         .querySelectorAll("[data-check]")
         .forEach(checkbox => {
           checkbox.onchange = () => {
+            const categoryId = requireCategory(checkbox, "data-check");
+
             update(
               ref(
                 db,
-                `${userBase()}/items/${activeList}/${checkbox.dataset.check}`
+                `${userBase()}/items/${categoryId}/${checkbox.dataset.check}`
               ),
               {
                 isDone:checkbox.checked
@@ -2761,7 +2784,8 @@
         .querySelectorAll("[data-edit]")
         .forEach(button => {
           button.onclick = () => {
-            openEdit(button.dataset.edit);
+            const categoryId = requireCategory(button, "data-edit");
+            openEdit(button.dataset.edit, categoryId);
           };
         });
 
@@ -2769,8 +2793,9 @@
         .querySelectorAll("[data-toggle-visibility]")
         .forEach(button => {
           button.onclick = () => {
+            const categoryId = requireCategory(button, "data-toggle-visibility");
             const id = button.dataset.toggleVisibility;
-            const item = currentItems()[id];
+            const item = items?.[categoryId]?.[id];
 
             if (!item) {
               return;
@@ -2779,7 +2804,7 @@
             update(
               ref(
                 db,
-                `${userBase()}/items/${activeList}/${id}`
+                `${userBase()}/items/${categoryId}/${id}`
               ),
               { isPublic: !item.isPublic }
             );
@@ -2806,12 +2831,13 @@
         .querySelectorAll("[data-sub-check]")
         .forEach(checkbox => {
           checkbox.onchange = () => {
+            const categoryId = requireCategory(checkbox, "data-sub-check");
             const [itemId, subId] = checkbox.dataset.subCheck.split(":");
 
             update(
               ref(
                 db,
-                `${userBase()}/items/${activeList}/${itemId}/subItems/${subId}`
+                `${userBase()}/items/${categoryId}/${itemId}/subItems/${subId}`
               ),
               { isDone: checkbox.checked }
             );
@@ -2822,18 +2848,22 @@
         .querySelectorAll("[data-sub-delete]")
         .forEach(button => {
           button.onclick = () => {
+            const categoryId = requireCategory(button, "data-sub-delete");
             const [itemId, subId] = button.dataset.subDelete.split(":");
 
             remove(
               ref(
                 db,
-                `${userBase()}/items/${activeList}/${itemId}/subItems/${subId}`
+                `${userBase()}/items/${categoryId}/${itemId}/subItems/${subId}`
               )
             );
           };
         });
 
-      function addSubItem(itemId) {
+      // categoryId is the sub-item's PARENT category - sub-items don't
+      // carry their own (see renderMine(), which tags every sub-item
+      // element with the parent item's categoryId, not one of its own).
+      function addSubItem(itemId, categoryId) {
         const input = document.querySelector(`[data-sub-add-input="${itemId}"]`);
         const name = input.value.trim();
 
@@ -2844,7 +2874,7 @@
         push(
           ref(
             db,
-            `${userBase()}/items/${activeList}/${itemId}/subItems`
+            `${userBase()}/items/${categoryId}/${itemId}/subItems`
           ),
           { name, isDone: false }
         );
@@ -2855,7 +2885,8 @@
       document
         .querySelectorAll("[data-sub-add]")
         .forEach(button => {
-          button.onclick = () => addSubItem(button.dataset.subAdd);
+          button.onclick = () =>
+            addSubItem(button.dataset.subAdd, requireCategory(button, "data-sub-add"));
         });
 
       document
@@ -2864,7 +2895,7 @@
           input.onkeydown = event => {
             if (event.key === "Enter") {
               event.preventDefault();
-              addSubItem(input.dataset.subAddInput);
+              addSubItem(input.dataset.subAddInput, requireCategory(input, "data-sub-add-input"));
             }
           };
         });
@@ -3365,14 +3396,15 @@
       );
     }
 
-    function openEdit(id) {
-      const item = currentItems()[id];
+    function openEdit(id, categoryId) {
+      const item = items?.[categoryId]?.[id];
 
       if (!item) {
         return;
       }
 
       editingId = id;
+      editingCategoryId = categoryId;
       $("editName").value = item.name || "";
 
       $("editVisibility").value =
@@ -3388,7 +3420,9 @@
           )
           .join("");
 
-      $("editListSelect").value = activeList;
+      // The item's own category - captured above, not activeList. This is
+      // what makes the source/target distinction in saveEdit() correct.
+      $("editListSelect").value = editingCategoryId;
 
       $("editOverlay")
         .classList
@@ -3396,7 +3430,7 @@
     }
 
     async function saveEdit() {
-      if (!editingId) {
+      if (!editingId || !editingCategoryId) {
         return;
       }
 
@@ -3408,7 +3442,7 @@
       }
 
       const targetList = $("editListSelect").value;
-      const sourceList = activeList;
+      const sourceList = editingCategoryId;
       const fields = {
         name,
         isPublic:
@@ -3416,7 +3450,7 @@
       };
 
       if (targetList && targetList !== sourceList) {
-        const existingItem = currentItems()[editingId];
+        const existingItem = items?.[sourceList]?.[editingId];
 
         await update(ref(db), {
           [`${userBase()}/items/${sourceList}/${editingId}`]: null,
@@ -3443,6 +3477,7 @@
         .add("hidden");
 
       editingId = null;
+      editingCategoryId = null;
     }
 
     function loadTrip() {
@@ -3718,6 +3753,7 @@
         .add("hidden");
 
       editingId = null;
+      editingCategoryId = null;
     };
 
     [
@@ -3740,7 +3776,7 @@
     $("saveEdit").onclick = saveEdit;
 
     $("deleteItem").onclick = async () => {
-      if (!editingId) {
+      if (!editingId || !editingCategoryId) {
         return;
       }
 
@@ -3756,7 +3792,7 @@
         await remove(
           ref(
             db,
-            `${userBase()}/items/${activeList}/${editingId}`
+            `${userBase()}/items/${editingCategoryId}/${editingId}`
           )
         );
 
@@ -3765,6 +3801,7 @@
           .add("hidden");
 
         editingId = null;
+        editingCategoryId = null;
       }
     };
 
