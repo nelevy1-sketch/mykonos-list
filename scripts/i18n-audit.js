@@ -272,6 +272,7 @@ function scanDynamicTemplates(source) {
     const raw = tm[0];
     const staticText = raw.replace(/\$\{[^}]*\}/g, "");
     if (!HEBREW.test(staticText)) continue;
+    if (isTranslationBranch(source, tm.index)) continue;
     const fname = nearestFuncName(tm.index);
     if (!fname || !/render/i.test(fname)) continue;
     findings.push({
@@ -281,6 +282,23 @@ function scanDynamicTemplates(source) {
     });
   }
   return findings;
+}
+
+// A Hebrew template literal is already-translated, not a bug, when it's one
+// branch of a working translation call/expression - this is the SHAPE of a
+// heuristic scanner's false positive (it finds Hebrew, it doesn't understand
+// context), not a one-off bug: every real run so far has found some. Two
+// known-good shapes, both confirmed against real findings:
+//   - an argument to tr(...) - e.g. tr(`${n} שנשארו`, `${n} remaining`) -
+//     shopping.html/index.html/places.html's render functions all use this.
+//   - a ternary branch on currentLanguage/lang - e.g.
+//     currentLanguage === 'he' ? `...` : `...` - wizard.html has no tr() at
+//     all and uses this idiom instead throughout the file.
+function isTranslationBranch(source, index) {
+  const before = source.slice(Math.max(0, index - 200), index);
+  if (/\btr\(\s*$/.test(before)) return true;
+  if (/[?:]\s*$/.test(before) && /\b(currentLanguage|lang)\b/.test(before)) return true;
+  return false;
 }
 
 // ---------- main ----------
