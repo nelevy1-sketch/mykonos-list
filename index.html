@@ -3060,35 +3060,10 @@
       return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
     }
 
-    function zonedParts(date, timeZone) {
-      // Reads a Date's Y/M/D/H/M as seen in `timeZone` (trip.timezone). Falls
-      // back to the viewer's own device timezone when timeZone is falsy -
-      // exactly today's behavior for trips with no captured timezone.
-      if (!timeZone) {
-        return {
-          year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate(),
-          hour: date.getHours(), minute: date.getMinutes()
-        };
-      }
-
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone,
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: false
-      }).formatToParts(date).reduce((acc, p) => {
-        if (p.type !== "literal") acc[p.type] = parseInt(p.value, 10);
-        return acc;
-      }, {});
-
-      if (parts.hour === 24) parts.hour = 0;
-
-      return parts;
-    }
-
-    function dateKeyInZone(date, timeZone) {
-      const p = zonedParts(date, timeZone);
-      return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
-    }
+    // zonedParts/dateKeyInZone moved to datetime.js (window.zonedParts,
+    // window.dateKeyInZone) - was a byte-identical copy of itinerary.html's
+    // own version, now centralized there instead of duplicated a third
+    // time. See datetime.js's header for why.
 
     function tripDataPath(key) {
       const keyMap = {
@@ -3469,7 +3444,7 @@
     });
 
     function todaysPlanContext() {
-      const todayKey = dateKeyInZone(new Date(), tripTimezone);
+      const todayKey = window.dateKeyInZone(new Date(), tripTimezone);
 
       const activities =
         currentItineraryDays[todayKey]?.activities || {};
@@ -4205,13 +4180,13 @@
 
       document.getElementById(
         "adminFlightInput"
-      ).value = adminHasTime ? toLocalInputValue(flightOut) : dateKeyInZone(flightOut, null);
+      ).value = adminHasTime ? toLocalInputValue(flightOut) : window.dateKeyInZone(flightOut, null);
 
       document.getElementById(
         "adminEndInput"
       ).value = adminHasTime
         ? (tripTimezone ? toZonedInputValue(tripEnd, tripTimezone) : toLocalInputValue(tripEnd))
-        : dateKeyInZone(tripEnd, tripTimezone);
+        : window.dateKeyInZone(tripEnd, tripTimezone);
 
       syncAdminModuleCheckboxes();
 
@@ -5063,9 +5038,9 @@
       // Open-Meteo's daily.time entries (timezone=auto) already are - comparing
       // date-only strings sidesteps device-vs-destination instant confusion
       // entirely, and "2026-09-05" < "2026-09-06" compares correctly as text.
-      const todayKey = dateKeyInZone(new Date(), tripTimezone);
-      const tripStartKey = dateKeyInZone(flightOut, tripTimezone);
-      const tripEndKey = dateKeyInZone(tripEnd, tripTimezone);
+      const todayKey = window.dateKeyInZone(new Date(), tripTimezone);
+      const tripStartKey = window.dateKeyInZone(flightOut, tripTimezone);
+      const tripEndKey = window.dateKeyInZone(tripEnd, tripTimezone);
       const rangeStartKey = tripStartKey > todayKey ? tripStartKey : todayKey;
 
       if (rangeStartKey > tripEndKey) {
