@@ -1136,6 +1136,24 @@
     </div>
   </div>
 
+  <div class="overlay hidden" id="importCategoryOverlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="importCategoryTitle">לאיזו קטגוריה?</h2>
+      <p id="importCategoryText"></p>
+
+      <div class="field">
+        <label id="importCategorySelectLabel">קטגוריה</label>
+        <select id="importCategorySelect"></select>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="cancelImportCategory">ביטול</button>
+        <button class="primary-btn" id="confirmImportCategory">ייבוא</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script type="module">
@@ -1617,6 +1635,18 @@
       $("renameListBtn").textContent =
         tr("שמירה", "Save");
 
+      $("importCategoryTitle").textContent =
+        tr("לאיזו קטגוריה?", "Which category?");
+
+      $("importCategorySelectLabel").textContent =
+        tr("קטגוריה", "Category");
+
+      $("cancelImportCategory").textContent =
+        tr("ביטול", "Cancel");
+
+      $("confirmImportCategory").textContent =
+        tr("ייבוא", "Import");
+
       $("deleteListBtn").textContent =
         tr("מחיקת הרשימה", "Delete list");
 
@@ -1960,11 +1990,15 @@
       activeList = lists[0].id;
     }
 
-    async function createList(name) {
+    // Core of createList() below, without its UI side effects (closing
+    // newListOverlay, clearing its input, its own toast) - importItem()'s
+    // "create category named X" picker needs the same write and the new
+    // id back, but none of the newListOverlay-specific UI behavior.
+    async function createListReturningId(name) {
       const trimmed = (name || "").trim();
 
       if (!trimmed || !user) {
-        return;
+        return null;
       }
 
       const id = `list_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -1973,6 +2007,16 @@
         ref(db, `${userBase()}/listMeta/${id}`),
         { name: trimmed, createdAt: Date.now() }
       );
+
+      return id;
+    }
+
+    async function createList(name) {
+      const id = await createListReturningId(name);
+
+      if (!id) {
+        return;
+      }
 
       activeList = id;
       $("newListOverlay").classList.add("hidden");
@@ -2640,9 +2684,12 @@
       ])];
     }
 
-    function listLabel(id) {
+    // uid-parameterized so importItem() can also resolve a *friend's*
+    // source category name (their own listMeta, not mine) for the
+    // name-match check - listLabel() below is just this with my own uid.
+    function listLabelFor(uid, id) {
       const metadata =
-        allPacking?.users?.[user?.uid]?.listMeta || {};
+        allPacking?.users?.[uid]?.listMeta || {};
 
       const defaultName =
         id === "main"
@@ -2650,6 +2697,10 @@
           : id;
 
       return metadata[id]?.name || defaultName;
+    }
+
+    function listLabel(id) {
+      return listLabelFor(user?.uid, id);
     }
 
     function renderLists() {
@@ -3380,7 +3431,45 @@
         });
     }
 
-    async function importItem(key) {
+    let pendingImportKey = null;
+
+    // Confirmed by design: match by *name*, not category id - custom-list
+    // ids are per-user timestamps (list_...), so two users' conceptually
+    // identical categories almost never share an id even when they share
+    // a name. Same normalization as addItem()'s own dedup check.
+    function normalizeListName(name) {
+      return (name || "").trim().toLocaleLowerCase();
+    }
+
+    function openImportCategoryPicker(key, sourceCategoryName) {
+      pendingImportKey = key;
+
+      $("importCategoryText").textContent = tr(
+        `הפריט הזה מגיע מקטגוריה בשם "${sourceCategoryName}" שאין לך.`,
+        `This item comes from a category named "${sourceCategoryName}" that you don't have.`
+      );
+
+      const createOptionLabel = tr(
+        `צור קטגוריה בשם "${sourceCategoryName}"`,
+        `Create a category named "${sourceCategoryName}"`
+      );
+
+      $("importCategorySelect").innerHTML =
+        `<option value="__create__" selected>${escapeHtml(createOptionLabel)}</option>` +
+        allListIds()
+          .map(id => `<option value="${escapeHtml(id)}">${escapeHtml(listLabel(id))}</option>`)
+          .join("");
+
+      // Explicit default per design: "create category named X" must be
+      // genuinely pre-selected, not just first in DOM order, so a fast
+      // confirm does the expected thing.
+      $("importCategorySelect").value = "__create__";
+      $("importCategorySelect").dataset.newCategoryName = sourceCategoryName;
+
+      $("importCategoryOverlay").classList.remove("hidden");
+    }
+
+    async function importItem(key, explicitCategoryId) {
       const [sourceUid, sourceListId, sourceItemId] = key.split(":");
 
       const sourceItem =
@@ -3390,13 +3479,33 @@
         return;
       }
 
+      let targetCategory = explicitCategoryId;
+
+      if (!targetCategory) {
+        const sourceCategoryName = listLabelFor(sourceUid, sourceListId);
+
+        const matchId = allListIds().find(id =>
+          normalizeListName(listLabel(id)) ===
+          normalizeListName(sourceCategoryName)
+        );
+
+        if (matchId) {
+          targetCategory = matchId;
+        } else {
+          openImportCategoryPicker(key, sourceCategoryName);
+          return;
+        }
+      }
+
+      assertCategory(targetCategory, "importItem");
+
       const memberName =
         trip.memberProfiles?.[sourceUid]?.name ||
         sourceItem.ownerName ||
         tr("חבר/ה לקבוצה", "a group member");
 
       await push(
-        ref(db, `${userBase()}/items/${activeList}`),
+        ref(db, `${userBase()}/items/${targetCategory}`),
         {
           name: sourceItem.name,
           isDone: false,
@@ -3410,8 +3519,8 @@
 
       toast(
         tr(
-          `הפריט יובא לרשימה "${listLabel(activeList)}"`,
-          `Item imported to "${listLabel(activeList)}"`
+          `הפריט יובא לרשימה "${listLabel(targetCategory)}"`,
+          `Item imported to "${listLabel(targetCategory)}"`
         )
       );
     }
@@ -3992,6 +4101,32 @@
       }
     };
 
+    $("cancelImportCategory").onclick = () => {
+      $("importCategoryOverlay").classList.add("hidden");
+      pendingImportKey = null;
+    };
+
+    $("confirmImportCategory").onclick = async () => {
+      const select = $("importCategorySelect");
+      const selected = select.value;
+      const key = pendingImportKey;
+
+      let targetCategoryId = selected;
+
+      if (selected === "__create__") {
+        targetCategoryId = await createListReturningId(select.dataset.newCategoryName);
+
+        if (!targetCategoryId) {
+          return;
+        }
+      }
+
+      $("importCategoryOverlay").classList.add("hidden");
+      pendingImportKey = null;
+
+      await importItem(key, targetCategoryId);
+    };
+
     $("manageListBtn").onclick = openManageList;
 
     $("cancelManageList").onclick = () => {
@@ -4055,7 +4190,8 @@
       "newListOverlay",
       "manageListOverlay",
       "editOverlay",
-      "bulkMoveOverlay"
+      "bulkMoveOverlay",
+      "importCategoryOverlay"
     ].forEach(overlayId => {
       const cancelId =
         "cancel" + overlayId.charAt(0).toUpperCase() +
