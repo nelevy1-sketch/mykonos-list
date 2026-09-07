@@ -1413,6 +1413,26 @@
       $("addBtn").textContent =
         tr("הוסף", "Add");
 
+      $("categorySuggestBtn").textContent =
+        tr("הוספה", "Add");
+
+      // #addItemFab (the FAB that opens this modal) and #addItemTitle (the
+      // modal's own heading) say the same thing - one tr() call, assigned
+      // to both, not two copies of the same Hebrew/English pair.
+      const addItemLabel = tr("הוספת פריט", "Add item");
+      $("addItemFab").setAttribute("aria-label", addItemLabel);
+      $("addItemTitle").textContent = addItemLabel;
+
+      $("closeAddItemOverlay").textContent =
+        tr("סגירה", "Close");
+
+      $("homeTop").setAttribute("aria-label", tr("בית", "Home"));
+
+      $("themeBtn").setAttribute(
+        "aria-label",
+        tr("מצב תצוגה", "Display mode")
+      );
+
       $("loginTitle").textContent =
         tr("כניסה לטיול", "Trip sign-in");
 
