@@ -369,6 +369,41 @@
       flex:0 0 12px;
     }
 
+    /* Desktop only. A mouse has no touch gesture, and the scrollbar above
+       is hidden by default - with neither, there was literally no way to
+       reach a scrolled-off item, not just an undiscoverable one (verified:
+       plain wheel scroll does nothing here, and this container has no
+       tabindex so keyboard can't reach it either). Deliberately NOT wheel-
+       to-horizontal JS: that hijacks the page's normal vertical scroll the
+       moment the pointer happens to be over this strip, which feels broken
+       even when it's intentional. pointer:fine is the right signal, not a
+       width breakpoint - a touch tablet in a wide window shouldn't get
+       this, a narrow mouse-driven one should. Thin and on-brand (var(--line)
+       already adapts per trip-type theme and dark mode) rather than the OS
+       default, and padding-block-end drops to 0 so the reserved scrollbar
+       height doesn't add as much extra vertical space on top of it. */
+    @media (hover: hover) and (pointer: fine) {
+      .quick-picks {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+        padding-block-end: 0;
+      }
+
+      .quick-picks::-webkit-scrollbar {
+        display: block;
+        height: 5px;
+      }
+
+      .quick-picks::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .quick-picks::-webkit-scrollbar-thumb {
+        background: var(--line);
+        border-radius: 999px;
+      }
+    }
+
     .ai-suggest-btn {
       width:100%;
       min-height:46px;
