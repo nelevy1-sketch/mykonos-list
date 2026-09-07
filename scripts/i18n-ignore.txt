@@ -1,0 +1,19 @@
+# Manual suppressions for scripts/i18n-audit.js.
+#
+# One entry per line, "<file>:<key>":
+#   - scan 1 (static markup):   file.html:elementId
+#   - scan 2 (dynamic template): file.html:lineNumber
+#
+# Lines starting with # are comments. Prefer an inline suppression instead
+# when it sits next to the code it's about (see i18n-audit.js's header for
+# the <!-- i18n-ignore --> / "// i18n-ignore" markers) - use this file only
+# when the finding isn't tied to one line, or an inline comment would be
+# awkward.
+
+# langHeBtn is the language-switcher button itself ("🇮🇱 עברית" - click it to
+# switch TO Hebrew). It's meant to always show the native language name,
+# regardless of the app's current language - same idea as a site whose
+# switcher keeps saying "Français" even in English. Confirmed with the user
+# during the 2026-09-07 cross-page i18n audit (langEnBtn needs no entry -
+# "English" has no Hebrew characters to flag in the first place).
+wizard.html:langHeBtn
