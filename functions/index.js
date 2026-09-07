@@ -67,6 +67,10 @@ exports.suggestPackingList = onRequest(
       language === "en"
         ? `"a rain jacket that's waterproof and windproof for the transitional season"`
         : `"מטען נייד חזק ליום שלם מחוץ למלון"`;
+    const decoratedItemExample =
+      language === "en"
+        ? `"lightweight compact umbrella", "waterproof windproof jacket"`
+        : `"מטרייה מתקפלת קלה", "מעיל מעבר עמיד למים"`;
 
     const prompt = `You are a helpful, concise packing assistant inside a group trip planning app.
 
@@ -78,7 +82,9 @@ Packing list category this is for: ${listName || "general"}
 
 Suggest a focused packing list of 8 to 14 specific items appropriate for this trip, considering the destination's typical climate and conditions during those dates, the trip type, and the chosen vibe(s). Avoid vague filler items like "clothes" or "toiletries" - be concrete and specific.
 
-Each item is a short NAME, not a description: 2-4 words, no sub-clauses, no explanation of why it's needed. Good: ${shortItemExamples}. Bad: ${wordyItemExample}.
+Each item is a short NAME, not a description: 2-3 words, prefer 2. No sub-clauses, no explanation of why it's needed. Good: ${shortItemExamples}. Bad: ${wordyItemExample}.
+
+Do not add an adjective unless it actually distinguishes this item from another item you'd otherwise suggest. If the bare item name already tells the traveler what to pack, stop there - don't decorate it. Words like "light," "compact," "nice," "quality," "comfortable" are decoration, not information. Good: ${shortItemExamples}. Bad: ${decoratedItemExample}.
 
 Each item is one distinct real-world need. Never suggest the same item twice under a different wording - one rain jacket, one power bank, one umbrella. If a second phrasing of something you already listed comes to mind, skip it and suggest something genuinely different instead.
 
