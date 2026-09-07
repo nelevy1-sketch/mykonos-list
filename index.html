@@ -2086,6 +2086,10 @@
             style="direction:ltr;">
         </div>
 
+        <p class="admin-hint hidden" id="adminMultiLegHint">
+          עריכת יעדים ותאריכים בטיול מרובה יעדים תתאפשר בקרוב
+        </p>
+
         <div class="admin-field" id="checkinField">
           <label id="adminCheckinLabel">קישור לצ'ק-אין (URL):</label>
           <input
@@ -2374,6 +2378,7 @@
         adminFeatPlacesLabel: "📍 מקומות ותמונות",
         adminFeatItineraryLabel: "🗓️ תוכנית יומית",
         adminFeatExpensesLabel: "💸 הוצאות",
+        adminMultiLegHint: "עריכת יעדים ותאריכים בטיול מרובה יעדים תתאפשר בקרוב",
         adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
         saveModulesBtn: "שמור מודולים",
         adminShareTitle: "🔗 שיתוף הטיול",
@@ -2438,6 +2443,7 @@
         adminFeatPlacesLabel: "📍 Places & photos",
         adminFeatItineraryLabel: "🗓️ Daily itinerary",
         adminFeatExpensesLabel: "💸 Expenses",
+        adminMultiLegHint: "Editing destinations and dates in a multi-destination trip will be available soon",
         adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
         saveModulesBtn: "Save modules",
         adminShareTitle: "🔗 Share the trip",
@@ -4217,6 +4223,24 @@
         "adminDestInput"
       ).value = destinationName;
 
+      // Step 11 (docs/schema-legs.md §5.7): a multi-leg trip's destination/
+      // date fields are derived from legs[0]/legs[last] (§4), not free-
+      // standing values - this single-destination form can't edit them
+      // without desyncing legs (see the investigation report this commit
+      // implements). Blocked, not synced: a partial sync would leave a leg
+      // internally inconsistent (name/timezone updated, startAt/endAt left
+      // as instants computed for the old timezone) - worse than today's bug.
+      // Disabled, not hidden - a vanished field looks like data loss; a
+      // disabled one with an explanation doesn't. Real leg editing (§5.7)
+      // replaces this block once it exists, not sooner.
+      const multiLeg = currentLegs.length > 1;
+
+      ["adminDestInput", "adminFlightInput", "adminEndInput"].forEach(id => {
+        document.getElementById(id).disabled = multiLeg;
+      });
+
+      document.getElementById("adminMultiLegHint").classList.toggle("hidden", !multiLeg);
+
       document.getElementById(
         "adminCheckinUrl"
       ).value = checkinLink;
@@ -4324,6 +4348,14 @@
           return;
         }
 
+        // Destination/date fields are disabled in the UI for a multi-leg
+        // trip (see openAdminPanelIfAllowed) - this guard is the write-side
+        // half of that: a disabled field's value can't have changed through
+        // the UI, but skipping the read/validate/geocode/write of it here
+        // too, rather than trusting that, is what actually keeps legs[0]/
+        // legs[last] from being silently contradicted by a stale re-write.
+        const multiLeg = currentLegs.length > 1;
+
         const newTripType =
           document.getElementById("adminTripType").value;
 
@@ -4362,9 +4394,8 @@
           document.getElementById("adminShowAccent").checked;
 
         if (
-          !rawFlight ||
-          !rawEnd ||
-          !newDestination
+          !multiLeg &&
+          (!rawFlight || !rawEnd || !newDestination)
         ) {
           customAlert(
             tr(
@@ -4377,8 +4408,8 @@
         }
 
         if (
-          new Date(newEnd) <=
-          new Date(newFlight)
+          !multiLeg &&
+          new Date(newEnd) <= new Date(newFlight)
         ) {
           customAlert(
             tr(
@@ -4390,8 +4421,6 @@
           return;
         }
 
-        flightOut = new Date(newFlight);
-        destinationName = newDestination;
         tripType = newTripType;
         showAccent = newShowAccent;
 
@@ -4400,74 +4429,89 @@
             ? newCheckin
             : "";
 
-        if (tripType !== "reserve") {
-          try {
-            const geoResponse = await fetch(
-              "https://geocoding-api.open-meteo.com/v1/search" +
-              `?name=${encodeURIComponent(newDestination)}` +
-              `&count=1` +
-              `&language=${currentLanguage}` +
-              "&format=json"
-            );
+        if (!multiLeg) {
+          flightOut = new Date(newFlight);
+          destinationName = newDestination;
 
-            const geoData =
-              await geoResponse.json();
+          if (tripType !== "reserve") {
+            try {
+              const geoResponse = await fetch(
+                "https://geocoding-api.open-meteo.com/v1/search" +
+                `?name=${encodeURIComponent(newDestination)}` +
+                `&count=1` +
+                `&language=${currentLanguage}` +
+                "&format=json"
+              );
 
-            if (
-              geoData &&
-              geoData.results &&
-              geoData.results.length > 0
-            ) {
-              latCoord =
-                geoData.results[0].latitude;
+              const geoData =
+                await geoResponse.json();
 
-              lonCoord =
-                geoData.results[0].longitude;
+              if (
+                geoData &&
+                geoData.results &&
+                geoData.results.length > 0
+              ) {
+                latCoord =
+                  geoData.results[0].latitude;
 
-              countryCode =
-                geoData.results[0].country_code ||
-                countryCode;
+                lonCoord =
+                  geoData.results[0].longitude;
 
-              tripTimezone =
-                geoData.results[0].timezone ||
-                tripTimezone;
+                countryCode =
+                  geoData.results[0].country_code ||
+                  countryCode;
+
+                tripTimezone =
+                  geoData.results[0].timezone ||
+                  tripTimezone;
+              }
+            } catch (error) {
+              console.error(
+                "Geocoding error",
+                error
+              );
             }
-          } catch (error) {
-            console.error(
-              "Geocoding error",
-              error
-            );
           }
-        }
 
-        // Computed after geocoding, not before: tripTimezone may have
-        // just changed above (a new destination search result), and
-        // tripEnd must be interpreted in whichever timezone is current
-        // by the time this save completes - not the one from before the
-        // admin's edit. Reading it earlier silently kept the old
-        // destination's timezone baked into endAt whenever destination
-        // and end date/time were changed in the same save.
-        tripEnd = tripTimezone
-          ? localInputToUtcInZone(newEnd, tripTimezone)
-          : new Date(newEnd);
+          // Computed after geocoding, not before: tripTimezone may have
+          // just changed above (a new destination search result), and
+          // tripEnd must be interpreted in whichever timezone is current
+          // by the time this save completes - not the one from before the
+          // admin's edit. Reading it earlier silently kept the old
+          // destination's timezone baked into endAt whenever destination
+          // and end date/time were changed in the same save.
+          tripEnd = tripTimezone
+            ? localInputToUtcInZone(newEnd, tripTimezone)
+            : new Date(newEnd);
+        }
 
         if (db && tripRoot) {
           const settings = {
             tripType,
-            destination: destinationName,
-            lat: latCoord,
-            lon: lonCoord,
-            countryCode,
-            timezone: tripTimezone,
             checkinLink,
             showAccent
           };
 
-          db.ref(tripRoot).update({
-            ...settings,
-            startAt: flightOut.toISOString(),
-            endAt: tripEnd.toISOString()
-          });
+          // Destination/coords/timezone/dates are derived from legs[0]/
+          // legs[last] on a multi-leg trip (docs/schema-legs.md §4) - only
+          // written here for a single-leg trip, where trip fields ARE the
+          // one leg (§6) and there's nothing to desync. See the multiLeg
+          // guard above; nothing above this point touched destinationName/
+          // latCoord/lonCoord/countryCode/tripTimezone/flightOut/tripEnd
+          // when multiLeg is true, so there's nothing stale to write either.
+          if (!multiLeg) {
+            Object.assign(settings, {
+              destination: destinationName,
+              lat: latCoord,
+              lon: lonCoord,
+              countryCode,
+              timezone: tripTimezone,
+              startAt: flightOut.toISOString(),
+              endAt: tripEnd.toISOString()
+            });
+          }
+
+          db.ref(tripRoot).update(settings);
         }
 
         closeAdminModal();
