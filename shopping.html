@@ -2712,11 +2712,11 @@ body.modal-open .modal-card {
       // don't surface it to the user, just log it.
       update(ref(db), {
         [`users/${currentUser.uid}/trips/${tripId}`]: {
-          destination: tripData?.destination || "",
+          destination: window.getPrimaryLeg(tripData).name || "",
           tripType: tripData?.tripType || "",
           language: tripData?.language || "he",
           startAt: tripData?.startAt || null,
-          endAt: tripData?.endAt || null,
+          endAt: window.getLastLeg(tripData).endAt || null,
           createdAt: tripData?.createdAt || Date.now()
         }
       }).catch(error => {
@@ -2771,7 +2771,7 @@ body.modal-open .modal-card {
         : "he";
 
     destinationName =
-      tripData.destination ||
+      window.getPrimaryLeg(tripData).name ||
       destinationName;
 
     tripType =
@@ -2809,10 +2809,10 @@ body.modal-open .modal-card {
     try {
       localStorage.setItem(`trip-${tripId || "legacy"}-type`, tripType);
 
-      if (tripData.destination) {
+      if (window.getPrimaryLeg(tripData).name) {
         localStorage.setItem(
           `trip-${tripId || "legacy"}-name`,
-          tripData.destination
+          window.getPrimaryLeg(tripData).name
         );
       }
     } catch (e) {}
