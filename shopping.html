@@ -91,6 +91,7 @@
     --radius-lg:22px;
     --shadow-card:0 10px 28px rgba(18,59,99,.075);
     --shadow-float:0 14px 34px rgba(18,59,99,.17);
+    --page-bg-gradient:linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
 
     /* knobs for the shared components in shared.css */
     --danger:#c0533f;
@@ -205,15 +206,22 @@
     box-sizing:border-box;
   }
 
+  /* html's own background paints the full canvas (viewport), including the
+     safe-area strips above/below body that viewport-fit=cover exposes on
+     iOS - body's background alone doesn't reach there. body still carries
+     its own copy (not `background:inherit`) because unlike html, it also
+     needs the transition below; packing/places/itinerary.html already set
+     this on both html and body for the same reason, just with a flat color
+     instead of a gradient - see CLAUDE.md's visual density section. */
+  html {
+    background:var(--page-bg-gradient);
+  }
+
   body {
     margin:0;
     height:100dvh;
     overflow:hidden;
-    background:linear-gradient(
-      180deg,
-      var(--bg-gradient-start) 0%,
-      var(--bg-gradient-end) 40%
-    );
+    background:var(--page-bg-gradient);
     font-family:'Assistant',sans-serif;
     color:var(--text-main);
     display:flex;

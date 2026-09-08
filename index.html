@@ -225,6 +225,23 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* html's own background paints the full canvas (viewport), including
+       the safe-area strips above/below body that viewport-fit=cover
+       exposes on iOS - body's background alone doesn't reach there. Unlike
+       packing/places/itinerary/shopping/wizard.html, a plain
+       `html{background:var(--bg-color)}` rule doesn't work HERE: this is
+       the one page where theme-X/[data-theme] live on <body>, not <html>
+       (see "מבנה סקריפטים בין 6 הדפים" in CLAUDE.md), so --bg-color's
+       theme/dark overrides are scoped to body and don't inherit upward to
+       its own parent. This static value is only the pre-JS fallback (the
+       plain :root light default) - the real, theme-aware sync happens in
+       JS via window.syncHtmlBackground(), called right after every place
+       body's theme state changes (the inline bootstrap script above
+       <body>, applyTripPresentation(), and the dark-mode toggle). */
+    html {
+      background: #E8F1F0;
+    }
+
     body {
       background: var(--bg-color);
       color: var(--text-main);
@@ -249,6 +266,10 @@
     }
 
     @media (min-width: 600px) {
+      html {
+        background: #DFE8E8;
+      }
+
       body {
         background: #DFE8E8;
         padding: 20px;
@@ -1576,6 +1597,22 @@
         document.body.dataset.theme = "dark";
       }
 
+      // index.html is the one page where theme-X/[data-theme] live on
+      // <body>, not <html> (docs/CLAUDE.md's own "מבנה סקריפטים" note) -
+      // --bg-color is defined via body.theme-X/[data-theme] selectors, so
+      // html can't just read var(--bg-color) itself (custom properties
+      // don't inherit upward from a child to its parent). Mirroring the
+      // resolved color onto html directly, right after every place body's
+      // theme state changes, is what actually keeps html's own canvas
+      // background (the safe-area strips above/below body on iOS) in sync
+      // - see the other 2 call sites in applyTripPresentation() and the
+      // dark-mode toggle below.
+      window.syncHtmlBackground = function () {
+        document.documentElement.style.backgroundColor =
+          getComputedStyle(document.body).backgroundColor;
+      };
+      window.syncHtmlBackground();
+
       // Called by a tiny inline script right after the <h1>, so the real trip
       // headline is already in the DOM at first paint instead of "הטיול הבא".
       window.showTripName = function (elementId) {
@@ -2845,6 +2882,7 @@
     }
 
     applyDarkModeUI();
+    window.syncHtmlBackground(); // keeps html's canvas background in sync - see its definition above
 
     document
       .getElementById("darkModeToggle")
@@ -2860,6 +2898,7 @@
         }
 
         applyDarkModeUI();
+        window.syncHtmlBackground(); // keeps html's canvas background in sync - see its definition above
       });
 
     function participantKey(name) {
@@ -3317,6 +3356,15 @@
         getComputedStyle(document.body)
           .getPropertyValue("--primary-dark")
           .trim();
+
+      // Keeps html's canvas background in sync (see its definition in the
+      // bootstrap script above <body>) - body.className just changed above,
+      // and this function is also what the admin panel's trip-type save
+      // flow calls to refresh the theme immediately (3 call sites: the
+      // trip listener, join-trip, and closeAdminModal()'s settings save),
+      // so this one spot covers every way tripType can change, not just
+      // the two dark-mode-toggle call sites.
+      window.syncHtmlBackground();
 
       const config =
         tripTypeConfig[tripType] || tripTypeConfig.local;

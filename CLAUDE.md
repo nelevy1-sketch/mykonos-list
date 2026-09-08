@@ -128,6 +128,19 @@ itinerary.html על גבי `[data-tokens="core"]` עם `var(--muted)`. איחו�
 עקביות מכוונת בין העמודים למחלקות *חדשות* - כדי שלא יתווסף עוד פיצול
 כמו זה של `theme-X` (`documentElement` בחלק, `body` באחרים).
 
+**אותו פיצול חל גם על `[data-theme="dark"]` עצמו, לא רק על מחלקות `theme-X`
+- וב-`wizard.html` הוא קיים גם בלי שום `theme-X` בכלל.** `index.html` שם את
+שניהם (`theme-X` וגם `[data-theme]`) על `document.body`. `wizard.html` אין לו
+`theme-X`/`tripCharacter` בכלל (אין עדיין טיול בשלב הזה), אבל שם `[data-theme]`
+על `body` בדיוק כמו index.html. שאר 4 העמודים שמים את שניהם על
+`documentElement`. **ההשלכה המעשית שנתפסה בפועל (v4.28.2)**: כלל CSS גרידא
+כמו `html{background:var(--bg-color)}` לא יכול לעקוב אחרי מצב כהה/סוג טיול
+ב-index.html/wizard.html - custom properties לא עוברים בירושה כלפי מעלה
+מ-`body` להורה שלו (`html`), אז `html` פשוט לא רואה את הערך שהוגדר על `body`.
+בשני העמודים האלה נדרש `window.syncHtmlBackground()` (מעתיק את הרקע
+המחושב בפועל מ-`body` ל-`html`, בכל נקודה שמצב `body` משתנה) - לא רק תוספת
+CSS כמו בשאר העמודים.
+
 **`wizard.html` כותבת `tripData.schemaVersion: 2` בכל טיול חדש, אבל שום קוד באפליקציה לא קורא את השדה הזה** - לא `getLegs()`, לא שום מקום אחר. אל תניחו שהוא משפיע על משהו.
 
 **באג ידוע ב-`starterLists()` (packing.html): `vibes` דורס את

@@ -99,6 +99,17 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
+        /* html's own background paints the full canvas (viewport), including
+           the safe-area strips above/below body that viewport-fit=cover
+           exposes on iOS - body's background alone doesn't reach there. A
+           plain var(--background) here wouldn't track dark mode though:
+           [data-theme="dark"] is set on <body>, not <html> (see index.html's
+           own comment on this same split), so --background's dark override
+           doesn't inherit upward. This static value is only the pre-JS
+           fallback (the plain :root light default) - the real sync happens
+           via window.syncHtmlBackground(), called wherever body's dark
+           state changes (just above, and the dark-mode toggle below). */
+        html { background: #E8F1F0; }
         body { background: var(--background); color: var(--text); min-height: 100vh; min-height: calc(var(--vh, 1vh) * 100); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
 
         /* Top Language Toggle Bar */
@@ -359,6 +370,19 @@
     if (shouldStartDark) {
         document.body.dataset.theme = 'dark';
     }
+
+    // wizard.html sets [data-theme="dark"] on <body>, not <html> (docs/
+    // CLAUDE.md's "מבנה סקריפטים" note - same as index.html, no trip-type
+    // theming here though, just light/dark). --background's dark override
+    // is scoped to body via that attribute, so it doesn't inherit upward
+    // to html - html's own canvas background (the safe-area strips above/
+    // below body on iOS) needs to be mirrored in JS instead. See the other
+    // call site at the dark-mode toggle below.
+    window.syncHtmlBackground = function () {
+        document.documentElement.style.backgroundColor =
+            getComputedStyle(document.body).backgroundColor;
+    };
+    window.syncHtmlBackground();
 })();
 </script>
 
@@ -2093,6 +2117,7 @@
         }
 
         applyWizardDarkModeUI();
+        window.syncHtmlBackground(); // keeps html's canvas background in sync - see its definition above
     })();
 
     document.getElementById('darkModeToggle').addEventListener('click', () => {
@@ -2107,6 +2132,7 @@
         }
 
         applyWizardDarkModeUI();
+        window.syncHtmlBackground(); // keeps html's canvas background in sync - see its definition above
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
     setDefaultDates();
