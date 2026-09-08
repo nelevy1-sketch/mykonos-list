@@ -567,6 +567,45 @@
       flex:0 0 auto;
     }
 
+    /* docs/schema-legs.md §5.1, step 6 - the destination filter. A select,
+       not a second chip strip: legs are capped at 6 and typically 2-4,
+       nothing like categories' unbounded/user-created list, and this row
+       already exists (list-head) - reusing it costs zero new vertical
+       space, unlike a whole second .category-chips-style row would.
+       Matches this file's own established convention for "choose one from
+       a short list, as a form input" (participantSelect,
+       addItemCategorySelect, importCategorySelect, editListSelect all do
+       this already) rather than inventing custom popover chrome. Sized
+       like .list-icon-btn (same 42px height) but content-width up to a
+       cap, not a fixed square - "כל היעדים"/a long destination name is
+       naturally wider than an icon glyph. */
+    .leg-filter-select {
+      flex:0 0 auto;
+      height:42px;
+      max-width:96px;
+      padding:0 8px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:var(--surface);
+      color:var(--text);
+      font-size:.74rem;
+      font-weight:700;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    /* docs/schema-legs.md §5.1's "visual indication" requirement for
+       auto-tagging a new item with the active leg filter - a one-line
+       hint in the add-item sheet, not a new UI pattern (same small-muted-
+       text role .quick-picks-label already plays for a different hint in
+       this same sheet). */
+    .leg-tag-hint {
+      font-size:.72rem;
+      color:var(--muted);
+      margin:-6px 0 10px;
+    }
+
     .progress-wrap {
       margin-bottom:11px;
     }
@@ -900,6 +939,7 @@
           <button class="list-icon-btn" id="selectModeBtn" aria-label="בחירה מרובה" title="בחירה מרובה">☑️</button>
           <button class="list-icon-btn" id="manageListBtn" aria-label="ניהול רשימה" title="ניהול רשימה">⚙️</button>
           <button class="list-icon-btn" id="newListBtn" aria-label="רשימה חדשה" title="רשימה חדשה">➕</button>
+          <select class="leg-filter-select hidden" id="legFilterSelect" aria-label="סינון לפי יעד"></select>
         </div>
 
         <strong class="progress-count" id="progressText">0/0</strong>
@@ -1013,6 +1053,8 @@
         <label id="addItemCategoryLabel">קטגוריה</label>
         <select id="addItemCategorySelect"></select>
       </div>
+
+      <div class="leg-tag-hint hidden" id="legTagHint"></div>
 
       <div class="add-row">
         <input id="newItem" maxlength="100" placeholder="מה צריך לארוז?">
@@ -1205,6 +1247,7 @@
     const themeKey = `trip-${tripId || "legacy"}-theme`;
     const langKey = `trip-${tripId || "legacy"}-lang`;
     const activeListKey = `trip-${tripId || "legacy"}-activeList`;
+    const activeLegFilterKey = `trip-${tripId || "legacy"}-activeLegFilter`;
 
     let user = null;
     let trip = {};
@@ -1237,6 +1280,18 @@
     try {
       const savedActiveList = localStorage.getItem(activeListKey);
       if (savedActiveList) activeList = savedActiveList;
+    } catch (e) {}
+
+    // docs/schema-legs.md §5.1, step 6 - the destination axis, restored
+    // the same way as activeList above (per-trip, not global). Validity
+    // (a stale/deleted leg, or a single-leg trip where this control isn't
+    // even shown) is checked at render time in renderLegFilter(), same
+    // division of responsibility as activeList's own fallback in
+    // renderLists() - not duplicated here.
+    let activeLegFilter = "all";
+    try {
+      const savedLegFilter = localStorage.getItem(activeLegFilterKey);
+      if (savedLegFilter) activeLegFilter = savedLegFilter;
     } catch (e) {}
     let editingId = null;
     // Captured by openEdit() at click time, from data-edit's data-category -
@@ -1702,6 +1757,8 @@
 
       $("selectModeBtn").title = tr("בחירה מרובה", "Multi-select");
       $("selectModeBtn").setAttribute("aria-label", tr("בחירה מרובה", "Multi-select"));
+
+      $("legFilterSelect").setAttribute("aria-label", tr("סינון לפי יעד", "Filter by destination"));
 
       $("bulkMoveBtn").textContent = tr("העברה", "Move");
       $("bulkToggleDoneBtn").textContent = tr("סימון", "Toggle");
@@ -2679,6 +2736,35 @@
       return merged;
     }
 
+    // docs/schema-legs.md §5.1, step 6 - the destination axis, layered ON
+    // TOP of itemsForCategoryFilter's own map rather than folded into it:
+    // keeps that function's contract (purely about category) intact,
+    // same incremental-step pattern this rework has used throughout
+    // (steps 1-5 above). Takes an already-category-filtered map, not
+    // `items` directly - the two filters compose, they don't replace
+    // each other.
+    //
+    // An item with no legId always passes, regardless of which leg is
+    // selected - not just at "all". This is what makes a trip that
+    // predates legs, or any item nobody has tagged, behave exactly as if
+    // this filter didn't exist (docs/schema-legs.md §5.1: "פריט בלי
+    // legId מופיע תמיד, בכל מסנן") - no migration, no backfill.
+    function itemsForLegFilter(map, legFilter) {
+      if (!legFilter || legFilter === "all") {
+        return map;
+      }
+
+      const filtered = {};
+
+      Object.entries(map).forEach(([id, item]) => {
+        if (!item.legId || item.legId === legFilter) {
+          filtered[id] = item;
+        }
+      });
+
+      return filtered;
+    }
+
     // Step 3 rule: no fallback to activeList. A missing category means
     // something upstream forgot to tag an element or a selectedIds entry -
     // a real bug. Writing to activeList anyway would hide it as a silent
@@ -2827,6 +2913,62 @@
       } catch (e) {}
     }
 
+    // docs/schema-legs.md §5.1, step 6 - the destination filter select.
+    // Mirrors renderLists()'s own validity-check-then-build shape above,
+    // for the same reason: this is a second, independent axis over the
+    // same items, not a variant of the category filter, so it gets its
+    // own render function rather than being folded into that one.
+    function renderLegFilter() {
+      const select = $("legFilterSelect");
+
+      // Single-leg trip - the control isn't disabled, it isn't rendered
+      // at all (docs/schema-legs.md §5.1: "אפס שינוי"). window.isMultiLeg
+      // is the same check already used throughout the legs work
+      // (index.html, itinerary.html) - not a local reimplementation.
+      if (!window.isMultiLeg(trip)) {
+        select.classList.add("hidden");
+        select.innerHTML = "";
+        return;
+      }
+
+      const legs = window.getLegs(trip);
+
+      // A leg that no longer exists (deleted/reordered in the admin
+      // panel since this was saved) falls back to "all" - same reasoning
+      // as activeList's own fallback above: a stale selection should
+      // never leave the control silently pointing at nothing.
+      const activeLegFilterIsValid =
+        activeLegFilter === "all" ||
+        legs.some(leg => leg.id === activeLegFilter);
+
+      if (!activeLegFilterIsValid) {
+        activeLegFilter = "all";
+      }
+
+      select.innerHTML =
+        [{ id: "all", name: tr("כל היעדים", "All destinations") }, ...legs]
+          .map(leg =>
+            `<option value="${escapeHtml(leg.id)}"` +
+            `${leg.id === activeLegFilter ? " selected" : ""}>` +
+            `${escapeHtml(leg.name || "")}</option>`
+          )
+          .join("");
+
+      select.classList.remove("hidden");
+
+      select.onchange = () => {
+        activeLegFilter = select.value;
+        renderMine();
+      };
+
+      // Same single-save-point reasoning as activeList's own persistence
+      // above - every path that can change activeLegFilter ends up back
+      // through renderMine() -> renderLegFilter().
+      try {
+        localStorage.setItem(activeLegFilterKey, activeLegFilter);
+      } catch (e) {}
+    }
+
     function updateCategoryChipsFade() {
       const el = $("categoryChips");
       const hasMore = Math.abs(el.scrollLeft) + el.clientWidth < el.scrollWidth - 1;
@@ -2868,6 +3010,7 @@
 
     function renderMine() {
       renderLists();
+      renderLegFilter();
       renderQuickPicks();
       updateManageListBtnState();
       updateAiSuggestBtnState();
@@ -2879,7 +3022,15 @@
       // still just activeList, so the actual set of items shown is
       // byte-identical to before. Nothing reads data-category yet - it's
       // wiring for step 3, not a behavior change.
-      const map = itemsForCategoryFilter(activeList);
+      //
+      // docs/schema-legs.md §5.1, step 6 - itemsForLegFilter layers the
+      // destination axis on top, so this map (and everything below that
+      // reads from it, including the progress count) already reflects
+      // BOTH active filters together. Deliberately the same "what's
+      // displayed is what's counted" behavior the progress count already
+      // had for the category filter alone - not a new rule, just this
+      // map now has two filters feeding it instead of one.
+      const map = itemsForLegFilter(itemsForCategoryFilter(activeList), activeLegFilter);
 
       const entries =
         Object.entries(map)
@@ -3529,6 +3680,18 @@
         sourceItem.ownerName ||
         tr("חבר/ה לקבוצה", "a group member");
 
+      // docs/schema-legs.md §5.1 - deliberately NOT sourceItem.legId.
+      // Category carries over (by name-match above, or picked explicitly)
+      // because it's semantic: "מסמכים" means the same thing to everyone
+      // on the trip. A leg tag is personal context, not shared meaning -
+      // the friend's copy might be tagged to Rome because THEY are
+      // staying on two extra days there, which says nothing about where
+      // the importing user needs their own copy. So this follows the
+      // same rule as a brand-new typed item (addItem() above): tag with
+      // the IMPORTING user's own active leg filter, not carried over from
+      // the source. Doesn't happen automatically the way it does for
+      // AI-suggestion/quick-pick adds - those call addItem() itself,
+      // importItem() has always had its own push() here.
       await push(
         ref(db, `${userBase()}/items/${targetCategory}`),
         {
@@ -3538,7 +3701,8 @@
           importedFrom: memberName,
           ownerName: profile.name,
           createdByUid: user.uid,
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          ...(activeLegFilter !== "all" ? { legId: activeLegFilter } : {})
         }
       );
 
@@ -3782,6 +3946,14 @@
         );
       }
 
+      // docs/schema-legs.md §5.1 - a new item picks up the active
+      // destination filter automatically, but only when a specific leg
+      // is selected: "all" is not a real leg any more than it's a real
+      // category (assertCategory above already refuses it for
+      // targetCategory for the same reason). No legId at all is the
+      // normal, permanent state for most items - matches §5.1's own
+      // compatibility rule that an item without one appears in every
+      // filter, not something migrated in later.
       await push(
         ref(
           db,
@@ -3793,7 +3965,8 @@
           isPublic:false,
           ownerName:profile.name,
           createdAt:Date.now(),
-          createdByUid:user.uid
+          createdByUid:user.uid,
+          ...(activeLegFilter !== "all" ? { legId: activeLegFilter } : {})
         }
       );
 
@@ -4075,6 +4248,20 @@
             )
             .join("");
       }
+
+      // docs/schema-legs.md §5.1's "visual indication" for the auto-tag
+      // addItem() applies below - shown/hidden here (not computed inside
+      // addItem() itself) because it has to be visible BEFORE the user
+      // types the name, not after the item's already been written.
+      const taggedLeg =
+        activeLegFilter !== "all"
+          ? window.getLegs(trip).find(leg => leg.id === activeLegFilter)
+          : null;
+
+      $("legTagHint").classList.toggle("hidden", !taggedLeg);
+      $("legTagHint").textContent = taggedLeg
+        ? tr(`יתווסף ל${taggedLeg.name}`, `Will be added to ${taggedLeg.name}`)
+        : "";
 
       $("addItemOverlay").classList.remove("hidden");
 
