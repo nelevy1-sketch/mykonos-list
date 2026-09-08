@@ -479,6 +479,25 @@
       box-shadow: 0 0 0 2px var(--glow-color), 0 0 14px color-mix(in srgb, var(--glow-color) 55%, transparent);
     }
 
+    /* docs/schema-legs.md §8, commit ג - the seam between one leg's days
+       and the next's, inside the horizontally-scrolling forecast strip.
+       Deliberately NOT styled like .forecast-day (no background, no
+       padding, no min-width) - a chip-shaped separator would compete
+       with the data it's meant to be subordinate to (visual density
+       principle). Sized to its own content so it reads as punctuation
+       between chip groups, not another data point. */
+    .forecast-leg-separator {
+      flex: 0 0 auto;
+      align-self: center;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: .62rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.6);
+      white-space: nowrap;
+    }
+
     .session-row {
       display: flex;
       align-items: center;
@@ -5889,20 +5908,33 @@
       return { icon: "☀️", label: tr("בהיר", "Clear") };
     }
 
-    // items: a flat, already-ordered mix of real day entries and leg
-    // placeholders (docs/schema-legs.md §8, commit ব) - one continuous
-    // sequence across every leg, no separator between legs (that's a
-    // separate commit, ג: a genuinely new visual pattern, not something
-    // that already exists elsewhere to reuse - see that commit's own
-    // notes). Each real day already carries its own `isToday`, computed
-    // against ITS OWN leg's "today" while the item was built - not a
-    // single shared todayKey parameter like before, since different legs
-    // can be in different timezones at once.
+    // items: a flat, already-ordered mix of real day entries, leg
+    // placeholders, and leg separators (docs/schema-legs.md §8, commits
+    // ব and ג) - one continuous sequence across every leg. Each real day
+    // already carries its own `isToday`, computed against ITS OWN leg's
+    // "today" while the item was built - not a single shared todayKey
+    // parameter like before, since different legs can be in different
+    // timezones at once.
     function renderForecastStrip(items) {
       const strip = document.getElementById("forecastStrip");
       const locale = currentLanguage === "en" ? "en-GB" : "he-IL";
 
       strip.innerHTML = items.map((item) => {
+        if (item.type === "separator") {
+          // Deliberately not a §5.2-style "line + centered text" divider
+          // (docs/schema-legs.md's own itinerary-page pattern) - that's a
+          // full-width row in a vertical list; this is a flex item inside
+          // a horizontally-scrolling strip, a different enough layout
+          // that copying the shape didn't make sense. legRouteArrow()
+          // (already shared - the same home-title route text uses it) is
+          // reused rather than re-deriving RTL/LTR arrow direction here.
+          return (
+            `<div class="forecast-leg-separator">` +
+            `<span>${legRouteArrow().trim()}</span>${escapeHtml(item.legName)}` +
+            `</div>`
+          );
+        }
+
         if (item.type === "placeholder") {
           // Same visual treatment as the existing day-7+ ".unreliable"
           // dimming (not a new CSS pattern) - a leg beyond Open-Meteo's
@@ -5936,12 +5968,12 @@
       strip.classList.remove("hidden");
     }
 
-    // docs/schema-legs.md §8, commit ব - the forecast strip becomes one
-    // continuous sequence across every leg, not always the first leg's
-    // location (§8 commit א did the same for the "now" row). This is the
-    // core rewrite the whole step exists for; the visual separator
-    // between legs is a later commit (ג) - here, days from every leg
-    // just run together in order, correct but visually unmarked.
+    // docs/schema-legs.md §8, commits ব and ג - the forecast strip shows
+    // every leg's own weather (ব), each leg visually separated from the
+    // next (ג: legRanges.forEach's trailing separator push, below) - not
+    // always the first leg's location, and not an unmarked jump in
+    // temperature that leaves the reader guessing where the trip changed
+    // destination.
     async function fetchForecast() {
       const strip = document.getElementById("forecastStrip");
 
@@ -6054,7 +6086,7 @@
       const items = [];
       let responseIdx = 0;
 
-      legRanges.forEach((r) => {
+      legRanges.forEach((r, idx) => {
         const isQueryable = window.hasValidCoords(r.leg);
         const daily = isQueryable ? responses[responseIdx++]?.daily : null;
 
@@ -6088,6 +6120,22 @@
         // remainder of THIS leg, not one per missing day.
         if (!lastCoveredKey || lastCoveredKey < r.endKey) {
           items.push({ type: "placeholder", legName: r.leg.name || "" });
+        }
+
+        // docs/schema-legs.md §8, commit ג - a seam between THIS leg's
+        // chips and the next leg's, not after the last leg (nothing
+        // follows it). Every entry in legRanges contributes at least one
+        // item above (a real day or a placeholder) by construction, so
+        // every consecutive pair here is a genuine visible transition -
+        // no need to check whether the next leg "actually rendered
+        // anything". Shown even when the NEXT leg is itself a
+        // placeholder (no coordinates, or beyond the 16-day window) -
+        // the separator marks that the destination changed, which is
+        // true regardless of whether that destination has data; skipping
+        // it there would leave the dimmed placeholder chip looking like
+        // an unexplained gap instead of a clearly-marked new leg.
+        if (idx < legRanges.length - 1) {
+          items.push({ type: "separator", legName: legRanges[idx + 1].leg.name || "" });
         }
       });
 
