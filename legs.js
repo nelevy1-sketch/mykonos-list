@@ -109,6 +109,27 @@
         return getLegs(trip).length > 1;
     }
 
+    // Whether a leg (or any {lat, lon} object) has USABLE coordinates.
+    // lat/lon != null must be checked BEFORE Number.isFinite(Number(...)),
+    // not after - Number(null) is 0, not NaN, so Number.isFinite(Number(x))
+    // alone treats an explicit null (what a failed/skipped geocode writes -
+    // legBuilder.js: `lat: legLocations[i].lat ?? null`) as if it were the
+    // real coordinate (0, 0) - Null Island, a real spot in the Atlantic
+    // that Open-Meteo will happily return a forecast for. Extracted here
+    // after the same missing-null-check mistake happened twice
+    // independently in one sitting: once in this function's own first
+    // draft (see getCurrentLegCoords below), and once already live in
+    // index.html's hydrateTripData() (hasRealCoords/latCoord/lonCoord,
+    // docs/schema-legs.md §8 investigation) - the second occurrence is
+    // exactly the kind of "same bug, different file" this file's own
+    // shared-helper convention (see the header comment, and the
+    // zonedParts/tripDayDates history in CLAUDE.md) exists to stop.
+    function hasValidCoords(obj) {
+        return !!obj &&
+            obj.lat != null && obj.lon != null &&
+            Number.isFinite(Number(obj.lat)) && Number.isFinite(Number(obj.lon));
+    }
+
     // Legs are contiguous and non-overlapping (legs[n].endAt ===
     // legs[n+1].startAt, per schema §2.2) - the transition moment belongs
     // to the OUTGOING leg. Using an inclusive range on both ends and
@@ -205,19 +226,7 @@
             targetLeg = beforeTrip ? firstLeg : lastLeg;
         }
 
-        // lat/lon != null first, THEN Number.isFinite(Number(...)) - a
-        // failed/skipped geocode writes lat/lon as an explicit null
-        // (legBuilder.js: `legLocations[i].lat ?? null`), and Number(null)
-        // is 0, not NaN, so Number.isFinite(Number(leg.lat)) ALONE passes
-        // a null lat as if (0, 0) - Null Island - were a real coordinate.
-        // Caught by this function's own tests (a leg with lat:null,
-        // lon:null resolved to {lat:0, lon:0} before this guard existed).
-        const hasCoords = leg =>
-            leg &&
-            leg.lat != null && leg.lon != null &&
-            Number.isFinite(Number(leg.lat)) && Number.isFinite(Number(leg.lon));
-
-        const candidate = [targetLeg, lastLeg, firstLeg].find(hasCoords);
+        const candidate = [targetLeg, lastLeg, firstLeg].find(hasValidCoords);
 
         return candidate
             ? { lat: Number(candidate.lat), lon: Number(candidate.lon) }
@@ -362,6 +371,7 @@
     window.getPrimaryLeg = getPrimaryLeg;
     window.getLastLeg = getLastLeg;
     window.isMultiLeg = isMultiLeg;
+    window.hasValidCoords = hasValidCoords;
     window.getLegForDate = getLegForDate;
     window.getCurrentLegTimezone = getCurrentLegTimezone;
     window.getCurrentLegCoords = getCurrentLegCoords;

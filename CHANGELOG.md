@@ -1,5 +1,16 @@
 # GitTrip — CHANGELOG
 
+## v4.25.3 — תיקון: geocoding כושל נשלח ל-Open-Meteo כ-(0,0) במקום להיחסם
+
+### 🐛 תיקון
+- **נתפס תוך כדי בדיקת commit א של שלב 8 (רגל בלי קואורדינטות), לא בעיון**: `hasRealCoords`/`latCoord`/`lonCoord` (`index.html`, ליד שורה 3510) בדקו `Number.isFinite(Number(primaryLeg.lat))` בלי לבדוק `!= null` קודם. `Number(null)` הוא `0`, לא `NaN` - אז רגל שנכשלה ב-geocoding (`lat: null, lon: null`, הערך שכשל `legBuilder.js` כותב בפועל) עברה כאילו יש לה קואורדינטות תקינות. **חמור משנראה**: לא רק ש-`hasRealCoords` היה שגוי (`true` במקום `false`) - `latCoord`/`lonCoord` עצמן נדרסו ל-`0`/`0` (Null Island, נקודה באוקיינוס האטלנטי), לא נשארו בערך הקודם כפי שההערה הישנה בקוד הניחה
+- **הוכח בפועל, לא רק נומק**: טיול מרובה-רגליים עם הרגל הראשונה (רומא) כושלת geocoding והרגל הפעילה (בנגקוק) תקינה - לפני התיקון, `fetchForecast()` שלחה בפועל `https://api.open-meteo.com/v1/forecast?latitude=0&longitude=0&...` ל-Open-Meteo (נלכד עם fetch spy על הקוד האמיתי, לא אובייקט שנבנה לפי הנחות). אחרי התיקון: `hasRealCoords=false`, `latCoord`/`lonCoord` נשארים בערך הקודם, וה-guard הקיים של `fetchForecast()` (`if (!hasRealCoords || ...)`) עוצר את הקריאה לגמרי - בלי לשנות את ה-guard עצמו, רק את הערך שהוא בודק
+- **`window.hasValidCoords(obj)` חדשה ב-`legs.js`** - `lat`/`lon` `!= null` בדיקה מפורשת לפני ההמרה למספר. חולצה כפונקציה משותפת אחרי שאותה טעות בדיוק קרתה פעמיים בישיבה אחת: פעם ב-`getCurrentLegCoords()` (v4.25.2, נתפסה בבדיקות שלה) ופעם כאן, כבר בפרודקשן. `getCurrentLegCoords()` עודכנה להשתמש בפונקציה המשותפת במקום בעותק הפנימי שלה
+- **`index.html`'s שני ה-`if` הנפרדים (בדיקת lat ובדיקת lon בנפרד) אוחדו לבדיקה אחת**: בפועל lat/lon תמיד מגיעים יחד מאותה קריאת geocoding (`legBuilder.js`) - אף פעם לא תקינים בנפרד. `hasRealCoords` (המחושב נכון עכשיו) שולט על עדכון שניהם יחד, לא שני checks כפולים שיכולים לדרוש תחזוקה נפרדת
+- **ממצא נוסף, לא תוקן כאן - מחוץ להיקף**: באותה בדיקה, טיול מרובה-רגליים שבו ה**רגל הפעילה עצמה** (לא רק רגל אחרת בטיול) כושלת geocoding (`timezone: null`) גרם ל-`multiLegDuringStatusLine()` (v4.25.0, שורת המצב בכרטיס הבית) לזרוק `RangeError: Invalid time zone specified: null` מתוך `new Intl.DateTimeFormat(locale, {timeZone: activeTz})` - קריסה לא-תפוסה בתוך `updateClockAndPhases()`. תועד, לא תוקן - commit נפרד
+- נבדק בפועל: טיול רגל אחת עם קואורדינטות תקינות - אפס שינוי (`hasRealCoords=true`, `latCoord`/`lonCoord` נכונים, שתי הקריאות ל-Open-Meteo יוצאות עם הקואורדינטות הנכונות); טיול מרובה-רגליים עם רגל ראשונה כושלת ורגל פעילה תקינה - `fetchWeather()` (מ-v4.25.2) כבר משתמשת ברגל הפעילה כך שלא הושפעה; `fetchForecast()` (שעדיין רגל-ראשונה-בלבד, מחוץ להיקף) עוברת מקריאה שגויה ל-(0,0) לחסימה נכונה
+- `node scripts/i18n-audit.js index.html legs.js` - 0 ממצאים (אין טקסט משתמש חדש)
+
 ## v4.25.2 — תיקון: שורת "עכשיו" מציגה מזג אוויר של הרגל הראשונה תמיד
 
 ### 🐛 תיקון

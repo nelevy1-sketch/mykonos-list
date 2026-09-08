@@ -3507,14 +3507,27 @@
         } catch (e) {}
       }
 
-      hasRealCoords = Number.isFinite(Number(primaryLeg.lat)) && Number.isFinite(Number(primaryLeg.lon));
+      // window.hasValidCoords (legs.js) - NOT Number.isFinite(Number(x))
+      // alone: Number(null) is 0, not NaN, so that check alone treated a
+      // failed geocode's explicit `lat: null` as if (0, 0) were real -
+      // Null Island, silently sent to Open-Meteo as this trip's location.
+      // Found during docs/schema-legs.md §8 investigation (a bug that
+      // predates it, unrelated to legs specifically - would have hit any
+      // single-leg trip with a failed geocode too). Also collapses the
+      // two previously-independent per-field guards into one: lat/lon
+      // always come from the same geocode result (legBuilder.js), never
+      // valid separately, so gating both assignments on a single
+      // already-computed hasRealCoords is both simpler and correct - a
+      // leg that fails geocoding now leaves latCoord/lonCoord at
+      // whatever they were before (module defaults on first load, or the
+      // last known-good value on a later hydrate), instead of either
+      // silently keeping a stale-but-plausible value (the old lat-only
+      // guard's intent) or, in practice, being overwritten to literal 0.
+      hasRealCoords = window.hasValidCoords(primaryLeg);
       tripTimezone = lastLeg.timezone || null;
 
-      if (Number.isFinite(Number(primaryLeg.lat))) {
+      if (hasRealCoords) {
         latCoord = Number(primaryLeg.lat);
-      }
-
-      if (Number.isFinite(Number(primaryLeg.lon))) {
         lonCoord = Number(primaryLeg.lon);
       }
 
