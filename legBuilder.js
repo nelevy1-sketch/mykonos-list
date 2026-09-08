@@ -89,7 +89,20 @@
     // written with lat/lon/timezone all null - matching the decided partial-
     // geocoding-failure behavior (the caller logs its own console.warn for
     // that; this function doesn't warn, since it has no tripId to name).
-    function buildLegs({ legNames, legLocations, legVibes, startInputValue, endInputValue, transitionInputValues, hasTime }) {
+    //
+    // legIds[i], when given, is REUSED as that leg's id instead of minting a
+    // fresh one - docs/schema-legs.md §2.2: "id יציב, לא אינדקס", specifically
+    // so item/place assignments by legId survive a save that didn't touch
+    // that leg. Before this parameter existed, every call regenerated every
+    // leg's id unconditionally - including admin-panel saves that reused an
+    // unchanged leg's lat/lon/timezone verbatim (index.html's `!dirty`
+    // branch) - so ANY save on a multi-leg trip silently orphaned every
+    // existing legId-based association, not just ones on the leg actually
+    // edited. Found during docs/schema-legs.md step 8 investigation, before
+    // step 6/9 (the first real legId consumers) could hit it. The wizard
+    // never passes legIds - every leg there is new by construction, so the
+    // fallback (mint one) is exactly what it needs, unchanged from before.
+    function buildLegs({ legNames, legLocations, legVibes, startInputValue, endInputValue, transitionInputValues, hasTime, legIds }) {
         const startBoundary = new Date(startInputValue);
 
         const lastLegTimezone = legLocations[legLocations.length - 1].timezone;
@@ -113,7 +126,7 @@
         boundaries.push(endBoundary);
 
         return legNames.map((name, i) => ({
-            id: `leg_${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`,
+            id: (legIds && legIds[i]) || `leg_${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`,
             name,
             lat: legLocations[i].lat ?? null,
             lon: legLocations[i].lon ?? null,

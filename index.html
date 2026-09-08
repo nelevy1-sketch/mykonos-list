@@ -5104,6 +5104,14 @@
 
           const transitionInputValues = adminTransitionRowEls.slice(0, adminLegRowCount - 1).map(t => t.input.value);
 
+          // Reuse each row's existing id when it has one - moveAdminLegUp
+          // swaps `originalLeg` (id included) together with `input.value`/
+          // `dirty`, so a reordered row's originalLeg.id already reflects
+          // its new position here. A brand-new row (originalLeg still null,
+          // set at push time - see the "add leg" handler above) has no id
+          // to reuse, so buildLegs mints one, same as the wizard always does.
+          const legIds = legDescriptors.map(r => r.originalLeg?.id || null);
+
           const legs = window.buildLegs({
             legNames,
             legLocations,
@@ -5111,7 +5119,8 @@
             startInputValue: newFlight,
             endInputValue: newEnd,
             transitionInputValues,
-            hasTime: adminHasTime
+            hasTime: adminHasTime,
+            legIds
           });
 
           // Preserve each existing leg's own vibes (renaming a leg is not a
