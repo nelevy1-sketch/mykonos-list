@@ -15,7 +15,19 @@ const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
  *   "startDate": "2026-06-10",        // ISO date, optional
  *   "endDate": "2026-06-17",          // ISO date, optional
  *   "listName": "ביגוד",              // which packing list this is for, optional
- *   "language": "he" | "en"
+ *   "language": "he" | "en",
+ *   "scope": "leg" | "shared"         // optional, docs/schema-legs.md §7ב
+ *                                     // step 12 commit ג - omitted (every
+ *                                     // caller before that commit) keeps
+ *                                     // the exact prompt this endpoint has
+ *                                     // always sent. "leg" is one leg of a
+ *                                     // multi-leg trip (destination is
+ *                                     // that leg's own name) - adds an
+ *                                     // instruction not to suggest general
+ *                                     // trip-wide items. "shared" asks for
+ *                                     // exactly those general items instead
+ *                                     // (destination is the joined list of
+ *                                     // every leg's name, for context only)
  * }
  *
  * Response (JSON):
@@ -43,7 +55,8 @@ exports.suggestPackingList = onRequest(
       startDate,
       endDate,
       listName,
-      language
+      language,
+      scope
     } = req.body || {};
 
     if (!destination || typeof destination !== "string") {
@@ -72,15 +85,32 @@ exports.suggestPackingList = onRequest(
         ? `"lightweight compact umbrella", "waterproof windproof jacket"`
         : `"מטרייה מתקפלת קלה", "מעיל מעבר עמיד למים"`;
 
-    const prompt = `You are a helpful, concise packing assistant inside a group trip planning app.
+    // docs/schema-legs.md §7ב, step 12 commit ג - scope is new and
+    // optional. Every caller before this commit never sends it, so
+    // isLeg/isShared are both false and introParagraph collapses to
+    // EXACTLY the text this endpoint has always sent - verified
+    // byte-for-byte against the previous prompt for a fixed sample input
+    // before deploying (not committed, a throwaway comparison script).
+    // The two branches below only ever ADD text on top of that base, never
+    // remove or reorder anything from it.
+    const isShared = scope === "shared";
+    const isLeg = scope === "leg";
 
-Trip destination: ${destination}
+    const introParagraph = isShared
+      ? `This is a multi-destination trip, visiting in order: ${destination}. Trip type: ${tripType || "general"}. Packing list category this is for: ${listName || "general"}.
+
+Suggest a focused packing list of 8 to 14 GENERAL items useful across the ENTIRE trip, not tied to any single destination's weather or conditions - think travel documents, universal electronics (chargers, adapters, power banks), medication, and similar trip-wide essentials that stay the same no matter which destination the traveler is currently at. Do NOT suggest destination-specific or climate-specific items like beachwear or snow gear - those are requested separately for each destination.`
+      : `Trip destination: ${destination}
 Trip type: ${tripType || "general"}
 Trip vibe(s): ${vibeText}
 Trip dates: ${startDate || "unknown"} to ${endDate || "unknown"}
 Packing list category this is for: ${listName || "general"}
 
-Suggest a focused packing list of 8 to 14 specific items appropriate for this trip, considering the destination's typical climate and conditions during those dates, the trip type, and the chosen vibe(s). Avoid vague filler items like "clothes" or "toiletries" - be concrete and specific.
+Suggest a focused packing list of 8 to 14 specific items appropriate for this trip, considering the destination's typical climate and conditions during those dates, the trip type, and the chosen vibe(s). Avoid vague filler items like "clothes" or "toiletries" - be concrete and specific.${isLeg ? ` This is one destination within a multi-destination trip - do not suggest general items that would be needed regardless of which destination this is, like a passport, phone charger, adapter, or power bank; those are covered by a separate trip-wide list.` : ""}`;
+
+    const prompt = `You are a helpful, concise packing assistant inside a group trip planning app.
+
+${introParagraph}
 
 Each item is a short NAME, not a description: 2-3 words, prefer 2. No sub-clauses, no explanation of why it's needed. Good: ${shortItemExamples}. Bad: ${wordyItemExample}.
 

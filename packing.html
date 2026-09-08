@@ -2306,69 +2306,178 @@
       return window.getPrimaryLeg(trip);
     }
 
-    async function requestAiSuggestions() {
-      const button = $("aiSuggestBtn");
-      const originalText = button.textContent;
+    // docs/schema-legs.md §7ב - fetches one AI response and resolves with
+    // its items, or REJECTS on any failure (network error, non-ok status,
+    // empty/missing items) - a single failure shape so Promise.allSettled
+    // (requestAiSuggestionsMultiLeg below) can treat every kind of problem
+    // identically without re-deriving this logic per call site. reason is
+    // attached to the thrown Error so a caller that cares (the single-call
+    // path, for its truncated-specific toast) can still tell truncation
+    // apart from everything else - commit א's server contract is unchanged,
+    // this just moves where it's read from.
+    async function fetchAiItems(body) {
+      const response = await fetch(AI_FUNCTION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
 
-      button.disabled = true;
-      button.textContent = tr("חושב...", "Thinking...");
+      if (!response.ok) {
+        let reason = null;
 
-      try {
-        // vibes/startDate/endDate come from the SAME leg as destination now,
-        // not trip.vibes/trip.startAt/getLastLeg(trip).endAt - a request
-        // about Bangkok should describe Bangkok's own vibes and date range,
-        // not the trip's first/last leg. leg.vibes is identical across
-        // every leg today (the wizard still writes one shared array to all
-        // of them - docs/schema-legs.md §3.3), so this is a no-op for vibes
-        // specifically until the wizard gets per-leg vibes input, but reads
-        // correctly then without needing to be touched again. For a
-        // single-leg trip aiSuggestLeg() above already resolves to the
-        // exact leg/dates today's code used, so this is unchanged there.
-        const leg = aiSuggestLeg();
+        try {
+          reason = (await response.json())?.reason || null;
+        } catch (e) {}
 
-        const response = await fetch(AI_FUNCTION_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const error = new Error(reason === "truncated" ? "truncated" : "Request failed");
+        error.reason = reason;
+        throw error;
+      }
+
+      const data = await response.json();
+
+      if (!data.items || !data.items.length) {
+        const error = new Error("No items");
+        error.reason = "empty";
+        throw error;
+      }
+
+      return data.items;
+    }
+
+    // docs/schema-legs.md §7ב - the exact single-call request this file has
+    // always sent, byte-for-byte: one leg (aiSuggestLeg() - the filtered
+    // leg, or the primary leg on "all"/single-leg), one fetch, no per-leg
+    // instruction added to the prompt (scope omitted - functions/index.js
+    // only adds that instruction when scope:"leg" is sent explicitly, which
+    // this path never does). Used whenever activeLegFilter points at a
+    // specific leg, or the trip only has one leg to begin with - see
+    // requestAiSuggestions()'s dispatch below for the multi-leg branch.
+    async function requestAiSuggestionsSingle() {
+      const leg = aiSuggestLeg();
+
+      const items = await fetchAiItems({
+        destination: leg.name || "",
+        tripType: trip.tripType || "abroad",
+        vibes: leg.vibes || [],
+        startDate: leg.startAt || "",
+        endDate: leg.endAt || "",
+        listName: listLabel(activeList),
+        language: trip.language === "en" ? "en" : "he"
+      });
+
+      // legId:undefined tells renderAiSuggestions() to tag on accept using
+      // activeLegFilter, exactly like every AI suggestion has always been
+      // tagged - see addItem()'s own comment on what undefined means there.
+      renderAiSuggestions(items.map(name => ({ name, legId: undefined })));
+    }
+
+    // docs/schema-legs.md §7ב, step 12 commit ג - one call per leg (each
+    // with legId:leg.id, so an accepted item is tagged with the leg that
+    // actually suggested it - never activeLegFilter, which is "all" the
+    // whole time this path runs) plus one call for trip-wide shared items
+    // (legId:null - explicitly untagged, shows under every filter).
+    // Promise.allSettled so one leg failing doesn't take the others down -
+    // partial results are shown, with a toast naming what's missing.
+    async function requestAiSuggestionsMultiLeg(legs) {
+      const calls = [
+        ...legs.map(leg => ({
+          legId: leg.id,
+          legName: leg.name,
+          promise: fetchAiItems({
             destination: leg.name || "",
             tripType: trip.tripType || "abroad",
             vibes: leg.vibes || [],
             startDate: leg.startAt || "",
             endDate: leg.endAt || "",
             listName: listLabel(activeList),
-            language: trip.language === "en" ? "en" : "he"
+            language: trip.language === "en" ? "en" : "he",
+            scope: "leg"
           })
-        });
-
-        if (!response.ok) {
-          // docs/schema-legs.md §7ב - the server tells us specifically when
-          // the AI response was cut off (reason:"truncated", functions/
-          // index.js) instead of failing for some other reason. Read the
-          // body before throwing so the catch block below can show a
-          // message that actually says what happened, not the same generic
-          // toast for every kind of failure.
-          let reason = null;
-
-          try {
-            reason = (await response.json())?.reason || null;
-          } catch (e) {}
-
-          throw new Error(reason === "truncated" ? "truncated" : "Request failed");
+        })),
+        {
+          legId: null,
+          legName: tr("פריטים משותפים", "Shared items"),
+          promise: fetchAiItems({
+            destination: legs.map(leg => leg.name).join(", "),
+            tripType: trip.tripType || "abroad",
+            listName: listLabel(activeList),
+            language: trip.language === "en" ? "en" : "he",
+            scope: "shared"
+          })
         }
+      ];
 
-        const data = await response.json();
+      const settled = await Promise.allSettled(calls.map(c => c.promise));
 
-        if (!data.items || !data.items.length) {
-          toast(
-            tr(
-              "לא התקבלו הצעות הפעם, נסו שוב",
-              "No suggestions this time, try again"
-            )
-          );
-          return;
+      const merged = [];
+      const failedNames = [];
+
+      settled.forEach((result, i) => {
+        if (result.status === "fulfilled") {
+          result.value.forEach(name => merged.push({ name, legId: calls[i].legId }));
+        } else {
+          console.error(`AI suggestion error (${calls[i].legName}):`, result.reason);
+          failedNames.push(calls[i].legName);
         }
+      });
 
-        renderAiSuggestions(data.items);
+      if (!merged.length) {
+        toast(
+          tr(
+            "לא ניתן היה לקבל הצעות AI כרגע",
+            "Couldn't get AI suggestions right now"
+          )
+        );
+        return;
+      }
+
+      renderAiSuggestions(merged);
+
+      // Never blocks the suggestions that did succeed from showing (above,
+      // unconditionally) - this is purely informational, so the user knows
+      // the shorter-than-expected list is a real failure, not "the AI just
+      // didn't have much to say about Bangkok."
+      if (failedNames.length === 1) {
+        toast(
+          tr(
+            `לא התקבלו הצעות ל${failedNames[0]}`,
+            `No suggestions received for ${failedNames[0]}`
+          )
+        );
+      } else if (failedNames.length > 1) {
+        toast(
+          tr(
+            `לא התקבלו הצעות ל-${failedNames.length} יעדים`,
+            `No suggestions received for ${failedNames.length} destinations`
+          )
+        );
+      }
+    }
+
+    async function requestAiSuggestions() {
+      const button = $("aiSuggestBtn");
+      const originalText = button.textContent;
+      const legs = window.getLegs(trip);
+
+      // docs/schema-legs.md §7ব, step 12 commit ג - multi-call only when
+      // the filter is "all" AND there's more than one leg to ask about.
+      // A leg-specific filter stays on the single-call path unchanged
+      // (commit ב's own scope) - asking about one already-chosen
+      // destination doesn't need N+1 calls.
+      const useMultiLeg = activeLegFilter === "all" && window.isMultiLeg(trip);
+
+      button.disabled = true;
+      button.textContent = useMultiLeg
+        ? tr("אוסף הצעות לכל היעדים...", "Gathering suggestions for every destination...")
+        : tr("חושב...", "Thinking...");
+
+      try {
+        if (useMultiLeg) {
+          await requestAiSuggestionsMultiLeg(legs);
+        } else {
+          await requestAiSuggestionsSingle();
+        }
       } catch (error) {
         console.error("AI suggestion error:", error);
         toast(
@@ -2377,10 +2486,15 @@
                 "התשובה נקטעה, נסו שוב",
                 "The response was cut off, try again"
               )
-            : tr(
-                "לא ניתן היה לקבל הצעות AI כרגע",
-                "Couldn't get AI suggestions right now"
-              )
+            : error.reason === "empty"
+              ? tr(
+                  "לא התקבלו הצעות הפעם, נסו שוב",
+                  "No suggestions this time, try again"
+                )
+              : tr(
+                  "לא ניתן היה לקבל הצעות AI כרגע",
+                  "Couldn't get AI suggestions right now"
+                )
         );
       } finally {
         button.disabled = false;
@@ -2435,6 +2549,12 @@
       return shorter.every((word, i) => word === longer[i]);
     }
 
+    // docs/schema-legs.md §7ব, step 12 commit ג - aiItems is {name,legId}[].
+    // legId is undefined (single-call path - tag on accept using
+    // activeLegFilter, exactly as always), a real leg id (multi-call,
+    // per-leg response - that leg suggested it), or null (multi-call,
+    // shared-items response, or a cross-leg collision resolved below -
+    // explicitly untagged, shows under every filter).
     function renderAiSuggestions(aiItems) {
       // Every list, not just the active one - a suggestion that duplicates
       // something already on a *different* list is still a duplicate.
@@ -2447,8 +2567,8 @@
       let filteredAsDuplicate = 0;
       const accepted = [];
 
-      aiItems.forEach(item => {
-        const words = wordsOfItem(item);
+      aiItems.forEach(entry => {
+        const words = wordsOfItem(entry.name);
 
         if (!words.length) {
           return;
@@ -2462,17 +2582,34 @@
         const dupIndex = accepted.findIndex(a => isSameItem(words, a.words));
 
         if (dupIndex === -1) {
-          accepted.push({ item, words });
+          accepted.push({ name: entry.name, legId: entry.legId, words });
           return;
         }
 
         filteredAsDuplicate++;
 
+        const existing = accepted[dupIndex];
+
+        // The same item name coming back from two DIFFERENT origins (two
+        // legs independently suggesting "sunscreen," or a leg and the
+        // shared call agreeing on something) is not "belongs to whichever
+        // one got kept below" - that would tag it as leg-specific when the
+        // model effectively flagged it as useful beyond one destination.
+        // Untagged is the honest answer: it shows under every filter,
+        // same as a duplicate the shared call would have produced on its
+        // own. A collision within the SAME origin (two phrasings from one
+        // leg's own response) keeps that origin's legId - only a genuine
+        // cross-origin collision does this. Do not "simplify" this to
+        // always keeping the first/kept entry's legId - that's the
+        // silently-wrong-legId bug this whole commit exists to avoid.
+        const mergedLegId = existing.legId === entry.legId ? existing.legId : null;
+
         // Keep whichever phrasing is shorter, regardless of arrival order -
         // it's the more canonical name, and it's also the smaller one.
-        if (words.length < accepted[dupIndex].words.length) {
-          accepted[dupIndex] = { item, words };
-        }
+        accepted[dupIndex] =
+          words.length < existing.words.length
+            ? { name: entry.name, legId: mergedLegId, words }
+            : { ...existing, legId: mergedLegId };
       });
 
       // Diagnostic only, not user-facing: this is here to find out whether
@@ -2486,7 +2623,7 @@
         );
       }
 
-      const fresh = accepted.map(a => a.item);
+      const fresh = accepted.map(a => ({ name: a.name, legId: a.legId }));
 
       // Not a failure, just a signal something upstream (prompt or
       // filtering) may need another look - never blocks the suggestions
@@ -2512,20 +2649,21 @@
       $("aiSuggestions").classList.remove("hidden");
 
       $("aiSuggestions").innerHTML = fresh
-        .map(item =>
-          `<button class="pick" data-ai-pick="${escapeHtml(item)}">` +
-          `✨ ${escapeHtml(item)}</button>`
+        .map((entry, i) =>
+          `<button class="pick" data-ai-index="${i}">` +
+          `✨ ${escapeHtml(entry.name)}</button>`
         )
         .join("");
 
       document
-        .querySelectorAll("[data-ai-pick]")
+        .querySelectorAll("[data-ai-index]")
         .forEach(button => {
           button.onclick = () => {
-            addItem(button.dataset.aiPick);
+            const entry = fresh[Number(button.dataset.aiIndex)];
+            addItem(entry.name, undefined, entry.legId);
             button.remove();
 
-            if (!document.querySelector("[data-ai-pick]")) {
+            if (!document.querySelector("[data-ai-index]")) {
               $("aiSuggestions").classList.add("hidden");
             }
           };
@@ -3952,7 +4090,7 @@
     // add-item overlay (addBtn/newItem's Enter handler, below) - every
     // other existing caller (quick-picks, AI suggestions) still just
     // passes a name, so they keep targeting activeList exactly as before.
-    async function addItem(value, explicitCategoryId) {
+    async function addItem(value, explicitCategoryId, explicitLegId) {
       const name =
         (value || $("newItem").value).trim();
 
@@ -4004,6 +4142,17 @@
       // normal, permanent state for most items - matches §5.1's own
       // compatibility rule that an item without one appears in every
       // filter, not something migrated in later.
+      //
+      // §7ব, step 12 commit ג - explicitLegId lets a caller that already
+      // knows the correct leg (multi-leg AI suggestions - see
+      // renderAiSuggestions' click handler) bypass activeLegFilter
+      // entirely, since acceptance can happen while the page is filtered
+      // to "all" but the individual suggestion clearly belongs to one
+      // specific leg (or explicitly none, for a shared/untagged one -
+      // legId:null). Every OTHER call site (typed input, quick-pick
+      // accept, single-call AI accept) never passes a third argument, so
+      // explicitLegId stays undefined there and this falls through to the
+      // exact activeLegFilter-based tagging that's always run - unchanged.
       await push(
         ref(
           db,
@@ -4016,7 +4165,9 @@
           ownerName:profile.name,
           createdAt:Date.now(),
           createdByUid:user.uid,
-          ...(activeLegFilter !== "all" ? { legId: activeLegFilter } : {})
+          ...(explicitLegId !== undefined
+            ? (explicitLegId ? { legId: explicitLegId } : {})
+            : (activeLegFilter !== "all" ? { legId: activeLegFilter } : {}))
         }
       );
 
