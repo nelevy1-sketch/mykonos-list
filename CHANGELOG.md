@@ -1,5 +1,16 @@
 # GitTrip — CHANGELOG
 
+## v4.28.3 — תיקון אמיתי: הפס הלבן ב-shopping.html (v4.28.2 לא הספיק)
+
+### 🐛 תיקון
+- **האבחנה ב-v4.28.2 (html בלי background) הייתה נכונה אבל לא מספקת** - המשתמש דיווח שהפס עדיין שם אחרי שהגרסה עלתה לפרודקשן, ותיאר אותו כ**לבן ממש**, לא כחול (מה ש-`theme-color` היה מייצר) ולא כהה. חקירה חוזרת, הפעם מול הדף החי (לא רק מקומי): `getComputedStyle(document.documentElement).backgroundColor` על shopping.html בפרודקשן החזיר `rgba(0,0,0,0)` - שקוף לגמרי, למרות ש-`background-image` (ה-gradient) כן היה שם
+- **הסיבה: `background:<gradient>` בקיצור קובע רק `background-image`, אף פעם לא `background-color`.** `html{background:var(--page-bg-gradient)}` מ-v4.28.2 קבע gradient אבל השאיר את `background-color` בברירת המחדל שלו - שקוף. איפה שה-gradient (image layer) לא הגיע לצייר - נשאר שקוף לגמרי, לא צבע כלשהו, ולכן לבן (ברירת המחדל של הדפדפן). `packing.html`/`places.html`/`itinerary.html` לא נתקלו בזה כי ה-`html{background:var(--bg)}` שלהם הוא ערך צבע מלא, שכן נופל תחת `background-color` בקיצור - בדיוק ההבדל בין gradient לצבע מלא בהתנהגות הקיצור, לא ב"איך זה נמתח על הקנבס"
+- **`shopping.html`**: `html` מקבל עכשיו גם `background-color:var(--bg-gradient-end)` מפורש, לצד ה-`background` הקיים - צבע אטום מתחת ל-gradient, לא רק תחתיו. `--bg-gradient-end` נבחר כי זה הצבע שה-gradient עצמו יציב ממנו והלאה (מ-40% ועד הסוף) - התאמה מדויקת לרוב הקנבס, וקרוב מאוד גם בקצה העליון
+- **סקר את כל 6 העמודים** לאיתור מקום נוסף שבו `background` עם gradient בלבד יושב על אלמנט שאמור להיות שכבה אטומה (לא רק דקורטיבי מעל הורה אטום כבר) - `html`/`body`/מעטפת עמוד מלאה. נמצא רק המקום הזה. כל שאר ה-gradient-ים בכל 6 העמודים (כרטיסי hero, badges, פס התקדמות, אפקטי fade על תמונות/רצועות גוללות) יושבים על הורה כבר אטום, ולא נפגעים מהבאג הזה
+- **`index.html`/`wizard.html`**: `window.syncHtmlBackground()` מ-v4.28.2 מעתיק `getComputedStyle(body).backgroundColor` - נבדק במפורש שזה לא אותו באג במסווה: ל-`body` בשני העמודים האלה אין gradient בכלל (`--bg-color`/`--background` הם ערכי צבע מלא בכל 8 השילובים שנבדקו), אז ה-`backgroundColor` שמועתק תמיד אטום. לא נדרש תיקון שם - נבדק, לא רק נומק
+
+נבדק בפועל: כל 8 השילובים (4 סוגי טיול × בהיר/כהה) ב-shopping.html - `background-color` על `html` אטום ותואם בדיוק ל-`--bg-gradient-end` הנוכחי בכל אחד; index.html/wizard.html - `background-image` נשאר `none` בכל 8 השילובים, `background-color` אטום כפי שהיה; packing.html - עדיין אטום, ללא שינוי. אומת גם מול הדף החי בפרודקשן (github pages), לא רק מול שרת מקומי - כך בדיוק נמצא הפער בין v4.28.2 המקומי (שנראה תקין) לבין מה שהמשתמש ראה בפועל. קונסול נקי (מלבד PERMISSION_DENIED הידוע).
+
 ## v4.28.2 — תיקון: רקע לא מגיע לקצוות בנייד (safe-area)
 
 ### 🐛 תיקון

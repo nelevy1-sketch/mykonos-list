@@ -212,9 +212,22 @@
      its own copy (not `background:inherit`) because unlike html, it also
      needs the transition below; packing/places/itinerary.html already set
      this on both html and body for the same reason, just with a flat color
-     instead of a gradient - see CLAUDE.md's visual density section. */
+     instead of a gradient - see CLAUDE.md's visual density section.
+
+     v4.28.3 - the v4.28.2 fix above was necessary but not sufficient: the
+     `background` shorthand with ONLY a gradient value sets background-image
+     and leaves background-color at its initial value, transparent -
+     verified via getComputedStyle on the live page (background-color
+     really was rgba(0,0,0,0), not a guess). packing/places/itinerary.html
+     never hit this because their html background is a plain color, which
+     the shorthand DOES resolve to background-color - a gradient never does.
+     background-color here is the opaque fallback: it matches the color the
+     gradient is already solid at from 40% onward (--bg-gradient-end), so
+     it's an exact match for most of the canvas and imperceptibly close at
+     the very top where the gradient is still mid-transition. */
   html {
     background:var(--page-bg-gradient);
+    background-color:var(--bg-gradient-end);
   }
 
   body {

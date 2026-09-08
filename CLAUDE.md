@@ -141,6 +141,21 @@ itinerary.html על גבי `[data-tokens="core"]` עם `var(--muted)`. איחו�
 המחושב בפועל מ-`body` ל-`html`, בכל נקודה שמצב `body` משתנה) - לא רק תוספת
 CSS כמו בשאר העמודים.
 
+**`background: <gradient>` בלבד לא קובע `background-color` - הוא נשאר
+שקוף.** לא אינטואיטיבי, ועלה לנו שני סבבי תיקון עוקבים (v4.28.2 → v4.28.3)
+על אותו באג בפועל ב-`shopping.html`: קיצור ה-`background` קובע רק את תת-
+המאפיינים שהערך שלו בפועל תואם להם - צבע מלא (`#fff`, `var(--bg)`) כן נופל
+תחת `background-color`, אבל `linear-gradient(...)` הוא אך ורק ערך
+`background-image`, ולא נוגע ב-`background-color` בכלל. `background-color`
+נשאר בברירת המחדל שלו - שקוף - גם כשה-`background` "נראה" כאילו הוא קבע
+הכל. **אומת מדוד, לא משוער**: `getComputedStyle(documentElement)
+.backgroundColor` בעמוד החי החזיר `rgba(0,0,0,0)`. על אלמנט שאמור לצבוע
+שטח שלם (בעיקר `html`, שמצייר את כל הקנבס כולל רצועות safe-area שמעבר
+לתיבה של `body` עצמו) - צריך גם `background-color` מפורש, לא רק
+`background-image`. אלמנט עם `background` שהוא gradient ויושב על גבי הורה
+כבר אטום (כרטיס, badge, פס התקדמות) לא נפגע מזה - זה משפיע רק על אלמנט
+שאמור להיות השכבה האטומה בעצמו.
+
 **`wizard.html` כותבת `tripData.schemaVersion: 2` בכל טיול חדש, אבל שום קוד באפליקציה לא קורא את השדה הזה** - לא `getLegs()`, לא שום מקום אחר. אל תניחו שהוא משפיע על משהו.
 
 **באג ידוע ב-`starterLists()` (packing.html): `vibes` דורס את
