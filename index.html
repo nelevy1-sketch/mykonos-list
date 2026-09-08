@@ -3495,7 +3495,17 @@
     });
 
     function todaysPlanContext() {
-      const todayKey = window.dateKeyInZone(new Date(), tripTimezone);
+      // "today" for this lookup must be in the leg actually active right
+      // now, not tripTimezone (=last leg, docs/schema-legs.md §4) - on a
+      // 3+-leg trip, using the last leg's zone while an earlier leg is
+      // still under way looks up the wrong day's activities (docs/schema-
+      // legs.md §8ব finding 7). {legs: currentLegs} is a minimal trip-
+      // shaped wrapper, not a real trip object - index.html doesn't hold
+      // one (everything is flattened by hydrateTripData()); getLegs()
+      // inside getCurrentLegTimezone only ever looks at .legs, and
+      // currentLegs is already its own resolved output, so this round-trips
+      // safely for both single- and multi-leg trips.
+      const todayKey = window.dateKeyInZone(new Date(), window.getCurrentLegTimezone({ legs: currentLegs }));
 
       const activities =
         currentItineraryDays[todayKey]?.activities || {};
@@ -5564,6 +5574,21 @@
       // Open-Meteo's daily.time entries (timezone=auto) already are - comparing
       // date-only strings sidesteps device-vs-destination instant confusion
       // entirely, and "2026-09-05" < "2026-09-06" compares correctly as text.
+      //
+      // todayKey deliberately still uses tripTimezone (=last leg), NOT
+      // window.getCurrentLegTimezone() like the other three §8ব finding-7
+      // sites (todaysPlanContext, renderDayTabs, computeLiveActivityId) -
+      // this one call site is a real exception, not an oversight. The
+      // fetch below (latCoord/lonCoord + timezone=auto) is still anchored
+      // to the FIRST leg's single location - docs/schema-legs.md §8, step
+      // 8's own open item - so every d.dateKey in `days` is already in the
+      // first leg's zone, not the active leg's. Computing todayKey in the
+      // active leg's zone instead would make it MORE wrong: it would stop
+      // matching d.dateKey's own zone, turning a merely-imprecise "today"
+      // marker into a mismatched one - a regression dressed as a fix. Stays
+      // tripTimezone until step 8 makes the whole forecast per-leg; fixing
+      // this one line in isolation was considered and rejected during the
+      // step-5-commit-ג investigation.
       const todayKey = window.dateKeyInZone(new Date(), tripTimezone);
       // flightOut is trip.startAt, belongs to the trip's first day - needs
       // the FIRST leg's timezone, not tripTimezone (=last leg). Same bug

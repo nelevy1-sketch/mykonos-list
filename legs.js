@@ -148,6 +148,28 @@
         return null;
     }
 
+    // §8ব finding 7: "what date/time is it right now, for THIS trip" needs
+    // the leg that's actually active at this instant - not the first leg
+    // (fixed, wrong once the trip is under way) and not the last leg (the
+    // bug this function fixes: on a 3+-leg trip, "today" computed off the
+    // last leg's zone is wrong for every day spent on an earlier leg).
+    // Deliberately a function, not a cached value - the active leg changes
+    // during the trip itself, so every call re-resolves "now" fresh via
+    // getLegForDate(trip, new Date()).
+    //
+    // Fallback chain when no leg's range contains "now" (always true before
+    // the trip starts and after it ends, not just a rare edge case) is
+    // "active leg -> last leg -> device", extending the fallback already
+    // documented in docs/schema-legs.md §4 ("רגל בלי timezone -> timezone
+    // של הטיול -> שעון המכשיר") by one more tier at the front, not
+    // replacing it - before/after the trip this returns exactly what
+    // getLastLeg(trip).timezone already did before this function existed,
+    // so those callers see no behavior change outside the trip's own dates.
+    function getCurrentLegTimezone(trip) {
+        const activeLeg = getLegForDate(trip, new Date());
+        return (activeLeg && activeLeg.timezone) || getLastLeg(trip).timezone || null;
+    }
+
     // One calendar day per entry from trip.startAt to the last leg's
     // endAt, each tagged with the leg it belongs to. Moved here from
     // itinerary.html/places.html (docs/schema-legs.md §8, step 4) - those
@@ -287,5 +309,6 @@
     window.getLastLeg = getLastLeg;
     window.isMultiLeg = isMultiLeg;
     window.getLegForDate = getLegForDate;
+    window.getCurrentLegTimezone = getCurrentLegTimezone;
     window.tripDayDates = tripDayDates;
 })();
