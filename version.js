@@ -6,7 +6,7 @@
 // the way "v4.0.0" had on four of them (as an invisible <!-- --> comment)
 // while two others showed it live in their footer, and CHANGELOG.md had
 // already moved on to v4.0.3.
-window.APP_VERSION = "4.25.4";
+window.APP_VERSION = "4.26.0";
 
 // Minimal foreground-callback registry: registers exactly one visibilitychange
 // listener total (not one per consumer) and runs every registered callback

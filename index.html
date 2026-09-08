@@ -5726,11 +5726,12 @@
       // getCurrentLegCoords and getting null back for the wrong reason.
       //
       // Deliberately local, not written back into the shared
-      // latCoord/lonCoord globals - those still feed fetchForecast()
-      // (still first-leg-only, unchanged until a later §8 commit) and the
-      // admin panel's re-hydrate reset. Overwriting them here would leak
-      // the active leg's location into that unrelated, still-first-leg-
-      // scoped code path.
+      // latCoord/lonCoord globals - those still feed the admin panel's
+      // single-leg save/re-hydrate path (docs/schema-legs.md §5.7).
+      // fetchForecast() stopped reading them as of §8 commit ব (it reads
+      // each leg's own lat/lon directly now). Overwriting the globals
+      // here would still leak the active leg's location into the
+      // admin-panel path, which has nothing to do with "now".
       const coords = tripId
         ? window.getCurrentLegCoords({ legs: currentLegs })
         : { lat: latCoord, lon: lonCoord };
@@ -5888,22 +5889,46 @@
       return { icon: "☀️", label: tr("בהיר", "Clear") };
     }
 
-    function renderForecastStrip(days, todayKey) {
+    // items: a flat, already-ordered mix of real day entries and leg
+    // placeholders (docs/schema-legs.md §8, commit ব) - one continuous
+    // sequence across every leg, no separator between legs (that's a
+    // separate commit, ג: a genuinely new visual pattern, not something
+    // that already exists elsewhere to reuse - see that commit's own
+    // notes). Each real day already carries its own `isToday`, computed
+    // against ITS OWN leg's "today" while the item was built - not a
+    // single shared todayKey parameter like before, since different legs
+    // can be in different timezones at once.
+    function renderForecastStrip(items) {
       const strip = document.getElementById("forecastStrip");
       const locale = currentLanguage === "en" ? "en-GB" : "he-IL";
 
-      strip.innerHTML = days.map((d) => {
-        const isToday = d.dateKey === todayKey;
-        const unreliable = d.daysFromToday >= 7;
-        const meta = forecastDayIcon(d.code);
-        const dayName = isToday
+      strip.innerHTML = items.map((item) => {
+        if (item.type === "placeholder") {
+          // Same visual treatment as the existing day-7+ ".unreliable"
+          // dimming (not a new CSS pattern) - a leg beyond Open-Meteo's
+          // 16-day window, or one whose geocoding failed entirely
+          // (window.hasValidCoords, v4.25.3), still gets a chip with its
+          // name so it doesn't look like the destination silently
+          // vanished from the trip - a missing chip reads as a bug, a
+          // dimmed one reads as "no data for this one".
+          return (
+            `<div class="forecast-day unreliable" aria-label="${escapeHtml(tr(`אין נתונים ל${item.legName}`, `No data for ${item.legName}`))}">` +
+            `<span class="forecast-day-name">${escapeHtml(item.legName)}</span>` +
+            `<span class="forecast-day-row"><span class="forecast-day-icon">—</span><span class="forecast-day-temps">--°</span></span>` +
+            `</div>`
+          );
+        }
+
+        const unreliable = item.daysFromToday >= 7;
+        const meta = forecastDayIcon(item.code);
+        const dayName = item.isToday
           ? tr("היום", "Today")
-          : new Intl.DateTimeFormat(locale, { weekday: "short" }).format(d.date);
+          : new Intl.DateTimeFormat(locale, { weekday: "short" }).format(item.date);
 
         return (
-          `<div class="forecast-day${isToday ? " today" : ""}${unreliable ? " unreliable" : ""}" aria-label="${escapeHtml(meta.label)}">` +
+          `<div class="forecast-day${item.isToday ? " today" : ""}${unreliable ? " unreliable" : ""}" aria-label="${escapeHtml(meta.label)}">` +
           `<span class="forecast-day-name">${escapeHtml(dayName)}</span>` +
-          `<span class="forecast-day-row"><span class="forecast-day-icon">${meta.icon}</span><span class="forecast-day-temps">${Math.round(d.max)}°/${Math.round(d.min)}°</span></span>` +
+          `<span class="forecast-day-row"><span class="forecast-day-icon">${meta.icon}</span><span class="forecast-day-temps">${Math.round(item.max)}°/${Math.round(item.min)}°</span></span>` +
           `</div>`
         );
       }).join("");
@@ -5911,94 +5936,167 @@
       strip.classList.remove("hidden");
     }
 
+    // docs/schema-legs.md §8, commit ব - the forecast strip becomes one
+    // continuous sequence across every leg, not always the first leg's
+    // location (§8 commit א did the same for the "now" row). This is the
+    // core rewrite the whole step exists for; the visual separator
+    // between legs is a later commit (ג) - here, days from every leg
+    // just run together in order, correct but visually unmarked.
     async function fetchForecast() {
       const strip = document.getElementById("forecastStrip");
 
-      if (!hasRealCoords || tripType === "reserve" || !flightOut || !tripEnd || isNaN(flightOut) || isNaN(tripEnd)) {
+      if (tripType === "reserve" || !flightOut || !tripEnd || isNaN(flightOut) || isNaN(tripEnd)) {
         strip.classList.add("hidden");
         return;
       }
 
-      // All boundaries expressed as destination-local "YYYY-MM-DD" keys, since
-      // Open-Meteo's daily.time entries (timezone=auto) already are - comparing
-      // date-only strings sidesteps device-vs-destination instant confusion
-      // entirely, and "2026-09-05" < "2026-09-06" compares correctly as text.
-      //
-      // todayKey deliberately still uses tripTimezone (=last leg), NOT
-      // window.getCurrentLegTimezone() like the other three §8ব finding-7
-      // sites (todaysPlanContext, renderDayTabs, computeLiveActivityId) -
-      // this one call site is a real exception, not an oversight. The
-      // fetch below (latCoord/lonCoord + timezone=auto) is still anchored
-      // to the FIRST leg's single location - docs/schema-legs.md §8, step
-      // 8's own open item - so every d.dateKey in `days` is already in the
-      // first leg's zone, not the active leg's. Computing todayKey in the
-      // active leg's zone instead would make it MORE wrong: it would stop
-      // matching d.dateKey's own zone, turning a merely-imprecise "today"
-      // marker into a mismatched one - a regression dressed as a fix. Stays
-      // tripTimezone until step 8 makes the whole forecast per-leg; fixing
-      // this one line in isolation was considered and rejected during the
-      // step-5-commit-ג investigation.
-      const todayKey = window.dateKeyInZone(new Date(), tripTimezone);
-      // flightOut is trip.startAt, belongs to the trip's first day - needs
-      // the FIRST leg's timezone, not tripTimezone (=last leg). Same bug
-      // family as tripDayDates() (docs/schema-legs.md §4, fixed in step
-      // 4a).
-      const tripStartKey = window.dateKeyInZone(flightOut, currentLegs[0]?.timezone || null);
-      const tripEndKey = window.dateKeyInZone(tripEnd, tripTimezone);
-      const rangeStartKey = tripStartKey > todayKey ? tripStartKey : todayKey;
+      // Per-leg range, each in ITS OWN timezone - not one shared
+      // rangeStartKey/tripEndKey pair like before. A leg entirely in the
+      // past (its own "today" already passed its own endAt) contributes
+      // nothing, same effect as the old single global "rangeStartKey >
+      // tripEndKey" guard, just evaluated once per leg instead of once
+      // for the whole trip. All boundaries compared as destination-local
+      // "YYYY-MM-DD" keys, same reasoning as before this rewrite -
+      // sidesteps device-vs-destination instant confusion entirely.
+      const legRanges = currentLegs
+        .map((leg) => {
+          if (!leg.startAt || !leg.endAt) {
+            return null;
+          }
 
-      if (rangeStartKey > tripEndKey) {
+          const tz = leg.timezone || null;
+          const todayKey = window.dateKeyInZone(new Date(), tz);
+          const startKey = window.dateKeyInZone(new Date(leg.startAt), tz);
+          const endKey = window.dateKeyInZone(new Date(leg.endAt), tz);
+          const rangeStartKey = startKey > todayKey ? startKey : todayKey;
+
+          if (rangeStartKey > endKey) {
+            return null;
+          }
+
+          return { leg, todayKey, rangeStartKey, endKey };
+        })
+        .filter(Boolean);
+
+      if (!legRanges.length) {
         strip.classList.add("hidden");
         return;
       }
 
-      const key = `${latCoord},${lonCoord},${tripEndKey}`;
+      // Cache key: id + lat/lon + start/end PER CANDIDATE LEG, not id
+      // alone. A single-leg trip's synthetic leg (legs.js's getLegs()
+      // fallback) always has id "main" - an id-only key would never
+      // change for ANY single-leg trip edit, which is most trips. A
+      // multi-leg admin save that only edits a transition date, or
+      // renames a leg (re-geocodes it - lat/lon change, id stays per
+      // v4.25.1), doesn't change any leg's id either. lat/lon/startAt/
+      // endAt cover both cases - the old single-fetch key's tripEndKey
+      // played the same "catch a date-only edit" role, just trip-global
+      // instead of per-leg.
+      const key =
+        legRanges
+          .map((r) => `${r.leg.id}:${r.leg.lat}:${r.leg.lon}:${r.leg.startAt}:${r.leg.endAt}`)
+          .join("|") +
+        "‖" + currentLanguage;
+
       if (key === lastForecastKey) {
         return;
       }
       lastForecastKey = key;
 
-      try {
-        const response = await fetch(
-          "https://api.open-meteo.com/v1/forecast" +
-          `?latitude=${latCoord}` +
-          `&longitude=${lonCoord}` +
-          "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
-          "&timezone=auto" +
-          "&forecast_days=16"
-        );
+      // Only legs with real coordinates go into the API call - a leg
+      // whose geocoding failed (docs/schema-legs.md §8's "California"
+      // case) has no lat/lon to query Open-Meteo with. window.
+      // hasValidCoords (legs.js, v4.25.3) - not a raw
+      // Number.isFinite(Number(x)) check, which treats an explicit null
+      // as (0, 0) - the exact bug that fix caught.
+      const queryable = legRanges.filter((r) => window.hasValidCoords(r.leg));
+      let responses = [];
 
-        if (!response.ok) {
-          throw new Error("Forecast request failed");
+      if (queryable.length) {
+        try {
+          // One multi-location request, not N parallel ones (verified
+          // against the real API before writing this, not assumed).
+          // Open-Meteo accepts comma-separated latitude/longitude lists;
+          // the response shape depends on coordinate COUNT: 1 coordinate
+          // returns the original bare object, 2+ returns a JSON ARRAY,
+          // one entry per location, in the SAME ORDER the coordinates
+          // were listed. Correlation back to a leg is by ARRAY POSITION
+          // ONLY - `queryable[i]` pairs with `responses[i]`. There is no
+          // id/name in a response entry to check against (an incidental
+          // `location_id` appears from index 1 onward but is absent on
+          // index 0 - an API quirk, not something to correlate on). If
+          // Open-Meteo ever stopped preserving input order, this would
+          // silently pair the wrong weather with the wrong leg with no
+          // way to detect it from the response alone.
+          const response = await fetch(
+            "https://api.open-meteo.com/v1/forecast" +
+            `?latitude=${queryable.map((r) => r.leg.lat).join(",")}` +
+            `&longitude=${queryable.map((r) => r.leg.lon).join(",")}` +
+            "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
+            "&timezone=auto" +
+            "&forecast_days=16"
+          );
+
+          if (!response.ok) {
+            throw new Error("Forecast request failed");
+          }
+
+          const data = await response.json();
+          responses = Array.isArray(data) ? data : [data];
+        } catch (error) {
+          strip.classList.add("hidden");
+          console.error("Forecast error");
+          return;
         }
+      }
 
-        const data = await response.json();
+      const items = [];
+      let responseIdx = 0;
 
-        if (!data?.daily?.time?.length) {
-          throw new Error("No daily forecast data");
-        }
+      legRanges.forEach((r) => {
+        const isQueryable = window.hasValidCoords(r.leg);
+        const daily = isQueryable ? responses[responseIdx++]?.daily : null;
 
-        const days = data.daily.time
+        // daysFromToday comes straight from Open-Meteo's own array index,
+        // not recomputed from date keys - timezone=auto means index 0 IS
+        // "today" already, in THIS leg's own zone (confirmed against the
+        // real API: each location in a multi-location response carries
+        // its own resolved timezone and its own day-0-is-today anchor,
+        // not one shared across the whole request) - exactly what §8ব
+        // finding 7 / decision 5 needed, for free.
+        const realDays = (daily?.time || [])
           .map((dateStr, i) => ({
+            type: "day",
             dateKey: dateStr,
             date: new Date(`${dateStr}T00:00:00`),
             daysFromToday: i,
-            code: data.daily.weather_code[i],
-            max: data.daily.temperature_2m_max[i],
-            min: data.daily.temperature_2m_min[i]
+            code: daily.weather_code[i],
+            max: daily.temperature_2m_max[i],
+            min: daily.temperature_2m_min[i],
+            isToday: dateStr === r.todayKey
           }))
-          .filter((d) => d.dateKey >= rangeStartKey && d.dateKey <= tripEndKey);
+          .filter((d) => d.dateKey >= r.rangeStartKey && d.dateKey <= r.endKey);
 
-        if (days.length < 2) {
-          strip.classList.add("hidden");
-          return;
+        items.push(...realDays);
+
+        const lastCoveredKey = realDays.length ? realDays[realDays.length - 1].dateKey : null;
+
+        // No coordinates to query at all, OR beyond what Open-Meteo
+        // actually returned for this leg (its own 16-day cap,
+        // docs/schema-legs.md §5.3) - one placeholder chip for the
+        // remainder of THIS leg, not one per missing day.
+        if (!lastCoveredKey || lastCoveredKey < r.endKey) {
+          items.push({ type: "placeholder", legName: r.leg.name || "" });
         }
+      });
 
-        renderForecastStrip(days, todayKey);
-      } catch (error) {
+      if (items.length < 2) {
         strip.classList.add("hidden");
-        console.error("Forecast error");
+        return;
       }
+
+      renderForecastStrip(items);
     }
 
     if (!tripId) {
