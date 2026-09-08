@@ -2308,7 +2308,19 @@
         });
 
         if (!response.ok) {
-          throw new Error("Request failed");
+          // docs/schema-legs.md §7ב - the server tells us specifically when
+          // the AI response was cut off (reason:"truncated", functions/
+          // index.js) instead of failing for some other reason. Read the
+          // body before throwing so the catch block below can show a
+          // message that actually says what happened, not the same generic
+          // toast for every kind of failure.
+          let reason = null;
+
+          try {
+            reason = (await response.json())?.reason || null;
+          } catch (e) {}
+
+          throw new Error(reason === "truncated" ? "truncated" : "Request failed");
         }
 
         const data = await response.json();
@@ -2327,10 +2339,15 @@
       } catch (error) {
         console.error("AI suggestion error:", error);
         toast(
-          tr(
-            "לא ניתן היה לקבל הצעות AI כרגע",
-            "Couldn't get AI suggestions right now"
-          )
+          error.message === "truncated"
+            ? tr(
+                "התשובה נקטעה, נסו שוב",
+                "The response was cut off, try again"
+              )
+            : tr(
+                "לא ניתן היה לקבל הצעות AI כרגע",
+                "Couldn't get AI suggestions right now"
+              )
         );
       } finally {
         button.disabled = false;

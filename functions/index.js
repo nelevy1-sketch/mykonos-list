@@ -125,6 +125,24 @@ Respond ONLY with a raw JSON array of strings. No explanation, no markdown forma
         text
       });
 
+      // docs/schema-legs.md §7ב - this is the exact failure that already
+      // cost months once (maxOutputTokens: 500 truncating silently). Check
+      // finishReason BEFORE attempting JSON.parse, and on its own: a
+      // truncated response usually breaks JSON syntax and would otherwise
+      // just fall into the generic parse-error branch below, logged and
+      // reported identically to any other malformed response - which is
+      // exactly the "died silently, indistinguishable from anything else"
+      // failure mode being fixed here. reason:"truncated" lets the client
+      // show a specific message instead of the generic one.
+      if (candidate?.finishReason === "MAX_TOKENS") {
+        logger.warn("Gemini response truncated (MAX_TOKENS)", {
+          usageMetadata: data.usageMetadata,
+          text
+        });
+        res.status(502).json({ error: "AI response was cut off", reason: "truncated" });
+        return;
+      }
+
       const cleaned = text.replace(/```json|```/g, "").trim();
 
       let items;
