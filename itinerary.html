@@ -108,7 +108,25 @@ function dateKey(d){return`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.g
 // the leg actually active right now, falling back to the last leg (today's
 // old behavior) before/after the trip - not a global, re-resolved on every
 // call since the active leg changes as the trip progresses.
-function renderDayTabs(){const days=window.tripDayDates(trip,tripId),todayKey=window.todayKeyInZone(window.getCurrentLegTimezone(trip));if(!days.length){$('dayTabs').innerHTML=`<div class="empty" style="width:100%"><b>🗓️</b>${tr('לא נמצאו תאריכי טיול תקינים כדי לבנות ימים.','No valid trip dates found to build days.')}</div>`;return}if(!activeDay||!days.some(d=>dateKey(d.date)===activeDay)){const todayInRange=days.find(d=>dateKey(d.date)===todayKey);activeDay=todayInRange?todayKey:dateKey(days[0].date)}$('dayTabs').innerHTML=days.map((d,i)=>{const key=dateKey(d.date),isActive=key===activeDay,isToday=key===todayKey,dateLabel=new Intl.DateTimeFormat(trip.language==='en'?'en-GB':'he-IL',{day:'numeric',month:'numeric'}).format(d.date);return`<button class="day-tab${isActive?' active':''}${isToday?' today':''}" data-day="${key}"><span class="day-num">${tr('יום','Day')} ${i+1}</span><span class="day-date">${dateLabel}</span></button>`}).join('');document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{activeDay=b.dataset.day;renderDayTabs();renderActivities();$('activitiesList').scrollTop=0})}
+//
+// dayTabsScrolledOnce (below) gates the scroll-into-view at the end of this
+// function to the FIRST successful render only - not every call. This
+// function re-runs on every manual tab click (the user already knows where
+// they are, jumping the strip back to "today" under them would be
+// disorienting) AND on every realtime trip update from listen()'s onValue
+// (any change anywhere in the trip re-triggers applyLanguage() ->
+// renderDayTabs(), not just page load) - a plain "did activeDay just get
+// set" check can't tell those apart from the real first render, so this
+// needs its own flag, set true here and never reset for the rest of the
+// page's lifetime.
+let dayTabsScrolledOnce=false;
+function renderDayTabs(){const days=window.tripDayDates(trip,tripId),todayKey=window.todayKeyInZone(window.getCurrentLegTimezone(trip));if(!days.length){$('dayTabs').innerHTML=`<div class="empty" style="width:100%"><b>🗓️</b>${tr('לא נמצאו תאריכי טיול תקינים כדי לבנות ימים.','No valid trip dates found to build days.')}</div>`;return}if(!activeDay||!days.some(d=>dateKey(d.date)===activeDay)){const todayInRange=days.find(d=>dateKey(d.date)===todayKey);activeDay=todayInRange?todayKey:dateKey(days[0].date)}$('dayTabs').innerHTML=days.map((d,i)=>{const key=dateKey(d.date),isActive=key===activeDay,isToday=key===todayKey,dateLabel=new Intl.DateTimeFormat(trip.language==='en'?'en-GB':'he-IL',{day:'numeric',month:'numeric'}).format(d.date);return`<button class="day-tab${isActive?' active':''}${isToday?' today':''}" data-day="${key}"><span class="day-num">${tr('יום','Day')} ${i+1}</span><span class="day-date">${dateLabel}</span></button>`}).join('');document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{activeDay=b.dataset.day;renderDayTabs();renderActivities();$('activitiesList').scrollTop=0});if(!dayTabsScrolledOnce){dayTabsScrolledOnce=true;
+// Only when today's own tab actually rendered (isToday matched a real day -
+// a trip viewed before it starts or after it ends never renders one, and
+// activeDay lands on day 1 instead, which is already the strip's natural
+// un-scrolled position - nothing to scroll TO in that case, per the
+// decision to leave it at the start rather than center day 1).
+const todayTab=document.querySelector('.day-tab.today');if(todayTab)todayTab.scrollIntoView({block:'nearest',inline:'center'})}}
 // tz: same fix and same reasoning as renderDayTabs's todayKey above - the
 // leg active right now, not always the last leg. Used twice below (the
 // today-gate and the HH:MM comparison) - both need the same zone, since
