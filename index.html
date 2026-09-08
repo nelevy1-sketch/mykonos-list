@@ -3162,6 +3162,93 @@
       legTitleResizeTimer = setTimeout(refreshDestinationTitle, 200);
     });
 
+    function dayKeyToUtcMs(key) {
+      const [y, m, d] = key.split("-").map(Number);
+      return Date.UTC(y, m - 1, d);
+    }
+
+    function daysBetweenKeys(fromKey, toKey) {
+      return Math.round((dayKeyToUtcMs(toKey) - dayKeyToUtcMs(fromKey)) / 86400000);
+    }
+
+    // docs/schema-legs.md §5.8 - the "during" status line (#timerTitle) for
+    // a multi-leg, non-reserve trip. Only ever called from that one branch
+    // in updateClockAndPhases() (tripType !== "reserve" already handled
+    // there, currentLegs.length > 1 checked at the call site) - single-leg
+    // and reserve trips never reach this function, so their existing lines
+    // are untouched, not just visually identical.
+    //
+    // Branches on WHICH LEG is active (idx === currentLegs.length - 1),
+    // never on whether today happens to be a particular date - "is the
+    // active leg the last one" and "is there a next transition to show"
+    // are the same question asked two ways, so the two branches below
+    // can't both match at once regardless of how the dates land, even for
+    // malformed (non-contiguous) leg data.
+    function multiLegDuringStatusLine(config) {
+      const activeLeg =
+        window.getLegForDate({ legs: currentLegs }, new Date()) ||
+        currentLegs[currentLegs.length - 1];
+
+      const idx = currentLegs.indexOf(activeLeg);
+      const isLastLeg = idx === currentLegs.length - 1;
+
+      // §5: the transition instant (legs[idx].endAt) is stored in the
+      // OUTGOING leg's own timezone (docs/schema-legs.md §5.2) - displaying
+      // it, and deciding whether "today" IS that day, both have to read it
+      // in that same zone, not tripTimezone (last leg) or the device's.
+      const activeTz = activeLeg.timezone;
+
+      if (!isLastLeg) {
+        const nextLeg = currentLegs[idx + 1];
+        const todayKey = window.dateKeyInZone(new Date(), activeTz);
+        const transitionKey = window.dateKeyInZone(new Date(activeLeg.endAt), activeTz);
+
+        // tripType is already known non-reserve here (see the call site) -
+        // "טסים"/"Flying" only fits an actual flight; a local/camping
+        // multi-leg trip (e.g. Galilee -> Negev) is never a flight.
+        const verb =
+          tripType === "abroad"
+            ? tr("טסים", "Flying")
+            : tr("נוסעים", "Heading");
+
+        if (todayKey === transitionKey) {
+          return tr(
+            `${config.icon} היום ${verb} ל${nextLeg.name}`,
+            `${config.icon} ${verb} to ${nextLeg.name} today`
+          );
+        }
+
+        const dateLabel = new Intl.DateTimeFormat(
+          currentLanguage === "en" ? "en-GB" : "he-IL",
+          { day: "numeric", month: "numeric", timeZone: activeTz }
+        ).format(new Date(activeLeg.endAt));
+
+        return tr(
+          `${config.icon} ב-${dateLabel} ${verb} ל${nextLeg.name}`,
+          `${config.icon} ${verb} to ${nextLeg.name} on ${dateLabel}`
+        );
+      }
+
+      // Last leg: count down to ITS OWN endAt (docs/schema-legs.md §4:
+      // trip.endAt/the last leg's own timezone are already the same thing)
+      // in calendar days, not raw hours - consistent with how every other
+      // "how many days" concept in this app (tripDayDates, the forecast
+      // strip) already counts whole calendar days, not 24-hour blocks.
+      const todayKey = window.dateKeyInZone(new Date(), activeTz);
+      const endKey = window.dateKeyInZone(new Date(activeLeg.endAt), activeTz);
+
+      if (todayKey === endKey) {
+        return tr(`${config.icon} היום האחרון`, `${config.icon} Last day`);
+      }
+
+      const daysLeft = daysBetweenKeys(todayKey, endKey);
+
+      return tr(
+        `${config.icon} נשארו ${daysLeft} ימים`,
+        `${config.icon} ${daysLeft} days left`
+      );
+    }
+
     function applyTripPresentation() {
       if (hasTripRecord) {
         try {
@@ -5382,10 +5469,12 @@
                 "הפעילות בעיצומה",
                 "The activity is underway"
               )
-            : tr(
-                `${config.icon} הטיול ב${destinationName} התחיל`,
-                `${config.icon} The trip to ${destinationName} has started`
-              );
+            : currentLegs.length > 1
+              ? multiLegDuringStatusLine(config)
+              : tr(
+                  `${config.icon} הטיול ב${destinationName} התחיל`,
+                  `${config.icon} The trip to ${destinationName} has started`
+                );
 
         actionsSubtitle.textContent = tr(
           "כל מה שצריך במהלך הטיול",
