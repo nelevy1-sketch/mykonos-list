@@ -2285,6 +2285,27 @@
     const AI_FUNCTION_URL =
       "https://us-central1-mykonos-list.cloudfunctions.net/suggestPackingList";
 
+    // docs/schema-legs.md §7ב, step 12 commit ב - the leg the AI request
+    // should describe: whichever leg activeLegFilter is actually pointing
+    // at, falling back to the primary leg when the filter is "all" - same
+    // fallback every other activeLegFilter consumer in this file already
+    // uses (see the taggedLeg lookup a few hundred lines below). Fixes a
+    // real bug: requestAiSuggestions() used to hardcode
+    // window.getPrimaryLeg(trip) unconditionally, so filtering to a later
+    // leg and clicking "suggest" silently asked the model about the wrong
+    // destination - no error, no indication, just suggestions for the
+    // wrong place. For a single-leg trip activeLegFilter is always "all"
+    // and getLegs(trip) has exactly one entry, so this resolves to the
+    // exact same leg getPrimaryLeg(trip) already returns.
+    function aiSuggestLeg() {
+      if (activeLegFilter !== "all") {
+        const leg = window.getLegs(trip).find(l => l.id === activeLegFilter);
+        if (leg) return leg;
+      }
+
+      return window.getPrimaryLeg(trip);
+    }
+
     async function requestAiSuggestions() {
       const button = $("aiSuggestBtn");
       const originalText = button.textContent;
@@ -2293,15 +2314,27 @@
       button.textContent = tr("חושב...", "Thinking...");
 
       try {
+        // vibes/startDate/endDate come from the SAME leg as destination now,
+        // not trip.vibes/trip.startAt/getLastLeg(trip).endAt - a request
+        // about Bangkok should describe Bangkok's own vibes and date range,
+        // not the trip's first/last leg. leg.vibes is identical across
+        // every leg today (the wizard still writes one shared array to all
+        // of them - docs/schema-legs.md §3.3), so this is a no-op for vibes
+        // specifically until the wizard gets per-leg vibes input, but reads
+        // correctly then without needing to be touched again. For a
+        // single-leg trip aiSuggestLeg() above already resolves to the
+        // exact leg/dates today's code used, so this is unchanged there.
+        const leg = aiSuggestLeg();
+
         const response = await fetch(AI_FUNCTION_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            destination: window.getPrimaryLeg(trip).name || "",
+            destination: leg.name || "",
             tripType: trip.tripType || "abroad",
-            vibes: trip.vibes || [],
-            startDate: trip.startAt || "",
-            endDate: window.getLastLeg(trip).endAt || "",
+            vibes: leg.vibes || [],
+            startDate: leg.startAt || "",
+            endDate: leg.endAt || "",
             listName: listLabel(activeList),
             language: trip.language === "en" ? "en" : "he"
           })
