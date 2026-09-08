@@ -118,6 +118,12 @@
             lat: legLocations[i].lat ?? null,
             lon: legLocations[i].lon ?? null,
             timezone: legLocations[i].timezone || null,
+            // Added so deriveTripFields can read trip.countryCode from
+            // legs[0].countryCode directly instead of the caller's
+            // ephemeral legLocations array - the latter doesn't exist by
+            // the time an admin-panel save reuses an unchanged leg without
+            // re-geocoding it (docs/schema-legs.md §2.2).
+            countryCode: legLocations[i].countryCode || null,
             startAt: boundaries[i].toISOString(),
             endAt: boundaries[i + 1].toISOString(),
             vibes: legVibes
@@ -137,13 +143,22 @@
     // (legs[0] instead of legs[legs.length-1]) - a single shared function
     // makes that class of mistake structurally harder to reintroduce than
     // separate inline reads at each call site did.
+    // legLocations is no longer read here for countryCode (kept as a
+    // parameter so existing callers don't need to change their call site) -
+    // now sourced from legs[0].countryCode itself, which buildLegs() always
+    // populates for a freshly-geocoded leg. A leg reused verbatim without
+    // re-geocoding (an admin-panel save that didn't touch that leg's name)
+    // may not carry one yet if it predates this field - the caller is
+    // expected to fall back to whatever countryCode value it already knows
+    // (e.g. the trip's own current value) rather than overwrite it with ''
+    // the first time an old leg is saved unchanged.
     function deriveTripFields(legs, legLocations) {
         const lastLeg = legs[legs.length - 1];
         return {
             destination: legs[0].name,
             lat: legs[0].lat,
             lon: legs[0].lon,
-            countryCode: legLocations[0].countryCode || '',
+            countryCode: legs[0].countryCode || '',
             timezone: lastLeg.timezone,
             startAt: legs[0].startAt,
             endAt: lastLeg.endAt

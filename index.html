@@ -4819,13 +4819,11 @@
                 lat: r.originalLeg.lat,
                 lon: r.originalLeg.lon,
                 timezone: r.originalLeg.timezone,
-                // Only index 0's countryCode is ever read (deriveTripFields,
-                // mirrored into trip.countryCode) - legs beyond the first
-                // never had a countryCode field to begin with (legs.js's
-                // leg shape doesn't carry one). Reuse the trip-level global
-                // rather than inventing a per-leg value that was never
-                // there.
-                countryCode: i === 0 ? countryCode : ""
+                // legs now carry their own countryCode (legBuilder.js) - no
+                // more index-0 special case. A leg saved before this field
+                // existed has none yet; the '' here is corrected by the
+                // fallback right after deriveTripFields runs, below.
+                countryCode: r.originalLeg.countryCode || ""
               });
             }
             return tripType === "reserve" ? Promise.resolve({}) : geocodeAdminDestinationName(legNames[i]);
@@ -4881,7 +4879,16 @@
             return;
           }
 
-          multiLegWriteFields = { legs, tripFields: window.deriveTripFields(legs, legLocations) };
+          const tripFields = window.deriveTripFields(legs, legLocations);
+
+          // Falls back to the trip's own current countryCode global, not ''
+          // - legs[0] may predate the countryCode field (docs/schema-legs.md
+          // §2.2) if it was never renamed since. Without this, the first
+          // unchanged save of an old multi-leg trip would silently reset
+          // the flag shown for the trip to blank.
+          tripFields.countryCode = tripFields.countryCode || countryCode;
+
+          multiLegWriteFields = { legs, tripFields };
         }
 
         if (db && tripRoot) {
