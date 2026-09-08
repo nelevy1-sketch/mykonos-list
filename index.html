@@ -5677,11 +5677,48 @@
         return;
       }
 
+      // docs/schema-legs.md §8, commit א - "now" is the ACTIVE leg's
+      // weather, not always the first leg's. legs.js's
+      // getCurrentLegCoords() is the coordinate analog of the existing
+      // getCurrentLegTimezone() pattern (§8ব finding 7) - same
+      // {legs: currentLegs} wrapper index.html already uses everywhere
+      // else, since it holds no real `trip` object to pass directly.
+      //
+      // Only computed when a real trip is loaded (tripId truthy). With no
+      // tripId, currentLegs is still its initial [] and there is no trip
+      // to resolve a leg from - this keeps the existing placeholder
+      // lat/lon (module defaults, set at declaration) exactly as before
+      // for that landing-page state, instead of routing it through
+      // getCurrentLegCoords and getting null back for the wrong reason.
+      //
+      // Deliberately local, not written back into the shared
+      // latCoord/lonCoord globals - those still feed fetchForecast()
+      // (still first-leg-only, unchanged until a later §8 commit) and the
+      // admin panel's re-hydrate reset. Overwriting them here would leak
+      // the active leg's location into that unrelated, still-first-leg-
+      // scoped code path.
+      const coords = tripId
+        ? window.getCurrentLegCoords({ legs: currentLegs })
+        : { lat: latCoord, lon: lonCoord };
+
+      if (!coords) {
+        document.getElementById("weatherStatus").textContent =
+          tr("לא זמין", "Unavailable");
+
+        console.warn(
+          "[fetchWeather] no leg has usable coordinates" +
+          (tripId ? " (tripId: " + tripId + ")" : ""),
+          currentLegs
+        );
+
+        return;
+      }
+
       try {
         const response = await fetch(
           "https://api.open-meteo.com/v1/forecast" +
-          `?latitude=${latCoord}` +
-          `&longitude=${lonCoord}` +
+          `?latitude=${coords.lat}` +
+          `&longitude=${coords.lon}` +
           "&current=temperature_2m,relative_humidity_2m,uv_index,wind_speed_10m,weather_code,is_day" +
           "&timezone=auto"
         );

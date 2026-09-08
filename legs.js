@@ -170,6 +170,60 @@
         return (activeLeg && activeLeg.timezone) || getLastLeg(trip).timezone || null;
     }
 
+    // docs/schema-legs.md §8, commit א - the coordinate analog of
+    // getCurrentLegTimezone above ("where is the trip right now",
+    // physically, not "what timezone applies right now"). Not the exact
+    // same two-tier shape, for a real reason: getCurrentLegTimezone's
+    // fallback (active leg -> last leg -> device) works because "device"
+    // is always a usable final answer for a timezone. There's no
+    // coordinate equivalent of "device" here - so instead of falling off
+    // the end to null the moment there's no active leg, this mirrors §4's
+    // OWN existing start/end split (trip.startAt reads the FIRST leg,
+    // trip.endAt reads the LAST leg): before the trip, "where are we"
+    // means the first destination; after it, the last one. During the
+    // trip it's whatever getLegForDate resolves to, same as
+    // getCurrentLegTimezone.
+    //
+    // A chosen leg can still lack real lat/lon (a failed or ambiguous
+    // geocode - e.g. a plain destination name that Open-Meteo resolves to
+    // the wrong place entirely, or to nothing). Decided: don't return
+    // null just because THAT ONE leg has none - search the other natural
+    // endpoints (last leg, then first leg) for a leg that does have real
+    // coordinates, so a caller still gets something true about the trip
+    // instead of nothing. Only returns null when no leg anywhere has
+    // usable coordinates.
+    function getCurrentLegCoords(trip) {
+        const firstLeg = getPrimaryLeg(trip);
+        const lastLeg = getLastLeg(trip);
+        const activeLeg = getLegForDate(trip, new Date());
+
+        let targetLeg;
+        if (activeLeg) {
+            targetLeg = activeLeg;
+        } else {
+            const beforeTrip = firstLeg.startAt && new Date() < new Date(firstLeg.startAt);
+            targetLeg = beforeTrip ? firstLeg : lastLeg;
+        }
+
+        // lat/lon != null first, THEN Number.isFinite(Number(...)) - a
+        // failed/skipped geocode writes lat/lon as an explicit null
+        // (legBuilder.js: `legLocations[i].lat ?? null`), and Number(null)
+        // is 0, not NaN, so Number.isFinite(Number(leg.lat)) ALONE passes
+        // a null lat as if (0, 0) - Null Island - were a real coordinate.
+        // Caught by this function's own tests (a leg with lat:null,
+        // lon:null resolved to {lat:0, lon:0} before this guard existed).
+        const hasCoords = leg =>
+            leg &&
+            leg.lat != null && leg.lon != null &&
+            Number.isFinite(Number(leg.lat)) && Number.isFinite(Number(leg.lon));
+
+        const candidate = [targetLeg, lastLeg, firstLeg].find(hasCoords);
+
+        return candidate
+            ? { lat: Number(candidate.lat), lon: Number(candidate.lon) }
+            : null;
+    }
+
     // One calendar day per entry from trip.startAt to the last leg's
     // endAt, each tagged with the leg it belongs to. Moved here from
     // itinerary.html/places.html (docs/schema-legs.md §8, step 4) - those
@@ -310,5 +364,6 @@
     window.isMultiLeg = isMultiLeg;
     window.getLegForDate = getLegForDate;
     window.getCurrentLegTimezone = getCurrentLegTimezone;
+    window.getCurrentLegCoords = getCurrentLegCoords;
     window.tripDayDates = tripDayDates;
 })();
