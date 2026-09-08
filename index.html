@@ -4284,12 +4284,16 @@
       document.getElementById("adminLegsList").appendChild(row);
 
       // dirty: whether this leg's NAME has changed since it was last seeded
-      // from RTDB (or is brand new) - not acted on here, just tracked. 11ব.2
-      // reads it to decide which legs actually need re-geocoding on save
-      // (approved: only changed/new legs, not every leg on every save).
-      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, dirty: false, originalName: inputEl.value };
+      // from RTDB (or is brand new) - drives which legs 11ব.2 actually
+      // re-geocodes on save (only changed/new legs, not every leg on every
+      // save). originalLeg: the FULL leg object this row was seeded from
+      // (currentLegs[i]), or null for a brand-new row - not just the name,
+      // because a leg that's !dirty needs its existing lat/lon/timezone/
+      // vibes reused verbatim (no network call, no vibes wipe), and only
+      // the full object carries those.
+      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, dirty: false, originalLeg: null };
       inputEl.addEventListener("input", () => {
-        descriptor.dirty = inputEl.value.trim() !== descriptor.originalName;
+        descriptor.dirty = inputEl.value.trim() !== (descriptor.originalLeg ? descriptor.originalLeg.name : "");
       });
 
       adminLegRowEls[index] = descriptor;
@@ -4374,7 +4378,7 @@
       }
 
       adminLegRowEls[index].input.value = "";
-      adminLegRowEls[index].originalName = "";
+      adminLegRowEls[index].originalLeg = null;
       adminLegRowEls[index].dirty = true; // brand new (or reused, cleared) row - always geocode on save
 
       adminLegRowCount++;
@@ -4390,13 +4394,13 @@
         const cur = adminLegRowEls[i];
         const next = adminLegRowEls[i + 1];
         cur.input.value = next.input.value;
-        cur.originalName = next.originalName;
+        cur.originalLeg = next.originalLeg;
         cur.dirty = next.dirty;
       }
 
       const last = adminLegRowEls[adminLegRowCount - 1];
       last.input.value = "";
-      last.originalName = "";
+      last.originalLeg = null;
       last.dirty = false;
 
       adminLegRowCount--;
@@ -4410,7 +4414,7 @@
       const b = adminLegRowEls[index];
 
       [a.input.value, b.input.value] = [b.input.value, a.input.value];
-      [a.originalName, b.originalName] = [b.originalName, a.originalName];
+      [a.originalLeg, b.originalLeg] = [b.originalLeg, a.originalLeg];
       [a.dirty, b.dirty] = [b.dirty, a.dirty];
     }
 
@@ -4438,7 +4442,7 @@
           buildAdminLegRow(i, input);
         }
         adminLegRowEls[i].input.value = leg.name || "";
-        adminLegRowEls[i].originalName = leg.name || "";
+        adminLegRowEls[i].originalLeg = leg;
         adminLegRowEls[i].dirty = false;
       });
 
@@ -4447,7 +4451,7 @@
       // a stale name can't resurface if the panel is reopened later.
       for (let i = legs.length; i < adminLegRowEls.length; i++) {
         adminLegRowEls[i].input.value = "";
-        adminLegRowEls[i].originalName = "";
+        adminLegRowEls[i].originalLeg = null;
         adminLegRowEls[i].dirty = false;
       }
 
@@ -4613,6 +4617,29 @@
         );
       });
 
+    // Same shape/endpoint as the inline single-leg geocode below and as
+    // wizard.html's geocodeDestination() - a separate function only because
+    // the multi-leg save path (below) needs to call it per-leg, in
+    // parallel, which the single-leg inline block never needed to.
+    async function geocodeAdminDestinationName(name) {
+      try {
+        const response = await fetch(
+          "https://geocoding-api.open-meteo.com/v1/search" +
+          `?name=${encodeURIComponent(name)}` +
+          `&count=1` +
+          `&language=${currentLanguage}` +
+          "&format=json"
+        );
+        if (!response.ok) return {};
+        const data = await response.json();
+        const match = data.results?.[0];
+        return match ? { lat: match.latitude, lon: match.longitude, countryCode: match.country_code || "", timezone: match.timezone || "" } : {};
+      } catch (error) {
+        console.error("Geocoding error", error);
+        return {};
+      }
+    }
+
     document
       .getElementById("saveFlightBtn")
       .addEventListener("click", async () => {
@@ -4620,13 +4647,14 @@
           return;
         }
 
-        // Destination/date fields are disabled in the UI for a multi-leg
-        // trip (see openAdminPanelIfAllowed) - this guard is the write-side
-        // half of that: a disabled field's value can't have changed through
-        // the UI, but skipping the read/validate/geocode/write of it here
-        // too, rather than trusting that, is what actually keeps legs[0]/
-        // legs[last] from being silently contradicted by a stale re-write.
-        const multiLeg = currentLegs.length > 1;
+        // The live editor state (how many rows are visible right now), not
+        // currentLegs.length (the last-persisted state) - this is what
+        // actually decides what gets saved. A trip that's persisted as
+        // single-leg but has a second row added in this session saves as
+        // multi-leg; a persisted multi-leg trip reduced back to one row
+        // saves as single-leg (and explicitly clears the stale legs array -
+        // see below).
+        const multiLeg = adminLegRowCount > 1;
 
         const newTripType =
           document.getElementById("adminTripType").value;
@@ -4665,10 +4693,10 @@
         const newShowAccent =
           document.getElementById("adminShowAccent").checked;
 
-        if (
-          !multiLeg &&
-          (!rawFlight || !rawEnd || !newDestination)
-        ) {
+        // rawFlight/rawEnd/newDestination are needed by BOTH paths now -
+        // the multi-leg path feeds them into buildLegs as the overall span
+        // and row 0's name, exactly like the single-leg path always has.
+        if (!rawFlight || !rawEnd || !newDestination) {
           customAlert(
             tr(
               "נא להזין יעד, מועד התחלה ומועד סיום.",
@@ -4679,10 +4707,7 @@
           return;
         }
 
-        if (
-          !multiLeg &&
-          new Date(newEnd) <= new Date(newFlight)
-        ) {
+        if (new Date(newEnd) <= new Date(newFlight)) {
           customAlert(
             tr(
               "מועד הסיום חייב להיות מאוחר ממועד ההתחלה.",
@@ -4691,6 +4716,21 @@
           );
 
           return;
+        }
+
+        if (multiLeg) {
+          for (let i = 1; i < adminLegRowCount; i++) {
+            if (!adminLegRowEls[i].input.value.trim()) {
+              customAlert(
+                tr(
+                  "נא למלא את כל היעדים ברשימה, או להסיר את השורה הריקה",
+                  "Please fill in every destination in the list, or remove the empty row"
+                )
+              );
+
+              return;
+            }
+          }
         }
 
         tripType = newTripType;
@@ -4757,6 +4797,93 @@
             : new Date(newEnd);
         }
 
+        // Built outside the `if (db && tripRoot)` guard below, same as the
+        // single-leg branch above already computes flightOut/tripEnd there -
+        // this only reads form state and (for dirty legs) hits the network,
+        // no RTDB access yet.
+        let multiLegWriteFields = null;
+
+        if (multiLeg) {
+          const legDescriptors = adminLegRowEls.slice(0, adminLegRowCount);
+          const legNames = legDescriptors.map(r => r.input.value.trim());
+
+          // Only legs whose name changed (or are brand new - originalLeg is
+          // null) actually hit the network. An unchanged leg already has
+          // valid lat/lon/timezone sitting in originalLeg - reusing it
+          // verbatim avoids a pointless request that could, in principle,
+          // come back with a slightly different coordinate for the same
+          // city name.
+          const legLocations = await Promise.all(legDescriptors.map((r, i) => {
+            if (!r.dirty && r.originalLeg) {
+              return Promise.resolve({
+                lat: r.originalLeg.lat,
+                lon: r.originalLeg.lon,
+                timezone: r.originalLeg.timezone,
+                // Only index 0's countryCode is ever read (deriveTripFields,
+                // mirrored into trip.countryCode) - legs beyond the first
+                // never had a countryCode field to begin with (legs.js's
+                // leg shape doesn't carry one). Reuse the trip-level global
+                // rather than inventing a per-leg value that was never
+                // there.
+                countryCode: i === 0 ? countryCode : ""
+              });
+            }
+            return tripType === "reserve" ? Promise.resolve({}) : geocodeAdminDestinationName(legNames[i]);
+          }));
+
+          legLocations.forEach((loc, i) => {
+            if (tripType !== "reserve" && !loc.timezone) {
+              console.warn(`[admin] geocoding failed for leg "${legNames[i]}" - saving without lat/lon/timezone`, { tripId, leg: legNames[i] });
+            }
+          });
+
+          const transitionInputValues = adminTransitionRowEls.slice(0, adminLegRowCount - 1).map(t => t.input.value);
+
+          const legs = window.buildLegs({
+            legNames,
+            legLocations,
+            legVibes: [], // overwritten per-leg right below - buildLegs only knows one shared value, admin legs need their own
+            startInputValue: newFlight,
+            endInputValue: newEnd,
+            transitionInputValues,
+            hasTime: adminHasTime
+          });
+
+          // Preserve each existing leg's own vibes (renaming a leg is not a
+          // reason to wipe them); a brand-new leg has none to preserve -
+          // there's no vibes-editing UI in the admin panel yet, so [] is
+          // the only honest default, not a guess at what the admin would
+          // have picked.
+          legs.forEach((leg, i) => {
+            const orig = legDescriptors[i].originalLeg;
+            leg.vibes = orig ? (orig.vibes || []) : [];
+          });
+
+          // Continuity (legs[n].endAt === legs[n+1].startAt) is guaranteed
+          // by construction inside buildLegs - this checks something
+          // buildLegs does NOT guarantee: that each leg's own span is
+          // forward-moving. Unlike the wizard (where every boundary is a
+          // computed default), every date here can be hand-typed by the
+          // admin - one transposed digit produces a leg whose end is
+          // before its start. Checking startAt < endAt for every leg is
+          // sufficient to guarantee the whole boundaries[] sequence is
+          // strictly increasing (each leg's end is the next leg's start),
+          // not just a same-leg sanity check.
+          const brokenLeg = legs.find(leg => new Date(leg.endAt).getTime() <= new Date(leg.startAt).getTime());
+          if (brokenLeg) {
+            customAlert(
+              tr(
+                `התאריכים סביב "${brokenLeg.name}" לא תקינים - בדקו את תאריכי המעבר לפני ואחרי היעד הזה.`,
+                `The dates around "${brokenLeg.name}" aren't valid - check the transition dates before and after this destination.`
+              )
+            );
+
+            return;
+          }
+
+          multiLegWriteFields = { legs, tripFields: window.deriveTripFields(legs, legLocations) };
+        }
+
         if (db && tripRoot) {
           const settings = {
             tripType,
@@ -4781,6 +4908,19 @@
               startAt: flightOut.toISOString(),
               endAt: tripEnd.toISOString()
             });
+
+            // The trip WAS multi-leg and just got edited back down to one
+            // destination - update() never removes a key it isn't given,
+            // so without this the stale legs array stays in RTDB and
+            // getLegs() keeps preferring it over the scalar fields above,
+            // silently undoing the whole edit (docs/schema-legs.md §6:
+            // "if (Array.isArray(trip.legs) && trip.legs.length) return
+            // trip.legs").
+            if (currentLegs.length > 1) {
+              settings.legs = null;
+            }
+          } else {
+            Object.assign(settings, multiLegWriteFields.tripFields, { legs: multiLegWriteFields.legs });
           }
 
           db.ref(tripRoot).update(settings);
