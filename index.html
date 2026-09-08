@@ -385,6 +385,18 @@
       letter-spacing: -.1px;
     }
 
+    /* docs/schema-legs.md §5.8 - shown only mid-trip on a multi-leg trip
+       ("יעד 2 מתוך 3"). .hidden (shared.css) sets display:none, not just an
+       empty string, so it takes zero height on a single-leg trip or before/
+       after the trip - required for the "single-leg trip: zero change"
+       guarantee, not just a visual nicety. */
+    .trip-leg-hint {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: rgba(255,255,255,.65);
+      margin-top: -4px;
+    }
+
     .weather-row {
       display: flex;
       justify-content: space-between;
@@ -1625,6 +1637,8 @@
         </span>
         <span class="phase-chip" id="tripPhaseBadge">מתכוננים לטיול</span>
       </div>
+
+      <div class="trip-leg-hint hidden" id="tripLegHint"></div>
 
       <div class="hero-status-row" id="heroStatusRow" aria-live="polite">
         <span id="timerTitle">✈️ מחשב את הזמן לטיסה...</span>
@@ -3004,6 +3018,150 @@
         );
     }
 
+    // docs/schema-legs.md §5.8 - home page title for a multi-leg trip. Never
+    // reached for a single-leg trip (applyTripPresentation's own existing
+    // line already produces the identical "<name> <flag>" result there,
+    // since destinationName/countryCode already mirror legs[0], §2.1 - see
+    // the guard where this is called).
+    //
+    // Phase is computed HERE from flightOut/tripEnd directly, not read from
+    // lastCardsPhase - applyTripPresentation() runs inside hydrateTripData()
+    // BEFORE that same pass's call to updateClockAndPhases() (which is what
+    // actually sets lastCardsPhase, via applyCardsForPhase's de-dup guard),
+    // so lastCardsPhase would still hold the PREVIOUS hydration's phase (or
+    // null on first load) at the moment this function needs it.
+    function computeTripPhase() {
+      const now = new Date();
+      if (now < flightOut) return "before";
+      if (now <= tripEnd) return "during";
+      return "after";
+    }
+
+    function legRouteArrow() {
+      return currentLanguage === "en" ? " → " : " ← ";
+    }
+
+    function legRouteFullText(legs) {
+      return legs.map(l => l.name).join(legRouteArrow());
+    }
+
+    // "first ... last" - only meaningfully different from the full route
+    // when there's an actual middle to elide. Callers only try this when
+    // legs.length > 2; for exactly 2 legs it would just be the full route
+    // again with misleading "..." dots standing for nothing.
+    function legRouteShortText(legs) {
+      const arrow = legRouteArrow();
+      return `${legs[0].name}${arrow}…${arrow}${legs[legs.length - 1].name}`;
+    }
+
+    function legCountText(legs) {
+      return tr(`${legs.length} יעדים`, `${legs.length} destinations`);
+    }
+
+    // Never trusts a measurement it can't stand behind: unloaded fonts give
+    // a wrong clientWidth/scrollWidth (fallback-font metrics, not the real
+    // one - see document.fonts.status below), and a hidden/zero-width
+    // element can't be measured at all. Both cases return false (falls
+    // through to the always-safe count text) rather than risk a wrong
+    // verdict either way.
+    function legTitleFitsOneLine(el) {
+      if (!el.clientWidth) return false;
+      return el.scrollWidth <= el.clientWidth + 1;
+    }
+
+    // Cascades widest to narrowest, measuring each candidate against the
+    // actual rendered width instead of guessing a character-length
+    // threshold - a 3-word English route and a 3-word Hebrew route don't
+    // take the same pixels, and neither does a narrow phone vs a wide one
+    // (verified in practice: even ordinary-length names like "New York /
+    // Bangkok / Honolulu" can fail to fit while longer-looking routes in a
+    // wider view do - length alone doesn't predict it). Ellipsis-per-name
+    // was tried and rejected (docs/schema-legs.md §5.8 investigation) - it
+    // cut every single name illegibly short even at ordinary lengths, and
+    // specifically loses the LAST destination, exactly what the
+    // first-...-last shortening exists to keep.
+    function legRouteBeforeAfterText(h1, legs) {
+      const fontsReady = Boolean(document.fonts) && document.fonts.status === "loaded";
+
+      if (!fontsReady) {
+        if (document.fonts) {
+          document.fonts.ready.then(() => {
+            if (currentLegs.length > 1) refreshDestinationTitle();
+          });
+        }
+        return legCountText(legs);
+      }
+
+      h1.textContent = legRouteFullText(legs);
+      void h1.offsetWidth;
+      if (legTitleFitsOneLine(h1)) return h1.textContent;
+
+      if (legs.length > 2) {
+        h1.textContent = legRouteShortText(legs);
+        void h1.offsetWidth;
+        if (legTitleFitsOneLine(h1)) return h1.textContent;
+      }
+
+      return legCountText(legs);
+    }
+
+    function refreshDestinationTitle() {
+      if (currentLegs.length <= 1) return;
+
+      const h1 = document.getElementById("appTitle");
+      const hint = document.getElementById("tripLegHint");
+      const phase = computeTripPhase();
+
+      document.querySelector(".title-with-admin").style.minWidth = "0";
+
+      if (phase === "during") {
+        const activeLeg =
+          window.getLegForDate({ legs: currentLegs }, new Date()) ||
+          currentLegs[currentLegs.length - 1];
+
+        const idx = currentLegs.indexOf(activeLeg);
+
+        const config =
+          tripTypeConfig[tripType] || tripTypeConfig.local;
+
+        const suffix =
+          tripType === "abroad"
+            ? countryCodeToFlag(activeLeg.countryCode) || config.icon
+            : config.icon;
+
+        h1.style.whiteSpace = "";
+        h1.style.overflow = "";
+        h1.textContent = `${activeLeg.name} ${suffix}`;
+
+        hint.textContent = tr(
+          `יעד ${idx + 1} מתוך ${currentLegs.length}`,
+          `Destination ${idx + 1} of ${currentLegs.length}`
+        );
+        hint.classList.remove("hidden");
+        return;
+      }
+
+      // before/after: full route, or a fallback if it doesn't fit. "after"
+      // deliberately shows the same full-route logic as "before" (§5.8:
+      // "מסלול מלא, כמו לפני") - not just the last destination, since the
+      // trip as a whole is what's being looked back on.
+      hint.classList.add("hidden");
+      h1.style.whiteSpace = "nowrap";
+      h1.style.overflow = "hidden";
+      h1.textContent = legRouteBeforeAfterText(h1, currentLegs);
+    }
+
+    // The fit/no-fit verdict depends on the title's actual rendered width -
+    // a rotation or a resized window can flip it either way, so it has to
+    // be re-measured, not just left as whatever it was on load. Debounced:
+    // a drag-resize fires this dozens of times a second otherwise.
+    let legTitleResizeTimer = null;
+    window.addEventListener("resize", () => {
+      if (currentLegs.length <= 1) return;
+      clearTimeout(legTitleResizeTimer);
+      legTitleResizeTimer = setTimeout(refreshDestinationTitle, 200);
+    });
+
     function applyTripPresentation() {
       if (hasTripRecord) {
         try {
@@ -3035,6 +3193,18 @@
 
       document.getElementById("appTitle").textContent =
         `${destinationName} ${suffix}`;
+
+      // docs/schema-legs.md §5.8: destinationName/countryCode always mirror
+      // legs[0] (§2.1) - correct for a single-leg trip in every phase (the
+      // line above already IS the whole answer there, untouched), but not
+      // for a multi-leg trip once it's under way or before/after it, where
+      // the home title needs to answer "where are we" / "where's the
+      // route", not just repeat the first leg forever.
+      if (currentLegs.length > 1) {
+        refreshDestinationTitle();
+      } else {
+        document.getElementById("tripLegHint").classList.add("hidden");
+      }
 
       const adminGearBtn = document.getElementById("adminGearBtn");
 
@@ -4965,6 +5135,16 @@
       }
 
       lastCardsPhase = phase;
+
+      // docs/schema-legs.md §5.8: the home title must flip the moment the
+      // trip's phase actually changes (e.g. someone with the tab open
+      // watches "before" become "during") - this de-duped guard above is
+      // exactly the "a real transition just happened" signal, already
+      // computed once a second by updateClockAndPhases(); no separate
+      // phase-change detection needed for the title.
+      if (currentLegs.length > 1) {
+        refreshDestinationTitle();
+      }
 
       const cards = {
         packing: document.querySelector(".action-card.packing"),
