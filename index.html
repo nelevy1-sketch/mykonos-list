@@ -485,7 +485,15 @@
        padding, no min-width) - a chip-shaped separator would compete
        with the data it's meant to be subordinate to (visual density
        principle). Sized to its own content so it reads as punctuation
-       between chip groups, not another data point. */
+       between chip groups, not another data point.
+       itinerary.html's .day-leg-separator (step 7) is the SAME design
+       idea with DIFFERENT color values, not a copy of this one to keep
+       in sync - this page's hero card is always dark regardless of site
+       theme (hardcoded white text here is correct), itinerary.html sits
+       on the site's own light/dark surface (data-tokens="core") and uses
+       var(--muted) instead. Two genuinely different color systems (see
+       CLAUDE.md's --glow-color note) - do not merge the two classes into
+       one shared rule, that would break light mode on one of the pages. */
     .forecast-leg-separator {
       flex: 0 0 auto;
       align-self: center;
