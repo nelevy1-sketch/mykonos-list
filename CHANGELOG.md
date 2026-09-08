@@ -1,5 +1,15 @@
 # GitTrip — CHANGELOG
 
+## v4.25.4 — תיקון: קריסה חוזרת כשלרגל הפעילה אין timezone (רגרסיה מ-v4.25.0)
+
+### 🐛 תיקון
+- **רגרסיה מ-v4.25.0, נתפסה תוך כדי בדיקת commit ב של שלב 8 (v4.25.3), לא ממצא צדדי**: כשהרגל הפעילה בטיול מרובה-רגליים כשלה ב-geocoding (`timezone: null` - אותו מקרה "קליפורניה"), `multiLegDuringStatusLine()` זרקה `RangeError: Invalid time zone specified: null` מתוך `new Intl.DateTimeFormat({timeZone: activeTz})` - `activeTz` נקרא ישירות מ-`activeLeg.timezone`, בלי הגנה. `updateClockAndPhases()` (הקוראת לפונקציה) רצה כל שנייה - **קריסה חוזרת בקונסול, לא אירוע חד-פעמי**: אומת בפועל שהטאב המשיך לזרוק את אותה שגיאה כל טיק במשך כל הזמן שנשאר טעון
+- **שתי שכבות הגנה, לא אחת**: (1) `activeTz` עברה מ-`activeLeg.timezone` הגולמי ל-`window.getCurrentLegTimezone({legs: currentLegs})` - נופלת לרגל האחרונה כשלרגל הפעילה אין timezone משלה, אותה שרשרת נפילה שכבר קיימת ב-§4. (2) קריאת ה-`Intl.DateTimeFormat` עצמה שולחת `activeTz || undefined` במקום `activeTz` - `undefined` גורם ל-Intl.DateTimeFormat להשתמש בשעון הריצה (המכשיר) כברירת מחדל; `null` מפורש זורק. הגנה שנייה כי `getCurrentLegTimezone` עצמה עדיין יכולה להחזיר `null` (גם הרגל הפעילה וגם האחרונה בלי timezone) - לא כפילות, קו הגנה אחרון בנקודת הקריאה עצמה
+- **למה `getCurrentLegTimezone` לא תפסה את זה קודם**: היא פשוט לא הייתה בשימוש כאן בכלל - `multiLegDuringStatusLine` קראה `activeLeg.timezone` ישירות, לא דרך הפונקציה המשותפת
+- **חיפוש רחב, בכל 6 העמודים ובקבצים המשותפים (`legs.js`, `datetime.js`): 11 מקומות עם `Intl.DateTimeFormat`/`toLocale*`, 10 מהם כבר מוגנים כראוי, מקום אחד יחיד לא - וזה בדיוק זה שקרס.** 7 לא מקבלים `timeZone` בכלל (בטוחים מבנית - `wizard.html`×3, `index.html`×2, `itinerary.html`×1, `places.html`×1). מתוך 3 שמקבלים `timeZone`: `zonedParts` (`datetime.js`) בודקת `!timeZone` פנימית לפני כל קריאה; `localInputToUtcInZone` (`datetime.js`) ו-`toZonedInputValue` (`index.html`) לא מוגנות פנימית, אבל **כל אחת** מ-4 הקריאות הקיימות אליהן (`legBuilder.js`×2, `index.html`×2) עוטפת בבדיקת אמת לפני הקריאה. **10 מתוך 11 - זו לא רק סטטיסטיקה: זה אומר שאין כאן משפחת-באגים נסתרת, ושהעבודה הקודמת על אזורי זמן (§4, §8ব סעיף 7, v4.23.1) הייתה יסודית - המקום היחיד שנשבר הוא זה שנכתב הבוקר ועדיין לא עבר את אותו משטר הגנה.** נרשם כאן במפורש בשביל מי שיוסיף `Intl.DateTimeFormat` חדש בעתיד: זה הדפוס לשמור עליו - אם `timeZone` יכול להיות `null`, או לבדוק `!timeZone` לפני הקריאה (כמו `zonedParts`) או לוודא שכל קריאה מוגנת בנקודת הקריאה (כמו `localInputToUtcInZone`/`toZonedInputValue`) - לא להעביר ערך גולמי ישירות
+- נבדק בפועל: קריסה שוחזרה במלואה לפני התיקון (`git stash` זמני לחזרה לקוד הישן, `RangeError` נלכד עם ה-stack המדויק, כולל שהטאב המשיך לקרוס כל שנייה ברקע); אחרי התיקון - אותו fixture בדיוק (טיול 3 רגליים, הרגל האמצעית הפעילה בלי timezone) בטאב נקי לחלוטין: אין `RangeError` בקונסול אחרי כמה טיקים של ה-interval החי, השורה מציגה `✈️ ב-10.9 טסים לHonolulu` (תאריך המעבר בשעון המכשיר, סביר)
+- `node scripts/i18n-audit.js index.html legs.js` - 0 ממצאים (אין טקסט משתמש חדש)
+
 ## v4.25.3 — תיקון: geocoding כושל נשלח ל-Open-Meteo כ-(0,0) במקום להיחסם
 
 ### 🐛 תיקון

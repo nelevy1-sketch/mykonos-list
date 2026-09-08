@@ -3195,8 +3195,21 @@
       // §5: the transition instant (legs[idx].endAt) is stored in the
       // OUTGOING leg's own timezone (docs/schema-legs.md §5.2) - displaying
       // it, and deciding whether "today" IS that day, both have to read it
-      // in that same zone, not tripTimezone (last leg) or the device's.
-      const activeTz = activeLeg.timezone;
+      // in that same zone when it's available. window.getCurrentLegTimezone
+      // (legs.js) reads activeLeg.timezone first, same as a raw read - the
+      // difference only matters when that ONE leg's own timezone is
+      // missing (a failed/ambiguous geocode - docs/schema-legs.md §8's
+      // "California" case), where it falls back through the leg -> trip
+      // timezone (last leg) chain already established at §4, instead of
+      // carrying a bare `null` forward. A raw `activeLeg.timezone` read
+      // here (before this fix) had no such fallback: null is a legitimate
+      // field value (§2.2, legBuilder.js writes it on a failed geocode),
+      // and Intl.DateTimeFormat below threw "Invalid time zone specified:
+      // null" the moment the ACTIVE leg itself lacked one - a crash inside
+      // updateClockAndPhases() that reran on every tick, not a one-time
+      // failure (v4.25.0 regression, found investigating docs/schema-legs.md
+      // §8's own "leg without coordinates" edge case, fixed in v4.25.4).
+      const activeTz = window.getCurrentLegTimezone({ legs: currentLegs });
 
       if (!isLastLeg) {
         const nextLeg = currentLegs[idx + 1];
@@ -3218,9 +3231,17 @@
           );
         }
 
+        // activeTz || undefined, not activeTz directly: Intl.DateTimeFormat
+        // throws on an explicit null timeZone but treats undefined as "use
+        // the runtime's own (device) zone" - the same final fallback tier
+        // §4 already uses elsewhere (zonedParts's own `!timeZone` check,
+        // datetime.js). getCurrentLegTimezone above can still return null
+        // itself (active AND last leg both missing a timezone) - this is
+        // the last line of defense at the actual Intl.DateTimeFormat call,
+        // not a duplicate of that fallback.
         const dateLabel = new Intl.DateTimeFormat(
           currentLanguage === "en" ? "en-GB" : "he-IL",
-          { day: "numeric", month: "numeric", timeZone: activeTz }
+          { day: "numeric", month: "numeric", timeZone: activeTz || undefined }
         ).format(new Date(activeLeg.endAt));
 
         return tr(
