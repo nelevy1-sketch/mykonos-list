@@ -6,19 +6,19 @@
 <title>GitTrip — תכנון טיולים משותף</title>
 
 <meta property="og:title" content="GitTrip — תכנון טיולים משותף">
-<meta property="og:description" content="לא עוד קבוצת וואטסאפ עמוסה. GitTrip מרכז ציוד, קניות, מקומות ותוכנית יומית במקום אחד, בזמן אמת.">
+<meta property="og:description" content="לא עוד קבוצת וואטסאפ עמוסה. GitTrip מרכז ציוד, קניות, מקומות, הוצאות ותוכנית יומית במקום אחד, בזמן אמת.">
 <meta property="og:image" content="https://nelevy1-sketch.github.io/mykonos-list/og-preview.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nelevy1-sketch.github.io/mykonos-list/gittrip-showcase.html">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="GitTrip — תכנון טיולים משותף">
-<meta name="twitter:description" content="לא עוד קבוצת וואטסאפ עמוסה. GitTrip מרכז ציוד, קניות, מקומות ותוכנית יומית במקום אחד, בזמן אמת.">
+<meta name="twitter:description" content="לא עוד קבוצת וואטסאפ עמוסה. GitTrip מרכז ציוד, קניות, מקומות, הוצאות ותוכנית יומית במקום אחד, בזמן אמת.">
 <meta name="twitter:image" content="https://nelevy1-sketch.github.io/mykonos-list/og-preview.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0B1015;
@@ -47,7 +47,7 @@
   }
 
   h1, h2, .display {
-    font-family: 'Frank Ruhl Libre', serif;
+    font-family: 'Heebo', sans-serif;
   }
 
   .shell {
@@ -82,9 +82,10 @@
   }
 
   .hero h1 {
-    font-size: clamp(2.4rem, 9vw, 3.4rem);
+    font-size: clamp(2.3rem, 8.5vw, 3.2rem);
     font-weight: 900;
-    line-height: 1.08;
+    line-height: 1.12;
+    letter-spacing: -.02em;
     margin: 0 0 18px;
     background: linear-gradient(135deg, #fff 40%, var(--c-abroad));
     -webkit-background-clip: text;
@@ -149,10 +150,11 @@
   }
 
   .stop h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -.015em;
     margin: 0 0 8px;
-    line-height: 1.25;
+    line-height: 1.3;
   }
 
   .stop > p {
@@ -176,6 +178,8 @@
     border-radius: 16px;
     padding: 13px 14px;
   }
+
+  .module.wide { grid-column: 1 / -1; }
 
   .module .m-icon {
     font-size: 1.3rem;
@@ -227,6 +231,34 @@
     line-height: 1.5;
   }
 
+  /* route strip — multi destination */
+  .legs-demo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 15px 16px;
+    margin-bottom: 12px;
+  }
+
+  .leg-pill {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 13px;
+    font-size: .85rem;
+    font-weight: 700;
+  }
+
+  .leg-arrow {
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 600;
+  }
+
   /* trip-type swatches */
   .swatches {
     display: flex;
@@ -256,6 +288,33 @@
     font-weight: 500;
   }
 
+  /* character tags */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 12px;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .tag.pride {
+    color: var(--text);
+    border-color: transparent;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787) border-box;
+    border: 1px solid transparent;
+  }
+
   /* ---------- CTA ---------- */
 
   .cta {
@@ -271,7 +330,9 @@
   }
 
   .cta-card h2 {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -.015em;
     margin: 0 0 10px;
   }
 
@@ -328,6 +389,17 @@
       <div class="stop-eyebrow">לפני הטיול</div>
       <h2>מתחילים בכמה קליקים</h2>
       <p>מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד, בוחר את השם שלו, וזהו — כולם על אותו עמוד, תרתי משמע.</p>
+      <p>ובוחרים גם מה אופי הטיול — כי טיול משפחה עם ילדים, סופ״ש סקי ומסיבת רווקים לא צריכים את אותה רשימת ציוד.</p>
+
+      <div class="tags">
+        <span class="tag">משפחה</span>
+        <span class="tag">חברים</span>
+        <span class="tag">זוגי</span>
+        <span class="tag">סקי</span>
+        <span class="tag pride">גאווה</span>
+        <span class="tag">חתונה / רווקים</span>
+        <span class="tag">פסטיבל</span>
+      </div>
     </div>
 
     <div class="stop" style="--dot: var(--c-local)">
@@ -340,12 +412,12 @@
         <div class="module">
           <span class="m-icon">🎒</span>
           <span class="m-name">רשימת ציוד</span>
-          <span class="m-desc">משותפת, עם הצעות AI ואיסוף אוטומטי לתת-קטגוריות</span>
+          <span class="m-desc">אישית לכל אחד, עם שיתוף פריטים לקבוצה והצעות AI</span>
         </div>
         <div class="module">
           <span class="m-icon">🛒</span>
-          <span class="m-name">קניות</span>
-          <span class="m-desc">מה צריך לקנות לקבוצה, בלי לשכפל ולשכוח</span>
+          <span class="m-name">קניות משותפות</span>
+          <span class="m-desc">מה צריך לקנות לקבוצה, ומי לוקח על עצמו כל פריט</span>
         </div>
         <div class="module">
           <span class="m-icon">📍</span>
@@ -357,6 +429,50 @@
           <span class="m-name">תוכנית יומית</span>
           <span class="m-desc">מה עושים כל יום, עם סימון "קורה עכשיו" בזמן אמת</span>
         </div>
+        <div class="module wide">
+          <span class="m-icon">💰</span>
+          <span class="m-name">התחשבנות</span>
+          <span class="m-desc">מעקב הוצאות קבוצתי — מי שילם, כמה, ומי סוגר עם מי</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop" style="--dot: var(--c-reserve)">
+      <div class="stop-marker">🗺️</div>
+      <div class="stop-eyebrow">חדש</div>
+      <h2>מסלול, לא יעד בודד</h2>
+      <p>יורוטריפ, חוף לחוף בארה״ב, שלוש ערים באיטליה. מוסיפים כמה יעדים, וכל אחד מקבל את התאריכים שלו — והאפליקציה כולה מתעדכנת בהתאם.</p>
+
+      <div class="legs-demo">
+        <span class="leg-pill">רומא</span>
+        <span class="leg-arrow">←</span>
+        <span class="leg-pill">פירנצה</span>
+        <span class="leg-arrow">←</span>
+        <span class="leg-pill">ונציה</span>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">🌤️</span>
+        <div>
+          <span class="t-name">מזג אוויר לכל יעד</span>
+          <div class="t-desc">התחזית עוקבת אחרי המסלול — לא נשארת ביעד הראשון. יומיים לפני המעבר כבר רואים מה מחכה בעיר הבאה</div>
+        </div>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">🎒</span>
+        <div>
+          <span class="t-name">ציוד ומקומות לפי יעד</span>
+          <div class="t-desc">מסננים ורואים בדיוק מה צריך לשבוע הסקי ומה לשבוע בעיר — הכל באותה רשימה</div>
+        </div>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">📍</span>
+        <div>
+          <span class="t-name">האפליקציה יודעת איפה אתם</span>
+          <div class="t-desc">באמצע הטיול הכותרת מציגה את היעד הנוכחי ומתי עוברים לבא — לא את המקום שיצאתם ממנו לפני שבוע</div>
+        </div>
       </div>
     </div>
 
@@ -364,6 +480,30 @@
       <div class="stop-marker">✨</div>
       <div class="stop-eyebrow">הפרטים הקטנים</div>
       <h2>דברים שגורמים לזה להרגיש חכם</h2>
+
+      <div class="touch">
+        <span class="t-icon">🧠</span>
+        <div>
+          <span class="t-name">הצעות AI שמכירות את הטיול</span>
+          <div class="t-desc">היעד, התאריכים, מזג האוויר הצפוי ואופי הטיול — הכל נכנס לחשבון. סקי בפברואר מקבל רשימה אחרת מחוף באוגוסט</div>
+        </div>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">🕐</span>
+        <div>
+          <span class="t-name">שעון היעד, לא שעון הבית</span>
+          <div class="t-desc">"קורה עכשיו", התוכנית של היום והתאריכים — כולם לפי השעה במקום שאתם בו באמת</div>
+        </div>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">🤝</span>
+        <div>
+          <span class="t-name">רואים מה החברים אורזים</span>
+          <div class="t-desc">מישהו כבר לקח ערכת עזרה ראשונה? מייבאים את הפריט לרשימה שלכם בלחיצה, בלי לקנות פעמיים</div>
+        </div>
+      </div>
 
       <div class="touch">
         <span class="t-icon">🧠</span>
