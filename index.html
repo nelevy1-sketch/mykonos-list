@@ -542,6 +542,51 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    /* docs/roadmap.md part 3 item 0, display-name rename (commit ג) -
+       needed regardless of the edit feature: this label had no overflow
+       handling at all before, and a long name (once editable, no longer
+       guaranteed to be a short Google display name) could otherwise
+       force the row wider or wrap awkwardly against darkModeToggle on
+       the other end of .session-row's space-between layout. min-width:0
+       is required here (not just overflow/text-overflow) - a flex
+       item's default min-width is auto (its content size), which
+       silently defeats ellipsis without it. */
+    #sessionUserLabel {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+      flex: 0 1 auto;
+    }
+
+    .edit-name-btn {
+      border: 0;
+      background: none;
+      padding: 2px 4px;
+      font-size: .78rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--text-muted);
+      flex: 0 0 auto;
+    }
+
+    .edit-name-input {
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 3px 8px;
+      width: 130px;
+      max-width: 40vw;
+      flex: 0 1 auto;
+      min-width: 0;
     }
 
     .session-row.hidden {
@@ -559,6 +604,20 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      /* docs/roadmap.md part 3 item 0, display-name rename (commit ג) -
+         shared by darkModeToggle and logoutLink, both flex siblings of
+         #sessionUserLabel in .session-row/.session-right. Without this,
+         a long name (now realistic - the name is editable, not just
+         whatever short "First Last" Google happened to provide) still
+         squeezed these two buttons for shrink-space despite
+         #sessionUserLabel's own ellipsis: their un-nowrapped text
+         wrapped internally instead, growing .session-row to two lines
+         - confirmed in testing (32px row -> 52px with a long name).
+         flex-shrink:0 here is what actually makes #sessionUserLabel's
+         ellipsis do its job: these two stay fixed-size and
+         #sessionUserLabel absorbs all the space pressure alone. */
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .logout-link:active {
@@ -1723,6 +1782,8 @@
       <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
       <span class="session-right">
         <span id="sessionUserLabel"></span>
+        <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת שם תצוגה" title="עריכת שם תצוגה">✏️</button>
+        <input type="text" class="edit-name-input hidden" id="editNameInput" maxlength="40">
         <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
       </span>
     </div>
@@ -2718,6 +2779,16 @@
         lang === "en" ? "Organizer settings" : "הגדרות מנהל"
       );
 
+      const editNameLabel =
+        lang === "en" ? "Edit display name" : "עריכת שם תצוגה";
+
+      document.getElementById("editNameBtn").setAttribute(
+        "aria-label",
+        editNameLabel
+      );
+
+      document.getElementById("editNameBtn").title = editNameLabel;
+
       document.getElementById("forecastStrip").setAttribute(
         "aria-label",
         lang === "en" ? "Forecast for the trip days" : "תחזית לימי הטיול"
@@ -2801,8 +2872,7 @@
           !user
         );
 
-        document.getElementById("sessionUserLabel").textContent =
-          user ? (user.displayName || user.email || "") : "";
+        syncSessionUserLabel();
 
         if (!user) {
           currentProfile = null;
@@ -2812,6 +2882,8 @@
           }
 
           document.getElementById("memberGate").classList.add("hidden");
+          endEditName();
+          syncSessionUserLabel();
         } else if (tripLoaded && tripRoot) {
           loadMemberProfile();
         }
@@ -2946,6 +3018,163 @@
       });
     }
 
+    // docs/roadmap.md part 3 item 0, display-name rename (commit ג) -
+    // #sessionUserLabel now shows the trip-scoped, editable name
+    // (currentProfile.name) once one exists, falling back to the
+    // Google identity (user.displayName/email) before a profile is
+    // loaded or if registration hasn't produced one. There is no
+    // single "global" display name in this schema - memberProfiles is
+    // per-trip - so this is a clarification of what was already true,
+    // not a new complication: before this, the label just happened to
+    // always show the Google name because nothing else was available.
+    //
+    // Also toggles #editNameBtn's visibility - the pencil only makes
+    // sense once there's a profile to rename.
+    //
+    // currentProfile itself is loaded via a one-time .once("value")
+    // read (see loadMemberProfile below), not a live listener - unlike
+    // renderLinkedMembers()'s organizer panel, which re-reads
+    // memberProfiles from the trip's live onValue listener and so
+    // picks up a rename on its own. Every place on this page that
+    // shows currentProfile.name has to be told explicitly when it
+    // changes - this function is that single call site, invoked
+    // wherever currentProfile is set or a rename succeeds.
+    function syncSessionUserLabel() {
+      const label = document.getElementById("sessionUserLabel");
+      const editBtn = document.getElementById("editNameBtn");
+
+      label.textContent =
+        currentProfile?.name ||
+        (currentUser ? (currentUser.displayName || currentUser.email || "") : "");
+
+      editBtn.classList.toggle("hidden", !currentProfile);
+    }
+
+    function beginEditName() {
+      if (!currentProfile) {
+        return;
+      }
+
+      const input = document.getElementById("editNameInput");
+
+      input.value = currentProfile.name || "";
+
+      document.getElementById("sessionUserLabel").classList.add("hidden");
+      document.getElementById("editNameBtn").classList.add("hidden");
+      input.classList.remove("hidden");
+      input.focus();
+      input.select();
+    }
+
+    function endEditName() {
+      document.getElementById("editNameInput").classList.add("hidden");
+      document.getElementById("sessionUserLabel").classList.remove("hidden");
+
+      if (currentProfile) {
+        document.getElementById("editNameBtn").classList.remove("hidden");
+      }
+    }
+
+    let savingDisplayName = false;
+
+    // fromEnter distinguishes an explicit save attempt (Enter, with an
+    // empty field treated as an error to fix) from just clicking away
+    // (blur - an empty field there reads as "changed my mind", not a
+    // failed save, so it closes quietly instead of nagging). Escape
+    // resets the input's value back to currentProfile.name and blurs -
+    // that blur then hits the trimmed===original branch below and
+    // closes with no write, so cancel and "clicked away without
+    // changing anything" share one code path instead of two.
+    async function saveDisplayName(fromEnter) {
+      if (savingDisplayName) {
+        return;
+      }
+
+      const input = document.getElementById("editNameInput");
+      const trimmed = input.value.trim();
+      const original = currentProfile?.name || "";
+
+      if (trimmed === original) {
+        endEditName();
+        return;
+      }
+
+      if (!trimmed) {
+        if (fromEnter) {
+          toast(tr("השם לא יכול להישאר ריק", "Name can't be empty"));
+          input.focus();
+        } else {
+          endEditName();
+        }
+
+        return;
+      }
+
+      if (!currentUser || !tripRoot || !currentProfile) {
+        endEditName();
+        return;
+      }
+
+      savingDisplayName = true;
+
+      // Only `name` - the live RTDB rule permits an update touching
+      // just that field (verified against production, not just that
+      // the write promise resolved - see CHANGELOG v4.30.0/v4.30.1).
+      // participantKey must not be touched here: it was set once at
+      // auto-register time and the rule depends on it staying as-is.
+      try {
+        await db
+          .ref(`${tripRoot}/memberProfiles/${currentUser.uid}`)
+          .update({ name: trimmed });
+
+        currentProfile.name = trimmed;
+
+        syncSessionUserLabel();
+        updateLockerSelectOptions();
+        updateLockerSummary();
+        endEditName();
+      } catch (error) {
+        console.error("[index.html] saveDisplayName failed", error);
+
+        toast(
+          tr(
+            "לא ניתן היה לשמור את השם. נסו שוב.",
+            "Couldn't save the name. Try again."
+          )
+        );
+
+        endEditName();
+      } finally {
+        savingDisplayName = false;
+      }
+    }
+
+    document
+      .getElementById("editNameBtn")
+      .addEventListener("click", beginEditName);
+
+    document
+      .getElementById("editNameInput")
+      .addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          saveDisplayName(true);
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+
+          document.getElementById("editNameInput").value =
+            currentProfile?.name || "";
+
+          document.getElementById("editNameInput").blur();
+        }
+      });
+
+    document
+      .getElementById("editNameInput")
+      .addEventListener("blur", () => {
+        saveDisplayName(false);
+      });
+
     async function loadMemberProfile() {
       if (!currentUser || !tripRoot || !db) {
         return;
@@ -3006,6 +3235,7 @@
         Boolean(currentProfile)
       );
 
+      syncSessionUserLabel();
       updateLockerSelectOptions();
       updateLockerSummary();
     }
@@ -3073,6 +3303,7 @@
 
         document.getElementById("memberGate").classList.add("hidden");
 
+        syncSessionUserLabel();
         updateLockerSelectOptions();
         updateLockerSummary();
       } catch (error) {
@@ -4114,14 +4345,13 @@
         ? rows.map(([uid, profile]) => `
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid var(--border-color);border-radius:12px">
             <span style="min-width:0">
-              <strong>
+              <strong style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                 ${escapeHtml(
                   profile.name ||
                   tr("משתתף", "Traveler")
                 )}
               </strong>
-              <br>
-              <small style="color:var(--text-muted)">
+              <small style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted)">
                 ${escapeHtml(profile.email || "")}
               </small>
             </span>

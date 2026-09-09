@@ -721,6 +721,16 @@
     flex-wrap:wrap;
   }
 
+  /* docs/roadmap.md part 3 item 0, display-name rename (commit ג) -
+     .item-by/.item-buyer deliberately do NOT get text-overflow:ellipsis
+     like the name displays on other pages got in this same commit.
+     .item-sub-info's flex-wrap:wrap already answers "what happens with
+     a long name" - the tag wraps onto its own line instead of forcing
+     the row wider, and the full name stays readable. Capping these
+     with an ellipsis would hide real information (who's buying, who
+     added it) for no layout benefit that wrapping doesn't already
+     provide - don't add it here even though every other name display
+     in the app now has one. */
   .item-by,
   .item-buyer,
   .item-wanting,
