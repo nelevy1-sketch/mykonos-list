@@ -3901,30 +3901,30 @@
       return (name || "").trim().toLocaleLowerCase();
     }
 
+    // No "create a category named X" option here - same principle as
+    // tripCharacter's own additions (docs/schema-legs.md §3.2, only ever
+    // append to gear/clothing, never a new category): importing must land
+    // in a category that already exists, never mint one from whatever
+    // string a friend happened to name their own. Without this, importing
+    // an item from a friend's oddly- or personally-named category silently
+    // created a matching category here too.
     function openImportCategoryPicker(key, sourceCategoryName) {
       pendingImportKey = key;
 
       $("importCategoryText").textContent = tr(
-        `הפריט הזה מגיע מקטגוריה בשם "${sourceCategoryName}" שאין לך.`,
-        `This item comes from a category named "${sourceCategoryName}" that you don't have.`
-      );
-
-      const createOptionLabel = tr(
-        `צור קטגוריה בשם "${sourceCategoryName}"`,
-        `Create a category named "${sourceCategoryName}"`
+        `הפריט הזה מגיע מקטגוריה בשם "${sourceCategoryName}" שאין לך. לאיזו קטגוריה קיימת להוסיף אותו?`,
+        `This item comes from a category named "${sourceCategoryName}" that you don't have. Which existing category should it go in?`
       );
 
       $("importCategorySelect").innerHTML =
-        `<option value="__create__" selected>${escapeHtml(createOptionLabel)}</option>` +
         allListIds()
           .map(id => `<option value="${escapeHtml(id)}">${escapeHtml(listLabel(id))}</option>`)
           .join("");
 
-      // Explicit default per design: "create category named X" must be
-      // genuinely pre-selected, not just first in DOM order, so a fast
-      // confirm does the expected thing.
-      $("importCategorySelect").value = "__create__";
-      $("importCategorySelect").dataset.newCategoryName = sourceCategoryName;
+      // main is always present (allListIds() guarantees it) and always a
+      // sensible landing spot - explicit for the same reason the old
+      // default was explicit, not relying on first-in-DOM-order.
+      $("importCategorySelect").value = "main";
 
       $("importCategoryOverlay").classList.remove("hidden");
     }
@@ -4674,19 +4674,8 @@
     };
 
     $("confirmImportCategory").onclick = async () => {
-      const select = $("importCategorySelect");
-      const selected = select.value;
+      const targetCategoryId = $("importCategorySelect").value;
       const key = pendingImportKey;
-
-      let targetCategoryId = selected;
-
-      if (selected === "__create__") {
-        targetCategoryId = await createListReturningId(select.dataset.newCategoryName);
-
-        if (!targetCategoryId) {
-          return;
-        }
-      }
 
       $("importCategoryOverlay").classList.add("hidden");
       pendingImportKey = null;
