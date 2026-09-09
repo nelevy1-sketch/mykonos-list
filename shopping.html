@@ -3310,6 +3310,19 @@ body.modal-open .modal-card {
     return myName;
   }
 
+  // docs/roadmap.md part 3 item 0, commit ব2 - buyer/personalQtyMap are
+  // keyed by uid now (see their own writers below), so displaying one
+  // means resolving it live via memberProfiles - same pattern already
+  // used by packing.html's importItem() (trip.memberProfiles?.[uid]?.name
+  // as the live source, a fallback only when that lookup misses). Covers
+  // both real cases at once: a uid whose profile is genuinely gone, and
+  // (intentional compatibility break, not preserved) a pre-migration item
+  // still holding an old name string in `buyer` - neither matches a real
+  // memberProfiles key, so both just fall back instead of crashing.
+  function memberDisplayName(uid) {
+    return tripData?.memberProfiles?.[uid]?.name || tr('חבר/ה לקבוצה', 'a group member');
+  }
+
   function switchListTab(listType) {
     triggerHapticFeedback(12);
     currentListType = listType;
@@ -3595,7 +3608,7 @@ body.modal-open .modal-card {
     categoriesContainer.innerHTML = '';
     statusTag.textContent = displayStatus(listStatus);
     const keys = Object.keys(itemsMap || {});
-    const myName = currentProfile?.name || '';
+    const myUid = currentUser?.uid || '';
 
     updateProgressBar(keys);
     showMissingSummaryBtn.style.display = isAuditMode ? 'block' : 'none';
@@ -3668,9 +3681,9 @@ body.modal-open .modal-card {
         if (item.isPriority) li.classList.add('is-priority');
 
         const personalMap = item.personalQtyMap && typeof item.personalQtyMap === 'object' ? item.personalQtyMap : {};
-        const myPersonalQty = (myName && personalMap[myName]) ? personalMap[myName] : 0;
-        const isUserWanting = myName && myPersonalQty > 0;
-        const isUserBuyer = myName && item.buyer === myName;
+        const myPersonalQty = (myUid && personalMap[myUid]) ? personalMap[myUid] : 0;
+        const isUserWanting = myUid && myPersonalQty > 0;
+        const isUserBuyer = myUid && item.buyer === myUid;
 
         const baseQty = parseInt(item.qty) || 1;
         const totalQty = calculateTotalQty(item);
@@ -3732,7 +3745,7 @@ body.modal-open .modal-card {
         if (currentListType === 'inPerson' && item.buyer) {
           const buyerSpan = document.createElement('span');
           buyerSpan.className = 'item-buyer';
-          buyerSpan.textContent = tr(`🛒 אחראי: ${item.buyer}`, `🛒 Buyer: ${item.buyer}`);
+          buyerSpan.textContent = tr(`🛒 אחראי: ${memberDisplayName(item.buyer)}`, `🛒 Buyer: ${memberDisplayName(item.buyer)}`);
           subInfo.appendChild(buyerSpan);
         }
 
@@ -3935,13 +3948,12 @@ body.modal-open .modal-card {
   });
 
   function openPersonalQtyModal(id, personalMap) {
-    const user = requireUserName();
-    if (!user) return;
+    if (!requireUserName()) return;
 
     triggerHapticFeedback(15);
     activePersonalItemId = id;
     activePersonalMap = { ...(personalMap || {}) };
-    tempPersonalQty = activePersonalMap[user] || 1;
+    tempPersonalQty = activePersonalMap[currentUser.uid] || 1;
 
     personalQtyDisplay.textContent = tempPersonalQty;
     const item = itemsMap[id];
@@ -3964,14 +3976,13 @@ body.modal-open .modal-card {
   };
 
   savePersonalQtyBtn.onclick = () => {
-    const user = requireUserName();
-    if (!user || !activePersonalItemId) return;
+    if (!requireUserName() || !activePersonalItemId) return;
 
     triggerHapticFeedback(20);
     saveUndoBackup(activePersonalItemId);
 
     update(ref(db, `${listPath(currentListType)}/${activePersonalItemId}/personalQtyMap`), {
-      [user]: tempPersonalQty
+      [currentUser.uid]: tempPersonalQty
     });
 
     personalQtyModalOverlay.classList.remove('show');
@@ -3979,13 +3990,12 @@ body.modal-open .modal-card {
   };
 
   removePersonalQtyBtn.onclick = () => {
-    const user = requireUserName();
-    if (!user || !activePersonalItemId) return;
+    if (!requireUserName() || !activePersonalItemId) return;
 
     saveUndoBackup(activePersonalItemId);
 
     update(ref(db, `${listPath(currentListType)}/${activePersonalItemId}/personalQtyMap`), {
-      [user]: null
+      [currentUser.uid]: null
     });
 
     personalQtyModalOverlay.classList.remove('show');
@@ -4137,11 +4147,11 @@ body.modal-open .modal-card {
   }
 
   function toggleClaimItem(id, currentBuyer) {
-    const user = requireUserName();
-    if (!user) return;
+    if (!requireUserName()) return;
 
     triggerHapticFeedback(15);
-    const newBuyer = (currentBuyer === user) ? '' : user;
+    const uid = currentUser.uid;
+    const newBuyer = (currentBuyer === uid) ? '' : uid;
     update(ref(db, `${listPath(currentListType)}/${id}`), { buyer: newBuyer });
   }
 
@@ -4387,7 +4397,7 @@ body.modal-open .modal-card {
           }
         }
 
-        const buyerInfo = (i.buyer && lang === 'he') ? ` (אחראי: ${i.buyer})` : '';
+        const buyerInfo = (i.buyer && lang === 'he') ? ` (אחראי: ${memberDisplayName(i.buyer)})` : '';
         text += `• ${itemName} - ${totalQty} ${unitName}${buyerInfo}\n`;
       });
       text += `\n`;
