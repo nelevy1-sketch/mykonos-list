@@ -1603,6 +1603,17 @@
       cursor: pointer;
     }
 
+    /* docs/roadmap.md part 3 item 0, invitation screen (commit 2ব) -
+       secondary, low-emphasis on purpose: this is a way out for someone
+       curious, not a second call to action competing with the Google
+       button above it. */
+    .auth-gate-secondary-link {
+      display: block;
+      margin-top: 14px;
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+
     #claimMemberBtn {
       background: var(--primary);
       color: #fff;
@@ -1694,6 +1705,14 @@
       <button class="google-signin-btn" id="dashboardGoogleBtn">
         G&nbsp;&nbsp; כניסה עם Google
       </button>
+      <a
+        class="auth-gate-secondary-link"
+        id="authGateShowcaseLink"
+        href="gittrip-showcase.html"
+        target="_blank"
+        rel="noopener">
+        מה זה GitTrip?
+      </a>
     </div>
   </div>
 
@@ -1744,7 +1763,7 @@
     </div>
   </div>
 
-  <div class="app-container">
+  <div class="app-container" id="appContainer">
 
     <header class="hero-card">
       <div class="hero-top-row">
@@ -2475,9 +2494,25 @@
       places: true,
       expenses: true
     };
-    let currentLanguage = "he";
+    // docs/roadmap.md part 3 item 0, invitation screen (commit 2ব) - d/h/l
+    // are link input, not trusted (see the textContent note where the gate
+    // text is built). Read once here, alongside tripId, since they're all
+    // the same kind of thing: the only information available before
+    // sign-in, because the trip itself is unreadable pre-auth (`.read:
+    // auth != null`).
+    const invitationParams = new URLSearchParams(window.location.search);
+    const invitationDestination = invitationParams.get("d") || "";
+    const invitationOrganizer = invitationParams.get("h") || "";
 
-    const tripId = new URLSearchParams(window.location.search).get("tripId");
+    // Seeds the gate's language before any real trip data can load - the
+    // only other source (below) is hardcoded "he" and always was, for
+    // every gate view, invitation or not (confirmed by reading the code,
+    // not assumed: no localStorage cache, no navigator.language check
+    // existed here before this commit). data.language overwrites this
+    // once the real trip loads post-auth, same as it always has.
+    let currentLanguage = invitationParams.get("l") === "en" ? "en" : "he";
+
+    const tripId = invitationParams.get("tripId");
     const tripRoot = tripId ? `trips/${tripId}` : null;
     let tripLoaded = !tripId;
 
@@ -2731,6 +2766,64 @@
       });
     }
 
+    // docs/roadmap.md part 3 item 0, invitation screen (commit 2ব) - caps
+    // the DISPLAYED name, not the sentence container. A CSS ellipsis on
+    // the whole heading would cut off a perfectly reasonable sentence
+    // mid-word instead of letting it wrap normally; this only intervenes
+    // when a single d/h value is actually too long (a crafted 200-char
+    // destination, say) to keep the one-sentence heading from becoming
+    // absurd.
+    function truncateForGate(value, max) {
+      if (!value || value.length <= max) {
+        return value;
+      }
+
+      return value.slice(0, max).trim() + "…";
+    }
+
+    // docs/roadmap.md part 3 item 0, invitation screen (commit 2ব) - the
+    // #authGate title/subtitle pair. Four cases, not just "has info or
+    // not": with neither d nor h at all (a bare ?tripId=X link, or one
+    // from before this commit added them), both stay byte-for-byte what
+    // they always were - not the new generic invite wording either, the
+    // literal original strings. Every other case gets the new "what is
+    // GitTrip" subtitle; only the title varies with what's actually known.
+    function authGateCopy(lang) {
+      const destName = truncateForGate(invitationDestination, 30);
+      const hostName = truncateForGate(invitationOrganizer, 30);
+
+      if (!destName && !hostName) {
+        return {
+          title: lang === "en" ? "Trip sign-in" : "כניסה לטיול",
+          subtitle: lang === "en"
+            ? "Sign in with Google to open the trip and save shared information."
+            : "התחברו באמצעות Google כדי לפתוח את הטיול ולשמור מידע משותף."
+        };
+      }
+
+      const subtitle = lang === "en"
+        ? "GitTrip — one place where the whole group plans together: what to pack, what to buy, where to go, and what to do each day."
+        : "GitTrip — מקום אחד שבו כל הקבוצה מתכננת ביחד: מה לארוז, מה לקנות, לאן ללכת ומה עושים כל יום.";
+
+      let title;
+
+      if (destName && hostName) {
+        title = lang === "en"
+          ? `${hostName} invited you on a trip to ${destName} ✈️`
+          : `${hostName} הזמין אותך לטיול ל${destName} ✈️`;
+      } else if (destName) {
+        title = lang === "en"
+          ? `You've been invited on a trip to ${destName} ✈️`
+          : `הוזמנת לטיול ל${destName} ✈️`;
+      } else {
+        title = lang === "en"
+          ? "You've been invited on a trip ✈️"
+          : "הוזמנת לטיול ✈️";
+      }
+
+      return { title, subtitle };
+    }
+
     function applyTripLanguage() {
       const lang = currentLanguage === "en" ? "en" : "he";
       const text = dashboardText[lang];
@@ -2800,13 +2893,43 @@
         lang === "en" ? "Destination weather" : "מזג האוויר ביעד"
       );
 
-      document.getElementById("authGateTitle").textContent =
-        lang === "en" ? "Trip sign-in" : "כניסה לטיול";
+      // docs/roadmap.md part 3 item 0, invitation screen (commit 2ব) -
+      // invitationDestination/invitationOrganizer come straight from the
+      // URL - untrusted input. .textContent below is mandatory, not a
+      // style choice: it never interprets its argument as markup, so a
+      // crafted link (?d=<script>...) can't inject anything. innerHTML or
+      // a template string assigned to innerHTML would have made this a
+      // real reflected-XSS hole. Spoofing the *content* itself (a fake
+      // name/destination) is accepted as low-stakes and out of scope -
+      // see docs/roadmap.md's own note - this guards against the
+      // different, real risk of it running as code.
+      const gateCopy = authGateCopy(lang);
 
-      document.getElementById("authGateText").textContent =
-        lang === "en"
-          ? "Sign in with Google to open the trip and save shared information."
-          : "התחברו באמצעות Google כדי לפתוח את הטיול ולשמור מידע משותף.";
+      document.getElementById("authGateTitle").textContent = gateCopy.title;
+      document.getElementById("authGateText").textContent = gateCopy.subtitle;
+
+      document.getElementById("authGateShowcaseLink").textContent =
+        lang === "en" ? "What is GitTrip?" : "מה זה GitTrip?";
+
+      const showcaseUrl = new URL("gittrip-showcase.html", window.location.href);
+
+      if (tripId) {
+        showcaseUrl.searchParams.set("tripId", tripId);
+      }
+
+      if (invitationDestination) {
+        showcaseUrl.searchParams.set("d", invitationDestination);
+      }
+
+      if (invitationOrganizer) {
+        showcaseUrl.searchParams.set("h", invitationOrganizer);
+      }
+
+      if (lang === "en") {
+        showcaseUrl.searchParams.set("l", "en");
+      }
+
+      document.getElementById("authGateShowcaseLink").href = showcaseUrl.href;
 
       document.getElementById("dashboardGoogleBtn").innerHTML =
         `G&nbsp;&nbsp; ${lang === "en" ? "Continue with Google" : "כניסה עם Google"}`;
@@ -2866,6 +2989,17 @@
         document.getElementById("authGate").classList.toggle(
           "hidden",
           Boolean(user)
+        );
+
+        // docs/roadmap.md part 3 item 0, invitation screen (commit 2ব) -
+        // the app's default content used to render, blurred, underneath
+        // the gate (backdrop-filter on .auth-gate itself, not on this
+        // element) - a fake destination/weather visible through the blur
+        // before any real trip data loads. Hidden opposite the gate: a
+        // clean invitation screen instead of a blurred lie.
+        document.getElementById("appContainer").classList.toggle(
+          "hidden",
+          !user
         );
 
         document.getElementById("logoutLink").classList.toggle(
@@ -4844,16 +4978,20 @@
     const appTitleEl =
       document.getElementById("appTitle");
 
-    // docs/roadmap.md part 3 item 0, invitation screen (commit 2א) - the
-    // shared link carries destination (d) and organizer name (h) so
-    // index.html's authGate can greet the recipient by name before they've
-    // signed in (the trip itself is unreadable pre-auth, `.read: auth !=
-    // null` - see docs/roadmap.md's own investigation). Built via
-    // URLSearchParams.set, not manual string interpolation - it already
-    // percent-encodes correctly, so no encodeURIComponent on top of it (that
-    // would double-encode). Only added when known - an older trip with no
+    // docs/roadmap.md part 3 item 0, invitation screen (commit 2א/2ব) - the
+    // shared link carries destination (d), organizer name (h) and language
+    // (l, en only - see below) so index.html's authGate can greet the
+    // recipient by name, in the right language, before they've signed in
+    // (the trip itself is unreadable pre-auth, `.read: auth != null` - see
+    // docs/roadmap.md's own investigation). Built via URLSearchParams.set,
+    // not manual string interpolation - it already percent-encodes
+    // correctly, so no encodeURIComponent on top of it (that would
+    // double-encode). Only added when known - an older trip with no
     // organizerName just shares a link without h, same as before this
-    // commit.
+    // commit. l is omitted for Hebrew on purpose, not just when unknown -
+    // "no l" already means Hebrew (the gate's own default, confirmed by
+    // reading the code: no other pre-auth language source ever existed),
+    // so there's nothing to gain from writing it explicitly.
     function updateAdminShareLink() {
       const url = new URL(scopedTripUrl("index.html"));
 
@@ -4863,6 +5001,10 @@
 
       if (organizerName) {
         url.searchParams.set("h", organizerName);
+      }
+
+      if (currentLanguage === "en") {
+        url.searchParams.set("l", "en");
       }
 
       const shareUrl = url.href;

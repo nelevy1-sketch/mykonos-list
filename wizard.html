@@ -1987,15 +1987,17 @@
             document.getElementById('summaryTitle').textContent = t.successHeader;
             document.getElementById('summaryText').textContent = t.successText;
             document.getElementById('summaryGrid').innerHTML = '';
-            // docs/roadmap.md part 3 item 0, invitation screen (commit 2א) -
-            // this is the most common path for the link a real recipient
-            // sees: the one place shown right after the trip is created
-            // (index.html's own share panel is a second, later way to
-            // re-copy it). tripUrl() itself stays untouched - it's also
+            // docs/roadmap.md part 3 item 0, invitation screen (commit
+            // 2א/2ব) - this is the most common path for the link a real
+            // recipient sees: the one place shown right after the trip is
+            // created (index.html's own share panel is a second, later way
+            // to re-copy it). tripUrl() itself stays untouched - it's also
             // used by renderRecentTrips() for the organizer's own past
-            // trips, where d/h would be meaningless. destination and
-            // tripData.organizerName are both already in scope here, same
-            // pattern as updateAdminShareLink() in index.html.
+            // trips, where d/h/l would be meaningless. destination and
+            // tripData.organizerName/language are all already in scope
+            // here, same pattern as updateAdminShareLink() in index.html.
+            // l omitted for Hebrew on purpose - that's the gate's own
+            // default already, nothing to gain from writing it.
             const shareUrlObj = new URL(tripUrl(tripId));
 
             if (destination) {
@@ -2004,6 +2006,10 @@
 
             if (tripData.organizerName) {
                 shareUrlObj.searchParams.set('h', tripData.organizerName);
+            }
+
+            if (tripData.language === 'en') {
+                shareUrlObj.searchParams.set('l', 'en');
             }
 
             const shareUrl = shareUrlObj.href;
