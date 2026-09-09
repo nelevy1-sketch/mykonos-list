@@ -205,17 +205,6 @@
       margin-bottom:8px;
     }
 
-    .identity-row select {
-      min-height:46px;
-      flex:1;
-      min-width:160px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:0 13px;
-      color:var(--text);
-      background:var(--surface);
-    }
-
     .user-chip {
       font-size:.78rem;
       font-weight:700;
@@ -577,9 +566,9 @@
        already exists (list-head) - reusing it costs zero new vertical
        space, unlike a whole second .category-chips-style row would.
        Matches this file's own established convention for "choose one from
-       a short list, as a form input" (participantSelect,
-       addItemCategorySelect, importCategorySelect, editListSelect all do
-       this already) rather than inventing custom popover chrome. Sized
+       a short list, as a form input" (addItemCategorySelect,
+       importCategorySelect, editListSelect all do this already) rather
+       than inventing custom popover chrome. Sized
        like .list-icon-btn (same 42px height) but content-width up to a
        cap, not a fixed square - "כל היעדים"/a long destination name is
        naturally wider than an icon glyph. */
@@ -1036,9 +1025,7 @@
     <script>showTripName("destination")</script>
 
     <div class="identity-row">
-      <select id="participantSelect">
-        <option value="">בחר/י את שמך…</option>
-      </select>
+      <span class="user-chip" id="myName"></span>
 
       <span class="user-chip" id="userChip"></span>
     </div>
@@ -2789,170 +2776,50 @@
       );
     }
 
-    function participantOptions() {
-      const names =
-        Array.isArray(trip.participants)
-          ? trip.participants
-          : [];
-
-      const claims =
-        trip.participantClaims || {};
-
-      const options =
-        `<option value="">` +
-        `${tr("בחר/י את שמך…", "Choose your name…")}` +
-        `</option>` +
-        names.map((name, index) => {
-          const key = window.participantKey(name);
-
-          const isTaken =
-            claims[key] &&
-            claims[key] !== user?.uid;
-
-          return (
-            `<option value="${index}" ` +
-            `${isTaken ? "disabled" : ""}>` +
-            `${escapeHtml(name)}` +
-            `${isTaken
-              ? ` — ${tr("כבר משויך", "already linked")}`
-              : ""}` +
-            `</option>`
-          );
-        }).join("");
-
-      $("participantSelect").innerHTML = options;
-
-      if (profile) {
-        const index =
-          names.indexOf(profile.name);
-
-        if (index >= 0) {
-          $("participantSelect").value =
-            String(index);
-        }
-
-        $("participantSelect").disabled = true;
-      } else {
-        $("participantSelect").disabled = false;
-      }
-    }
-
-    async function saveProfile(index) {
-      if (!user || profile) {
-        return;
-      }
-
-      const name =
-        (trip.participants || [])[Number(index)];
-
-      if (!name) {
-        return toast(
-          tr("יש לבחור שם", "Choose a name")
-        );
-      }
-
-      const key = window.participantKey(name);
-
-      const claimReference = ref(
-        db,
-        `${tripRoot}/participantClaims/${key}`
-      );
-
-      try {
-        const result = await runTransaction(
-          claimReference,
-          current =>
-            current === null ||
-            current === user.uid
-              ? user.uid
-              : undefined,
-          {
-            applyLocally:false
-          }
-        );
-
-        if (
-          !result.committed ||
-          result.snapshot.val() !== user.uid
-        ) {
-          return toast(
-            tr(
-              "השם הזה כבר שויך למשתתף אחר",
-              "This name is already linked to another participant"
-            )
-          );
-        }
-
-        const nextProfile = {
-          name,
-          participantKey:key,
-          email:user.email || "",
-          photoURL:user.photoURL || "",
-          updatedAt:Date.now()
-        };
-
-        try {
-          await set(
-            ref(
-              db,
-              `${tripRoot}/memberProfiles/${user.uid}`
-            ),
-            nextProfile
-          );
-        } catch (error) {
-          await runTransaction(
-            claimReference,
-            current =>
-              current === user.uid
-                ? null
-                : current,
-            {
-              applyLocally:false
-            }
-          );
-
-          throw error;
-        }
-
-        profile = nextProfile;
-
-        syncIdentity();
-        listenPacking();
-
-        // Best-effort: also record this trip under the joining user's own
-        // uid - same shape wizard.html writes for the organizer at
-        // creation - so index.html's trip picker can list it. The join
-        // above has already fully succeeded at this point; if this fails,
-        // don't surface it to the user, just log it.
-        update(ref(db), {
-          [`users/${user.uid}/trips/${tripId}`]: {
-            destination: window.getPrimaryLeg(trip).name || "",
-            tripType: trip.tripType || "",
-            language: trip.language || "he",
-            startAt: trip.startAt || null,
-            endAt: window.getLastLeg(trip).endAt || null,
-            createdAt: trip.createdAt || Date.now()
-          }
-        }).catch(error => {
-          console.error("Could not record trip under user's trip list:", error);
-        });
-      } catch (error) {
-        console.error(error);
-
-        toast(
-          tr(
-            "לא ניתן היה לשייך את השם. נסו שוב.",
-            "Could not link the name. Please try again."
-          )
-        );
-      }
-    }
-
+    // #myName used to be a <select> populated from trip.participants (the
+    // organizer's fixed roster from wizard.html) - a leftover of the
+    // closed-roster flow the auto-registration work (docs/roadmap.md part
+    // 3 item 0, commit ব) removed everywhere else. It looked unrelated to
+    // that gate (always visible, not a blocking overlay) and was kept on
+    // purpose at the time (v4.30.1) without checking whether it shared the
+    // gate's actual bug. It did: the same one found and fixed in
+    // shopping.html's #myName (v4.30.2) - profile.name (from
+    // memberProfiles, via auto-register) almost never matches an entry in
+    // trip.participants, and setting .value on a <select> with no matching
+    // <option> is a silent no-op. The select stayed stuck on its
+    // placeholder, disabled, looking exactly like "no identity" even
+    // though profile was already set correctly and everything else on the
+    // page worked. Same fix as shopping.html: a read-only span, driven
+    // directly by profile.name. participantOptions()/saveProfile() (the
+    // functions that built and wrote through the old select) are removed,
+    // not frozen - nothing else in this file called them.
     function syncIdentity() {
       $("userChip").textContent =
         user?.displayName || user?.email || "";
 
-      participantOptions();
+      $("myName").textContent = profile?.name || "";
+    }
+
+    // Same race-guard pattern as shopping.html's requireUserName(): profile
+    // resolves asynchronously (loadProfile() -> autoRegisterMember), so an
+    // action fired in the narrow window before that settles used to just
+    // silently do nothing - no toast, not even a console warning. Callers
+    // that already checked !profile on their own (addItem, importItem,
+    // addToSuggestedCategory) now go through this instead, so the wait is
+    // visible rather than hidden.
+    function requireProfile() {
+      if (!profile) {
+        toast(
+          tr(
+            "עדיין טוען את הפרופיל שלך, נסו שוב בעוד רגע",
+            "Still loading your profile, try again in a moment"
+          )
+        );
+
+        return null;
+      }
+
+      return profile;
     }
 
     function userBase() {
@@ -3949,7 +3816,11 @@
       const sourceItem =
         allPacking?.users?.[sourceUid]?.items?.[sourceListId]?.[sourceItemId];
 
-      if (!sourceItem || !profile) {
+      if (!sourceItem) {
+        return;
+      }
+
+      if (!requireProfile()) {
         return;
       }
 
@@ -4153,7 +4024,11 @@
       const categoryName = box.dataset.categoryName;
       const value = $("newItem").value.trim();
 
-      if (!categoryName || !value || !user || !profile) {
+      if (!categoryName || !value || !user) {
+        return;
+      }
+
+      if (!requireProfile()) {
         return;
       }
 
@@ -4204,11 +4079,11 @@
       const name =
         (value || $("newItem").value).trim();
 
-      if (
-        !name ||
-        !user ||
-        !profile
-      ) {
+      if (!name || !user) {
+        return;
+      }
+
+      if (!requireProfile()) {
         return;
       }
 
@@ -4413,7 +4288,6 @@
           applyAccent();
           applyLanguage();
           configureLinks();
-          participantOptions();
 
           // Independent of identity - the packing list itself doesn't need
           // to know who the user is (it's keyed by uid, not by claimed
@@ -4524,10 +4398,9 @@
               return;
             }
 
-            // Best-effort, same as the manual-claim path (saveProfile)
-            // already does for this exact reason: so index.html's trip
-            // picker can list this trip too. Never blocks or surfaces a
-            // failure here - the join itself already fully succeeded.
+            // Best-effort, so index.html's trip picker can list this trip
+            // too. Never blocks or surfaces a failure here - the join
+            // itself already fully succeeded.
             update(ref(db), {
               [`users/${user.uid}/trips/${tripId}`]: {
                 destination: window.getPrimaryLeg(trip).name || "",
@@ -4580,10 +4453,6 @@
       );
 
       applyTheme();
-    };
-
-    $("participantSelect").onchange = event => {
-      saveProfile(event.target.value);
     };
 
     // Shared by the add button and Enter-in-the-input (below) so the two
