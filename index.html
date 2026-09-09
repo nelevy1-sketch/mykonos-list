@@ -21,6 +21,7 @@
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
   <script src="legBuilder.js"></script>
+  <script src="member.js"></script>
   <script src="auth-gate.js"></script>
 
   <!-- Firebase SDKs -->
@@ -2955,6 +2956,48 @@
         .once("value");
 
       currentProfile = snapshot.val();
+
+      // docs/roadmap.md, part 3 item 0 - no name-picker gate for a
+      // first-time joiner. Auto-register from their Google identity
+      // instead (member.js, shared with the other 4 gated pages - see
+      // its own comment on why claims are keyed by uid, not name).
+      // #memberGate stays in the markup as a fallback ONLY: if
+      // registration itself fails (network error, an unexpected rule
+      // mismatch), the user still has a manual way in, not a silent
+      // dead end - this is the one path where it can still appear.
+      if (!currentProfile && window.autoRegisterMember) {
+        try {
+          currentProfile = await window.autoRegisterMember({
+            uid: currentUser.uid,
+            displayName: currentUser.displayName,
+            email: currentUser.email,
+            photoURL: currentUser.photoURL,
+            fallbackName: tr("משתתף", "Traveler"),
+            tryClaim: (key, uid) => new Promise((resolve, reject) => {
+              db.ref(`${tripRoot}/participantClaims/${key}`).transaction(
+                current => (current === null || current === uid) ? uid : undefined,
+                (error, committed, resultSnapshot) => {
+                  if (error) return reject(error);
+                  resolve(Boolean(committed) && resultSnapshot.val() === uid);
+                },
+                false
+              );
+            }),
+            writeProfile: profile =>
+              db.ref(`${tripRoot}/memberProfiles/${currentUser.uid}`).set(profile),
+            rollbackClaim: (key, uid) => new Promise((resolve, reject) => {
+              db.ref(`${tripRoot}/participantClaims/${key}`).transaction(
+                current => (current === uid ? null : current),
+                error => (error ? reject(error) : resolve()),
+                false
+              );
+            })
+          });
+        } catch (error) {
+          console.error("[index.html] loadMemberProfile: auto-register failed", error);
+          currentProfile = null;
+        }
+      }
 
       renderMemberChoices();
 
