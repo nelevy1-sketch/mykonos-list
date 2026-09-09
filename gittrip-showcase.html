@@ -543,7 +543,7 @@
     <div class="cta-card">
       <h2>מוכנים להמריא?</h2>
       <p>פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.</p>
-      <a class="cta-btn" href="https://nelevy1-sketch.github.io/mykonos-list/wizard.html" target="_blank" rel="noopener">
+      <a class="cta-btn" id="ctaBtn" href="https://nelevy1-sketch.github.io/mykonos-list/wizard.html" target="_blank" rel="noopener">
         ✈️ לפתיחת GitTrip
       </a>
     </div>
@@ -552,6 +552,72 @@
   <footer>GitTrip · תוכנן ונבנה בשביל טיולים טובים יותר</footer>
 
 </div>
+
+<script>
+  // docs/roadmap.md part 3 item 0, invitation screen (commit 2গ) - reached
+  // with a tripId only when someone clicked "מה זה GitTrip?" from
+  // index.html's authGate (v4.34.0). Without one, this page behaves
+  // exactly as before this commit - the CTA still opens the wizard to
+  // start a brand new trip. Deliberately narrow: this page stays Hebrew
+  // (lang/dir untouched) - full showcase translation is its own task, out
+  // of scope here. Only the CTA's own text/href follow l.
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var tripId = params.get("tripId");
+
+    if (!tripId) {
+      return;
+    }
+
+    // d/h are link input, not trusted - same as index.html's authGate.
+    // .textContent below is mandatory, not a style choice: a crafted
+    // ?d=<script> must render as literal text, never run. Same 30-char
+    // cap as index.html's truncateForGate() too (small enough on its own
+    // that a shared file for one five-line helper isn't worth it here -
+    // see CLAUDE.md's note on the three separate URL-builder functions
+    // for what IS worth sharing).
+    function truncateForCta(value, max) {
+      if (!value || value.length <= max) {
+        return value;
+      }
+
+      return value.slice(0, max).trim() + "…";
+    }
+
+    var rawDestination = params.get("d") || "";
+    var destination = truncateForCta(rawDestination, 30);
+    var isEnglish = params.get("l") === "en";
+
+    var backUrl = new URL("index.html", window.location.href);
+    backUrl.searchParams.set("tripId", tripId);
+
+    if (rawDestination) {
+      backUrl.searchParams.set("d", rawDestination);
+    }
+
+    if (params.get("h")) {
+      backUrl.searchParams.set("h", params.get("h"));
+    }
+
+    if (params.get("l")) {
+      backUrl.searchParams.set("l", params.get("l"));
+    }
+
+    var ctaBtn = document.getElementById("ctaBtn");
+
+    // Same tab, not a new one: "מה זה GitTrip?" opened this page with
+    // target="_blank" specifically so the original invitation tab stays
+    // open behind it (v4.34.0) - "back to the trip" should return to
+    // that tab's own context, not stack a third one.
+    ctaBtn.removeAttribute("target");
+    ctaBtn.removeAttribute("rel");
+    ctaBtn.href = backUrl.href;
+
+    ctaBtn.textContent = destination
+      ? (isEnglish ? "✈️ Back to the trip to " + destination : "✈️ חזרה לטיול ל" + destination)
+      : (isEnglish ? "✈️ Back to the trip" : "✈️ חזרה לטיול");
+  })();
+</script>
 
 </body>
 </html>
