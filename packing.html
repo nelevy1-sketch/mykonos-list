@@ -850,6 +850,59 @@
       font-size:.85rem;
     }
 
+    /* docs/roadmap.md part 3 item 0, empty-state affordance follow-up -
+       the dashed border alone still read as decoration, not a control,
+       so this adds a small pill that LOOKS like a button (it isn't one -
+       nesting a real <button> inside .empty-action would be invalid
+       HTML and confuse screen readers, since .empty-action itself is
+       the actual control). Purely visual anchor. */
+    /* display:block, not inline-block - .empty-action span{display:block}
+       above is more specific (class+element vs. this rule's class alone)
+       and would win anyway. Written explicitly rather than left as dead
+       inline-block, since a full-width bar matches this app's own
+       primary-btn convention and reads as a bigger, clearer tap target. */
+    .empty-action-cta {
+      display:block;
+      margin-top:10px;
+      padding:8px 16px;
+      border-radius:999px;
+      background:var(--primary);
+      color:#fff;
+      font-size:.85rem;
+      font-weight:700;
+    }
+
+    /* Finite on purpose - animation-iteration-count, no JS, no
+       localStorage. An empty category can sit untouched for days; a
+       looping pulse would still be looping when the user comes back
+       tomorrow, which reads as noise, not an invitation. This is
+       deliberately NOT the same mechanism as index.html's
+       adminGearPulse (.admin-gear-seen, persisted across visits via
+       localStorage, cleared only by an explicit interaction) - there's
+       no "seen" state here at all. Each fresh render of this button
+       (page load, or - on pages with tabs - switching into the tab
+       that shows it) is a new DOM element, so the animation naturally
+       replays every time regardless of whether this is visit 1 or
+       visit 30. That's intentional, not a gap: without a "seen" flag
+       to maintain, this stays simple. */
+    .empty-action {
+      animation-name: emptyActionPulse;
+      animation-duration: 1.8s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: 3;
+    }
+
+    @keyframes emptyActionPulse {
+      0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 35%, transparent); }
+      50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .empty-action {
+        animation: none;
+      }
+    }
+
     .group-block {
       margin-bottom:16px;
     }
@@ -3376,6 +3429,7 @@
                     "התחילו מפריט אחד — או תנו ל-AI להציע רשימה.",
                     "Start with one item — or let AI suggest a list."
                   )}</span>
+                  <span class="empty-action-cta">${tr("+ הוסף פריט", "+ Add item")}</span>
                 </button>
               `;
             })();

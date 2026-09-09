@@ -1215,6 +1215,34 @@
     box-shadow:0 0 0 3px color-mix(in srgb,var(--sea) 16%,transparent);
   }
 
+  /* docs/roadmap.md part 3 item 0, empty-state affordance follow-up -
+     no "+ CTA pill" here on purpose, unlike packing/places/itinerary's
+     .empty-action-cta: this page's real add button (#openModalBtn) sits
+     directly above this element in .main-actions-row, not off in a
+     floating FAB somewhere else on the page. A second "+ הוסף פריט"
+     pill right underneath it would read as a duplicate/broken control,
+     not a hint - the dashed border (already on .empty-state) plus the
+     pulse below are the whole affordance here. Don't "fix" this
+     inconsistency by adding a CTA - it was a deliberate call, not a
+     gap. See CHANGELOG for the full reasoning. */
+  .empty-state-action {
+    animation-name: emptyStatePulse;
+    animation-duration: 1.8s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 3;
+  }
+
+  @keyframes emptyStatePulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sea) 35%, transparent); }
+    50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--sea) 0%, transparent); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .empty-state-action {
+      animation: none;
+    }
+  }
+
   body.modal-open {
     overflow:hidden;
   }
