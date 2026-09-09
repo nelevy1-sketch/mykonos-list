@@ -1816,6 +1816,7 @@
         <span id="sessionUserLabel"></span>
         <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת שם תצוגה" title="עריכת שם תצוגה">✏️</button>
         <input type="text" class="edit-name-input hidden" id="editNameInput" maxlength="40">
+        <a id="tripsLink" class="logout-link hidden" href="index.html?trips=1" aria-label="הטיולים שלי" title="הטיולים שלי">🧳</a>
         <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
       </span>
     </div>
@@ -2529,6 +2530,11 @@
     const tripRoot = tripId ? `trips/${tripId}` : null;
     let tripLoaded = !tripId;
 
+    // The "הטיולים שלי" button (session row) links here with no tripId -
+    // without this, resolveTripSelection() would just bounce straight back
+    // into lastTripId (see its own comment) and the picker would never show.
+    const forceTripPicker = invitationParams.get("trips") === "1";
+
     // True once a real trip record has arrived. Until then we must not write
     // anything back to the cache, or a slow load would persist the defaults.
     let hasTripRecord = false;
@@ -2896,6 +2902,16 @@
 
       document.getElementById("editNameBtn").title = editNameLabel;
 
+      const tripsLinkLabel =
+        lang === "en" ? "My trips" : "הטיולים שלי";
+
+      document.getElementById("tripsLink").setAttribute(
+        "aria-label",
+        tripsLinkLabel
+      );
+
+      document.getElementById("tripsLink").title = tripsLinkLabel;
+
       document.getElementById("forecastStrip").setAttribute(
         "aria-label",
         lang === "en" ? "Forecast for the trip days" : "תחזית לימי הטיול"
@@ -3020,6 +3036,11 @@
           !user
         );
 
+        document.getElementById("tripsLink").classList.toggle(
+          "hidden",
+          !user
+        );
+
         syncSessionUserLabel();
 
         if (!user) {
@@ -3039,7 +3060,7 @@
         if (user && tripRoot) {
           startTripListener();
         } else if (user && !tripRoot) {
-          resolveTripSelection();
+          resolveTripSelection({ skipLastTripId: forceTripPicker });
         }
 
         renderLinkedMembers();
