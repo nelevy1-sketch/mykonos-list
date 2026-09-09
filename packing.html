@@ -2533,6 +2533,20 @@
       }
     }
 
+    // Suggestions are scoped to whichever category/destination was active
+    // when they were fetched (aiSuggestLeg() above reads activeLegFilter at
+    // request time) - stale ones left visible after either changes read as
+    // current for the new context, which is a wrong-but-plausible-looking
+    // result, not an obvious error. Called from every place that can change
+    // that context: opening the add-item modal (covers a category switch
+    // too, since the modal has to be closed to reach the category chips
+    // behind it) and the destination filter's own onchange - a no-op
+    // whenever the modal happens to already be closed.
+    function resetAiSuggestions() {
+      $("aiSuggestions").classList.add("hidden");
+      $("aiSuggestions").innerHTML = "";
+    }
+
     async function requestAiSuggestions() {
       const button = $("aiSuggestBtn");
       const originalText = button.textContent;
@@ -3193,6 +3207,7 @@
 
       select.onchange = () => {
         activeLegFilter = select.value;
+        resetAiSuggestions();
         renderMine();
       };
 
@@ -3794,7 +3809,15 @@
 
       const blocks = [];
 
+      // Own items are excluded, not just shown read-only - this view is
+      // "what everyone ELSE is packing" (you already see your own list on
+      // the other tab). The ◻️/✅ mark was always a plain <span>, never a
+      // real checkbox, for anyone here - it's the import mechanism's status
+      // display, and a row with no import button (your own, before this
+      // filter) just showed the inert mark with nothing next to it to
+      // explain why.
       Object.entries(users)
+        .filter(([uid]) => uid !== user?.uid)
         .forEach(([uid, data]) => {
           const publicItems = [];
 
@@ -3817,8 +3840,6 @@
             publicItems[0]?.ownerName ||
             tr("משתתף", "Traveler");
 
-          const isMe = uid === user?.uid;
-
           blocks.push(`
             <section class="card group-block">
               <h3 class="group-title">
@@ -3832,14 +3853,12 @@
                     <div class="item-name">
                       ${escapeHtml(item.name)}
                     </div>
-                    ${isMe ? "<span></span>" : `
-                      <button
-                        class="mini"
-                        data-import="${item.uid}:${item.listId}:${item.itemId}"
-                        aria-label="${tr("ייבוא לרשימה שלי", "Import to my list")}">
-                        ⬇️
-                      </button>
-                    `}
+                    <button
+                      class="mini"
+                      data-import="${item.uid}:${item.listId}:${item.itemId}"
+                      aria-label="${tr("ייבוא לרשימה שלי", "Import to my list")}">
+                      ⬇️
+                    </button>
                   </div>
                 `).join("")}
               </div>
@@ -3847,12 +3866,15 @@
           `);
         });
 
+      // "no one else" now, not "nothing shared" - the viewer's own shared
+      // items are filtered out above, so this state can be reached even
+      // after the viewer shared something themselves.
       $("groupItems").innerHTML =
         blocks.join("") ||
         `
           <div class="card empty">
             <span class="emoji">👥</span>
-            <strong>${tr("עדיין לא שותפו פריטים", "Nothing shared yet")}</strong>
+            <strong>${tr("אף אחד אחר עדיין לא שיתף", "No one else has shared yet")}</strong>
             <span>${tr(
               "שתפו פריט מהרשימה שלכם, וכולם יראו מי כבר לקח מה.",
               "Share an item from your list, and everyone will see who's already got what."
@@ -4565,6 +4587,8 @@
     };
 
     $("addItemFab").onclick = () => {
+      resetAiSuggestions();
+
       const isAll = activeList === "all";
 
       $("addItemCategoryField").classList.toggle("hidden", !isAll);

@@ -5904,6 +5904,21 @@
       applyFeatureVisibility();
     }
 
+    // Hebrew needs three shapes per unit (singular/dual/count+plural, e.g.
+    // "שעה"/"שעתיים"/"5 שעות") - not just singular vs plural like English.
+    // Used only for hours/minutes below; days has its own branching in
+    // updateClockAndPhases() because 0/1 days aren't "עוד 0/1 ימים" at all,
+    // they're different sentences entirely ("היום"/"מחר").
+    function hebrewUnitCount(n, singular, dual, plural) {
+      if (n === 1) return singular;
+      if (n === 2) return dual;
+      return `${n} ${plural}`;
+    }
+
+    function englishUnitCount(n, unit) {
+      return `${n} ${unit}${n === 1 ? "" : "s"}`;
+    }
+
     function updateClockAndPhases() {
       if (tripPickerActive) {
         return;
@@ -6016,8 +6031,23 @@
             ? config.phaseEn
             : config.phaseHe;
 
-        const days = Math.floor(
-          diffOut / (1000 * 60 * 60 * 24)
+        // Calendar-day difference, not a raw ms/24h floor - the naive
+        // version misclassifies near-midnight departures (e.g. 71h59m
+        // floors to "2 days" even when today/tomorrow/the day after are
+        // three distinct calendar dates, i.e. really "3 days" the way a
+        // person reading a countdown means it). window.dateKeyInZone(...,
+        // null) reads the viewer's own device calendar - "is my flight
+        // tomorrow" is about the viewer's day, not the destination's.
+        // Same reasoning as v4.28's leg-scoped AI suggestions: a countdown
+        // that's numerically defensible but reads wrong at the boundary is
+        // still wrong. Clamped at 0 defensively - diffOut > 0 (this
+        // branch's own guard) makes negative impossible in practice.
+        const calendarDaysAway = Math.max(
+          0,
+          daysBetweenKeys(
+            window.dateKeyInZone(now, null),
+            window.dateKeyInZone(flightOut, null)
+          )
         );
 
         const hours = Math.floor(
@@ -6026,10 +6056,53 @@
 
         timerTitle.dir = currentLanguage === "en" ? "ltr" : "rtl";
 
-        timerTitle.textContent =
-          currentLanguage === "en"
-            ? `${config.icon} ${days} days · ${hours} hours to go`
-            : `${config.icon} עוד ${days} ימים · ${hours} שעות`;
+        const hourPart = hours
+          ? currentLanguage === "en"
+            ? ` · ${englishUnitCount(hours, "hour")} to go`
+            : ` · ${hebrewUnitCount(hours, "שעה", "שעתיים", "שעות")}`
+          : currentLanguage === "en" ? " to go" : "";
+
+        if (calendarDaysAway >= 3) {
+          timerTitle.textContent =
+            currentLanguage === "en"
+              ? `${config.icon} ${calendarDaysAway} days${hourPart}`
+              : `${config.icon} עוד ${calendarDaysAway} ימים${hourPart}`;
+        } else if (calendarDaysAway === 2) {
+          timerTitle.textContent =
+            currentLanguage === "en"
+              ? `${config.icon} 2 days${hourPart}`
+              : `${config.icon} עוד יומיים${hourPart}`;
+        } else if (calendarDaysAway === 1) {
+          timerTitle.textContent =
+            currentLanguage === "en"
+              ? `${config.icon} Tomorrow`
+              : `${config.icon} מחר`;
+        } else {
+          // calendarDaysAway === 0 - departure is later today. Raw (not
+          // %24) hour/minute counts are safe here without a days
+          // component: bounded by "time left until midnight", always
+          // under 24h/60m given calendarDaysAway confirmed it's still
+          // today.
+          const rawHours = Math.floor(diffOut / (1000 * 60 * 60));
+          const rawMinutes = Math.floor(diffOut / (1000 * 60));
+
+          if (rawHours >= 1) {
+            timerTitle.textContent =
+              currentLanguage === "en"
+                ? `${config.icon} Today, in ${englishUnitCount(rawHours, "hour")}`
+                : `${config.icon} היום, בעוד ${hebrewUnitCount(rawHours, "שעה", "שעתיים", "שעות")}`;
+          } else if (rawMinutes >= 1) {
+            timerTitle.textContent =
+              currentLanguage === "en"
+                ? `${config.icon} In ${englishUnitCount(rawMinutes, "minute")}`
+                : `${config.icon} עוד ${hebrewUnitCount(rawMinutes, "דקה", "דקתיים", "דקות")}`;
+          } else {
+            timerTitle.textContent =
+              currentLanguage === "en"
+                ? `${config.icon} Any moment now`
+                : `${config.icon} תיכף`;
+          }
+        }
 
         actionsSubtitle.textContent = tr(
           `מתארגנים לקראת ${destinationName}`,
