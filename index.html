@@ -1829,6 +1829,14 @@
     </div>
 
     <div class="trip-picker" id="tripPicker" style="display:none;">
+      <a
+        href="#"
+        id="tripPickerBack"
+        class="trip-picker-card hidden"
+        style="margin-bottom:8px;">
+        <div class="trip-picker-card-info"><strong id="tripPickerBackText">חזרה לטיול</strong></div>
+        <span class="trip-picker-card-arrow">‹</span>
+      </a>
       <div class="trip-picker-empty" id="tripPickerEmpty" style="display:none;">
         <span id="tripPickerEmptyText">עדיין לא הצטרפת לאף טיול.</span>
         <div style="margin-top:10px;">
@@ -2534,6 +2542,16 @@
     // without this, resolveTripSelection() would just bounce straight back
     // into lastTripId (see its own comment) and the picker would never show.
     const forceTripPicker = invitationParams.get("trips") === "1";
+
+    // Carries the trip the user was just on, so the picker can offer a way
+    // back - set only by tripsLink's own href below, never by a bare
+    // ?trips=1 (first-run / no-trip-yet) or by the "trip not found" fallback
+    // in startTripListener() (nothing to go back to there - that tripId is
+    // exactly the one that just failed to load).
+    const backToTripId = invitationParams.get("from");
+
+    document.getElementById("tripsLink").href =
+      "index.html?trips=1" + (tripId ? "&from=" + encodeURIComponent(tripId) : "");
 
     // True once a real trip record has arrived. Until then we must not write
     // anything back to the cache, or a slow load would persist the defaults.
@@ -4861,6 +4879,25 @@
       });
 
       document.getElementById("tripPicker").style.display = "block";
+
+      const backLink = document.getElementById("tripPickerBack");
+
+      if (backToTripId) {
+        let backName = null;
+
+        try {
+          backName = localStorage.getItem("trip-" + backToTripId + "-name");
+        } catch (e) {}
+
+        document.getElementById("tripPickerBackText").textContent = backName
+          ? tr("חזרה ל" + backName, "Back to " + backName)
+          : tr("חזרה לטיול", "Back to trip");
+
+        backLink.href = "index.html?tripId=" + encodeURIComponent(backToTripId);
+        backLink.classList.remove("hidden");
+      } else {
+        backLink.classList.add("hidden");
+      }
     }
 
     let tripPickerStarted = false;
