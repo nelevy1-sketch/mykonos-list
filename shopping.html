@@ -464,7 +464,7 @@
     box-shadow:0 0 10px rgba(192,83,63,.35);
   }
 
-  .whoami label {
+  .whoami #nameLabel {
     font-size:13px;
     font-weight:700;
     color:var(--sea);
@@ -473,18 +473,14 @@
     flex:0 0 auto;
   }
 
-  .whoami select {
-    border:none;
-    outline:none;
+  .whoami #myName {
     font-family:inherit;
     font-size:14px;
     color:var(--text-main);
     flex:1 1 auto;
-    background:transparent;
     font-weight:700;
     min-width:0;
     padding:6px 0;
-    cursor:pointer;
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
@@ -1359,11 +1355,8 @@ body.modal-open .modal-card {
     </div>
 
     <div class="whoami" id="whoamiBox">
-      <label for="myName" id="nameLabel">שם:</label>
-
-      <select id="myName">
-        <option value="">בחר/י את שמך מהרשימה…</option>
-      </select>
+      <span id="nameLabel">שם:</span>
+      <span id="myName"></span>
     </div>
   </div>
 </div>
@@ -2306,8 +2299,8 @@ body.modal-open .modal-card {
         stopTripListener = null;
       }
 
-      document.getElementById("myName").disabled =
-        true;
+      document.getElementById("myName").textContent =
+        "";
     } else if (
       tripData &&
       Object.keys(tripData).length
@@ -2487,39 +2480,17 @@ body.modal-open .modal-card {
   // #memberGateSelect claim flow (participantKey, claimMember) is gone,
   // not frozen. member.js computes the claim key internally now (uid-
   // based, not name-based - see its own comment), so this file never
-  // needs to call window.participantKey. #myName (the always-visible,
-  // disabled-once-claimed select) stays - it's a separate, non-blocking
-  // element, not the gate.
-  function renderParticipants(participants = []) {
-    const select =
-      document.getElementById("myName");
-
-    const previous =
-      currentProfile?.name || "";
-
-    select.innerHTML =
-      `<option value="">${tr(
-        "בחר/י את שמך מהרשימה…",
-        "Choose your name from the list…"
-      )}</option>`;
-
-    participants.forEach(name => {
-      const option =
-        document.createElement("option");
-
-      option.value = name;
-      option.textContent = name;
-      select.appendChild(option);
-    });
-
-    if (participants.includes(previous)) {
-      select.value = previous;
-    }
-
-    select.disabled =
-      Boolean(currentProfile);
-  }
-
+  // needs to call window.participantKey. #myName (the always-visible
+  // name display) stays - it's a separate, non-blocking element, not
+  // the gate. It's a plain span now, not a select: identity is no
+  // longer picked from tripData.participants (the organizer's roster
+  // typed at trip creation, see wizard.html) - it's whatever
+  // currentProfile.name auto-register resolved, which is very often
+  // not on that roster at all. Setting a <select>'s .value to a string
+  // with no matching <option> is a silent DOM no-op - that's exactly
+  // how this broke before this comment was written: the select stayed
+  // on its blank placeholder forever, so requireUserName() below
+  // (which read the select's value) permanently blocked every action.
   async function loadMemberProfile() {
     if (!currentUser || !tripRoot) {
       return;
@@ -2586,17 +2557,9 @@ body.modal-open .modal-card {
       }
     }
 
-    renderParticipants(
-      Array.isArray(tripData.participants)
-        ? tripData.participants
-        : []
-    );
-
     if (currentProfile) {
-      myNameInput.value =
+      myNameInput.textContent =
         currentProfile.name;
-
-      myNameInput.disabled = true;
 
       localStorage.setItem(
         NAME_KEY,
@@ -2687,12 +2650,6 @@ body.modal-open .modal-card {
     document.title =
       `${tr("רשימת קניות","Shopping list")} • ` +
       `${destinationName}`;
-
-    renderParticipants(
-      Array.isArray(tripData.participants)
-        ? tripData.participants
-        : []
-    );
 
     if (currentUser) {
       loadMemberProfile();
@@ -2817,24 +2774,6 @@ body.modal-open .modal-card {
         );
       }
     );
-  }
-
-  if (!tripRoot) {
-    showSystemMessage(
-      "מצב תאימות: הרשימה אינה משויכת לטיול מסוים. מומלץ להיכנס דרך הקישור של המארגן."
-    );
-
-    renderParticipants([
-      "איילה",
-      "בולבול",
-      "בנצה",
-      "ברגה",
-      "מארג",
-      "מרגלית",
-      "נירה",
-      "פוטה",
-      "ציפי"
-    ]);
   }
 
   const AUDIT_LABELS_BY_TAB = {
@@ -3335,14 +3274,19 @@ body.modal-open .modal-card {
     }
   }
 
+  // docs/roadmap.md part 3 item 0, commit ব1 - identity is no longer
+  // picked here, it's whatever auto-register resolved into
+  // currentProfile.name (see loadMemberProfile). This is now only a
+  // race guard for the narrow window between page load and that
+  // resolving - once it does, every caller works with no user action
+  // needed.
   function requireUserName() {
-    const myName = myNameInput.value ? myNameInput.value.trim() : '';
+    const myName = currentProfile?.name || '';
     const whoamiBox = document.getElementById('whoamiBox');
 
     if (!myName) {
       whoamiBox.classList.add('highlight');
-      myNameInput.focus();
-      showToast(tr('נא לבחור את שמך מהרשימה בראש המסך', 'Choose your name from the list at the top of the screen'));
+      showToast(tr('עדיין טוען את הפרופיל שלך, נסו שוב בעוד רגע', 'Still loading your profile, try again in a moment'));
       return null;
     }
     whoamiBox.classList.remove('highlight');
@@ -3572,11 +3516,6 @@ body.modal-open .modal-card {
     if (e.key === 'Escape') document.querySelector('.modal-overlay.show')?.classList.remove('show');
   });
 
-  myNameInput.disabled = true;
-  myNameInput.addEventListener('change', () => {
-    if (currentProfile) myNameInput.value = currentProfile.name;
-  });
-
   function updateProgressBar(keys) {
     const total = keys.length;
     if (total === 0) {
@@ -3639,7 +3578,7 @@ body.modal-open .modal-card {
     categoriesContainer.innerHTML = '';
     statusTag.textContent = displayStatus(listStatus);
     const keys = Object.keys(itemsMap || {});
-    const myName = myNameInput.value ? myNameInput.value.trim() : '';
+    const myName = currentProfile?.name || '';
 
     updateProgressBar(keys);
     showMissingSummaryBtn.style.display = isAuditMode ? 'block' : 'none';
