@@ -2450,6 +2450,7 @@
     let tripCharacter = "";
     let showAccent = true;
     let destinationName = "הטיול הבא";
+    let organizerName = "";
     let latCoord = 32.0853;
     let lonCoord = 34.7818;
     let hasRealCoords = false;
@@ -3863,6 +3864,7 @@
       const lastLeg = window.getLastLeg(legInput);
 
       destinationName = primaryLeg.name || destinationName;
+      organizerName = data.organizerName || organizerName;
 
       try {
         localStorage.setItem("lastTripId", tripId);
@@ -4842,12 +4844,32 @@
     const appTitleEl =
       document.getElementById("appTitle");
 
+    // docs/roadmap.md part 3 item 0, invitation screen (commit 2א) - the
+    // shared link carries destination (d) and organizer name (h) so
+    // index.html's authGate can greet the recipient by name before they've
+    // signed in (the trip itself is unreadable pre-auth, `.read: auth !=
+    // null` - see docs/roadmap.md's own investigation). Built via
+    // URLSearchParams.set, not manual string interpolation - it already
+    // percent-encodes correctly, so no encodeURIComponent on top of it (that
+    // would double-encode). Only added when known - an older trip with no
+    // organizerName just shares a link without h, same as before this
+    // commit.
     function updateAdminShareLink() {
-      const url = scopedTripUrl("index.html");
+      const url = new URL(scopedTripUrl("index.html"));
+
+      if (destinationName) {
+        url.searchParams.set("d", destinationName);
+      }
+
+      if (organizerName) {
+        url.searchParams.set("h", organizerName);
+      }
+
+      const shareUrl = url.href;
 
       const message = tr(
-        `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${url}`,
-        `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${url}`
+        `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
+        `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${shareUrl}`
       );
 
       document.getElementById(

@@ -1952,6 +1952,20 @@
             // above when this key is absent (docs/schema-legs.md §2.1, §10).
             ...(legs.length > 1 ? { legs } : {}),
             ownerId: organizer.uid,
+            // docs/roadmap.md part 3 item 0, invitation screen (commit 2א) -
+            // the organizer's name has never been stored anywhere on the
+            // trip: ownerId is a uid, used for permission checks only,
+            // nothing resolves it to a display name. Written once, here, at
+            // the one moment it's guaranteed to be in memory - by the time
+            // anyone else looks for it, it's either read from this trip's
+            // own record or not available at all (definitely not from
+            // memberProfiles: that's per-trip and doesn't exist pre-auth
+            // anyway, which is exactly when the invitation screen needs it -
+            // see index.html's authGate). organizer.displayName can be
+            // empty for some Google accounts; email is the fallback of last
+            // resort, same pattern as every other Google-identity fallback
+            // in this app.
+            organizerName: organizer.displayName || organizer.email || '',
             createdAt: Date.now()
         };
 
@@ -1973,7 +1987,26 @@
             document.getElementById('summaryTitle').textContent = t.successHeader;
             document.getElementById('summaryText').textContent = t.successText;
             document.getElementById('summaryGrid').innerHTML = '';
-            const shareUrl = tripUrl(tripId);
+            // docs/roadmap.md part 3 item 0, invitation screen (commit 2א) -
+            // this is the most common path for the link a real recipient
+            // sees: the one place shown right after the trip is created
+            // (index.html's own share panel is a second, later way to
+            // re-copy it). tripUrl() itself stays untouched - it's also
+            // used by renderRecentTrips() for the organizer's own past
+            // trips, where d/h would be meaningless. destination and
+            // tripData.organizerName are both already in scope here, same
+            // pattern as updateAdminShareLink() in index.html.
+            const shareUrlObj = new URL(tripUrl(tripId));
+
+            if (destination) {
+                shareUrlObj.searchParams.set('d', destination);
+            }
+
+            if (tripData.organizerName) {
+                shareUrlObj.searchParams.set('h', tripData.organizerName);
+            }
+
+            const shareUrl = shareUrlObj.href;
             document.getElementById('finalTripLink').value = shareUrl;
             document.getElementById('openTripBtn').href = shareUrl;
             document.getElementById('resultLinkBox').style.display = 'flex';

@@ -3228,6 +3228,14 @@ body.modal-open .modal-card {
     return null;
   }
 
+  // docs/roadmap.md part 3 item 0, invitation screen - this link
+  // deliberately does NOT get d/h (destination/organizer name), unlike
+  // index.html's updateAdminShareLink(). Two reasons: it's a re-share of
+  // one shopping-list tab between people already in the trip, not a
+  // first-contact invite (see docs/roadmap.md's own scoping decision) -
+  // and even if it were, this URL points at shopping.html, while the
+  // invitation screen only exists on index.html's authGate. Adding d/h
+  // here would just be two params nobody reads.
   function updateShareLink() {
     const tabUrl =
       scopedUrl(
