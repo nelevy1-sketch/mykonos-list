@@ -1932,8 +1932,9 @@
           { id: "gear", name: "ציוד", items: ["מטען לטלפון", "תרופות", "פאוור בנק", "מתאם חשמל"] }
         ],
         local: [
-          { id: "gear", name: "ציוד", items: ["בקבוק מים", "כובע", "מטען", "תרופות", "נעליים נוחות"] },
-          { id: "clothing", name: "ביגוד", items: ["מעיל קל", "בגד החלפה"] }
+          { id: "documents", name: "מסמכים", items: ["תעודת זהות", "רישיון נהיגה", "כרטיס אשראי", "אישור הזמנה"] },
+          { id: "clothing", name: "ביגוד", items: ["מעיל קל", "בגד החלפה"] },
+          { id: "gear", name: "ציוד", items: ["בקבוק מים", "כובע", "מטען", "תרופות", "נעליים נוחות"] }
         ],
         camping: [
           { id: "shelter", name: "לינה", items: ["אוהל", "שק שינה", "מזרן מתנפח", "פנס"] },
@@ -1942,6 +1943,7 @@
         ],
         reserve: [
           { id: "uniform", name: "ציוד אישי", items: ["מדים", "נעלי קרב", "כלי רחצה"] },
+          { id: "clothing", name: "ביגוד", items: ["בגד חם", "בגד להחלפה"] },
           { id: "gear", name: "ציוד", items: ["מטען", "תרופות", "פנס", "סוללות"] }
         ]
       };
@@ -1953,8 +1955,9 @@
           { id: "gear", name: "Gear", items: ["Phone charger", "Medicine", "Power bank", "Power adapter"] }
         ],
         local: [
-          { id: "gear", name: "Gear", items: ["Water bottle", "Hat", "Charger", "Medicine", "Walking shoes"] },
-          { id: "clothing", name: "Clothing", items: ["Light jacket", "Change of clothes"] }
+          { id: "documents", name: "Documents", items: ["ID card", "Driver's license", "Credit card", "Booking confirmation"] },
+          { id: "clothing", name: "Clothing", items: ["Light jacket", "Change of clothes"] },
+          { id: "gear", name: "Gear", items: ["Water bottle", "Hat", "Charger", "Medicine", "Walking shoes"] }
         ],
         camping: [
           { id: "shelter", name: "Shelter", items: ["Tent", "Sleeping bag", "Air mattress", "Flashlight"] },
@@ -1963,6 +1966,7 @@
         ],
         reserve: [
           { id: "uniform", name: "Personal gear", items: ["Uniform", "Combat boots", "Toiletries"] },
+          { id: "clothing", name: "Clothing", items: ["Warm clothing", "Change of clothes"] },
           { id: "gear", name: "Gear", items: ["Charger", "Medicine", "Flashlight", "Batteries"] }
         ]
       };
@@ -2122,6 +2126,16 @@
       return lists;
     }
 
+    // Writes listMeta exactly once per user per trip, on their very first
+    // visit - intentional, not a bug to "fix" by making it run again later.
+    // The guard below means a user who has since renamed/deleted/reordered
+    // their categories never gets silently overwritten back to the
+    // starter set on a later load. A user with no listMeta yet (this
+    // guard's whole reason to exist) still sees category names correctly
+    // in the meantime - listLabelFor() (below) falls back to the raw
+    // category id itself when no listMeta entry exists for it, which is
+    // why "gear"/"clothing" render fine even before this write lands, not
+    // a separate gap.
     async function ensureStarterLists() {
       const metadata = allPacking?.users?.[user?.uid]?.listMeta;
       const existingItems = allPacking?.users?.[user?.uid]?.items;
