@@ -47,6 +47,7 @@
   <script src="toast.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="member.js"></script>
   <script src="auth-gate.js"></script>
 
   <style>
@@ -1022,28 +1023,6 @@
     </div>
   </div>
 
-  <div class="overlay hidden" id="memberOverlay">
-    <div class="sheet">
-      <div class="handle"></div>
-      <h2 id="memberTitle">מי את/ה בקבוצה?</h2>
-
-      <p id="memberText">
-        בחרו את השם שהמארגן הוסיף לטיול.
-      </p>
-
-      <div class="field">
-        <select id="memberSelect"></select>
-      </div>
-
-      <button
-        class="primary-btn"
-        style="width:100%"
-        id="saveMemberBtn">
-        זה אני
-      </button>
-    </div>
-  </div>
-
   <div class="overlay hidden" id="addItemOverlay">
     <div class="sheet">
       <div class="handle"></div>
@@ -1645,21 +1624,6 @@
       $("googleBtn").innerHTML =
         `G&nbsp;&nbsp; ` +
         `${tr("כניסה עם Google", "Continue with Google")}`;
-
-      $("memberTitle").textContent =
-        tr(
-          "מי את/ה בקבוצה?",
-          "Who are you in the group?"
-        );
-
-      $("memberText").textContent =
-        tr(
-          "בחרו את השם שהמארגן הוסיף לטיול.",
-          "Choose the name added by the organizer."
-        );
-
-      $("saveMemberBtn").textContent =
-        tr("זה אני", "This is me");
 
       $("editTitle").textContent =
         tr("עריכת פריט", "Edit item");
@@ -2683,24 +2647,6 @@
       );
     }
 
-    function participantKey(name) {
-      const bytes =
-        new TextEncoder().encode(
-          String(name).trim()
-        );
-
-      let raw = "";
-
-      bytes.forEach(byte => {
-        raw += String.fromCharCode(byte);
-      });
-
-      return btoa(raw)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-    }
-
     function participantOptions() {
       const names =
         Array.isArray(trip.participants)
@@ -2715,7 +2661,7 @@
         `${tr("בחר/י את שמך…", "Choose your name…")}` +
         `</option>` +
         names.map((name, index) => {
-          const key = participantKey(name);
+          const key = window.participantKey(name);
 
           const isTaken =
             claims[key] &&
@@ -2733,7 +2679,6 @@
         }).join("");
 
       $("participantSelect").innerHTML = options;
-      $("memberSelect").innerHTML = options;
 
       if (profile) {
         const index =
@@ -2741,9 +2686,6 @@
 
         if (index >= 0) {
           $("participantSelect").value =
-            String(index);
-
-          $("memberSelect").value =
             String(index);
         }
 
@@ -2767,7 +2709,7 @@
         );
       }
 
-      const key = participantKey(name);
+      const key = window.participantKey(name);
 
       const claimReference = ref(
         db,
@@ -2832,10 +2774,6 @@
 
         profile = nextProfile;
 
-        $("memberOverlay")
-          .classList
-          .add("hidden");
-
         syncIdentity();
         listenPacking();
 
@@ -2873,11 +2811,6 @@
         user?.displayName || user?.email || "";
 
       participantOptions();
-
-      $("memberOverlay").classList.toggle(
-        "hidden",
-        !(user && !profile)
-      );
     }
 
     function userBase() {
@@ -4337,9 +4270,14 @@
       const gen = ++profileLoadGen;
       let resolved = false;
 
-      // If the get() below never resolves, fall back to exactly the "no
-      // profile" path after 8s - reveal #memberOverlay, let the user pick
-      // their name manually. No new UI, no retry button - see CHANGELOG.
+      // If the get() below never resolves, fall back to the "no profile"
+      // state after 8s. #memberOverlay is gone (docs/roadmap.md part 3
+      // item 0, commit ב) so there's no fallback UI to reveal anymore -
+      // the stuck initial read is exactly the class of problem a retry
+      // attempt is unlikely to fix (see auth-gate.js's own reasoning for
+      // the same timeout pattern), so this surfaces a toast instead of
+      // silently leaving profile null with nothing on screen explaining
+      // why actions that need a profile aren't working.
       const timer = setTimeout(() => {
         if (resolved) return;
         resolved = true;
@@ -4351,6 +4289,7 @@
 
         profile = null;
         syncIdentity();
+        toast(tr("לא ניתן היה לטעון את הפרופיל שלך. רעננו ונסו שוב.", "Couldn't load your profile. Refresh and try again."));
       }, 8000);
 
       profileLoadTimer = timer;
@@ -4375,6 +4314,61 @@
         }
 
         profile = snapshot.val();
+
+        // docs/roadmap.md part 3 item 0, commit ב - no name-picker gate
+        // for a first-time joiner. Auto-register from their Google
+        // identity instead (member.js, shared with index.html - see its
+        // own comment on why claims are keyed by uid, not name).
+        if (!profile && window.autoRegisterMember) {
+          try {
+            profile = await window.autoRegisterMember({
+              uid: user.uid,
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              fallbackName: tr("משתתף", "Traveler"),
+              tryClaim: (key, uid) =>
+                runTransaction(
+                  ref(db, `${tripRoot}/participantClaims/${key}`),
+                  current => (current === null || current === uid) ? uid : undefined,
+                  { applyLocally: false }
+                ).then(result => Boolean(result.committed) && result.snapshot.val() === uid),
+              writeProfile: fields =>
+                set(ref(db, `${tripRoot}/memberProfiles/${user.uid}`), fields),
+              rollbackClaim: (key, uid) =>
+                runTransaction(
+                  ref(db, `${tripRoot}/participantClaims/${key}`),
+                  current => (current === uid ? null : current),
+                  { applyLocally: false }
+                )
+            });
+
+            if (gen !== profileLoadGen) {
+              return;
+            }
+
+            // Best-effort, same as the manual-claim path (saveProfile)
+            // already does for this exact reason: so index.html's trip
+            // picker can list this trip too. Never blocks or surfaces a
+            // failure here - the join itself already fully succeeded.
+            update(ref(db), {
+              [`users/${user.uid}/trips/${tripId}`]: {
+                destination: window.getPrimaryLeg(trip).name || "",
+                tripType: trip.tripType || "",
+                language: trip.language || "he",
+                startAt: trip.startAt || null,
+                endAt: window.getLastLeg(trip).endAt || null,
+                createdAt: trip.createdAt || Date.now()
+              }
+            }).catch(error => {
+              console.error("Could not record trip under user's trip list:", error);
+            });
+          } catch (error) {
+            console.error("[packing.html] loadProfile: auto-register failed", error);
+            profile = null;
+            toast(tr("לא ניתן היה להצטרף לטיול. רעננו ונסו שוב.", "Couldn't join the trip. Refresh and try again."));
+          }
+        }
 
         syncIdentity();
       } catch (error) {
@@ -4409,12 +4403,6 @@
       );
 
       applyTheme();
-    };
-
-    $("saveMemberBtn").onclick = () => {
-      saveProfile(
-        $("memberSelect").value
-      );
     };
 
     $("participantSelect").onchange = event => {
@@ -4676,10 +4664,6 @@
           stopTrip();
           stopTrip = null;
         }
-
-        $("memberOverlay")
-          .classList
-          .add("hidden");
       }
     }
 

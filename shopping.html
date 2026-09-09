@@ -62,6 +62,7 @@
 <script src="toast.js"></script>
 <script src="legs.js"></script>
 <script src="datetime.js"></script>
+<script src="member.js"></script>
 <script src="auth-gate.js"></script>
 
 <title>רשימת קניות | Trip Companion</title>
@@ -1312,25 +1313,6 @@ body.modal-open .modal-card {
   </div>
 </div>
 
-<div class="auth-gate hidden" id="memberGate">
-  <div class="auth-card">
-    <div class="auth-icon">👤</div>
-    <h2 id="memberGateTitle">מי את/ה בקבוצה?</h2>
-    <p id="memberGateText">
-      בחרו את השם שהמארגן הוסיף לטיול. הבחירה תינעל לחשבון Google שלכם.
-    </p>
-
-    <select
-      id="memberGateSelect"
-      style="width:100%;min-height:48px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);color:var(--text-main);padding:0 12px;margin-bottom:12px">
-    </select>
-
-    <button class="google-signin-btn" id="claimMemberBtn">
-      זה אני
-    </button>
-  </div>
-</div>
-
 <div class="sticky-header-container">
   <header>
     <a
@@ -2200,21 +2182,6 @@ body.modal-open .modal-card {
         "Continue with Google"
       )}`;
 
-    document.getElementById("memberGateTitle").textContent =
-      tr(
-        "מי את/ה בקבוצה?",
-        "Who are you in the group?"
-      );
-
-    document.getElementById("memberGateText").textContent =
-      tr(
-        "בחרו את השם שהמארגן הוסיף לטיול. הבחירה תינעל לחשבון Google שלכם.",
-        "Choose the name added by the organizer. It will be locked to your Google account."
-      );
-
-    document.getElementById("claimMemberBtn").textContent =
-      tr("זה אני","This is me");
-
     document
       .querySelector(".bottom-nav")
       .setAttribute(
@@ -2338,10 +2305,6 @@ body.modal-open .modal-card {
         stopTripListener();
         stopTripListener = null;
       }
-
-      document.getElementById("memberGate")
-        .classList
-        .add("hidden");
 
       document.getElementById("myName").disabled =
         true;
@@ -2517,30 +2480,19 @@ body.modal-open .modal-card {
     box.style.display = "block";
   }
 
-  function participantKey(name) {
-    const bytes =
-      new TextEncoder().encode(
-        String(name).trim()
-      );
-
-    let raw = "";
-
-    bytes.forEach(byte => {
-      raw += String.fromCharCode(byte);
-    });
-
-    return btoa(raw)
-      .replace(/\+/g,"-")
-      .replace(/\//g,"_")
-      .replace(/=+$/,"");
-  }
-
+  // docs/roadmap.md part 3 item 0, commit ב - no name-picker gate for a
+  // first-time joiner. loadMemberProfile() below auto-registers from
+  // Google identity instead (member.js, shared with index.html/packing.
+  // html/places.html/itinerary.html) - the old #memberGate/
+  // #memberGateSelect claim flow (participantKey, claimMember) is gone,
+  // not frozen. member.js computes the claim key internally now (uid-
+  // based, not name-based - see its own comment), so this file never
+  // needs to call window.participantKey. #myName (the always-visible,
+  // disabled-once-claimed select) stays - it's a separate, non-blocking
+  // element, not the gate.
   function renderParticipants(participants = []) {
     const select =
       document.getElementById("myName");
-
-    const claimSelect =
-      document.getElementById("memberGateSelect");
 
     const previous =
       currentProfile?.name || "";
@@ -2551,12 +2503,6 @@ body.modal-open .modal-card {
         "Choose your name from the list…"
       )}</option>`;
 
-    claimSelect.innerHTML =
-      `<option value="">${tr(
-        "בחר/י את שמך…",
-        "Choose your name…"
-      )}</option>`;
-
     participants.forEach(name => {
       const option =
         document.createElement("option");
@@ -2564,29 +2510,6 @@ body.modal-open .modal-card {
       option.value = name;
       option.textContent = name;
       select.appendChild(option);
-
-      const claimOption =
-        option.cloneNode(true);
-
-      const claimedUid =
-        tripData?.participantClaims?.[
-          participantKey(name)
-        ];
-
-      if (
-        claimedUid &&
-        claimedUid !== currentUser?.uid
-      ) {
-        claimOption.disabled = true;
-
-        claimOption.textContent +=
-          tr(
-            " — כבר משויך",
-            " — already linked"
-          );
-      }
-
-      claimSelect.appendChild(claimOption);
     });
 
     if (participants.includes(previous)) {
@@ -2612,19 +2535,62 @@ body.modal-open .modal-card {
     currentProfile =
       snapshot.val();
 
+    // docs/roadmap.md part 3 item 0, commit ב - no name-picker gate for a
+    // first-time joiner. #memberGate is gone, not frozen - a failure here
+    // shows a toast instead of leaving a silent dead end with nothing on
+    // screen explaining why actions that need a profile aren't working.
+    if (!currentProfile && window.autoRegisterMember) {
+      try {
+        currentProfile = await window.autoRegisterMember({
+          uid: currentUser.uid,
+          displayName: currentUser.displayName,
+          email: currentUser.email,
+          photoURL: currentUser.photoURL,
+          fallbackName: tr("משתתף", "Traveler"),
+          tryClaim: (key, uid) =>
+            runTransaction(
+              ref(db, `${tripRoot}/participantClaims/${key}`),
+              current => (current === null || current === uid) ? uid : undefined,
+              { applyLocally: false }
+            ).then(result => Boolean(result.committed) && result.snapshot.val() === uid),
+          writeProfile: fields =>
+            set(ref(db, `${tripRoot}/memberProfiles/${currentUser.uid}`), fields),
+          rollbackClaim: (key, uid) =>
+            runTransaction(
+              ref(db, `${tripRoot}/participantClaims/${key}`),
+              current => (current === uid ? null : current),
+              { applyLocally: false }
+            )
+        });
+
+        // Best-effort, same shape wizard.html writes for the organizer at
+        // creation: so index.html's trip picker can list this trip too.
+        // Never blocks or surfaces a failure here - the join itself
+        // already fully succeeded.
+        update(ref(db), {
+          [`users/${currentUser.uid}/trips/${tripId}`]: {
+            destination: window.getPrimaryLeg(tripData).name || "",
+            tripType: tripData?.tripType || "",
+            language: tripData?.language || "he",
+            startAt: tripData?.startAt || null,
+            endAt: window.getLastLeg(tripData).endAt || null,
+            createdAt: tripData?.createdAt || Date.now()
+          }
+        }).catch(error => {
+          console.error("Could not record trip under user's trip list:", error);
+        });
+      } catch (error) {
+        console.error("[shopping.html] loadMemberProfile: auto-register failed", error);
+        currentProfile = null;
+        showToast(tr("לא ניתן היה להצטרף לטיול. רעננו ונסו שוב.", "Couldn't join the trip. Refresh and try again."));
+      }
+    }
+
     renderParticipants(
       Array.isArray(tripData.participants)
         ? tripData.participants
         : []
     );
-
-    document
-      .getElementById("memberGate")
-      .classList
-      .toggle(
-        "hidden",
-        Boolean(currentProfile)
-      );
 
     if (currentProfile) {
       myNameInput.value =
@@ -2640,149 +2606,6 @@ body.modal-open .modal-card {
       render();
     }
   }
-
-  async function claimMember() {
-    if (!currentUser || currentProfile) {
-      return;
-    }
-
-    const name =
-      document
-        .getElementById("memberGateSelect")
-        .value;
-
-    if (!name) {
-      return showToast(
-        tr(
-          "יש לבחור שם",
-          "Choose a name"
-        )
-      );
-    }
-
-    const key =
-      participantKey(name);
-
-    const claimReference =
-      ref(
-        db,
-        `${tripRoot}/participantClaims/${key}`
-      );
-
-    try {
-      const result = await runTransaction(
-        claimReference,
-        current =>
-          current === null ||
-          current === currentUser.uid
-            ? currentUser.uid
-            : undefined,
-        {
-          applyLocally:false
-        }
-      );
-
-      if (
-        !result.committed ||
-        result.snapshot.val() !== currentUser.uid
-      ) {
-        return showToast(
-          tr(
-            "השם הזה כבר שויך למשתתף אחר",
-            "This name is already linked to another participant"
-          )
-        );
-      }
-
-      const profile = {
-        name,
-        participantKey:key,
-        email:currentUser.email || "",
-        photoURL:currentUser.photoURL || "",
-        updatedAt:Date.now()
-      };
-
-      try {
-        await set(
-          ref(
-            db,
-            `${tripRoot}/memberProfiles/${currentUser.uid}`
-          ),
-          profile
-        );
-      } catch (error) {
-        await runTransaction(
-          claimReference,
-          current =>
-            current === currentUser.uid
-              ? null
-              : current,
-          {
-            applyLocally:false
-          }
-        );
-
-        throw error;
-      }
-
-      currentProfile = profile;
-
-      // Best-effort: also record this trip under the joining user's own
-      // uid - same shape wizard.html writes for the organizer at
-      // creation - so index.html's trip picker can list it. The join
-      // above has already fully succeeded at this point; if this fails,
-      // don't surface it to the user, just log it.
-      update(ref(db), {
-        [`users/${currentUser.uid}/trips/${tripId}`]: {
-          destination: window.getPrimaryLeg(tripData).name || "",
-          tripType: tripData?.tripType || "",
-          language: tripData?.language || "he",
-          startAt: tripData?.startAt || null,
-          endAt: window.getLastLeg(tripData).endAt || null,
-          createdAt: tripData?.createdAt || Date.now()
-        }
-      }).catch(error => {
-        console.error("Could not record trip under user's trip list:", error);
-      });
-
-      document
-        .getElementById("memberGate")
-        .classList
-        .add("hidden");
-
-      renderParticipants(
-        Array.isArray(tripData.participants)
-          ? tripData.participants
-          : []
-      );
-
-      myNameInput.value = name;
-      myNameInput.disabled = true;
-
-      localStorage.setItem(
-        NAME_KEY,
-        name
-      );
-
-      render();
-    } catch (error) {
-      console.error(error);
-
-      showToast(
-        tr(
-          "לא ניתן היה לשייך את השם. נסו שוב.",
-          "Could not link the name. Please try again."
-        )
-      );
-    }
-  }
-
-  document
-    .getElementById("claimMemberBtn")
-    .addEventListener(
-      "click",
-      claimMember
-    );
 
   function syncTripUI(data) {
     tripData = data || {};
