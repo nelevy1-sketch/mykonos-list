@@ -130,6 +130,17 @@ index.html הוא היוצא מן הכלל היחיד מבין 6 העמודים,
 itinerary.html על גבי `[data-tokens="core"]` עם `var(--muted)`. איחוד
 למחלקה משותפת ישבור מצב בהיר באחד משני העמודים.
 
+**אותה מלכודת קיימת גם במצבים ריקים (`.empty`/`.empty-state`) - שלוש
+הגדרות נפרדות, לא אחת.** `packing.html` (`.empty` + `<span class="emoji">`),
+`places.html`/`itinerary.html` (`.empty` + `<b>`, כמעט זהות בין השתיים
+אבל לא לגמרי - padding שונה), ו-`shopping.html` (`.empty-state` +
+`<strong>`/`<span>` לכותרת/תת-כותרת). שום אחת מהן לא ב-shared.css.
+`packing.html` ו-`places.html`/`itinerary.html` חולקות את השם `.empty`
+בלי לחלוק CSS בכלל - שתי הגדרות `<style>` מקומיות, עצמאיות. מי שיערוך
+אחת לא ישפיע על השנייה, ולא כדאי לאחד אותן בלי משימה ייעודית לזה
+(ראה docs/roadmap.md part 3 item 0, commit ה-empty-states - במפורש
+לא אוחד שם, כדי לא לערבב תיקון עם רה-פקטור).
+
 **מחלקות `character-X` (מבטא לפי `tripCharacter`) תמיד על `documentElement`,
 בכל 6 העמודים - כולל ב-index.html, למרות ש-`theme-X` שם דווקא על `document.body`.**
 עקביות מכוונת בין העמודים למחלקות *חדשות* - כדי שלא יתווסף עוד פיצול

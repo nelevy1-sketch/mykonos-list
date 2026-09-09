@@ -795,6 +795,61 @@
       margin-bottom:8px;
     }
 
+    .empty strong {
+      display:block;
+      color:var(--text);
+      font-size:1rem;
+      margin-bottom:4px;
+    }
+
+    .empty span {
+      display:block;
+      font-size:.85rem;
+    }
+
+    /* docs/roadmap.md part 3 item 0 (empty-state copy) - a per-category
+       empty list is the whole invitation to add the first item, not a
+       passive message next to a separate button. Deliberately its own
+       class, not a variant of .empty above: .empty stays the
+       non-interactive "nothing to point at" case (renderGroup()'s
+       shared-items panel), this one is always a real <button>. */
+    .empty-action {
+      display:block;
+      width:100%;
+      min-height:44px;
+      text-align:center;
+      padding:32px 14px;
+      color:var(--muted);
+      background:transparent;
+      border:1.5px dashed var(--line);
+      border-radius:var(--radius);
+      font:inherit;
+      cursor:pointer;
+    }
+
+    .empty-action:focus {
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 16%,transparent);
+    }
+
+    .empty-action .emoji {
+      font-size:2.4rem;
+      display:block;
+      margin-bottom:8px;
+    }
+
+    .empty-action strong {
+      display:block;
+      color:var(--text);
+      font-size:1rem;
+      margin-bottom:4px;
+    }
+
+    .empty-action span {
+      display:block;
+      font-size:.85rem;
+    }
+
     .group-block {
       margin-bottom:16px;
     }
@@ -3298,15 +3353,40 @@
               </article>
             `;
             }).join("")
-          : `
-              <div class="empty">
-                <span class="emoji">🎒</span>
-                ${tr(
-                  "הרשימה עדיין ריקה. הוסיפו את הפריט הראשון.",
-                  "Your list is empty. Add the first item."
-                )}
-              </div>
-            `;
+          : (() => {
+              // docs/roadmap.md part 3 item 0 - invitation, not a notice:
+              // the whole box is the same "add item" action the FAB opens
+              // (wired below via addItemFab.click(), not a parallel path),
+              // so it disappears the moment one real item exists and the
+              // user already knows where the FAB is by then.
+              const destName =
+                window.getCurrentLegName
+                  ? window.getCurrentLegName(trip)
+                  : null;
+
+              const emptyTitle = destName
+                ? tr(`מה לוקחים ל${destName}?`, `What are you packing for ${destName}?`)
+                : tr("מה לוקחים לטיול?", "What are you packing for the trip?");
+
+              return `
+                <button type="button" class="empty-action" data-open-add>
+                  <span class="emoji">🎒</span>
+                  <strong>${escapeHtml(emptyTitle)}</strong>
+                  <span>${tr(
+                    "התחילו מפריט אחד — או תנו ל-AI להציע רשימה.",
+                    "Start with one item — or let AI suggest a list."
+                  )}</span>
+                </button>
+              `;
+            })();
+
+      const emptyActionBtn = document.querySelector("[data-open-add]");
+
+      if (emptyActionBtn) {
+        emptyActionBtn.onclick = () => {
+          $("addItemFab").click();
+        };
+      }
 
       document
         .querySelectorAll("[data-check]")
@@ -3712,10 +3792,11 @@
         `
           <div class="card empty">
             <span class="emoji">👥</span>
-            ${tr(
-              "עדיין לא שותפו פריטים עם הקבוצה.",
-              "No items have been shared with the group yet."
-            )}
+            <strong>${tr("עדיין לא שותפו פריטים", "Nothing shared yet")}</strong>
+            <span>${tr(
+              "שתפו פריט מהרשימה שלכם, וכולם יראו מי כבר לקח מה.",
+              "Share an item from your list, and everyone will see who's already got what."
+            )}</span>
           </div>
         `;
 

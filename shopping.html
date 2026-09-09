@@ -1198,6 +1198,23 @@
     margin:6px 0 3px;
   }
 
+  /* docs/roadmap.md part 3 item 0 (empty-state copy) - the "list is
+     truly empty, add the first item" case is a real <button> (this
+     class), not just .empty-state's plain-div look. The "all done,
+     hidden items" variant (same render() branch, different condition)
+     stays a plain div - nothing to point at there, showing hidden
+     items isn't the same action openModalBtn opens. */
+  .empty-state-action {
+    width:100%;
+    font:inherit;
+    cursor:pointer;
+  }
+
+  .empty-state-action:focus {
+    border-color:var(--sea);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--sea) 16%,transparent);
+  }
+
   body.modal-open {
     overflow:hidden;
   }
@@ -3595,12 +3612,22 @@ body.modal-open .modal-card {
       grouped[cat].push({ id, ...item, name: itemName });
     });
         if (Object.keys(grouped).length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'empty-state';
-      empty.innerHTML = hideDoneItems
-        ? tr('✅<strong>כל הפריטים הושלמו</strong><span>אפשר להציג שוב את הפריטים שסומנו.</span>', '✅<strong>All items are complete</strong><span>You can show completed items again.</span>')
-        : tr('🛒<strong>הרשימה עדיין ריקה</strong><span>הוסיפו את הפריט הראשון והקבוצה תראה אותו מיד.</span>', '🛒<strong>This list is still empty</strong><span>Add the first item and the group will see it instantly.</span>');
-      categoriesContainer.appendChild(empty);
+      if (hideDoneItems) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = tr('✅<strong>כל הפריטים הושלמו</strong><span>אפשר להציג שוב את הפריטים שסומנו.</span>', '✅<strong>All items are complete</strong><span>You can show completed items again.</span>');
+        categoriesContainer.appendChild(empty);
+      } else {
+        // docs/roadmap.md part 3 item 0 - the whole box is the same "add
+        // item" action openModalBtn opens (triggered via .click(), not a
+        // parallel path - keeps requireUserName()'s gate intact too).
+        const empty = document.createElement('button');
+        empty.type = 'button';
+        empty.className = 'empty-state empty-state-action';
+        empty.innerHTML = tr('🛒<strong>מה צריך לקנות לקבוצה?</strong><span>הוסיפו פריט וכולם יראו אותו מיד.</span>', '🛒<strong>What does the group need to buy?</strong><span>Add an item and everyone will see it right away.</span>');
+        empty.onclick = () => openModalBtn.click();
+        categoriesContainer.appendChild(empty);
+      }
       return;
     }
 

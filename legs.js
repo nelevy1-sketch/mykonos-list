@@ -233,6 +233,34 @@
             : null;
     }
 
+    // docs/roadmap.md part 3 item 0 (empty-state copy) - "which
+    // destination is this trip about right now", for UI copy that names
+    // it (packing.html's per-category empty state, places.html's empty
+    // state). Same fallback chain as getCurrentLegCoords above (active
+    // leg -> first leg if before the trip -> last leg otherwise) -
+    // deliberately mirrored rather than invented fresh, per that
+    // function's own reasoning: "where is the trip right now" and
+    // "which destination's name applies right now" are the same
+    // question asked two ways. Returns the resolved leg's name as-is
+    // (including falsy - undefined/"" - when a leg has none), so a
+    // caller can tell "no leg" apart from "leg with no name" if it ever
+    // needs to; text UI can just treat both as "no destination to show".
+    function getCurrentLegName(trip) {
+        const firstLeg = getPrimaryLeg(trip);
+        const lastLeg = getLastLeg(trip);
+        const activeLeg = getLegForDate(trip, new Date());
+
+        let targetLeg;
+        if (activeLeg) {
+            targetLeg = activeLeg;
+        } else {
+            const beforeTrip = firstLeg.startAt && new Date() < new Date(firstLeg.startAt);
+            targetLeg = beforeTrip ? firstLeg : lastLeg;
+        }
+
+        return targetLeg.name || null;
+    }
+
     // One calendar day per entry from trip.startAt to the last leg's
     // endAt, each tagged with the leg it belongs to. Moved here from
     // itinerary.html/places.html (docs/schema-legs.md §8, step 4) - those
@@ -375,5 +403,6 @@
     window.getLegForDate = getLegForDate;
     window.getCurrentLegTimezone = getCurrentLegTimezone;
     window.getCurrentLegCoords = getCurrentLegCoords;
+    window.getCurrentLegName = getCurrentLegName;
     window.tripDayDates = tripDayDates;
 })();
