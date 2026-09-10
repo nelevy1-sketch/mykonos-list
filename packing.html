@@ -637,10 +637,6 @@
       background:var(--surface);
     }
 
-    .item.selection-mode {
-      grid-template-columns:auto auto 1fr auto;
-    }
-
     .item.selected {
       border-color:var(--primary);
       background:color-mix(in srgb, var(--primary) 7%, var(--surface));
@@ -3242,9 +3238,7 @@
                     data-category="${item.categoryId}"
                     ${selectedIds.has(item.id) ? "checked" : ""}
                     aria-label="${tr("בחירה", "Select")}">
-                ` : ""}
-
-                ${hasSubs ? `
+                ` : hasSubs ? `
                   <span class="sub-progress">${subDone}/${subs.length}</span>
                 ` : `
                   <input
