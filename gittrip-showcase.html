@@ -151,7 +151,7 @@
 
   .stop h2 {
     font-size: 1.45rem;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -.015em;
     margin: 0 0 8px;
     line-height: 1.3;
@@ -377,7 +377,7 @@
 <div class="shell">
 
   <div class="hero">
-    <span class="plane">✈️</span>
+    <span class="plane" style="transform:none"><svg viewBox="0 0 512 512" width="52" height="52" aria-hidden="true"><rect width="512" height="512" rx="114" fill="#0B1015"/><path d="M134 386 C 228 386, 182 268, 258 238 C 302 219, 336 200, 352 168" fill="none" stroke="#2DD4C8" stroke-width="26" stroke-linecap="round" stroke-dasharray="6 46"/><circle cx="134" cy="386" r="30" fill="#0B1015" stroke="#2DD4C8" stroke-width="24"/><path d="M362 84 C 312 84, 276 120, 276 164 C 276 204, 312 244, 362 302 C 412 244, 448 204, 448 164 C 448 120, 412 84, 362 84 Z" fill="#2DD4C8"/><circle cx="362" cy="160" r="26" fill="#0B1015"/></svg></span>
     <h1>הטיול הבא שלכם<br>מתוכנן ביחד</h1>
     <p>לא עוד קבוצת וואטסאפ עמוסה ורשימות שאף אחד לא בטוח מי עדכן אחרון. GitTrip — מקום אחד, עדכני לכולם, בזמן אמת.</p>
   </div>
@@ -388,7 +388,7 @@
       <div class="stop-marker">🧭</div>
       <div class="stop-eyebrow">לפני הטיול</div>
       <h2>מתחילים בכמה קליקים</h2>
-      <p>מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד, בוחר את השם שלו, וזהו — כולם על אותו עמוד, תרתי משמע.</p>
+      <p>מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד — מתחבר עם Google וזהו, בלי לבחור שם מרשימה ובלי מסך הרשמה. כולם על אותו עמוד, תרתי משמע.</p>
       <p>ובוחרים גם מה אופי הטיול — כי טיול משפחה עם ילדים, סופ״ש סקי ומסיבת רווקים לא צריכים את אותה רשימת ציוד.</p>
 
       <div class="tags">
@@ -399,6 +399,14 @@
         <span class="tag pride">גאווה</span>
         <span class="tag">חתונה / רווקים</span>
         <span class="tag">פסטיבל</span>
+      </div>
+
+      <div class="touch">
+        <span class="t-icon">👥</span>
+        <div>
+          <span class="t-name">רואים מי עוד בטיול, ומדברים איתם ישירות</span>
+          <div class="t-desc">רשימת חברים עם תמונות, קישור ישיר לוואטסאפ של כל אחד, וקישור לקבוצת הוואטסאפ של הטיול — לא עוד הודעה נפרדת כדי לגלות מי כבר הצטרף</div>
+        </div>
       </div>
     </div>
 
@@ -439,7 +447,7 @@
 
     <div class="stop" style="--dot: var(--c-reserve)">
       <div class="stop-marker">🗺️</div>
-      <div class="stop-eyebrow">חדש</div>
+      <div class="stop-eyebrow">מסלול</div>
       <h2>מסלול, לא יעד בודד</h2>
       <p>יורוטריפ, חוף לחוף בארה״ב, שלוש ערים באיטליה. מוסיפים כמה יעדים, וכל אחד מקבל את התאריכים שלו — והאפליקציה כולה מתעדכנת בהתאם.</p>
 
@@ -476,6 +484,13 @@
       </div>
     </div>
 
+    <div class="stop" style="--dot: var(--c-abroad)">
+      <div class="stop-marker">💺</div>
+      <div class="stop-eyebrow">חדש</div>
+      <h2>מפת מושבים, מותאמת לטיסה שלכם</h2>
+      <p>לא כל מטוס בנוי 3-3. בוחרים את תצורת המושבים האמיתית של הטיסה — 3-3, 2-4-2, 3-3-3 ועוד — וכל מי שכבר סימן איפה הוא יושב מופיע במקום הנכון על גבי המפה, לא על תבנית גנרית שלא תואמת את המטוס האמיתי.</p>
+    </div>
+
     <div class="stop" style="--dot: var(--c-camping)">
       <div class="stop-marker">✨</div>
       <div class="stop-eyebrow">הפרטים הקטנים</div>
@@ -484,8 +499,8 @@
       <div class="touch">
         <span class="t-icon">🧠</span>
         <div>
-          <span class="t-name">הצעות AI שמכירות את הטיול</span>
-          <div class="t-desc">היעד, התאריכים, מזג האוויר הצפוי ואופי הטיול — הכל נכנס לחשבון. סקי בפברואר מקבל רשימה אחרת מחוף באוגוסט</div>
+          <span class="t-name">הצעות AI לציוד ולמקומות, לא רשימה גנרית</span>
+          <div class="t-desc">היעד, התאריכים, מזג האוויר הצפוי ואופי הטיול — הכל נכנס לחשבון, גם במה להציע לארוז וגם באיפה כדאי לבקר. סקי בפברואר מקבל הצעות אחרות מחוף באוגוסט, לא עוד "יש לנו AI"</div>
         </div>
       </div>
 
