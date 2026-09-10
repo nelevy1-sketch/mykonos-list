@@ -1172,6 +1172,18 @@
       font-weight: 700;
     }
 
+    /* Visually a different kind of action from the member rows above it -
+       "who's here" vs. "join the group chat" - a divider line, not just
+       spacing, so it doesn't read as one more row in the same list. */
+    #membersWhatsappGroup {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 14px;
+      margin-top: 4px;
+      border-top: 1px solid var(--border-color);
+    }
+
     .plane-modal-sheet {
       background: #0b132b !important;
       color: #f8fafc !important;
@@ -2253,6 +2265,7 @@
       </div>
 
       <div class="members-list" id="membersList"></div>
+      <div id="membersWhatsappGroup" class="hidden"></div>
     </div>
   </div>
 
@@ -2438,6 +2451,17 @@
             class="admin-input"
             placeholder="https://..."
             style="direction:ltr;">
+        </div>
+
+        <div class="admin-field">
+          <label id="adminWhatsappGroupLabel">קישור לקבוצת וואטסאפ (אופציונלי):</label>
+          <input
+            type="text"
+            id="adminWhatsappGroupUrl"
+            class="admin-input"
+            placeholder="https://chat.whatsapp.com/..."
+            style="direction:ltr;">
+          <p class="field-error hidden" id="adminWhatsappGroupError"></p>
         </div>
 
         <div class="admin-field">
@@ -2633,6 +2657,7 @@
     let tripEnd = new Date(Date.now() + 37 * 24 * 60 * 60 * 1000);
     let countryCode = "";
     let checkinLink = "";
+    let whatsappGroupLink = "";
     let tripOwnerId = "";
     let currentSpliitUrl = "";
     let currentItineraryDays = {};
@@ -2748,6 +2773,7 @@
         adminStartLabel: "מועד התחלת הטיול:",
         adminEndLabel: "מועד סיום / חזרה:",
         adminCheckinLabel: "קישור לצ׳ק־אין (URL):",
+        adminWhatsappGroupLabel: "קישור לקבוצת וואטסאפ (אופציונלי):",
         adminShowAccentLabel: "🎨 הצג מבטא צבעוני לפי אופי הטיול",
         saveFlightBtn: "שמור הגדרות טיול",
         adminMembersTitle: "👥 ניהול חברי הקבוצה (הקלד והקש Enter)",
@@ -2821,6 +2847,7 @@
         adminStartLabel: "Trip start:",
         adminEndLabel: "End / return:",
         adminCheckinLabel: "Check-in URL:",
+        adminWhatsappGroupLabel: "WhatsApp group link (optional):",
         adminShowAccentLabel: "🎨 Show a color accent for trip character",
         saveFlightBtn: "Save trip settings",
         adminMembersTitle: "👥 Group members (type a name and press Enter)",
@@ -3450,6 +3477,40 @@
       }
 
       return null;
+    }
+
+    // docs/roadmap.md part 3 item 0, ד3 - deliberately stricter than the
+    // existing spliitUrl field (bare `new URL()`, any well-formed link
+    // accepted - see openSpliitGate/saveSpliitGateBtn above). A button
+    // labeled "WhatsApp group" that actually opens something else is
+    // worse than spliitUrl's generic link ever could be - that one
+    // doesn't promise a specific destination the way this one does.
+    // Both http/https accepted, with or without "www.". Query string and
+    // hash (e.g. a tracking parameter some sharing flow appended) are
+    // ignored on purpose - the invite code lives in the path, and
+    // rejecting an otherwise-valid link over harmless trailing junk would
+    // be its own kind of false rejection.
+    function isValidWhatsappGroupLink(raw) {
+      let url;
+
+      try {
+        url = new URL(String(raw || "").trim());
+      } catch {
+        return false;
+      }
+
+      if (url.protocol !== "https:" && url.protocol !== "http:") {
+        return false;
+      }
+
+      const host = url.hostname.toLowerCase();
+
+      if (host !== "chat.whatsapp.com" && host !== "www.chat.whatsapp.com") {
+        return false;
+      }
+
+      const code = url.pathname.replace(/^\/+|\/+$/g, "");
+      return /^[A-Za-z0-9]{10,30}$/.test(code);
     }
 
     // docs/roadmap.md part 3 item 0, ד2 - replaces the old inline
@@ -4328,6 +4389,7 @@
 
       countryCode = data.countryCode || countryCode;
       checkinLink = data.checkinLink || "";
+      whatsappGroupLink = data.whatsappGroupLink || "";
       tripOwnerId = data.ownerId || "";
 
       try {
@@ -4886,6 +4948,22 @@
             openProfileModal();
           });
         });
+
+      // Same principle as the phone button above (ד2) and the same test
+      // that's easy to miss: no link set means nothing extra here at all
+      // - not a "no group set" message, not a disabled button. Below the
+      // name list, not above - "קודם מי שם, ואז הקבוצה."
+      const groupContainer = document.getElementById("membersWhatsappGroup");
+
+      groupContainer.classList.toggle("hidden", !whatsappGroupLink);
+
+      groupContainer.innerHTML = whatsappGroupLink
+        ? `
+          <a class="btn-admin-action btn-admin-outline" href="${escapeHtml(whatsappGroupLink)}" target="_blank" rel="noopener">
+            💬 ${tr("הצטרפות לקבוצת הוואטסאפ", "Join the WhatsApp group")}
+          </a>
+        `
+        : "";
     }
 
     async function releaseMember(uid) {
@@ -5730,6 +5808,9 @@
         "adminCheckinUrl"
       ).value = checkinLink;
 
+      document.getElementById("adminWhatsappGroupUrl").value = whatsappGroupLink;
+      document.getElementById("adminWhatsappGroupError").classList.add("hidden");
+
       document.getElementById(
         "adminShowAccent"
       ).checked = showAccent;
@@ -5901,6 +5982,27 @@
             .value
             .trim();
 
+        const whatsappGroupInput = document.getElementById("adminWhatsappGroupUrl");
+        const whatsappGroupError = document.getElementById("adminWhatsappGroupError");
+        const newWhatsappGroup = whatsappGroupInput.value.trim();
+
+        // Optional, same as phone (ד2) - empty means "no group link" (or
+        // "remove the saved one"), not an error. Only non-empty-but-
+        // invalid blocks the save, with an inline message next to the
+        // field - not customAlert, same reasoning as phone: the field is
+        // what the organizer needs to look back at to fix.
+        if (newWhatsappGroup && !isValidWhatsappGroupLink(newWhatsappGroup)) {
+          whatsappGroupError.textContent = tr(
+            "קישור לא תקין. צריך להיות קישור הזמנה לקבוצת וואטסאפ שמתחיל ב-chat.whatsapp.com",
+            "Invalid link. Must be a WhatsApp group invite link starting with chat.whatsapp.com"
+          );
+          whatsappGroupError.classList.remove("hidden");
+          whatsappGroupInput.focus();
+          return;
+        }
+
+        whatsappGroupError.classList.add("hidden");
+
         const newShowAccent =
           document.getElementById("adminShowAccent").checked;
 
@@ -5951,6 +6053,10 @@
           tripType === "abroad"
             ? newCheckin
             : "";
+
+        // Unlike checkinLink, not gated by trip type - a WhatsApp group is
+        // just as relevant for a local trip or reserve duty as abroad.
+        whatsappGroupLink = newWhatsappGroup;
 
         if (!multiLeg) {
           flightOut = new Date(newFlight);
@@ -6115,6 +6221,7 @@
           const settings = {
             tripType,
             checkinLink,
+            whatsappGroupLink,
             showAccent
           };
 
