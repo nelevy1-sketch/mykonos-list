@@ -2340,6 +2340,7 @@
           placeholder="20A"
           maxlength="4"
           style="text-transform:uppercase;direction:ltr;">
+        <p class="field-error hidden" id="lockerSeatError"></p>
       </div>
 
       <div class="admin-field">
@@ -5248,9 +5249,11 @@
     window.savePersonalLockerCard = () => {
       const name = currentProfile?.name;
 
+      const seatInput = document.getElementById("lockerSeat");
+      const seatError = document.getElementById("lockerSeatError");
+
       const seat =
-        document
-          .getElementById("lockerSeat")
+        seatInput
           .value
           .trim()
           .toUpperCase();
@@ -5264,6 +5267,50 @@
       if (!name || !currentUser) {
         return;
       }
+
+      // Only validates a seat value that's actually CHANGING, not whatever
+      // was already saved - a seat can become invalid after the fact if
+      // the organizer changes seatLayout (docs/roadmap.md, seat layout
+      // item, commit א's "not in configuration" list is exactly for that
+      // case). Re-saving the form to edit an unrelated field (the ticket
+      // link) must not get blocked just because the pre-filled seat value
+      // happens to be stale now - only typing in a genuinely different
+      // value re-triggers this check.
+      const previousSeat =
+        (personalLockerCards[currentUser.uid]?.seat || "")
+          .trim()
+          .toUpperCase();
+
+      if (seat && seat !== previousSeat) {
+        const row = parseInt(seat.replace(/\D/g, ""), 10);
+        const letter = seat.replace(/[0-9]/g, "");
+        const { letters } = parseSeatLayout(seatLayout);
+
+        const rowValid =
+          Number.isInteger(row) &&
+          row >= SEAT_MIN_ROW &&
+          row <= SEAT_MAX_ROW;
+
+        const letterValid = letters.includes(letter);
+
+        if (!rowValid || !letterValid) {
+          seatError.textContent = !letterValid
+            ? tr(
+                `אות לא תקפה לתצורת המושבים הנוכחית (${seatLayout}). אותיות תקפות: ${letters.join(", ")}`,
+                `Invalid letter for the current seat configuration (${seatLayout}). Valid letters: ${letters.join(", ")}`
+              )
+            : tr(
+                `מספר שורה לא תקין (1-${SEAT_MAX_ROW})`,
+                `Invalid row number (1-${SEAT_MAX_ROW})`
+              );
+
+          seatError.classList.remove("hidden");
+          seatInput.focus();
+          return;
+        }
+      }
+
+      seatError.classList.add("hidden");
 
       personalLockerCards[currentUser.uid] = {
         name,
