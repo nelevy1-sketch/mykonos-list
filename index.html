@@ -1132,8 +1132,17 @@
     .member-row {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
       padding: 8px 4px;
+    }
+
+    .member-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1 1 auto;
     }
 
     .member-avatar,
@@ -1361,6 +1370,18 @@
       color: var(--text-muted);
       line-height: 1.5;
       margin: 4px 0 0;
+    }
+
+    /* Same red family as --dlg-danger-glow (rgba(209,67,67,...)) - an
+       inline error next to the field that failed, not a toast. A toast
+       disappears before the user has necessarily looked back at the
+       field to see what to fix. */
+    .field-error {
+      font-size: 0.74rem;
+      color: #d14343;
+      line-height: 1.5;
+      margin: 4px 0 0;
+      font-weight: 700;
     }
 
     .admin-input,
@@ -1854,8 +1875,7 @@
       <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
       <span class="session-right">
         <span id="sessionUserLabel"></span>
-        <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת שם תצוגה" title="עריכת שם תצוגה">✏️</button>
-        <input type="text" class="edit-name-input hidden" id="editNameInput" maxlength="40">
+        <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת הפרטים שלי" title="עריכת הפרטים שלי">✏️</button>
         <a id="tripsLink" class="logout-link hidden" href="index.html?trips=1" aria-label="הטיולים שלי" title="הטיולים שלי">🧳</a>
         <button type="button" id="membersLink" class="logout-link hidden" aria-label="מי בטיול" title="מי בטיול">👥</button>
         <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה</span></button>
@@ -2165,6 +2185,52 @@
       <span id="navExpenses">הוצאות</span>
     </a>
   </nav>
+
+  <div class="modal-overlay" id="profileModal" role="presentation">
+    <div
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profileModalTitle">
+
+      <div class="sheet-handle"></div>
+
+      <div class="modal-header">
+        <div class="modal-title" id="profileModalTitle">הפרטים שלי</div>
+
+        <button
+          class="modal-close"
+          aria-label="סגירה"
+          onclick="closeProfileModal()">
+          ✕
+        </button>
+      </div>
+
+      <div class="admin-field">
+        <label id="profileNameLabel">שם תצוגה:</label>
+        <input type="text" id="profileNameInput" class="admin-input" maxlength="40">
+      </div>
+
+      <div class="admin-field">
+        <label id="profilePhoneLabel">מספר טלפון (אופציונלי):</label>
+        <input
+          type="tel"
+          id="profilePhoneInput"
+          class="admin-input"
+          placeholder="050-1234567, או ‎+1... בחו״ל"
+          style="direction:ltr;text-align:right;">
+        <p class="admin-hint" id="profilePhoneHint">יוצג לחברי הטיול, כדי שיוכלו לפתוח איתך שיחת וואטסאפ.</p>
+        <p class="field-error hidden" id="profilePhoneError"></p>
+        <button type="button" class="btn-sm-action hidden" id="profileRemovePhoneBtn" style="align-self:flex-start;margin-top:4px;">
+          🗑️ <span id="profileRemovePhoneText">הסרת המספר</span>
+        </button>
+      </div>
+
+      <button type="button" class="btn-admin-action btn-save-flight" id="profileSaveBtn">
+        <span id="profileSaveBtnText">שמירה</span>
+      </button>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="membersModal" role="presentation">
     <div
@@ -2659,6 +2725,12 @@
         navExpenses: "הוצאות",
         logoutLinkText: "יציאה",
         membersModalTitle: "👥 מי בטיול",
+        profileModalTitle: "הפרטים שלי",
+        profileNameLabel: "שם תצוגה:",
+        profilePhoneLabel: "מספר טלפון (אופציונלי):",
+        profilePhoneHint: "יוצג לחברי הטיול, כדי שיוכלו לפתוח איתך שיחת וואטסאפ.",
+        profileRemovePhoneText: "הסרת המספר",
+        profileSaveBtnText: "שמירה",
         lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
         lockerNameLabel: "בחר את השם שלך:",
         lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
@@ -2726,6 +2798,12 @@
         navExpenses: "Expenses",
         logoutLinkText: "Sign out",
         membersModalTitle: "👥 Who's on the trip",
+        profileModalTitle: "My details",
+        profileNameLabel: "Display name:",
+        profilePhoneLabel: "Phone number (optional):",
+        profilePhoneHint: "Shown to your trip's members, so they can start a WhatsApp chat with you.",
+        profileRemovePhoneText: "Remove number",
+        profileSaveBtnText: "Save",
         lockerModalTitle: "🎟️ Personal ticket & seat vault",
         lockerNameLabel: "Choose your name:",
         lockerSeatLabel: "Plane seat number (for example 20A):",
@@ -2958,6 +3036,11 @@
           ? "Type a name and press Enter..."
           : "הקלד שם והקש Enter...";
 
+      document.getElementById("profilePhoneInput").placeholder =
+        lang === "en"
+          ? "050-1234567, or +1... if abroad"
+          : "050-1234567, או ‎+1... בחו״ל";
+
       document.querySelectorAll(".modal-close").forEach(button => {
         button.setAttribute("aria-label", lang === "en" ? "Close" : "סגירה");
       });
@@ -2978,7 +3061,7 @@
       );
 
       const editNameLabel =
-        lang === "en" ? "Edit display name" : "עריכת שם תצוגה";
+        lang === "en" ? "Edit my details" : "עריכת הפרטים שלי";
 
       document.getElementById("editNameBtn").setAttribute(
         "aria-label",
@@ -3156,7 +3239,7 @@
           }
 
           document.getElementById("memberGate").classList.add("hidden");
-          endEditName();
+          closeSheet("profileModal");
           syncSessionUserLabel();
         } else if (tripLoaded && tripRoot) {
           loadMemberProfile();
@@ -3330,129 +3413,182 @@
       editBtn.classList.toggle("hidden", !currentProfile);
     }
 
-    function beginEditName() {
+    // Normalizes a phone number to WhatsApp's wa.me format: digits only,
+    // full country code, no leading 0 or +. Never guesses a country code -
+    // a saved-wrong number is worse than a rejected one (a wa.me link with
+    // the wrong number silently messages a stranger). Only four shapes are
+    // accepted: "+..."/"00..." (explicit international - required for
+    // anyone outside Israel), "972..." (already Israeli international),
+    // and a bare "0..." (Israeli local, the common case - "050-1234567" /
+    // "0501234567" / "+972501234567" / "972501234567" all normalize to the
+    // same "972501234567"). Anything else (no leading 0/+/00/972) is
+    // rejected rather than assumed to already carry a country code.
+    function normalizePhoneForWhatsapp(raw) {
+      const digits = String(raw || "").trim().replace(/[\s\-()]/g, "");
+
+      if (!digits) {
+        return null;
+      }
+
+      if (digits.startsWith("+")) {
+        const rest = digits.slice(1);
+        return /^\d{7,15}$/.test(rest) ? rest : null;
+      }
+
+      if (digits.startsWith("00")) {
+        const rest = digits.slice(2);
+        return /^\d{7,15}$/.test(rest) ? rest : null;
+      }
+
+      if (digits.startsWith("972")) {
+        return /^\d{9,15}$/.test(digits) ? digits : null;
+      }
+
+      if (digits.startsWith("0")) {
+        const rest = digits.slice(1);
+        return /^\d{8,9}$/.test(rest) ? "972" + rest : null;
+      }
+
+      return null;
+    }
+
+    // docs/roadmap.md part 3 item 0, ד2 - replaces the old inline
+    // sessionUserLabel<->editNameInput swap (v4.35.5-era) entirely. A
+    // second field (phone) plus its explanation text ("יוצג לחברי הטיול")
+    // don't fit in the session-row at all, structurally - not just
+    // tight, actually unreadable (measured: both fields truncate to a
+    // few characters at 375px). Reuses openSheet()/closeSheet() - same
+    // mechanism as membersModal/lockerModal, no new modal machinery.
+    function openProfileModal() {
       if (!currentProfile) {
         return;
       }
 
-      const input = document.getElementById("editNameInput");
+      document.getElementById("profileNameInput").value =
+        currentProfile.name || "";
 
-      input.value = currentProfile.name || "";
+      document.getElementById("profilePhoneInput").value =
+        currentProfile.phone ? "+" + currentProfile.phone : "";
 
-      document.getElementById("sessionUserLabel").classList.add("hidden");
-      document.getElementById("editNameBtn").classList.add("hidden");
-      input.classList.remove("hidden");
-      input.focus();
-      input.select();
+      document.getElementById("profilePhoneError").classList.add("hidden");
+
+      document.getElementById("profileRemovePhoneBtn").classList.toggle(
+        "hidden",
+        !currentProfile.phone
+      );
+
+      openSheet("profileModal");
+
+      requestAnimationFrame(() => {
+        const nameInput = document.getElementById("profileNameInput");
+        nameInput.focus();
+        nameInput.select();
+      });
     }
 
-    function endEditName() {
-      document.getElementById("editNameInput").classList.add("hidden");
-      document.getElementById("sessionUserLabel").classList.remove("hidden");
+    window.closeProfileModal = () => {
+      closeSheet("profileModal");
+    };
 
-      if (currentProfile) {
-        document.getElementById("editNameBtn").classList.remove("hidden");
-      }
+    // Clears the field and hides itself - the actual removal only takes
+    // effect on Save, same single explicit save action as a name change.
+    // No separate immediate-write path to reason about.
+    function removeSavedPhone() {
+      document.getElementById("profilePhoneInput").value = "";
+      document.getElementById("profilePhoneError").classList.add("hidden");
+      document.getElementById("profileRemovePhoneBtn").classList.add("hidden");
     }
 
-    let savingDisplayName = false;
+    let savingProfile = false;
 
-    // fromEnter distinguishes an explicit save attempt (Enter, with an
-    // empty field treated as an error to fix) from just clicking away
-    // (blur - an empty field there reads as "changed my mind", not a
-    // failed save, so it closes quietly instead of nagging). Escape
-    // resets the input's value back to currentProfile.name and blurs -
-    // that blur then hits the trimmed===original branch below and
-    // closes with no write, so cancel and "clicked away without
-    // changing anything" share one code path instead of two.
-    async function saveDisplayName(fromEnter) {
-      if (savingDisplayName) {
+    async function saveProfile() {
+      if (savingProfile || !currentUser || !tripRoot || !currentProfile) {
         return;
       }
 
-      const input = document.getElementById("editNameInput");
-      const trimmed = input.value.trim();
-      const original = currentProfile?.name || "";
+      const nameInput = document.getElementById("profileNameInput");
+      const phoneInput = document.getElementById("profilePhoneInput");
+      const phoneError = document.getElementById("profilePhoneError");
+      const trimmedName = nameInput.value.trim();
 
-      if (trimmed === original) {
-        endEditName();
+      if (!trimmedName) {
+        toast(tr("השם לא יכול להישאר ריק", "Name can't be empty"));
+        nameInput.focus();
         return;
       }
 
-      if (!trimmed) {
-        if (fromEnter) {
-          toast(tr("השם לא יכול להישאר ריק", "Name can't be empty"));
-          input.focus();
-        } else {
-          endEditName();
+      // Phone is optional - empty input means "no phone" (or "remove the
+      // saved one"), not an error. Only non-empty-but-unparseable input
+      // blocks the save.
+      const rawPhone = phoneInput.value.trim();
+      let normalizedPhone = null;
+
+      if (rawPhone) {
+        normalizedPhone = normalizePhoneForWhatsapp(rawPhone);
+
+        if (!normalizedPhone) {
+          phoneError.textContent = tr(
+            "מספר לא תקין. ישראלי: 050-1234567. מחו\"ל: עם קוד מדינה, למשל ‎+1...",
+            "Invalid number. Israeli: 050-1234567. Abroad: include the country code, e.g. +1..."
+          );
+          phoneError.classList.remove("hidden");
+          phoneInput.focus();
+          return;
         }
-
-        return;
       }
 
-      if (!currentUser || !tripRoot || !currentProfile) {
-        endEditName();
-        return;
-      }
+      phoneError.classList.add("hidden");
+      savingProfile = true;
 
-      savingDisplayName = true;
-
-      // Only `name` - the live RTDB rule permits an update touching
-      // just that field (verified against production, not just that
-      // the write promise resolved - see CHANGELOG v4.30.0/v4.30.1).
-      // participantKey must not be touched here: it was set once at
-      // auto-register time and the rule depends on it staying as-is.
+      // participantKey is not touched here, same as before ד2 - set once
+      // at auto-register time, the RTDB rule depends on it staying as-is.
+      // Verified live in the Firebase Console (not just that the write
+      // promise resolves) that the rule permits `phone` alongside `name`.
       try {
         await db
           .ref(`${tripRoot}/memberProfiles/${currentUser.uid}`)
-          .update({ name: trimmed });
+          .update({ name: trimmedName, phone: normalizedPhone });
 
-        currentProfile.name = trimmed;
+        currentProfile.name = trimmedName;
+        currentProfile.phone = normalizedPhone;
 
         syncSessionUserLabel();
         updateLockerSelectOptions();
         updateLockerSummary();
-        endEditName();
+        closeProfileModal();
       } catch (error) {
-        console.error("[index.html] saveDisplayName failed", error);
+        console.error("[index.html] saveProfile failed", error);
 
         toast(
           tr(
-            "לא ניתן היה לשמור את השם. נסו שוב.",
-            "Couldn't save the name. Try again."
+            "לא ניתן היה לשמור את הפרטים. נסו שוב.",
+            "Couldn't save the details. Try again."
           )
         );
-
-        endEditName();
       } finally {
-        savingDisplayName = false;
+        savingProfile = false;
       }
     }
 
     document
       .getElementById("editNameBtn")
-      .addEventListener("click", beginEditName);
+      .addEventListener("click", openProfileModal);
 
     document
-      .getElementById("editNameInput")
+      .getElementById("profileSaveBtn")
+      .addEventListener("click", saveProfile);
+
+    document
+      .getElementById("profileRemovePhoneBtn")
+      .addEventListener("click", removeSavedPhone);
+
+    document
+      .getElementById("profilePhoneInput")
       .addEventListener("keydown", event => {
         if (event.key === "Enter") {
           event.preventDefault();
-          saveDisplayName(true);
-        } else if (event.key === "Escape") {
-          event.preventDefault();
-
-          document.getElementById("editNameInput").value =
-            currentProfile?.name || "";
-
-          document.getElementById("editNameInput").blur();
+          saveProfile();
         }
-      });
-
-    document
-      .getElementById("editNameInput")
-      .addEventListener("blur", () => {
-        saveDisplayName(false);
       });
 
     async function loadMemberProfile() {
@@ -4691,9 +4827,16 @@
     // feature - a join while the sheet is open just shows up next time
     // it's opened, same as renderLinkedMembers()'s admin panel already
     // does for everything BEHIND the sheet.
+    // Point 7's test, the one that's easy to miss: a member who never
+    // added a phone gets NOTHING extra in their row - no disabled button,
+    // no "no number added" text, no reserved empty space. The trailing
+    // action is either the real wa.me button, the "add mine" prompt (only
+    // ever on the viewer's own row), or nothing rendered at all - never a
+    // placeholder standing in for "missing".
     function renderMembersSheet() {
       const container = document.getElementById("membersList");
       const rows = Object.entries(memberProfiles);
+      const myUid = currentUser?.uid;
 
       container.innerHTML = rows.length
         ? rows.map(([uid, profile]) => {
@@ -4703,10 +4846,29 @@
               ? `<img class="member-avatar" src="${escapeHtml(profile.photoURL)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="member-avatar-fallback" style="display:none">${escapeHtml(initials)}</span>`
               : `<span class="member-avatar-fallback">${escapeHtml(initials)}</span>`;
 
+            let action = "";
+
+            if (profile.phone && uid !== myUid) {
+              action = `
+                <a class="btn-sm-action" href="https://wa.me/${escapeHtml(profile.phone)}" target="_blank" rel="noopener">
+                  💬 ${tr("שיחה", "Chat")}
+                </a>
+              `;
+            } else if (!profile.phone && uid === myUid) {
+              action = `
+                <button type="button" class="btn-sm-action" data-add-my-phone>
+                  ➕ ${tr("הוספת מספר", "Add number")}
+                </button>
+              `;
+            }
+
             return `
               <div class="member-row">
-                ${avatar}
-                <span class="member-name">${escapeHtml(name)}</span>
+                <span class="member-identity">
+                  ${avatar}
+                  <span class="member-name">${escapeHtml(name)}</span>
+                </span>
+                ${action}
               </div>
             `;
           }).join("")
@@ -4715,6 +4877,15 @@
             ${tr("עדיין אין חברים בטיול.", "No members yet.")}
           </small>
         `;
+
+      container
+        .querySelectorAll("[data-add-my-phone]")
+        .forEach(button => {
+          button.addEventListener("click", () => {
+            closeMembersModal();
+            openProfileModal();
+          });
+        });
     }
 
     async function releaseMember(uid) {
