@@ -1060,6 +1060,7 @@
         <button class="bulk-btn" id="selectAllBtn">בחר הכל</button>
         <button class="bulk-btn" id="bulkMoveBtn">העברה</button>
         <button class="bulk-btn" id="bulkToggleDoneBtn">סימון</button>
+        <button class="bulk-btn" id="bulkShareBtn">שיתוף</button>
         <button class="bulk-btn danger" id="bulkDeleteBtn">מחיקה</button>
         <button class="bulk-btn" id="bulkCancelBtn">ביטול</button>
       </div>
@@ -1825,6 +1826,7 @@
       $("selectAllBtn").textContent = tr("בחר הכל", "Select all");
       $("bulkMoveBtn").textContent = tr("העברה", "Move");
       $("bulkToggleDoneBtn").textContent = tr("סימון", "Toggle");
+      $("bulkShareBtn").textContent = tr("שיתוף", "Share");
       $("bulkDeleteBtn").textContent = tr("מחיקה", "Delete");
       $("bulkCancelBtn").textContent = tr("ביטול", "Cancel");
 
@@ -3627,6 +3629,30 @@
       setSelectionMode(false);
     }
 
+    async function bulkToggleShared() {
+      if (!selectedIds.size) {
+        return;
+      }
+
+      // Same reasoning as bulkToggleDone above: reads each item from its
+      // own category bucket, not currentItems() (activeList-scoped), so a
+      // cross-category selection (under the "all" filter) still computes
+      // the majority correctly instead of silently reading undefined for
+      // items outside the active list.
+      const allShared =
+        [...selectedIds].every(([id, categoryId]) => items?.[categoryId]?.[id]?.isPublic);
+
+      const updates = {};
+
+      selectedIds.forEach((categoryId, id) => {
+        assertCategory(categoryId, "bulkToggleShared");
+        updates[`${userBase()}/items/${categoryId}/${id}/isPublic`] = !allShared;
+      });
+
+      await update(ref(db), updates);
+      setSelectionMode(false);
+    }
+
     function openBulkMove() {
       if (!selectedIds.size) {
         return;
@@ -4628,6 +4654,8 @@
     $("bulkDeleteBtn").onclick = bulkDelete;
 
     $("bulkToggleDoneBtn").onclick = bulkToggleDone;
+
+    $("bulkShareBtn").onclick = bulkToggleShared;
 
     $("bulkMoveBtn").onclick = openBulkMove;
 
