@@ -1061,6 +1061,7 @@
     <div class="bulk-bar hidden" id="bulkBar">
       <span id="bulkCount">0 נבחרו</span>
       <div class="bulk-actions">
+        <button class="bulk-btn" id="selectAllBtn">בחר הכל</button>
         <button class="bulk-btn" id="bulkMoveBtn">העברה</button>
         <button class="bulk-btn" id="bulkToggleDoneBtn">סימון</button>
         <button class="bulk-btn danger" id="bulkDeleteBtn">מחיקה</button>
@@ -1825,6 +1826,7 @@
 
       $("legFilterSelect").setAttribute("aria-label", tr("סינון לפי יעד", "Filter by destination"));
 
+      $("selectAllBtn").textContent = tr("בחר הכל", "Select all");
       $("bulkMoveBtn").textContent = tr("העברה", "Move");
       $("bulkToggleDoneBtn").textContent = tr("סימון", "Toggle");
       $("bulkDeleteBtn").textContent = tr("מחיקה", "Delete");
@@ -3139,6 +3141,40 @@
         : tr("✨ הצע רשימה עם AI", "✨ Suggest a list with AI");
     }
 
+    // Same source as currentItems() would give today (activeList only) -
+    // this is step 2 of the filtered-list rework: every interactive
+    // element below gets tagged with its item's categoryId (from
+    // itemsForCategoryFilter, see step 1), but the filter passed in is
+    // still just activeList, so the actual set of items shown is
+    // byte-identical to before. Nothing reads data-category yet - it's
+    // wiring for step 3, not a behavior change.
+    //
+    // docs/schema-legs.md §5.1, step 6 - itemsForLegFilter layers the
+    // destination axis on top, so this map (and everything below that
+    // reads from it, including the progress count) already reflects
+    // BOTH active filters together. Deliberately the same "what's
+    // displayed is what's counted" behavior the progress count already
+    // had for the category filter alone - not a new rule, just this
+    // map now has two filters feeding it instead of one.
+    //
+    // Extracted out of renderMine() so selectAllVisible() (docs/roadmap.md
+    // part 3 item 0, "select all") can select exactly what's on screen -
+    // by definition the same filtered set renderMine() itself displays,
+    // not a second, possibly-drifting computation of "what's visible".
+    function currentDisplayedEntries() {
+      const map = itemsForLegFilter(itemsForCategoryFilter(activeList), activeLegFilter);
+
+      return Object.entries(map)
+        .map(([id, item]) => ({
+          id,
+          ...item
+        }))
+        .sort((first, second) =>
+          (first.isDone - second.isDone) ||
+          (first.createdAt - second.createdAt)
+        );
+    }
+
     function renderMine() {
       renderLists();
       renderLegFilter();
@@ -3146,33 +3182,7 @@
       updateManageListBtnState();
       updateAiSuggestBtnState();
 
-      // Same source as currentItems() would give today (activeList only) -
-      // this is step 2 of the filtered-list rework: every interactive
-      // element below gets tagged with its item's categoryId (from
-      // itemsForCategoryFilter, see step 1), but the filter passed in is
-      // still just activeList, so the actual set of items shown is
-      // byte-identical to before. Nothing reads data-category yet - it's
-      // wiring for step 3, not a behavior change.
-      //
-      // docs/schema-legs.md §5.1, step 6 - itemsForLegFilter layers the
-      // destination axis on top, so this map (and everything below that
-      // reads from it, including the progress count) already reflects
-      // BOTH active filters together. Deliberately the same "what's
-      // displayed is what's counted" behavior the progress count already
-      // had for the category filter alone - not a new rule, just this
-      // map now has two filters feeding it instead of one.
-      const map = itemsForLegFilter(itemsForCategoryFilter(activeList), activeLegFilter);
-
-      const entries =
-        Object.entries(map)
-          .map(([id, item]) => ({
-            id,
-            ...item
-          }))
-          .sort((first, second) =>
-            (first.isDone - second.isDone) ||
-            (first.createdAt - second.createdAt)
-          );
+      const entries = currentDisplayedEntries();
 
       let totalUnits = 0;
       let doneUnits = 0;
@@ -3502,10 +3512,18 @@
       updateBulkBar();
     }
 
+    // Shown for the whole duration of selectionMode, not just once
+    // something is checked (that was the previous behavior - selectedIds.size
+    // > 0 gated it too). "בחר הכל" (selectAllVisible) needs to be reachable
+    // from a zero-selected state, which is exactly when it's most useful -
+    // gating the bar on a non-empty selection would hide the one button
+    // meant to help you get to a non-empty selection in the first place.
+    // The other buttons are unaffected: bulkDelete/bulkToggleDone/
+    // openBulkMove already no-op on an empty selectedIds.
     function updateBulkBar() {
       const bar = $("bulkBar");
 
-      if (selectionMode && selectedIds.size > 0) {
+      if (selectionMode) {
         bar.classList.remove("hidden");
 
         $("bulkCount").textContent =
@@ -3539,6 +3557,28 @@
           )
         );
       }
+    }
+
+    // Selects exactly what's currently displayed (currentDisplayedEntries -
+    // the same filtered/sorted set renderMine() renders), not everything in
+    // the packing list. A user with "all" or a leg filter active would
+    // otherwise get a silent surprise - items selected that they never saw.
+    // No toggle-to-"clear all" - the label and the action stay fixed
+    // ("select all", always selects), and the existing bulkCancelBtn
+    // ("ביטול") already offers a way out of selection mode entirely, so a
+    // second button/state for "deselect" would be redundant. Idempotent by
+    // construction: re-running it when everything's already selected just
+    // re-sets the same Map entries, nothing visibly changes.
+    function selectAllVisible() {
+      if (!selectionMode) {
+        return;
+      }
+
+      currentDisplayedEntries().forEach(item => {
+        selectedIds.set(item.id, item.categoryId);
+      });
+
+      renderMine();
     }
 
     async function bulkDelete() {
@@ -4588,6 +4628,8 @@
     $("bulkCancelBtn").onclick = () => {
       setSelectionMode(false);
     };
+
+    $("selectAllBtn").onclick = selectAllVisible;
 
     $("bulkDeleteBtn").onclick = bulkDelete;
 
