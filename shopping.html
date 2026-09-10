@@ -3311,15 +3311,87 @@ body.modal-open .modal-card {
     'כלי בית וציוד 🏠': ['מגבת', 'מגבות', 'ספוג', 'צלחות', 'כוסות', 'סכו"ם', 'שקיות אשפה', 'נייר אלומיניום', 'מפה', 'נייר סופג', 'ניילון נצמד', 'נייר אפייה']
   };
 
+  // Split BEFORE normalizing so word boundaries survive into the match
+  // below - plain substring matching let short keywords swallow unrelated
+  // words that merely contained them (e.g. "שום" inside "שומשום", or a
+  // hypothetical "ים" inside "ימים" - "days" is not a drink).
+  //
+  // The MOST SPECIFIC matching keyword wins, across every category at
+  // once - not simply the first category declared in CATEGORY_DICTIONARY.
+  // Reason: with first-category-wins, a short keyword in an early category
+  // can grab an item before a longer, more specific keyword in a later
+  // category ever gets a chance - e.g. if a future produce keyword ever
+  // happened to prefix-match "פירות" (produce is declared first), it would
+  // beat a dedicated multi-word "פירות ים" (seafood) keyword in the meat
+  // category every time, regardless of which one is actually the better
+  // match. Specificity = (keyword token count, then keyword character
+  // length) - a 2-word keyword always beats a 1-word one; among same-length
+  // keywords, the longer string wins. Ties (identical specificity, still
+  // possible in principle) fall back to CATEGORY_DICTIONARY's declared
+  // order, same as before.
+  //
+  // This also resolves the חלב/חלבון collision as a side effect, with no
+  // special-casing: "חלבון" (5 chars) beats "חלב" (3 chars) on its own
+  // specificity, so protein snacks land in חטיפים ומתוקים instead of חלב
+  // וביצים. Two related, accepted, NOT fixed here: "מים"/"תה" possibly
+  // sitting inside a longer word are not automatically resolved by this
+  // ranking when nothing MORE specific also matches - "תה" (2 chars) genuinely
+  // prefixes "תהילה" and nothing here changes that. Checked and accepted as
+  // out of scope: "מים" does NOT actually prefix "שמים" (ם/ה position
+  // differs), so that specific pairing was never a real risk to begin with.
+  // "תה"/"תהילה" is real but irrelevant to a shopping list (not a product
+  // name) - left as-is rather than removing "תה" itself, which is a
+  // legitimate, common, working keyword (see docs/roadmap.md, 2026-09-10).
+  //
+  // Verified 2026-09-10 against all 122 CATEGORY_DICTIONARY keywords, all 46
+  // SYNONYMS_MAP aliases and all 107 TRANSLATION_DICTIONARY.items known
+  // product names, before/after: 8 results changed, all explained by the
+  // חלב/חלבון resolution above (2 of the 8 - plant-based "milks" landing in
+  // snacks/bakery instead of dairy - are a debatable judgment call, not a
+  // bug; everything else is a genuine fix). No other regressions.
   function detectCategory(itemName) {
     if (!itemName) return 'מוצרים נוספים 🛒';
-    const cleanName = itemName.trim().toLowerCase();
+    const tokens = itemName.trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
+    if (!tokens.length) return 'מוצרים נוספים 🛒';
+
+    const categoryOrder = Object.keys(CATEGORY_DICTIONARY);
+    let best = null; // { catName, tokenCount, charLength, categoryIndex }
+
     for (const [catName, keywords] of Object.entries(CATEGORY_DICTIONARY)) {
-      if (keywords.some(kw => cleanName.includes(kw.toLowerCase()))) {
-        return catName;
+      const categoryIndex = categoryOrder.indexOf(catName);
+      for (const kw of keywords) {
+        const kwTokens = kw.trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
+        let matched;
+        if (kwTokens.length === 1) {
+          // route 1: single-word keyword - any item token may start with it
+          // (keeps Hebrew suffix-plurals working: "עגבניה" still matches
+          // "עגבניות").
+          matched = tokens.some(t => t.startsWith(kwTokens[0]));
+        } else {
+          // route 2: multi-word keyword ("תפוח אדמה" etc.) - look for a
+          // contiguous run of item tokens where each one starts with the
+          // corresponding keyword token. Position-by-position, not just the
+          // last word, because Hebrew construct-state plurals inflect the
+          // FIRST word ("תפוחי אדמה" against keyword "תפוח אדמה").
+          matched = false;
+          for (let start = 0; start + kwTokens.length <= tokens.length; start++) {
+            if (kwTokens.every((kwT, i) => tokens[start + i].startsWith(kwT))) { matched = true; break; }
+          }
+        }
+        if (!matched) continue;
+
+        const candidate = { catName, tokenCount: kwTokens.length, charLength: kw.trim().length, categoryIndex };
+        const better =
+          !best ||
+          candidate.tokenCount > best.tokenCount ||
+          (candidate.tokenCount === best.tokenCount && candidate.charLength > best.charLength) ||
+          (candidate.tokenCount === best.tokenCount &&
+            candidate.charLength === best.charLength &&
+            candidate.categoryIndex < best.categoryIndex);
+        if (better) best = candidate;
       }
     }
-    return 'מוצרים נוספים 🛒';
+    return best ? best.catName : 'מוצרים נוספים 🛒';
   }
 
   function showToast(message, showUndo = false) {
