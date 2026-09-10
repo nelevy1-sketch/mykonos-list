@@ -204,3 +204,166 @@ Respond ONLY with a raw JSON array of strings. No explanation, no markdown forma
     }
   }
 );
+
+/**
+ * suggestPlaces
+ *
+ * POST body (JSON):
+ * {
+ *   "destination": "בנגקוק",     // the trip's (or active leg's) destination
+ *   "tripCharacter": "family",   // optional - one of family/friends/couple/
+ *                                // ski/pride/bachelor/festival, docs/schema-legs.md §3.2
+ *   "vibes": ["beach","relax"],  // optional, from the trip's (or leg's) vibes
+ *   "language": "he" | "en"
+ * }
+ *
+ * Response (JSON):
+ * { "places": [{ "name": "...", "city": "...", "reason": "..." }, ...] }
+ * or
+ * { "error": "..." }
+ *
+ * No Google Places API in this app (places-ai-investigation.md - the "map"
+ * field on a place is a free-text URL the user pastes themselves, nothing
+ * is verified server-side). The client shows every suggestion with an
+ * explicit "not verified" label and a "search on maps" link the user is
+ * expected to actually follow before saving - the human is the only thing
+ * standing between a real place and a hallucinated one, so the prompt below
+ * leans hard on "only suggest places you're confident are real," not just
+ * on format (unlike the packing prompt above, which never had to worry
+ * about factual grounding, only style).
+ */
+exports.suggestPlaces = onRequest(
+  {
+    secrets: [GEMINI_API_KEY],
+    cors: true,
+    region: "us-central1",
+    maxInstances: 10
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+
+    const { destination, tripCharacter, vibes, language } = req.body || {};
+
+    if (!destination || typeof destination !== "string") {
+      res.status(400).json({ error: "Missing destination" });
+      return;
+    }
+
+    const lang = language === "en" ? "English" : "Hebrew";
+    const vibeText =
+      Array.isArray(vibes) && vibes.length ? vibes.join(", ") : "not specified";
+    const characterText =
+      typeof tripCharacter === "string" && tripCharacter ? tripCharacter : "not specified";
+
+    const prompt = `You are a helpful, concise local-recommendations assistant inside a group trip planning app.
+
+Trip destination: ${destination}
+Trip character: ${characterText}
+Trip vibe(s): ${vibeText}
+
+Suggest up to 5 real places worth visiting at this destination - restaurants, sights, activities, anything concrete and visitable. Prefer real, verifiable places that fit the trip's character and vibe(s) and are less commonly covered in generic travel guides, over the single most famous landmark - but it's fine, even good, for one or two suggestions to be a well-known "anchor" place. The rest should be more specific to this trip's character and vibes.
+
+Only suggest places you are confident actually exist, with the correct name paired with the correct city or neighborhood. If you are not certain a place is real, or not certain which city/neighborhood it is actually in, leave it out entirely - a shorter list of real places is far better than five items where one is invented or mislocated.
+
+For each place, give:
+- "name": the place's real name, as it would appear on a map. Short - no description folded into the name.
+- "city": the city or neighborhood it is actually in (helps the traveler search for it correctly).
+- "reason": one short sentence (under 20 words) explaining why this specific place fits this trip's character and vibe(s) - not a generic description of what the place is.
+
+Respond in ${lang} for "name", "city" and "reason" alike.
+Respond ONLY with a raw JSON array of objects. No explanation, no markdown formatting, no code fences. Example: [{"name":"...","city":"...","reason":"..."}]`;
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              // Lower than suggestPackingList's 0.7 - there is no external
+              // verification step downstream any more (places-ai-investigation.md),
+              // so this is the one lever available here, beyond prompt wording,
+              // to push toward grounded/likely answers over creative ones.
+              temperature: 0.4,
+              maxOutputTokens: 2000,
+              responseMimeType: "application/json"
+            }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errText = await response.text();
+        logger.error("Gemini API error", { status: response.status, body: errText });
+        res.status(502).json({ error: "AI request failed" });
+        return;
+      }
+
+      const data = await response.json();
+      const candidate = data.candidates?.[0];
+      const text = candidate?.content?.parts?.[0]?.text || "";
+
+      logger.info("Gemini raw response", {
+        finishReason: candidate?.finishReason,
+        usageMetadata: data.usageMetadata,
+        text
+      });
+
+      // Same fix as suggestPackingList above, same reason - this is the
+      // exact failure that already cost months once (maxOutputTokens too
+      // low truncating silently). Check finishReason BEFORE JSON.parse.
+      if (candidate?.finishReason === "MAX_TOKENS") {
+        logger.warn("Gemini response truncated (MAX_TOKENS)", {
+          usageMetadata: data.usageMetadata,
+          text
+        });
+        res.status(502).json({ error: "AI response was cut off", reason: "truncated" });
+        return;
+      }
+
+      const cleaned = text.replace(/```json|```/g, "").trim();
+
+      let places;
+      try {
+        places = JSON.parse(cleaned);
+      } catch (parseError) {
+        logger.error("Could not parse Gemini response as JSON", {
+          finishReason: candidate?.finishReason,
+          text
+        });
+        res.status(502).json({ error: "Could not parse AI response" });
+        return;
+      }
+
+      if (!Array.isArray(places)) {
+        res.status(502).json({ error: "Unexpected AI response format" });
+        return;
+      }
+
+      const cleanPlaces = places
+        .filter(
+          place =>
+            place &&
+            typeof place.name === "string" && place.name.trim() &&
+            typeof place.city === "string" && place.city.trim() &&
+            typeof place.reason === "string" && place.reason.trim()
+        )
+        .map(place => ({
+          name: place.name.trim(),
+          city: place.city.trim(),
+          reason: place.reason.trim()
+        }))
+        .slice(0, 5);
+
+      res.json({ places: cleanPlaces });
+    } catch (error) {
+      logger.error("suggestPlaces failed", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  }
+);
