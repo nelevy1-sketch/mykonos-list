@@ -1258,7 +1258,9 @@
 
     .seat-row {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 20px 1fr 1fr 1fr;
+      /* grid-template-columns set inline per row by renderPlaneSeats(),
+         computed from the trip's seatLayout - not a fixed value here, so
+         there's exactly one place that decides column count, not two. */
       gap: 5px;
       align-items: center;
     }
@@ -1317,6 +1319,36 @@
     .seat-letter {
       font-size: 0.52rem;
       color: #bae6fd;
+    }
+
+    .seat-mismatch-box {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: rgba(30, 41, 59, 0.5);
+    }
+
+    .seat-mismatch-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .seat-mismatch-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: #e2e8f0;
+      padding: 4px 0;
+    }
+
+    .seat-mismatch-row .seat-mismatch-seat {
+      color: #f59e0b;
+      font-weight: 800;
+      direction: ltr;
     }
 
     .admin-section-box {
@@ -2363,6 +2395,13 @@
         <div class="plane-nose"></div>
         <div class="seat-grid" id="planeLayout"></div>
       </div>
+
+      <div class="seat-mismatch-box hidden" id="seatMismatchBox">
+        <div class="seat-mismatch-title" id="seatMismatchTitle">
+          מושבים שלא מוצגים במפה (לא תואמים את התצורה הנוכחית):
+        </div>
+        <div id="seatMismatchList"></div>
+      </div>
     </div>
   </div>
 
@@ -2451,6 +2490,17 @@
             class="admin-input"
             placeholder="https://..."
             style="direction:ltr;">
+        </div>
+
+        <div class="admin-field" id="seatLayoutField">
+          <label id="adminSeatLayoutLabel">תצורת מושבים במטוס:</label>
+          <select id="adminSeatLayout" class="admin-input" style="direction:ltr;">
+            <option value="2-2">2-2</option>
+            <option value="3-3">3-3</option>
+            <option value="2-4-2">2-4-2</option>
+            <option value="3-3-3">3-3-3</option>
+            <option value="3-4-3">3-4-3</option>
+          </select>
         </div>
 
         <div class="admin-field">
@@ -2658,6 +2708,7 @@
     let countryCode = "";
     let checkinLink = "";
     let whatsappGroupLink = "";
+    let seatLayout = "3-3";
     let tripOwnerId = "";
     let currentSpliitUrl = "";
     let currentItineraryDays = {};
@@ -2762,6 +2813,7 @@
         lockerLinkLabel: "קישור לכרטיס דיגיטלי / ברקוד (URL):",
         lockerSaveBtn: "שמור נתונים אישיים",
         seatsModalTitle: "✈️ מפת הושבה קבוצתית",
+        seatMismatchTitle: "מושבים שלא מוצגים במפה (לא תואמים את התצורה הנוכחית):",
         adminModalTitle: "🛠️ פאנל ניהול אדמין",
         adminTripSectionTitle: "🌍 סוג טיול ויעד",
         adminTripTypeLabel: "סוג הטיול:",
@@ -2769,6 +2821,7 @@
         adminTypeLocal: "טיול בארץ",
         adminTypeCamping: "קמפינג / טבע",
         adminTypeReserve: "שירות מילואים / שטח (ללא טיסות)",
+        adminSeatLayoutLabel: "תצורת מושבים במטוס:",
         adminDestLabel: "שם היעד:",
         adminStartLabel: "מועד התחלת הטיול:",
         adminEndLabel: "מועד סיום / חזרה:",
@@ -2836,6 +2889,7 @@
         lockerLinkLabel: "Digital ticket / barcode link (URL):",
         lockerSaveBtn: "Save personal details",
         seatsModalTitle: "✈️ Group seat map",
+        seatMismatchTitle: "Seats not shown on the map (don't match the current configuration):",
         adminModalTitle: "🛠️ Organizer settings",
         adminTripSectionTitle: "🌍 Trip type and destination",
         adminTripTypeLabel: "Trip type:",
@@ -2843,6 +2897,7 @@
         adminTypeLocal: "Local trip",
         adminTypeCamping: "Camping / nature",
         adminTypeReserve: "Reserve duty / field activity (no flights)",
+        adminSeatLayoutLabel: "Seat configuration:",
         adminDestLabel: "Destination name:",
         adminStartLabel: "Trip start:",
         adminEndLabel: "End / return:",
@@ -4390,6 +4445,7 @@
       countryCode = data.countryCode || countryCode;
       checkinLink = data.checkinLink || "";
       whatsappGroupLink = data.whatsappGroupLink || "";
+      seatLayout = data.seatLayout || "3-3";
       tripOwnerId = data.ownerId || "";
 
       try {
@@ -4749,6 +4805,13 @@
         document.getElementById("adminTripType").value;
 
       document.getElementById("checkinField").style.display =
+        selectedType === "abroad" ? "flex" : "none";
+
+      // Same gating as checkinField - the seat map itself only ever shows
+      // for flight trips (seatsBannerBtn.style.display, further down),
+      // so the layout picker that feeds it has nothing to configure for
+      // any other trip type.
+      document.getElementById("seatLayoutField").style.display =
         selectedType === "abroad" ? "flex" : "none";
 
       // Only abroad trips have a flight departure time worth asking for - every
@@ -5784,6 +5847,10 @@
         "adminTripType"
       ).value = tripType;
 
+      document.getElementById(
+        "adminSeatLayout"
+      ).value = seatLayout;
+
       syncAdminFields();
 
       updateAdminShareLink();
@@ -5982,6 +6049,11 @@
             .value
             .trim();
 
+        const newSeatLayout =
+          document
+            .getElementById("adminSeatLayout")
+            .value;
+
         const whatsappGroupInput = document.getElementById("adminWhatsappGroupUrl");
         const whatsappGroupError = document.getElementById("adminWhatsappGroupError");
         const newWhatsappGroup = whatsappGroupInput.value.trim();
@@ -6053,6 +6125,15 @@
           tripType === "abroad"
             ? newCheckin
             : "";
+
+        // Same gating as checkinLink, same reason - the field is hidden
+        // (seatLayoutField) for any non-abroad trip type, so its live
+        // .value could be a stale leftover rather than something the
+        // organizer actually chose this save.
+        seatLayout =
+          tripType === "abroad"
+            ? newSeatLayout
+            : "3-3";
 
         // Unlike checkinLink, not gated by trip type - a WhatsApp group is
         // just as relevant for a local trip or reserve duty as abroad.
@@ -6222,6 +6303,7 @@
             tripType,
             checkinLink,
             whatsappGroupLink,
+            seatLayout,
             showAccent
           };
 
@@ -6659,6 +6741,37 @@
       1000
     );
 
+    const SEAT_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"];
+    const SEAT_MIN_ROW = 1;
+    const SEAT_MAX_ROW = 45;
+
+    // Single source of truth for what a seatLayout string ("2-4-2") means -
+    // shared by renderPlaneSeats() (which letters to draw, where the aisles
+    // go) and the seat-entry validation on the personal locker form (which
+    // letters to accept). Two independent readings of the same string would
+    // be exactly the "same fact copied twice, drifts apart silently" bug
+    // class already documented elsewhere in this app (docs/architecture.md
+    // §8) - group sizes split by "-", letters assigned in one continuous
+    // run across all groups (never restarting per group), skipping only I
+    // (never confused with 1) - A-H then J,K, matching real aircraft
+    // lettering convention closely enough for this app's purposes.
+    function parseSeatLayout(layout) {
+      const groups = (layout || "3-3")
+        .split("-")
+        .map(part => parseInt(part, 10))
+        .filter(size => Number.isInteger(size) && size > 0);
+
+      const letters = [];
+      let offset = 0;
+
+      groups.forEach(size => {
+        letters.push(...SEAT_LETTERS.slice(offset, offset + size));
+        offset += size;
+      });
+
+      return { groups, letters };
+    }
+
     function renderPlaneSeats() {
       const container =
         document.getElementById("planeLayout");
@@ -6694,6 +6807,15 @@
         [19, 20, 21, 22, 23];
 
       if (seatKeys.length > 0) {
+        // Bounded to SEAT_MIN_ROW/SEAT_MAX_ROW, not just !isNaN - a garbage
+        // or wildly-out-of-range row (someone's typo, or a leftover from a
+        // very different layout) used to balloon this into a huge, mostly-
+        // empty display window built AROUND that one bad value, while the
+        // seat itself still fell inside that self-inflated window and got
+        // drawn as occupied anyway - simultaneously "on the map" and "in
+        // the mismatch list" below, contradicting each other. Excluding
+        // out-of-range rows here keeps the display window sane AND keeps
+        // it consistent with what counts as "in configuration."
         const detectedRows =
           seatKeys
             .map(key =>
@@ -6702,7 +6824,9 @@
               )
             )
             .filter(number =>
-              !isNaN(number)
+              !isNaN(number) &&
+              number >= SEAT_MIN_ROW &&
+              number <= SEAT_MAX_ROW
             );
 
         if (detectedRows.length > 0) {
@@ -6726,6 +6850,36 @@
         }
       }
 
+      const { groups, letters } = parseSeatLayout(seatLayout);
+
+      // Built once per render, not once per row - identical for every row
+      // in a given layout. AISLE keeps its original meaning (where row-num
+      // renders) - a layout with more than one aisle just has more than one
+      // of them, one per gap between groups, not a different mechanism.
+      const columns = [];
+      let letterOffset = 0;
+
+      groups.forEach((groupSize, groupIndex) => {
+        for (let seatIndex = 0; seatIndex < groupSize; seatIndex++) {
+          columns.push(letters[letterOffset]);
+          letterOffset++;
+        }
+
+        if (groupIndex < groups.length - 1) {
+          columns.push("AISLE");
+        }
+      });
+
+      // 1fr per seat column, the same 20px gutter the old hardcoded 3-3
+      // template used per aisle - computed from `columns` so it can never
+      // drift out of sync with it the way the old static CSS rule and the
+      // old hardcoded JS array (two separate copies of the same fact)
+      // could, and did require care to keep in sync by hand.
+      const gridTemplateColumns =
+        columns
+          .map(column => column === "AISLE" ? "20px" : "1fr")
+          .join(" ");
+
       let seatDelayCounter = 0;
 
       rowsToDisplay.forEach(row => {
@@ -6733,16 +6887,9 @@
           document.createElement("div");
 
         rowDiv.className = "seat-row";
+        rowDiv.style.gridTemplateColumns = gridTemplateColumns;
 
-        [
-          "A",
-          "B",
-          "C",
-          "AISLE",
-          "D",
-          "E",
-          "F"
-        ].forEach(column => {
+        columns.forEach(column => {
           if (column === "AISLE") {
             const number =
               document.createElement("div");
@@ -6794,6 +6941,61 @@
 
         container.appendChild(rowDiv);
       });
+
+      renderSeatMismatchList(letters);
+    }
+
+    // Anyone whose saved seat isn't drawable under the CURRENT layout - a
+    // letter this configuration doesn't have, or a row number outside the
+    // plausible 1-45 range - used to just silently not appear anywhere,
+    // with no way to tell "not on the map" apart from "never entered a
+    // seat." Listed here instead so someone notices and can fix it. Not
+    // limited to seats that WERE valid under some earlier layout - any
+    // unmatched seat qualifies, same as the pre-existing silent case this
+    // replaces.
+    function renderSeatMismatchList(validLetters) {
+      const box = document.getElementById("seatMismatchBox");
+      const list = document.getElementById("seatMismatchList");
+
+      const mismatches = Object.keys(personalLockerCards)
+        .map(uid => {
+          const card = personalLockerCards[uid];
+          const cleanSeat = card?.seat?.trim().toUpperCase();
+
+          if (!cleanSeat) {
+            return null;
+          }
+
+          const row = parseInt(cleanSeat.replace(/\D/g, ""), 10);
+          const letter = cleanSeat.replace(/[0-9]/g, "");
+
+          const valid =
+            Number.isInteger(row) &&
+            row >= SEAT_MIN_ROW &&
+            row <= SEAT_MAX_ROW &&
+            validLetters.includes(letter);
+
+          if (valid) {
+            return null;
+          }
+
+          return {
+            name: card.name || memberProfiles[uid]?.name || uid,
+            seat: cleanSeat
+          };
+        })
+        .filter(Boolean);
+
+      box.classList.toggle("hidden", mismatches.length === 0);
+
+      list.innerHTML = mismatches
+        .map(entry =>
+          `<div class="seat-mismatch-row">` +
+          `<span>${escapeHtml(entry.name)}</span>` +
+          `<span class="seat-mismatch-seat">${escapeHtml(entry.seat)}</span>` +
+          `</div>`
+        )
+        .join("");
     }
 
     async function fetchWeather() {
