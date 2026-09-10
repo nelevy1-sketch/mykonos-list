@@ -4964,6 +4964,12 @@
       const rows = Object.entries(memberProfiles);
       const myUid = currentUser?.uid;
 
+      // rows.length === 1 note is live, not stored - re-evaluated on every
+      // render (this function already re-runs on every trip-wide RTDB
+      // update, same reasoning as itinerary.html's identical soloRightNow
+      // check). A solo traveler who adds a friend needs the note to
+      // disappear automatically the moment memberProfiles grows past 1 -
+      // not a flag decided once at trip creation. docs/roadmap.md item 11.
       container.innerHTML = rows.length
         ? rows.map(([uid, profile]) => {
             const name = profile.name || tr("משתתף", "Traveler");
@@ -4997,7 +5003,13 @@
                 ${action}
               </div>
             `;
-          }).join("")
+          }).join("") + (rows.length === 1
+            ? `
+              <small style="display:block;margin-top:10px;color:var(--text-muted)">
+                ${tr("רק את/ה בטיול הזה בינתיים", "Just you on this trip so far")}
+              </small>
+            `
+            : "")
         : `
           <small style="color:var(--text-muted)">
             ${tr("עדיין אין חברים בטיול.", "No members yet.")}
