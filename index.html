@@ -1123,6 +1123,46 @@
       font-weight: bold;
     }
 
+    .members-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 4px;
+    }
+
+    .member-avatar,
+    .member-avatar-fallback {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      object-fit: cover;
+    }
+
+    .member-avatar-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-weight: 800;
+      font-size: .82rem;
+    }
+
+    .member-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
     .plane-modal-sheet {
       background: #0b132b !important;
       color: #f8fafc !important;
@@ -1817,7 +1857,8 @@
         <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת שם תצוגה" title="עריכת שם תצוגה">✏️</button>
         <input type="text" class="edit-name-input hidden" id="editNameInput" maxlength="40">
         <a id="tripsLink" class="logout-link hidden" href="index.html?trips=1" aria-label="הטיולים שלי" title="הטיולים שלי">🧳</a>
-        <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה מהחשבון</span></button>
+        <button type="button" id="membersLink" class="logout-link hidden" aria-label="מי בטיול" title="מי בטיול">👥</button>
+        <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה</span></button>
       </span>
     </div>
 
@@ -2124,6 +2165,30 @@
       <span id="navExpenses">הוצאות</span>
     </a>
   </nav>
+
+  <div class="modal-overlay" id="membersModal" role="presentation">
+    <div
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="membersModalTitle">
+
+      <div class="sheet-handle"></div>
+
+      <div class="modal-header">
+        <div class="modal-title" id="membersModalTitle">👥 מי בטיול</div>
+
+        <button
+          class="modal-close"
+          aria-label="סגירה"
+          onclick="closeMembersModal()">
+          ✕
+        </button>
+      </div>
+
+      <div class="members-list" id="membersList"></div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="lockerModal" role="presentation">
     <div
@@ -2592,7 +2657,8 @@
         navPlaces: "מקומות",
         navItinerary: "תוכנית",
         navExpenses: "הוצאות",
-        logoutLinkText: "יציאה מהחשבון",
+        logoutLinkText: "יציאה",
+        membersModalTitle: "👥 מי בטיול",
         lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
         lockerNameLabel: "בחר את השם שלך:",
         lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
@@ -2659,6 +2725,7 @@
         navItinerary: "Plan",
         navExpenses: "Expenses",
         logoutLinkText: "Sign out",
+        membersModalTitle: "👥 Who's on the trip",
         lockerModalTitle: "🎟️ Personal ticket & seat vault",
         lockerNameLabel: "Choose your name:",
         lockerSeatLabel: "Plane seat number (for example 20A):",
@@ -2930,6 +2997,16 @@
 
       document.getElementById("tripsLink").title = tripsLinkLabel;
 
+      const membersLinkLabel =
+        lang === "en" ? "Who's on the trip" : "מי בטיול";
+
+      document.getElementById("membersLink").setAttribute(
+        "aria-label",
+        membersLinkLabel
+      );
+
+      document.getElementById("membersLink").title = membersLinkLabel;
+
       document.getElementById("forecastStrip").setAttribute(
         "aria-label",
         lang === "en" ? "Forecast for the trip days" : "תחזית לימי הטיול"
@@ -3059,6 +3136,16 @@
           !user
         );
 
+        // Always shown once there's a signed-in user, even in a solo trip
+        // (shows just the current user - see renderMembersSheet()) - not
+        // gated on member count. A live listener to hide/show it as people
+        // join would add real complexity for no real benefit; solo trips
+        // are the edge case here, not the common case.
+        document.getElementById("membersLink").classList.toggle(
+          "hidden",
+          !user
+        );
+
         syncSessionUserLabel();
 
         if (!user) {
@@ -3113,6 +3200,12 @@
         .addEventListener("click", () => {
           toast(tr("התנתקת בהצלחה", "Signed out successfully"));
           auth.signOut();
+        });
+
+      document
+        .getElementById("membersLink")
+        .addEventListener("click", () => {
+          openMembersModal();
         });
     }
 
@@ -4570,6 +4663,60 @@
         });
     }
 
+    // 2-letter initials for the avatar fallback. Two+ words: first letter
+    // of the first and last word ("נתנאל לוי" -> "נל", "Netanel Levy" ->
+    // "NL"). A single word (no space at all - not everyone's display name
+    // has one): first two characters of that word instead of just one,
+    // so a lone name still gets a real 2-letter badge, not a single letter
+    // that reads as a typo. .toUpperCase() is a no-op on Hebrew, only
+    // matters for English/mixed names.
+    function getInitials(name) {
+      const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+
+      if (!parts.length) {
+        return "";
+      }
+
+      const chars = parts.length >= 2
+        ? [parts[0][0], parts[parts.length - 1][0]]
+        : Array.from(parts[0]).slice(0, 2);
+
+      return chars.join("").toUpperCase();
+    }
+
+    // Renders once, at open time - not wired into the live trip listener.
+    // memberProfiles itself IS kept live (see the comment above
+    // syncSessionUserLabel()), but re-rendering an OPEN sheet's content
+    // out from under the person reading it would be a distraction, not a
+    // feature - a join while the sheet is open just shows up next time
+    // it's opened, same as renderLinkedMembers()'s admin panel already
+    // does for everything BEHIND the sheet.
+    function renderMembersSheet() {
+      const container = document.getElementById("membersList");
+      const rows = Object.entries(memberProfiles);
+
+      container.innerHTML = rows.length
+        ? rows.map(([uid, profile]) => {
+            const name = profile.name || tr("משתתף", "Traveler");
+            const initials = getInitials(name);
+            const avatar = profile.photoURL
+              ? `<img class="member-avatar" src="${escapeHtml(profile.photoURL)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="member-avatar-fallback" style="display:none">${escapeHtml(initials)}</span>`
+              : `<span class="member-avatar-fallback">${escapeHtml(initials)}</span>`;
+
+            return `
+              <div class="member-row">
+                ${avatar}
+                <span class="member-name">${escapeHtml(name)}</span>
+              </div>
+            `;
+          }).join("")
+        : `
+          <small style="color:var(--text-muted)">
+            ${tr("עדיין אין חברים בטיול.", "No members yet.")}
+          </small>
+        `;
+    }
+
     async function releaseMember(uid) {
       if (!requireOrganizerAccess()) {
         return;
@@ -4730,6 +4877,15 @@
 
     window.closeLockerModal = () => {
       closeSheet("lockerModal");
+    };
+
+    window.openMembersModal = () => {
+      openSheet("membersModal");
+      renderMembersSheet();
+    };
+
+    window.closeMembersModal = () => {
+      closeSheet("membersModal");
     };
 
     window.openSeatsModal = () => {
