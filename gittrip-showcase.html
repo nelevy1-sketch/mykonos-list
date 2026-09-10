@@ -2,6 +2,20 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>
+  // Runs before body paint to avoid a visible RTL->LTR flip for a returning
+  // English-preferring visitor. Duplicated LANG_KEY literal on purpose (kept
+  // tiny/synchronous here; the main script at the bottom owns the real state) -
+  // see that script for the full language toggle.
+  (function () {
+    try {
+      if (localStorage.getItem('gittrip-showcase-lang') === 'en') {
+        document.documentElement.setAttribute('lang', 'en');
+        document.documentElement.setAttribute('dir', 'ltr');
+      }
+    } catch (e) {}
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GitTrip — תכנון טיולים משותף</title>
 
@@ -54,6 +68,35 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 0 22px;
+  }
+
+  /* ---------- LANGUAGE TOGGLE ---------- */
+  /* Fixed to a physical corner on purpose (not inset-inline) - a language switcher
+     that relocates when you switch language is harder to find again to switch back. */
+
+  .lang-toggle {
+    position: fixed;
+    top: calc(10px + env(safe-area-inset-top));
+    right: 14px;
+    z-index: 20;
+    display: flex;
+    gap: 6px;
+  }
+
+  .lang-btn {
+    font: 600 .72rem/1 'Heebo', sans-serif;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .lang-btn.active {
+    color: var(--text);
+    border-color: var(--c-abroad);
+    background: var(--surface-2);
   }
 
   /* ---------- HERO ---------- */
@@ -110,7 +153,7 @@
   .route::before {
     content: "";
     position: absolute;
-    right: 27px;
+    inset-inline-start: 27px;
     top: 8px;
     bottom: 8px;
     width: 2px;
@@ -121,14 +164,15 @@
 
   .stop {
     position: relative;
-    padding: 0 68px 56px 0;
+    padding-block: 0 56px;
+    padding-inline-start: 68px;
   }
 
   .stop:last-child { padding-bottom: 8px; }
 
   .stop-marker {
     position: absolute;
-    right: 12px;
+    inset-inline-start: 12px;
     top: 2px;
     width: 32px;
     height: 32px;
@@ -374,181 +418,186 @@
 </head>
 <body>
 
+<div class="lang-toggle" role="group" aria-label="Language / שפה">
+  <button type="button" class="lang-btn" id="langHeBtn" onclick="setLang('he')">🇮🇱 עברית</button>
+  <button type="button" class="lang-btn" id="langEnBtn" onclick="setLang('en')">🇺🇸 English</button>
+</div>
+
 <div class="shell">
 
   <div class="hero">
     <span class="plane" style="transform:none"><svg viewBox="0 0 512 512" width="52" height="52" aria-hidden="true"><rect width="512" height="512" rx="114" fill="#0B1015"/><path d="M134 386 C 228 386, 182 268, 258 238 C 302 219, 336 200, 352 168" fill="none" stroke="#2DD4C8" stroke-width="26" stroke-linecap="round" stroke-dasharray="6 46"/><circle cx="134" cy="386" r="30" fill="#0B1015" stroke="#2DD4C8" stroke-width="24"/><path d="M362 84 C 312 84, 276 120, 276 164 C 276 204, 312 244, 362 302 C 412 244, 448 204, 448 164 C 448 120, 412 84, 362 84 Z" fill="#2DD4C8"/><circle cx="362" cy="160" r="26" fill="#0B1015"/></svg></span>
-    <h1>הטיול הבא שלכם<br>מתוכנן ביחד</h1>
-    <p>לא עוד קבוצת וואטסאפ עמוסה ורשימות שאף אחד לא בטוח מי עדכן אחרון. GitTrip — מקום אחד, עדכני לכולם, בזמן אמת.</p>
+    <h1 id="heroTitle">הטיול הבא שלכם<br>מתוכנן ביחד</h1>
+    <p id="heroSub">לא עוד קבוצת וואטסאפ עמוסה ורשימות שאף אחד לא בטוח מי עדכן אחרון. GitTrip — מקום אחד, עדכני לכולם, בזמן אמת.</p>
   </div>
 
   <div class="route">
 
     <div class="stop" style="--dot: var(--c-abroad)">
       <div class="stop-marker">🧭</div>
-      <div class="stop-eyebrow">לפני הטיול</div>
-      <h2>מתחילים בכמה קליקים</h2>
-      <p>מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד — מתחבר עם Google וזהו, בלי לבחור שם מרשימה ובלי מסך הרשמה. כולם על אותו עמוד, תרתי משמע.</p>
-      <p>ובוחרים גם מה אופי הטיול — כי טיול משפחה עם ילדים, סופ״ש סקי ומסיבת רווקים לא צריכים את אותה רשימת ציוד.</p>
+      <div class="stop-eyebrow" id="stop1Eyebrow">לפני הטיול</div>
+      <h2 id="stop1Title">מתחילים בכמה קליקים</h2>
+      <p id="stop1P1">מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד — מתחבר עם Google וזהו, בלי לבחור שם מרשימה ובלי מסך הרשמה. כולם על אותו עמוד, תרתי משמע.</p>
+      <p id="stop1P2">ובוחרים גם מה אופי הטיול — כי טיול משפחה עם ילדים, סופ״ש סקי ומסיבת רווקים לא צריכים את אותה רשימת ציוד.</p>
 
       <div class="tags">
-        <span class="tag">משפחה</span>
-        <span class="tag">חברים</span>
-        <span class="tag">זוגי</span>
-        <span class="tag">סקי</span>
-        <span class="tag pride">גאווה</span>
-        <span class="tag">חתונה / רווקים</span>
-        <span class="tag">פסטיבל</span>
+        <span class="tag" id="tagFamily">משפחה</span>
+        <span class="tag" id="tagFriends">חברים</span>
+        <span class="tag" id="tagCouple">זוגי</span>
+        <span class="tag" id="tagSki">סקי</span>
+        <span class="tag pride" id="tagPride">גאווה</span>
+        <span class="tag" id="tagWedding">חתונה / רווקים</span>
+        <span class="tag" id="tagFestival">פסטיבל</span>
       </div>
 
       <div class="touch">
         <span class="t-icon">👥</span>
         <div>
-          <span class="t-name">רואים מי עוד בטיול, ומדברים איתם ישירות</span>
-          <div class="t-desc">רשימת חברים עם תמונות, קישור ישיר לוואטסאפ של כל אחד, וקישור לקבוצת הוואטסאפ של הטיול — לא עוד הודעה נפרדת כדי לגלות מי כבר הצטרף</div>
+          <span class="t-name" id="t1Name">רואים מי עוד בטיול, ומדברים איתם ישירות</span>
+          <div class="t-desc" id="t1Desc">רשימת חברים עם תמונות, קישור ישיר לוואטסאפ של כל אחד, וקישור לקבוצת הוואטסאפ של הטיול — לא עוד הודעה נפרדת כדי לגלות מי כבר הצטרף</div>
         </div>
       </div>
     </div>
 
     <div class="stop" style="--dot: var(--c-local)">
       <div class="stop-marker">🎒</div>
-      <div class="stop-eyebrow">במהלך התכנון</div>
-      <h2>הכל במקום אחד, לא מפוזר בין אפליקציות</h2>
-      <p>חמישה כלים שעובדים ביחד, לא חמש אפליקציות נפרדות:</p>
+      <div class="stop-eyebrow" id="stop2Eyebrow">במהלך התכנון</div>
+      <h2 id="stop2Title">הכל במקום אחד, לא מפוזר בין אפליקציות</h2>
+      <p id="stop2P">חמישה כלים שעובדים ביחד, לא חמש אפליקציות נפרדות:</p>
 
       <div class="modules">
         <div class="module">
           <span class="m-icon">🎒</span>
-          <span class="m-name">רשימת ציוד</span>
-          <span class="m-desc">אישית לכל אחד, עם שיתוף פריטים לקבוצה והצעות AI</span>
+          <span class="m-name" id="m1Name">רשימת ציוד</span>
+          <span class="m-desc" id="m1Desc">אישית לכל אחד, עם שיתוף פריטים לקבוצה והצעות AI</span>
         </div>
         <div class="module">
           <span class="m-icon">🛒</span>
-          <span class="m-name">קניות משותפות</span>
-          <span class="m-desc">מה צריך לקנות לקבוצה, ומי לוקח על עצמו כל פריט</span>
+          <span class="m-name" id="m2Name">קניות משותפות</span>
+          <span class="m-desc" id="m2Desc">מה צריך לקנות לקבוצה, ומי לוקח על עצמו כל פריט</span>
         </div>
         <div class="module">
           <span class="m-icon">📍</span>
-          <span class="m-name">מקומות ותמונות</span>
-          <span class="m-desc">שומרים המלצות, מעלים תמונות, בונים פלייליסט משותף</span>
+          <span class="m-name" id="m3Name">מקומות ותמונות</span>
+          <span class="m-desc" id="m3Desc">שומרים המלצות, מעלים תמונות, בונים פלייליסט משותף</span>
         </div>
         <div class="module">
           <span class="m-icon">🗓️</span>
-          <span class="m-name">תוכנית יומית</span>
-          <span class="m-desc">מה עושים כל יום, עם סימון "קורה עכשיו" בזמן אמת</span>
+          <span class="m-name" id="m4Name">תוכנית יומית</span>
+          <span class="m-desc" id="m4Desc">מה עושים כל יום, עם סימון "קורה עכשיו" בזמן אמת</span>
         </div>
         <div class="module wide">
           <span class="m-icon">💰</span>
-          <span class="m-name">התחשבנות</span>
-          <span class="m-desc">מעקב הוצאות קבוצתי — מי שילם, כמה, ומי סוגר עם מי</span>
+          <span class="m-name" id="m5Name">התחשבנות</span>
+          <span class="m-desc" id="m5Desc">מעקב הוצאות קבוצתי — מי שילם, כמה, ומי סוגר עם מי</span>
         </div>
       </div>
     </div>
 
     <div class="stop" style="--dot: var(--c-reserve)">
       <div class="stop-marker">🗺️</div>
-      <div class="stop-eyebrow">מסלול</div>
-      <h2>מסלול, לא יעד בודד</h2>
-      <p>יורוטריפ, חוף לחוף בארה״ב, שלוש ערים באיטליה. מוסיפים כמה יעדים, וכל אחד מקבל את התאריכים שלו — והאפליקציה כולה מתעדכנת בהתאם.</p>
+      <div class="stop-eyebrow" id="stop3Eyebrow">מסלול</div>
+      <h2 id="stop3Title">מסלול, לא יעד בודד</h2>
+      <p id="stop3P">יורוטריפ, חוף לחוף בארה״ב, שלוש ערים באיטליה. מוסיפים כמה יעדים, וכל אחד מקבל את התאריכים שלו — והאפליקציה כולה מתעדכנת בהתאם.</p>
 
       <div class="legs-demo">
-        <span class="leg-pill">רומא</span>
+        <span class="leg-pill" id="legPill1">רומא</span>
         <span class="leg-arrow">←</span>
-        <span class="leg-pill">פירנצה</span>
+        <span class="leg-pill" id="legPill2">פירנצה</span>
         <span class="leg-arrow">←</span>
-        <span class="leg-pill">ונציה</span>
+        <span class="leg-pill" id="legPill3">ונציה</span>
       </div>
 
       <div class="touch">
         <span class="t-icon">🌤️</span>
         <div>
-          <span class="t-name">מזג אוויר לכל יעד</span>
-          <div class="t-desc">התחזית עוקבת אחרי המסלול — לא נשארת ביעד הראשון. יומיים לפני המעבר כבר רואים מה מחכה בעיר הבאה</div>
+          <span class="t-name" id="t2Name">מזג אוויר לכל יעד</span>
+          <div class="t-desc" id="t2Desc">התחזית עוקבת אחרי המסלול — לא נשארת ביעד הראשון. יומיים לפני המעבר כבר רואים מה מחכה בעיר הבאה</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">🎒</span>
         <div>
-          <span class="t-name">ציוד ומקומות לפי יעד</span>
-          <div class="t-desc">מסננים ורואים בדיוק מה צריך לשבוע הסקי ומה לשבוע בעיר — הכל באותה רשימה</div>
+          <span class="t-name" id="t3Name">ציוד ומקומות לפי יעד</span>
+          <div class="t-desc" id="t3Desc">מסננים ורואים בדיוק מה צריך לשבוע הסקי ומה לשבוע בעיר — הכל באותה רשימה</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">📍</span>
         <div>
-          <span class="t-name">האפליקציה יודעת איפה אתם</span>
-          <div class="t-desc">באמצע הטיול הכותרת מציגה את היעד הנוכחי ומתי עוברים לבא — לא את המקום שיצאתם ממנו לפני שבוע</div>
+          <span class="t-name" id="t4Name">האפליקציה יודעת איפה אתם</span>
+          <div class="t-desc" id="t4Desc">באמצע הטיול הכותרת מציגה את היעד הנוכחי ומתי עוברים לבא — לא את המקום שיצאתם ממנו לפני שבוע</div>
         </div>
       </div>
     </div>
 
     <div class="stop" style="--dot: var(--c-abroad)">
       <div class="stop-marker">💺</div>
-      <div class="stop-eyebrow">חדש</div>
-      <h2>מפת מושבים, מותאמת לטיסה שלכם</h2>
-      <p>לא כל מטוס בנוי 3-3. בוחרים את תצורת המושבים האמיתית של הטיסה — 3-3, 2-4-2, 3-3-3 ועוד — וכל מי שכבר סימן איפה הוא יושב מופיע במקום הנכון על גבי המפה, לא על תבנית גנרית שלא תואמת את המטוס האמיתי.</p>
+      <div class="stop-eyebrow" id="stop4Eyebrow">חדש</div>
+      <h2 id="stop4Title">מפת מושבים, מותאמת לטיסה שלכם</h2>
+      <p id="stop4P">לא כל מטוס בנוי 3-3. בוחרים את תצורת המושבים האמיתית של הטיסה — 3-3, 2-4-2, 3-3-3 ועוד — וכל מי שכבר סימן איפה הוא יושב מופיע במקום הנכון על גבי המפה, לא על תבנית גנרית שלא תואמת את המטוס האמיתי.</p>
     </div>
 
     <div class="stop" style="--dot: var(--c-camping)">
       <div class="stop-marker">✨</div>
-      <div class="stop-eyebrow">הפרטים הקטנים</div>
-      <h2>דברים שגורמים לזה להרגיש חכם</h2>
+      <div class="stop-eyebrow" id="stop5Eyebrow">הפרטים הקטנים</div>
+      <h2 id="stop5Title">דברים שגורמים לזה להרגיש חכם</h2>
 
       <div class="touch">
         <span class="t-icon">🧠</span>
         <div>
-          <span class="t-name">הצעות AI לציוד ולמקומות, לא רשימה גנרית</span>
-          <div class="t-desc">היעד, התאריכים, מזג האוויר הצפוי ואופי הטיול — הכל נכנס לחשבון, גם במה להציע לארוז וגם באיפה כדאי לבקר. סקי בפברואר מקבל הצעות אחרות מחוף באוגוסט, לא עוד "יש לנו AI"</div>
+          <span class="t-name" id="t5Name">הצעות AI לציוד ולמקומות, לא רשימה גנרית</span>
+          <div class="t-desc" id="t5Desc">היעד, התאריכים, מזג האוויר הצפוי ואופי הטיול — הכל נכנס לחשבון, גם במה להציע לארוז וגם באיפה כדאי לבקר. סקי בפברואר מקבל הצעות אחרות מחוף באוגוסט, לא עוד "יש לנו AI"</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">🕐</span>
         <div>
-          <span class="t-name">שעון היעד, לא שעון הבית</span>
-          <div class="t-desc">"קורה עכשיו", התוכנית של היום והתאריכים — כולם לפי השעה במקום שאתם בו באמת</div>
+          <span class="t-name" id="t6Name">שעון היעד, לא שעון הבית</span>
+          <div class="t-desc" id="t6Desc">"קורה עכשיו", התוכנית של היום והתאריכים — כולם לפי השעה במקום שאתם בו באמת</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">🤝</span>
         <div>
-          <span class="t-name">רואים מה החברים אורזים</span>
-          <div class="t-desc">מישהו כבר לקח ערכת עזרה ראשונה? מייבאים את הפריט לרשימה שלכם בלחיצה, בלי לקנות פעמיים</div>
+          <span class="t-name" id="t7Name">רואים מה החברים אורזים</span>
+          <div class="t-desc" id="t7Desc">מישהו כבר לקח ערכת עזרה ראשונה? מייבאים את הפריט לרשימה שלכם בלחיצה, בלי לקנות פעמיים</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">🧠</span>
         <div>
-          <span class="t-name">קיבוץ אוטומטי ברשימת ציוד</span>
-          <div class="t-desc">מקלידים "אקמול" — האפליקציה מציעה להוסיף לתת-קטגוריית "תרופות" בלי שתצטרכו לארגן ידנית</div>
+          <span class="t-name" id="t8Name">קיבוץ אוטומטי ברשימת ציוד</span>
+          <div class="t-desc" id="t8Desc">מקלידים "אקמול" — האפליקציה מציעה להוסיף לתת-קטגוריית "תרופות" בלי שתצטרכו לארגן ידנית</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">🔗</span>
         <div>
-          <span class="t-name">מקומות מתחברים לתוכנית</span>
-          <div class="t-desc">שמרתם מסעדה? כפתור אחד מוסיף אותה ליום ספציפי בתוכנית — בלי להקליד שוב</div>
+          <span class="t-name" id="t9Name">מקומות מתחברים לתוכנית</span>
+          <div class="t-desc" id="t9Desc">שמרתם מסעדה? כפתור אחד מוסיף אותה ליום ספציפי בתוכנית — בלי להקליד שוב</div>
         </div>
       </div>
 
       <div class="touch">
         <span class="t-icon">🌗</span>
         <div>
-          <span class="t-name">מצב כהה, בצבע של הטיול</span>
-          <div class="t-desc">כל סוג טיול מקבל את הגוון שלו — כל עוד אתם בדרכים, גם באמצע הלילה</div>
+          <span class="t-name" id="t10Name">מצב כהה, בצבע של הטיול</span>
+          <div class="t-desc" id="t10Desc">כל סוג טיול מקבל את הגוון שלו — כל עוד אתם בדרכים, גם באמצע הלילה</div>
         </div>
       </div>
 
       <div class="swatches">
-        <div class="swatch"><div class="dot" style="background:var(--c-abroad)"></div><span class="label">חו״ל</span></div>
-        <div class="swatch"><div class="dot" style="background:var(--c-local)"></div><span class="label">בארץ</span></div>
-        <div class="swatch"><div class="dot" style="background:var(--c-camping)"></div><span class="label">קמפינג</span></div>
-        <div class="swatch"><div class="dot" style="background:var(--c-reserve)"></div><span class="label">מילואים</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-abroad)"></div><span class="label" id="swatchAbroad">חו״ל</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-local)"></div><span class="label" id="swatchLocal">בארץ</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-camping)"></div><span class="label" id="swatchCamping">קמפינג</span></div>
+        <div class="swatch"><div class="dot" style="background:var(--c-reserve)"></div><span class="label" id="swatchReserve">מילואים</span></div>
       </div>
     </div>
 
@@ -556,55 +605,190 @@
 
   <div class="cta">
     <div class="cta-card">
-      <h2>מוכנים להמריא?</h2>
-      <p>פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.</p>
+      <h2 id="ctaTitle">מוכנים להמריא?</h2>
+      <p id="ctaP">פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.</p>
       <a class="cta-btn" id="ctaBtn" href="https://nelevy1-sketch.github.io/mykonos-list/wizard.html" target="_blank" rel="noopener">
         ✈️ לפתיחת GitTrip
       </a>
     </div>
   </div>
 
-  <footer>GitTrip · תוכנן ונבנה בשביל טיולים טובים יותר</footer>
+  <footer id="footerText">GitTrip · תוכנן ונבנה בשביל טיולים טובים יותר</footer>
 
 </div>
 
 <script>
-  // docs/roadmap.md part 3 item 0, invitation screen (commit 2গ) - reached
-  // with a tripId only when someone clicked "מה זה GitTrip?" from
-  // index.html's authGate (v4.34.0). Without one, this page behaves
-  // exactly as before this commit - the CTA still opens the wizard to
-  // start a brand new trip. Deliberately narrow: this page stays Hebrew
-  // (lang/dir untouched) - full showcase translation is its own task, out
-  // of scope here. Only the CTA's own text/href follow l.
-  (function () {
-    var params = new URLSearchParams(window.location.search);
-    var tripId = params.get("tripId");
+  // Standalone language toggle for this page only - deliberately does not import
+  // tr()/applyLanguage from the main app (this page loads no app code by design,
+  // see docs/roadmap.md language-toggle entry). Choice persists per-browser in
+  // localStorage (not per-trip like the app's trip-${tripId}-lang - this page has
+  // no trip context of its own).
+  var LANG_KEY = 'gittrip-showcase-lang';
 
-    if (!tripId) {
+  var SHOWCASE_TEXT = {
+    heroTitle: { html: true, he: "הטיול הבא שלכם<br>מתוכנן ביחד", en: "Your next trip.<br>Planned together." },
+    heroSub: { he: "לא עוד קבוצת וואטסאפ עמוסה ורשימות שאף אחד לא בטוח מי עדכן אחרון. GitTrip — מקום אחד, עדכני לכולם, בזמן אמת.", en: "No more overflowing group chats, or packing lists nobody's sure who last updated. GitTrip — one place, up to date for everyone, in real time." },
+
+    stop1Eyebrow: { he: "לפני הטיול", en: "Before the trip" },
+    stop1Title: { he: "מתחילים בכמה קליקים", en: "Get started in a few clicks" },
+    stop1P1: { he: "מארגן הטיול בוחר יעד, תאריכים, ומי מהחברים בפנים. כל אחד נכנס עם קישור אחד — מתחבר עם Google וזהו, בלי לבחור שם מרשימה ובלי מסך הרשמה. כולם על אותו עמוד, תרתי משמע.", en: "The trip organizer picks a destination, dates, and who's coming. Everyone joins with a single link — signs in with Google and that's it, no picking a name off a list, no sign-up screen. Everyone's on the same page." },
+    stop1P2: { he: "ובוחרים גם מה אופי הטיול — כי טיול משפחה עם ילדים, סופ״ש סקי ומסיבת רווקים לא צריכים את אותה רשימת ציוד.", en: "You also set the trip's vibe — because a family trip with kids, a ski weekend, and a bachelor party don't need the same packing list." },
+
+    tagFamily: { he: "משפחה", en: "Family" },
+    tagFriends: { he: "חברים", en: "Friends" },
+    tagCouple: { he: "זוגי", en: "Couple" },
+    tagSki: { he: "סקי", en: "Ski" },
+    tagPride: { he: "גאווה", en: "Pride" },
+    tagWedding: { he: "חתונה / רווקים", en: "Wedding / Bachelor" },
+    tagFestival: { he: "פסטיבל", en: "Festival" },
+
+    t1Name: { he: "רואים מי עוד בטיול, ומדברים איתם ישירות", en: "See who else is on the trip, and message them directly" },
+    t1Desc: { he: "רשימת חברים עם תמונות, קישור ישיר לוואטסאפ של כל אחד, וקישור לקבוצת הוואטסאפ של הטיול — לא עוד הודעה נפרדת כדי לגלות מי כבר הצטרף", en: "A member list with photos, a direct WhatsApp link for each person, and a link to the trip's WhatsApp group — no more separate messages just to find out who's joined" },
+
+    stop2Eyebrow: { he: "במהלך התכנון", en: "While you plan" },
+    stop2Title: { he: "הכל במקום אחד, לא מפוזר בין אפליקציות", en: "Everything in one place, not scattered across apps" },
+    stop2P: { he: "חמישה כלים שעובדים ביחד, לא חמש אפליקציות נפרדות:", en: "Five tools that work together, not five separate apps:" },
+
+    m1Name: { he: "רשימת ציוד", en: "Packing list" },
+    m1Desc: { he: "אישית לכל אחד, עם שיתוף פריטים לקבוצה והצעות AI", en: "Personal for each traveler, with item-sharing for the group and AI suggestions" },
+    m2Name: { he: "קניות משותפות", en: "Shared shopping" },
+    m2Desc: { he: "מה צריך לקנות לקבוצה, ומי לוקח על עצמו כל פריט", en: "What the group needs to buy, and who's taking care of each item" },
+    m3Name: { he: "מקומות ותמונות", en: "Places & photos" },
+    m3Desc: { he: "שומרים המלצות, מעלים תמונות, בונים פלייליסט משותף", en: "Save recommendations, upload photos, build a shared playlist" },
+    m4Name: { he: "תוכנית יומית", en: "Daily itinerary" },
+    m4Desc: { he: "מה עושים כל יום, עם סימון \"קורה עכשיו\" בזמן אמת", en: "What's happening each day, with a live \"happening now\" marker" },
+    m5Name: { he: "התחשבנות", en: "Splitting costs" },
+    m5Desc: { he: "מעקב הוצאות קבוצתי — מי שילם, כמה, ומי סוגר עם מי", en: "Group expense tracking — who paid, how much, and who settles with whom" },
+
+    stop3Eyebrow: { he: "מסלול", en: "Route" },
+    stop3Title: { he: "מסלול, לא יעד בודד", en: "A route, not just one destination" },
+    stop3P: { he: "יורוטריפ, חוף לחוף בארה״ב, שלוש ערים באיטליה. מוסיפים כמה יעדים, וכל אחד מקבל את התאריכים שלו — והאפליקציה כולה מתעדכנת בהתאם.", en: "A Euro trip, coast to coast across the US, three cities in Italy. Add as many destinations as you need, each with its own dates — and the whole app updates accordingly." },
+
+    legPill1: { he: "רומא", en: "Rome" },
+    legPill2: { he: "פירנצה", en: "Florence" },
+    legPill3: { he: "ונציה", en: "Venice" },
+
+    t2Name: { he: "מזג אוויר לכל יעד", en: "Weather for every destination" },
+    t2Desc: { he: "התחזית עוקבת אחרי המסלול — לא נשארת ביעד הראשון. יומיים לפני המעבר כבר רואים מה מחכה בעיר הבאה", en: "The forecast follows your route — it doesn't stay stuck on the first destination. Two days before you move on, you can already see what's waiting in the next city" },
+    t3Name: { he: "ציוד ומקומות לפי יעד", en: "Packing & places, by destination" },
+    t3Desc: { he: "מסננים ורואים בדיוק מה צריך לשבוע הסקי ומה לשבוע בעיר — הכל באותה רשימה", en: "Filter to see exactly what you need for ski week versus city week — all in the same list" },
+    t4Name: { he: "האפליקציה יודעת איפה אתם", en: "The app knows where you are" },
+    t4Desc: { he: "באמצע הטיול הכותרת מציגה את היעד הנוכחי ומתי עוברים לבא — לא את המקום שיצאתם ממנו לפני שבוע", en: "Mid-trip, the header shows your current destination and when you're moving to the next one — not the place you left a week ago" },
+
+    stop4Eyebrow: { he: "חדש", en: "New" },
+    stop4Title: { he: "מפת מושבים, מותאמת לטיסה שלכם", en: "A seat map, matched to your actual flight" },
+    stop4P: { he: "לא כל מטוס בנוי 3-3. בוחרים את תצורת המושבים האמיתית של הטיסה — 3-3, 2-4-2, 3-3-3 ועוד — וכל מי שכבר סימן איפה הוא יושב מופיע במקום הנכון על גבי המפה, לא על תבנית גנרית שלא תואמת את המטוס האמיתי.", en: "Not every plane is laid out 3-3. Pick your flight's actual seat layout — 3-3, 2-4-2, 3-3-3, and more — and everyone who's marked their seat shows up in the right spot on the map, not on a generic template that doesn't match the real plane." },
+
+    stop5Eyebrow: { he: "הפרטים הקטנים", en: "The little details" },
+    stop5Title: { he: "דברים שגורמים לזה להרגיש חכם", en: "Things that make it feel smart" },
+
+    t5Name: { he: "הצעות AI לציוד ולמקומות, לא רשימה גנרית", en: "AI suggestions for packing and places, not a generic list" },
+    t5Desc: { he: "היעד, התאריכים, מזג האוויר הצפוי ואופי הטיול — הכל נכנס לחשבון, גם במה להציע לארוז וגם באיפה כדאי לבקר. סקי בפברואר מקבל הצעות אחרות מחוף באוגוסט, לא עוד \"יש לנו AI\"", en: "The destination, dates, forecasted weather, and trip vibe — it all factors in, both for what to suggest packing and where to visit. A ski trip in February gets different suggestions than a beach trip in August — not just another \"we have AI\"" },
+    t6Name: { he: "שעון היעד, לא שעון הבית", en: "Destination time, not home time" },
+    t6Desc: { he: "\"קורה עכשיו\", התוכנית של היום והתאריכים — כולם לפי השעה במקום שאתם בו באמת", en: "\"Happening now,\" the day's plan, and the dates — all based on the time where you actually are" },
+    t7Name: { he: "רואים מה החברים אורזים", en: "See what your friends are packing" },
+    t7Desc: { he: "מישהו כבר לקח ערכת עזרה ראשונה? מייבאים את הפריט לרשימה שלכם בלחיצה, בלי לקנות פעמיים", en: "Did someone already grab a first-aid kit? Import the item to your own list with one tap — no buying it twice" },
+    t8Name: { he: "קיבוץ אוטומטי ברשימת ציוד", en: "Automatic grouping in the packing list" },
+    t8Desc: { he: "מקלידים \"אקמול\" — האפליקציה מציעה להוסיף לתת-קטגוריית \"תרופות\" בלי שתצטרכו לארגן ידנית", en: "Type \"Tylenol\" — the app suggests adding it under the \"medicine\" subcategory, no manual organizing needed" },
+    t9Name: { he: "מקומות מתחברים לתוכנית", en: "Places connect to the itinerary" },
+    t9Desc: { he: "שמרתם מסעדה? כפתור אחד מוסיף אותה ליום ספציפי בתוכנית — בלי להקליד שוב", en: "Saved a restaurant? One button adds it to a specific day in the itinerary — no retyping" },
+    t10Name: { he: "מצב כהה, בצבע של הטיול", en: "Dark mode, in your trip's color" },
+    t10Desc: { he: "כל סוג טיול מקבל את הגוון שלו — כל עוד אתם בדרכים, גם באמצע הלילה", en: "Every trip type gets its own hue — easy on the eyes on the road, even in the middle of the night" },
+
+    swatchAbroad: { he: "חו״ל", en: "Abroad" },
+    swatchLocal: { he: "בארץ", en: "Domestic" },
+    swatchCamping: { he: "קמפינג", en: "Camping" },
+    swatchReserve: { he: "מילואים", en: "Reserve duty" },
+
+    ctaTitle: { he: "מוכנים להמריא?", en: "Ready for takeoff?" },
+    ctaP: { he: "פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.", en: "Open the link, pick your name, and start planning together." },
+    ctaBtn: { he: "✈️ לפתיחת GitTrip", en: "✈️ Open GitTrip" },
+
+    footerText: { he: "GitTrip · תוכנן ונבנה בשביל טיולים טובים יותר", en: "GitTrip · Designed and built for better trips" }
+  };
+
+  var currentLang = 'he';
+  try {
+    var savedLang = localStorage.getItem(LANG_KEY);
+    if (savedLang === 'en' || savedLang === 'he') {
+      currentLang = savedLang;
+    } else {
+      var urlLang = new URLSearchParams(window.location.search).get('l');
+      if (urlLang === 'en') currentLang = 'en';
+    }
+  } catch (e) {}
+
+  // Same principle as index.html's legRouteArrow() in the main app - arrow direction
+  // follows the active language. Not imported from index.html: this page loads no
+  // app code by design.
+  function legRouteArrow() {
+    return currentLang === 'en' ? ' → ' : ' ← ';
+  }
+
+  function applyLanguage() {
+    document.documentElement.setAttribute('lang', currentLang);
+    document.documentElement.setAttribute('dir', currentLang === 'en' ? 'ltr' : 'rtl');
+
+    Object.keys(SHOWCASE_TEXT).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var entry = SHOWCASE_TEXT[id];
+      var value = currentLang === 'en' ? entry.en : entry.he;
+      if (entry.html) {
+        el.innerHTML = value;
+      } else {
+        el.textContent = value;
+      }
+    });
+
+    var arrow = legRouteArrow();
+    var arrows = document.querySelectorAll('.leg-arrow');
+    for (var i = 0; i < arrows.length; i++) arrows[i].textContent = arrow;
+
+    document.getElementById('langHeBtn').classList.toggle('active', currentLang === 'he');
+    document.getElementById('langEnBtn').classList.toggle('active', currentLang === 'en');
+
+    updateCtaButton();
+  }
+
+  function setLang(lang) {
+    currentLang = lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    applyLanguage();
+  }
+
+  // docs/roadmap.md part 3 item 0, invitation screen (commit 2গ) - reached with a
+  // tripId only when someone clicked "מה זה GitTrip?" from index.html's authGate
+  // (v4.34.0). Without one, the CTA keeps its default SHOWCASE_TEXT label and opens
+  // the wizard to start a new trip.
+  var ctaTripId = null;
+  var ctaDestination = '';
+  var ctaBackUrl = null;
+
+  // d/h are link input, not trusted - same as index.html's authGate. .textContent
+  // below (in updateCtaButton) is mandatory, not a style choice: a crafted ?d=<script>
+  // must render as literal text, never run. Same 30-char cap as index.html's
+  // truncateForGate().
+  function truncateForCta(value, max) {
+    if (!value || value.length <= max) {
+      return value;
+    }
+
+    return value.slice(0, max).trim() + "…";
+  }
+
+  (function initCtaFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    ctaTripId = params.get("tripId");
+    if (!ctaTripId) {
       return;
     }
 
-    // d/h are link input, not trusted - same as index.html's authGate.
-    // .textContent below is mandatory, not a style choice: a crafted
-    // ?d=<script> must render as literal text, never run. Same 30-char
-    // cap as index.html's truncateForGate() too (small enough on its own
-    // that a shared file for one five-line helper isn't worth it here -
-    // see CLAUDE.md's note on the three separate URL-builder functions
-    // for what IS worth sharing).
-    function truncateForCta(value, max) {
-      if (!value || value.length <= max) {
-        return value;
-      }
-
-      return value.slice(0, max).trim() + "…";
-    }
-
     var rawDestination = params.get("d") || "";
-    var destination = truncateForCta(rawDestination, 30);
-    var isEnglish = params.get("l") === "en";
+    ctaDestination = truncateForCta(rawDestination, 30);
 
     var backUrl = new URL("index.html", window.location.href);
-    backUrl.searchParams.set("tripId", tripId);
+    backUrl.searchParams.set("tripId", ctaTripId);
 
     if (rawDestination) {
       backUrl.searchParams.set("d", rawDestination);
@@ -618,20 +802,28 @@
       backUrl.searchParams.set("l", params.get("l"));
     }
 
-    var ctaBtn = document.getElementById("ctaBtn");
+    ctaBackUrl = backUrl;
 
-    // Same tab, not a new one: "מה זה GitTrip?" opened this page with
-    // target="_blank" specifically so the original invitation tab stays
-    // open behind it (v4.34.0) - "back to the trip" should return to
-    // that tab's own context, not stack a third one.
-    ctaBtn.removeAttribute("target");
-    ctaBtn.removeAttribute("rel");
-    ctaBtn.href = backUrl.href;
-
-    ctaBtn.textContent = destination
-      ? (isEnglish ? "✈️ Back to the trip to " + destination : "✈️ חזרה לטיול ל" + destination)
-      : (isEnglish ? "✈️ Back to the trip" : "✈️ חזרה לטיול");
+    // Same tab, not a new one: "מה זה GitTrip?" opened this page with target="_blank"
+    // specifically so the original invitation tab stays open behind it (v4.34.0) -
+    // "back to the trip" should return to that tab's own context, not stack a third one.
+    var ctaBtnEl = document.getElementById("ctaBtn");
+    ctaBtnEl.removeAttribute("target");
+    ctaBtnEl.removeAttribute("rel");
+    ctaBtnEl.href = ctaBackUrl.href;
   })();
+
+  function updateCtaButton() {
+    if (!ctaTripId) {
+      return;
+    }
+    var btn = document.getElementById("ctaBtn");
+    btn.textContent = ctaDestination
+      ? (currentLang === "en" ? "✈️ Back to the trip to " + ctaDestination : "✈️ חזרה לטיול ל" + ctaDestination)
+      : (currentLang === "en" ? "✈️ Back to the trip" : "✈️ חזרה לטיול");
+  }
+
+  applyLanguage();
 </script>
 
 </body>
