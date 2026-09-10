@@ -3318,24 +3318,22 @@ body.modal-open .modal-card {
   //
   // The MOST SPECIFIC matching keyword wins, across every category at
   // once - not simply the first category declared in CATEGORY_DICTIONARY.
-  // Reason: with first-category-wins, a short keyword in an early category
-  // can grab an item before a longer, more specific keyword in a later
-  // category ever gets a chance - e.g. if a future produce keyword ever
-  // happened to prefix-match "פירות" (produce is declared first), it would
-  // beat a dedicated multi-word "פירות ים" (seafood) keyword in the meat
-  // category every time, regardless of which one is actually the better
-  // match. Specificity = (keyword token count, then keyword character
-  // length) - a 2-word keyword always beats a 1-word one; among same-length
-  // keywords, the longer string wins. Ties (identical specificity, still
-  // possible in principle) fall back to CATEGORY_DICTIONARY's declared
-  // order, same as before.
+  // Reason, demonstrated by a REAL pair already in the dictionary: "חלבון"
+  // (חטיפים ומתוקים, declared 6th) genuinely starts with "חלב" (חלב וביצים,
+  // declared 4th - earlier). With first-category-wins, item "חלבון" would
+  // always land in חלב וביצים - that category is checked first and "חלב"
+  // already matches there - even though "חלבון" matching ITSELF exactly is
+  // obviously the better answer. Specificity = (keyword token count, then
+  // keyword character length) - a 2-word keyword always beats a 1-word
+  // one; among same-length keywords, the longer string wins. So "חלבון"
+  // (5 chars) outranks "חלב" (3 chars) regardless of which category is
+  // declared first, and protein snacks correctly land in חטיפים ומתוקים.
+  // Ties (identical specificity, still possible in principle) fall back to
+  // CATEGORY_DICTIONARY's declared order, same as before.
   //
-  // This also resolves the חלב/חלבון collision as a side effect, with no
-  // special-casing: "חלבון" (5 chars) beats "חלב" (3 chars) on its own
-  // specificity, so protein snacks land in חטיפים ומתוקים instead of חלב
-  // וביצים. Two related, accepted, NOT fixed here: "מים"/"תה" possibly
-  // sitting inside a longer word are not automatically resolved by this
-  // ranking when nothing MORE specific also matches - "תה" (2 chars) genuinely
+  // Two related, accepted, NOT fixed here: "מים"/"תה" possibly sitting
+  // inside a longer word are not automatically resolved by this ranking
+  // when nothing MORE specific also matches - "תה" (2 chars) genuinely
   // prefixes "תהילה" and nothing here changes that. Checked and accepted as
   // out of scope: "מים" does NOT actually prefix "שמים" (ם/ה position
   // differs), so that specific pairing was never a real risk to begin with.
