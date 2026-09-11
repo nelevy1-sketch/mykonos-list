@@ -261,6 +261,84 @@
         return targetLeg.name || null;
     }
 
+    // docs/schema-legs.md investigation (per-leg seat map/personal locker,
+    // commit 1 of the plan) - "is there a specific flight relevant RIGHT
+    // NOW, and which one". Deliberately NOT built on getLegForDate/
+    // tripDayDates: those answer "which leg does this CALENDAR DAY belong
+    // to" (day granularity, day-key comparisons) - this answers "is a
+    // specific flight's departure within a 24h window of this exact
+    // instant", which needs raw millisecond arithmetic against
+    // leg.startAt, not a day-boundary lookup. Different question, not a
+    // narrower case of the same one.
+    //
+    // Asymmetric by design, per the decided display rule:
+    // - legs[0] (the very first departure, from home): relevant from the
+    //   moment the trip exists until its own startAt - no 24h gate. The
+    //   organizer created the trip because of this flight; it shouldn't
+    //   need a countdown to justify showing up.
+    // - legs[1..] (every later transition - a flight FROM the previous
+    //   leg's destination TO this one): relevant only in the 24h
+    //   immediately before its own startAt (== the previous leg's endAt,
+    //   contiguous per §2.2). Before that window, showing it would be
+    //   noise for a flight that's still days or weeks away.
+    // - the return flight (last leg's endAt, == trip.endAt per §4): NOT a
+    //   leg - there's no legs[N+1] to represent "flying home from the
+    //   last destination". Same 24h-before rule as legs[1..], measured
+    //   against the trip's own end instead of a leg boundary. Signaled by
+    //   the sentinel legId "return" (never a real leg.id - those are
+    //   minted as "main", "leg_1", or crypto-random "leg_<base36>",
+    //   legBuilder.js - "return" cannot collide with any of them).
+    //
+    // Only one flight is ever "relevant" at a time - a later flight's 24h
+    // window cannot open before an earlier one's own departure has passed
+    // (24h is far shorter than any realistic leg duration), so the loop
+    // below returning on the first match is safe, not a coincidence.
+    //
+    // Timezone-agnostic on purpose: startAt/endAt are ISO strings with an
+    // explicit UTC offset (§2.2), so `new Date(x) - now` is a difference
+    // between two absolute instants - no leg/device timezone enters into
+    // "is this within 24 hours" at all. Timezone only matters for deriving
+    // a calendar day or a displayed wall-clock time from an instant
+    // (zonedParts and friends) - not for this.
+    //
+    // Returns { legId, isReturn } or null (no flight relevant right now -
+    // either between windows, or the trip is fully in its "after" phase).
+    // Deliberately does not resolve seatLayout itself - "which flight is
+    // relevant" and "what's its seat layout" are separate questions, same
+    // one-job-per-function split as getCurrentLegTimezone/
+    // getCurrentLegCoords/getCurrentLegName above.
+    function getRelevantFlight(trip) {
+        const legs = getLegs(trip);
+        const now = new Date();
+
+        const first = legs[0];
+        if (first && first.startAt && now < new Date(first.startAt)) {
+            return { legId: first.id, isReturn: false };
+        }
+
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+        for (let i = 1; i < legs.length; i++) {
+            const leg = legs[i];
+            if (!leg.startAt) continue;
+
+            const diff = new Date(leg.startAt).getTime() - now.getTime();
+            if (diff > 0 && diff <= ONE_DAY_MS) {
+                return { legId: leg.id, isReturn: false };
+            }
+        }
+
+        const last = getLastLeg(trip);
+        if (last && last.endAt) {
+            const diff = new Date(last.endAt).getTime() - now.getTime();
+            if (diff > 0 && diff <= ONE_DAY_MS) {
+                return { legId: "return", isReturn: true };
+            }
+        }
+
+        return null;
+    }
+
     // One calendar day per entry from trip.startAt to the last leg's
     // endAt, each tagged with the leg it belongs to. Moved here from
     // itinerary.html/places.html (docs/schema-legs.md §8, step 4) - those
@@ -404,5 +482,6 @@
     window.getCurrentLegTimezone = getCurrentLegTimezone;
     window.getCurrentLegCoords = getCurrentLegCoords;
     window.getCurrentLegName = getCurrentLegName;
+    window.getRelevantFlight = getRelevantFlight;
     window.tripDayDates = tripDayDates;
 })();
