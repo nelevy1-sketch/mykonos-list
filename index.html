@@ -746,7 +746,6 @@
     }
 
     .action-card {
-      background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-inline-end: 3px solid var(--border-color);
       border-radius: var(--radius-lg);
@@ -762,6 +761,29 @@
       transition: transform .15s ease, box-shadow .15s ease;
       position: relative;
       overflow: hidden;
+    }
+
+    /* Card fill "melts" toward the reading-start side instead of a flat
+       block, replacing the old per-module border/glow color (all 5
+       modules, same fixed shape, not content-dependent). On a ::before
+       behind the content (z-index:-1), not on .action-card itself -
+       mask-image affects everything the masked element paints, including
+       text; masking the card directly would fade the title/desc out
+       along with the background, not just the background. */
+    .action-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: var(--card-bg);
+      -webkit-mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+      mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+    }
+
+    [dir="ltr"] .action-card::before {
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+      mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
     }
 
     .action-card:active {
@@ -783,7 +805,6 @@
       border-radius: 15px;
       display: grid;
       place-items: center;
-      background: var(--primary-soft);
       margin-bottom: 4px;
     }
 
@@ -839,141 +860,22 @@
       color: var(--text-muted);
     }
 
-    .action-card.packing {
-      border-inline-end-color: #6FB8AC;
-    }
-
-    .action-card.shopping {
-      border-inline-end-color: var(--sun);
-    }
-
-    .action-card.places {
-      border-inline-end-color: #6E9BC7;
-    }
-
-    .action-card.expenses {
-      border-inline-end-color: var(--expense);
-    }
-
-    .action-card.itinerary {
-      border-inline-end-color: var(--coral);
-    }
-
     [data-theme="dark"] .action-card {
       border-inline-end: 1px solid var(--border-color);
     }
-
-    [data-theme="dark"] .action-card.packing {
-      box-shadow: 0 0 0 1px #6FE0C8, 0 0 14px color-mix(in srgb, #6FE0C8 35%, transparent);
-    }
-
-    [data-theme="dark"] .action-card.shopping {
-      box-shadow: 0 0 0 1px #FFC862, 0 0 14px color-mix(in srgb, #FFC862 35%, transparent);
-    }
-
-    [data-theme="dark"] .action-card.places {
-      box-shadow: 0 0 0 1px #6FB4F0, 0 0 14px color-mix(in srgb, #6FB4F0 35%, transparent);
-    }
-
-    [data-theme="dark"] .action-card.expenses {
-      box-shadow: 0 0 0 1px #B49CF0, 0 0 14px color-mix(in srgb, #B49CF0 35%, transparent);
-    }
-
-    [data-theme="dark"] .action-card.itinerary {
-      box-shadow: 0 0 0 1px #FF9A72, 0 0 14px color-mix(in srgb, #FF9A72 35%, transparent);
-    }
-
-    .action-card.packing .action-icon {
-      background: #DDF2EE;
-    }
-
-    .action-card.shopping .action-icon {
-      background: #FCEBC8;
-    }
-
-    .action-card.places .action-icon {
-      background: #DDEAF7;
-    }
-
-    .action-card.expenses .action-icon {
-      background: #E4E0F7;
-    }
-
-    .action-card.itinerary .action-icon {
-      background: #FBE2DA;
-    }
-
-    [data-theme="dark"] .action-card.packing .action-icon,
-    [data-theme="dark"] .action-card.shopping .action-icon,
-    [data-theme="dark"] .action-card.places .action-icon,
-    [data-theme="dark"] .action-card.expenses .action-icon,
-    [data-theme="dark"] .action-card.itinerary .action-icon,
-    [data-theme="dark"] .action-icon {
-      background: none;
-      position: relative;
-      width: 56px;
-      height: 56px;
-    }
-
-    [data-theme="dark"] .action-icon::before {
-      content: "";
-      position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      background: radial-gradient(circle, var(--icon-glow, var(--glow-color)) 0%, transparent 68%);
-      opacity: .3;
-      filter: blur(3px);
-    }
-
-    [data-theme="dark"] .action-card.packing .action-icon { --icon-glow: #6FE0C8; }
-    [data-theme="dark"] .action-card.shopping .action-icon { --icon-glow: #FFC862; }
-    [data-theme="dark"] .action-card.places .action-icon { --icon-glow: #6FB4F0; }
-    [data-theme="dark"] .action-card.expenses .action-icon { --icon-glow: #B49CF0; }
-    [data-theme="dark"] .action-card.itinerary .action-icon { --icon-glow: #FF9A72; }
 
     [data-theme="dark"] .action-card svg {
       width: 36px;
       height: 36px;
       stroke-width: 2.25;
+      stroke: #F4F8F7;
       position: relative;
       z-index: 1;
-      filter: drop-shadow(0 0 9px var(--icon-glow, var(--glow-color)));
-    }
-
-    [data-theme="dark"] .action-card.packing svg,
-    [data-theme="dark"] .action-card.shopping svg,
-    [data-theme="dark"] .action-card.places svg,
-    [data-theme="dark"] .action-card.expenses svg,
-    [data-theme="dark"] .action-card.itinerary svg {
-      stroke: #F4F8F7;
-    }
-
-    [data-theme="dark"] .action-card svg rect,
-    [data-theme="dark"] .action-card svg circle,
-    [data-theme="dark"] .action-card svg ellipse {
-      fill: var(--icon-glow, var(--glow-color));
-      fill-opacity: .28;
     }
 
     [data-theme="dark"] .action-card svg circle[r="2"] {
       fill: #F4F8F7;
       fill-opacity: 1;
-    }
-
-    .action-card.shopping svg {
-      stroke: #A66D00;
-    }
-
-    .action-card.places svg {
-      stroke: #356FA5;
-    }
-
-    .action-card.expenses svg {
-      stroke: var(--expense);
-    }
-
-    .action-card.itinerary svg {
-      stroke: var(--coral);
     }
 
     .bottom-nav {
@@ -2146,8 +2048,7 @@
 
         <span
           class="action-card-title"
-          id="expensesTitle"
-          style="color:var(--expense);">
+          id="expensesTitle">
           התחשבנות
         </span>
 
