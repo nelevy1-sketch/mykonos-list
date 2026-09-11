@@ -800,52 +800,70 @@
     /* Breathing edge glow/shadow, content cards only (.has-content, set in
        JS from the real per-card signal - see renderActionBadges/
        updateExpensesCard, not from badge visibility, which is inverted for
-       expenses). box-shadow, not mask-image: unlike the melt above, this is
-       a ring around the card's own edge, not a fill that needs fading in one
-       direction - no pseudo-element or masking needed, and no stacking risk
-       either, since box-shadow is just a paint property of .action-card
-       itself (already has its own stacking context, see z-index:0 above).
-       0%/100% is a *medium* pulse, not off, deliberately unlike
+       expenses). On its own ::after (transparent, no fill - exists only to
+       carry the border/shadow), masked with the SAME gradient/fade-point as
+       the ::before melt above, not a full ring: a complete outline read as a
+       closed frame that fought the card's own half-dissolved background -
+       fading it out on the same side, at the same 55% point, makes it read
+       as one continuous effect instead of two unrelated layers.
+       border + box-shadow:inset, NOT a normal outward box-shadow - tested
+       side by side under the exact same mask: an outward box-shadow (glow
+       spreading past the box edge) renders almost fully invisible, because
+       mask-image's default mask-origin (border-box) only covers the
+       element's own box - a shadow's blur/spread painted OUTSIDE that box
+       falls outside the mask entirely. border sits exactly on the box edge
+       (never outside it) and an inset shadow bleeds inward, so both stay
+       fully inside the masked area and fade cleanly. z-index matches
+       ::before (-1) - both already scoped to just this card by its own
+       stacking context (z-index:0 above); ::after paints over ::before
+       simply by coming after it in generated order, still behind all real
+       content. 0%/100% is a *medium* pulse, not off, deliberately unlike
        adminGearPulse's 0%/100%=nothing - prefers-reduced-motion's global
        animation-iteration-count:1 rule (further down this file) then
        settles on medium, not on/off. */
-    .action-card.has-content {
+    .action-card.has-content::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      border: 1.5px solid transparent;
+      -webkit-mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+      mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
       animation: actionCardBreathe 3.6s ease-in-out infinite;
+    }
+
+    [dir="ltr"] .action-card.has-content::after {
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+      mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
     }
 
     @keyframes actionCardBreathe {
       0%, 100% {
-        box-shadow:
-          var(--shadow-card),
-          0 0 0 1px color-mix(in srgb, var(--glow-color) 45%, transparent),
-          0 6px 16px color-mix(in srgb, var(--glow-color) 22%, transparent);
+        border-color: color-mix(in srgb, var(--glow-color) 45%, transparent);
+        box-shadow: inset 0 -4px 14px color-mix(in srgb, var(--glow-color) 20%, transparent);
       }
       50% {
-        box-shadow:
-          var(--shadow-card),
-          0 0 0 1.5px color-mix(in srgb, var(--glow-color) 70%, transparent),
-          0 10px 26px color-mix(in srgb, var(--glow-color) 38%, transparent);
+        border-color: color-mix(in srgb, var(--glow-color) 78%, transparent);
+        box-shadow: inset 0 -6px 24px color-mix(in srgb, var(--glow-color) 40%, transparent);
       }
     }
 
-    /* Dark mode reads as a glow (symmetric blur, no offset) rather than a
-       drop-shadow - same spirit as the old per-module ring this replaces. */
-    [data-theme="dark"] .action-card.has-content {
+    /* Dark mode reads as a glow (shadow centered, no vertical offset) rather
+       than a drop-shadow - same spirit as the old per-module ring this
+       replaces. */
+    [data-theme="dark"] .action-card.has-content::after {
       animation-name: actionCardBreatheDark;
     }
 
     @keyframes actionCardBreatheDark {
       0%, 100% {
-        box-shadow:
-          var(--shadow-card),
-          0 0 0 1px var(--glow-color),
-          0 0 10px color-mix(in srgb, var(--glow-color) 30%, transparent);
+        border-color: color-mix(in srgb, var(--glow-color) 45%, transparent);
+        box-shadow: inset 0 0 10px 1px color-mix(in srgb, var(--glow-color) 25%, transparent);
       }
       50% {
-        box-shadow:
-          var(--shadow-card),
-          0 0 0 1.5px var(--glow-color),
-          0 0 22px color-mix(in srgb, var(--glow-color) 55%, transparent);
+        border-color: var(--glow-color);
+        box-shadow: inset 0 0 20px 2px color-mix(in srgb, var(--glow-color) 45%, transparent);
       }
     }
 
