@@ -102,7 +102,23 @@
     // step 6/9 (the first real legId consumers) could hit it. The wizard
     // never passes legIds - every leg there is new by construction, so the
     // fallback (mint one) is exactly what it needs, unchanged from before.
-    function buildLegs({ legNames, legLocations, legVibes, startInputValue, endInputValue, transitionInputValues, hasTime, legIds }) {
+    //
+    // legSeatLayouts[i], when given, is that leg's own seat configuration
+    // (docs/schema-legs.md investigation, per-leg seat map/personal locker,
+    // commit 2 of the plan) - parallel to legNames/legLocations, same
+    // by-index convention. Optional and defaults to null, NOT "3-3" or any
+    // other hardcoded layout: applying a default is a read-time concern for
+    // whoever consumes leg.seatLayout, exactly like countryCode above (a leg
+    // that predates this field falls back to the trip's own value, not to a
+    // value baked in here at write time - docs/schema-legs.md §8ব.11ব.3).
+    // wizard.html never passes this at all (seatLayout is admin-panel-only,
+    // set after trip creation, never asked at creation time) - the `&&`
+    // guard keeps that caller working unchanged, same as the legIds guard
+    // above. trip.returnSeatLayout (the return flight's own layout) does
+    // NOT go through this function - it's a sibling trip-level field, not a
+    // leg, written directly by its own caller (there's no legs[N+1] to
+    // represent "flying home from the last destination").
+    function buildLegs({ legNames, legLocations, legVibes, startInputValue, endInputValue, transitionInputValues, hasTime, legIds, legSeatLayouts }) {
         const startBoundary = new Date(startInputValue);
 
         const lastLegTimezone = legLocations[legLocations.length - 1].timezone;
@@ -137,6 +153,7 @@
             // the time an admin-panel save reuses an unchanged leg without
             // re-geocoding it (docs/schema-legs.md §2.2).
             countryCode: legLocations[i].countryCode || null,
+            seatLayout: (legSeatLayouts && legSeatLayouts[i]) || null,
             startAt: boundaries[i].toISOString(),
             endAt: boundaries[i + 1].toISOString(),
             vibes: legVibes
