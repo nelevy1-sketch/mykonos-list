@@ -761,6 +761,15 @@
       transition: transform .15s ease, box-shadow .15s ease;
       position: relative;
       overflow: hidden;
+      /* Without an explicit z-index here, position:relative alone does NOT
+         give this element its own stacking context - the ::before below's
+         z-index:-1 then escapes to #appContainer (also position:relative,
+         opaque background) and paints behind THAT instead of just behind
+         this card's own content, making it invisible. Confirmed by testing:
+         a forced background on the pseudo was fully hidden with z-index
+         auto on this element, and appeared correctly (behind the text)
+         once this was added - not a mask or CSS-override problem. */
+      z-index: 0;
     }
 
     /* Card fill "melts" toward the reading-start side instead of a flat
