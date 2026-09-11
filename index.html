@@ -47,6 +47,7 @@
       --primary: #1D7A93;
       --primary-dark: #0F3E63;
       --primary-soft: #D6EBE9;
+      --glow-color: var(--primary);
       --sea: #2A9D8F;
       --sun: #F2B84B;
       --coral: #E76F51;
@@ -80,6 +81,7 @@
       --primary: #BD6E2E;
       --primary-dark: #7A431A;
       --primary-soft: #F0DCC0;
+      --glow-color: var(--primary);
       --bg-color: #F5E8D8;
       --card-bg: #FFFBF4;
       --border-color: #E3CBA8;
@@ -92,6 +94,7 @@
       --primary: #2C7755;
       --primary-dark: #2E4A1B;
       --primary-soft: #DCE9C8;
+      --glow-color: var(--primary);
       --bg-color: #E9F0DD;
       --card-bg: #FBFCF6;
       --border-color: #CFE0B8;
@@ -109,6 +112,7 @@
       --primary: #6C57A7;
       --primary-dark: #2E3746;
       --primary-soft: #D9DEE6;
+      --glow-color: var(--primary);
       --bg-color: #E7EAEE;
       --card-bg: #FBFCFD;
       --border-color: #C7CDD6;
@@ -791,6 +795,58 @@
     [dir="ltr"] .action-card::before {
       -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
       mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+    }
+
+    /* Breathing edge glow/shadow, content cards only (.has-content, set in
+       JS from the real per-card signal - see renderActionBadges/
+       updateExpensesCard, not from badge visibility, which is inverted for
+       expenses). box-shadow, not mask-image: unlike the melt above, this is
+       a ring around the card's own edge, not a fill that needs fading in one
+       direction - no pseudo-element or masking needed, and no stacking risk
+       either, since box-shadow is just a paint property of .action-card
+       itself (already has its own stacking context, see z-index:0 above).
+       0%/100% is a *medium* pulse, not off, deliberately unlike
+       adminGearPulse's 0%/100%=nothing - prefers-reduced-motion's global
+       animation-iteration-count:1 rule (further down this file) then
+       settles on medium, not on/off. */
+    .action-card.has-content {
+      animation: actionCardBreathe 3.6s ease-in-out infinite;
+    }
+
+    @keyframes actionCardBreathe {
+      0%, 100% {
+        box-shadow:
+          var(--shadow-card),
+          0 0 0 1px color-mix(in srgb, var(--glow-color) 45%, transparent),
+          0 6px 16px color-mix(in srgb, var(--glow-color) 22%, transparent);
+      }
+      50% {
+        box-shadow:
+          var(--shadow-card),
+          0 0 0 1.5px color-mix(in srgb, var(--glow-color) 70%, transparent),
+          0 10px 26px color-mix(in srgb, var(--glow-color) 38%, transparent);
+      }
+    }
+
+    /* Dark mode reads as a glow (symmetric blur, no offset) rather than a
+       drop-shadow - same spirit as the old per-module ring this replaces. */
+    [data-theme="dark"] .action-card.has-content {
+      animation-name: actionCardBreatheDark;
+    }
+
+    @keyframes actionCardBreatheDark {
+      0%, 100% {
+        box-shadow:
+          var(--shadow-card),
+          0 0 0 1px var(--glow-color),
+          0 0 10px color-mix(in srgb, var(--glow-color) 30%, transparent);
+      }
+      50% {
+        box-shadow:
+          var(--shadow-card),
+          0 0 0 1.5px var(--glow-color),
+          0 0 22px color-mix(in srgb, var(--glow-color) 55%, transparent);
+      }
     }
 
     .action-card:active {
