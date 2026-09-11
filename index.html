@@ -4419,6 +4419,9 @@
       const packingBadge = document.getElementById("packingBadge");
       const shoppingBadge = document.getElementById("shoppingBadge");
       const placesBadge = document.getElementById("placesBadge");
+      const itineraryBadge = document.getElementById("itineraryBadge");
+
+      let packingHasContent = false;
 
       if (currentUser && data.packing?.users?.[currentUser.uid]?.items) {
         const lists = data.packing.users[currentUser.uid].items;
@@ -4434,6 +4437,8 @@
           });
         });
 
+        packingHasContent = total > 0;
+
         if (total > 0) {
           packingBadge.textContent = `${done}/${total}`;
           packingBadge.classList.remove("hidden");
@@ -4444,7 +4449,11 @@
         packingBadge.classList.add("hidden");
       }
 
+      document.querySelector(".action-card.packing")
+        ?.classList.toggle("has-content", packingHasContent);
+
       const shoppingLists = data.shopping?.lists;
+      let shoppingHasContent = false;
 
       if (shoppingLists) {
         const count =
@@ -4452,6 +4461,8 @@
             (sum, list) => sum + Object.keys(list || {}).length,
             0
           );
+
+        shoppingHasContent = count > 0;
 
         if (count > 0) {
           shoppingBadge.textContent = tr(`${count} פריטים`, `${count} items`);
@@ -4463,6 +4474,9 @@
         shoppingBadge.classList.add("hidden");
       }
 
+      document.querySelector(".action-card.shopping")
+        ?.classList.toggle("has-content", shoppingHasContent);
+
       const placesCount = Object.keys(data.places?.items || {}).length;
       const photosCount = Object.keys(data.photos?.items || {}).length;
       const totalPlaces = placesCount + photosCount;
@@ -4473,6 +4487,32 @@
       } else {
         placesBadge.classList.add("hidden");
       }
+
+      document.querySelector(".action-card.places")
+        ?.classList.toggle("has-content", totalPlaces > 0);
+
+      // itineraryBadge has existed in the markup since v4.37.0 but no code
+      // ever set its text or unhid it - always hidden regardless of actual
+      // activity count, not a real "no content" signal. Real fix: count
+      // every day's activities from the same data this render already has
+      // (data.itinerary.days[key].activities, see currentItineraryDays a
+      // few lines below), not a separate RTDB read.
+      const itineraryDays = data.itinerary?.days || {};
+      const activitiesTotal = Object.values(itineraryDays).reduce(
+        (sum, day) => sum + Object.keys(day?.activities || {}).length,
+        0
+      );
+
+      if (activitiesTotal > 0) {
+        itineraryBadge.textContent =
+          tr(`${activitiesTotal} פעילויות`, `${activitiesTotal} activities`);
+        itineraryBadge.classList.remove("hidden");
+      } else {
+        itineraryBadge.classList.add("hidden");
+      }
+
+      document.querySelector(".action-card.itinerary")
+        ?.classList.toggle("has-content", activitiesTotal > 0);
     }
 
     function updateExpensesCard(data) {
@@ -4481,6 +4521,11 @@
       const navLink = document.getElementById("navExpensesLink");
       const url = data.spliitUrl || "";
       currentSpliitUrl = url;
+
+      // "has content" here is Boolean(url), NOT badge visibility - expensesBadge
+      // shows an "add link" prompt with inverted polarity from the other 4
+      // badges (visible when EMPTY, hidden once configured, see below).
+      card?.classList.toggle("has-content", Boolean(url));
 
       [card, navLink].forEach(el => { if (el) el.onclick = null; });
 
