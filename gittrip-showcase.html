@@ -46,6 +46,18 @@
     --c-local: #FFA94D;
     --c-camping: #52B788;
     --c-reserve: #A78BFA;
+
+    /* Scroll-reveal timing - deliberately slower than the splash's own
+       350ms opacity fade (see that section's own comment): the splash is a
+       single sharp moment, this is a flowing, recurring effect down the
+       whole page - the two are meant to feel like different tempos, not
+       the same one reused. cubic-bezier(0.16,1,0.3,1) ("ease-out-expo") -
+       fast start, gentle settle - reads as content arriving into place,
+       not just fading; the splash's plain `ease` doesn't need that same
+       quality since it has no direction/motion to settle from. */
+    --reveal-duration: 550ms;
+    --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-delay-step: 70ms;
   }
 
   * { box-sizing: border-box; }
@@ -464,6 +476,81 @@
     color: transparent;
   }
 
+  /* ---------- SCROLL REVEAL ---------- */
+  /* .is-armed is added by the script at the bottom of this page to each .stop and
+     to .cta-card ONE TIME on load, before any IntersectionObserver has
+     fired - it's what actually puts these elements (and, via the
+     descendant rules further down, their inner card groups) into their
+     hidden starting state. This is deliberately JS-opt-in, not a CSS
+     default: with JS disabled or failing before this runs, NOTHING here
+     ever goes to opacity:0 in the first place, so - unlike the splash -
+     this feature needs no separate <noscript> rescue at all; there is no
+     "stuck hidden" state to rescue anyone from by construction. .is-visible
+     is added by the Observer's callback (once per element, then
+     unobserved - see script) and is what actually reveals. */
+  .stop.is-armed,
+  .cta-card.is-armed {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity var(--reveal-duration) var(--reveal-ease),
+                transform var(--reveal-duration) var(--reveal-ease);
+  }
+
+  .stop.is-visible,
+  .cta-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Internal stagger for repeating card groups inside a station - same
+     mechanism for all of them (tags, modules, touches, swatches), not just
+     the 6-touch station, so the page doesn't feel inconsistent between
+     stations that do and don't stagger internally. --stagger-index is set
+     once per child, per group, by that same script at the same time .is-armed is
+     added (0-based position within ITS OWN group - a station's 2nd .touch
+     and another station's 2nd .tag both get 1, independently). Triggered
+     by the ANCESTOR .stop's own .is-armed/.is-visible, not a second
+     Observer per child - one intersection event drives the whole station,
+     including everything staggered inside it. */
+  .stop.is-armed .tag,
+  .stop.is-armed .module,
+  .stop.is-armed > .touch,
+  .stop.is-armed .swatch {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity var(--reveal-duration) var(--reveal-ease),
+                transform var(--reveal-duration) var(--reveal-ease);
+    transition-delay: calc(var(--stagger-index, 0) * var(--reveal-delay-step));
+  }
+
+  .stop.is-visible .tag,
+  .stop.is-visible .module,
+  .stop.is-visible > .touch,
+  .stop.is-visible .swatch {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* CTA gets the exact same station-level treatment as every .stop
+     (.cta-card is armed/revealed identically) - the button additionally
+     gets its own small delayed pop after the card, driven by the SAME
+     .is-visible toggle on .cta-card (not a second Observer target - see
+     the JS), so it can never fire out of order with the card around a
+     fast scroll. 120ms delay, scale instead of translateY - a distinct
+     enough gesture for the one element on the page people actually click,
+     without introducing a different animation language for it. */
+  .cta-card.is-armed .cta-btn {
+    opacity: 0;
+    transform: scale(.92);
+    transition: opacity var(--reveal-duration) var(--reveal-ease) 120ms,
+                transform var(--reveal-duration) var(--reveal-ease) 120ms;
+  }
+
+  .cta-card.is-visible .cta-btn {
+    opacity: 1;
+    transform: scale(1);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     /* Skipped entirely, not just de-animated - matches scroll-behavior:auto
@@ -473,6 +560,21 @@
        needed to decide this - evaluated before first paint either way. */
     .splash { display: none; }
     body.splash-lock { overflow: visible; }
+
+    /* Defense in depth, not the primary mechanism - the script's own
+       matchMedia check already skips adding .is-armed at all for these
+       users (same "skip entirely" decision as the splash above), so
+       nothing here SHOULD ever need overriding. This exists only in case
+       that JS check itself fails somehow (a future edit removes it, a
+       browser quirk in matchMedia) - the same "two independent paths, not
+       one path with a backup step" reasoning already used for the splash's
+       two dismissal timers, applied here to the "did we actually skip"
+       decision instead of to timing. */
+    .stop, .cta-card, .tag, .module, .stop > .touch, .swatch, .cta-btn {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
   }
 </style>
 </head>
@@ -750,6 +852,81 @@
     // releases the splash on its own schedule. Two unrelated paths to the
     // same release, not one path with a backup step.
     setTimeout(releaseSplash, 2500);
+  })();
+
+  // Scroll reveal - each .stop and .cta-card enters on its OWN Observer
+  // entry as it comes into view (not one Observer covering the whole
+  // route), stays revealed once triggered (unobserve right after), and
+  // never needs a <noscript> rescue: .is-armed (the class that actually
+  // puts anything into its hidden starting state - see the CSS) is added
+  // by this script, never present by default, so JS disabled/failing
+  // before this runs simply leaves everything visible from the start.
+  (function () {
+    var targets = document.querySelectorAll('.stop, .cta-card');
+    if (!targets.length) return;
+
+    var reduceMotion = false;
+    try {
+      reduceMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {}
+
+    // Same "skip entirely" decision as the splash, and for the same reason
+    // (a de-animated version would still show a rearrangement, just without
+    // the motion that makes it read as intentional) - matches
+    // scroll-behavior:auto's own "remove the behavior" precedent already in
+    // this file. Also skipped for browsers with no IntersectionObserver at
+    // all (very rare today) - same principle as reduced-motion: nothing
+    // here may ever depend on a feature that might not run, so if it's not
+    // available, everything just stays visible rather than staying hidden
+    // forever waiting for an Observer that will never fire.
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      return;
+    }
+
+    // --stagger-index set once per child, per group, scoped to that
+    // specific group (a station's 2nd .touch and a DIFFERENT station's 2nd
+    // .tag are both index 1, independently) - not a global count across the
+    // whole page, which would give later stations increasingly large,
+    // meaningless delays unrelated to their own content.
+    function indexGroup(children) {
+      Array.prototype.forEach.call(children, function (child, i) {
+        child.style.setProperty('--stagger-index', i);
+      });
+    }
+
+    document.querySelectorAll('.tags, .modules, .swatches').forEach(function (group) {
+      indexGroup(group.children);
+    });
+
+    document.querySelectorAll('.stop').forEach(function (stop) {
+      indexGroup(stop.querySelectorAll(':scope > .touch'));
+    });
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, {
+      threshold: 0,
+      // Shrinks the effective viewport by 15% at the bottom only - a
+      // station has to scroll up somewhat from the very bottom edge before
+      // counting as "intersecting", not the instant one pixel peeks in
+      // (too early), but well before it's scrolled past (too late). A
+      // fixed threshold fraction instead of this would trigger at very
+      // different actual scroll positions for a short station (stop 4,
+      // just a heading and a paragraph) versus a tall one (stop 5, six
+      // touches plus swatches) - rootMargin in viewport pixels is what
+      // stays consistent across stations of very different heights.
+      rootMargin: '0px 0px -15% 0px'
+    });
+
+    targets.forEach(function (el) {
+      el.classList.add('is-armed');
+      observer.observe(el);
+    });
   })();
 
   // Standalone language toggle for this page only - deliberately does not import
