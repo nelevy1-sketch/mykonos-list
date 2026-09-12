@@ -58,6 +58,7 @@
     --reveal-duration: 550ms;
     --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
     --reveal-delay-step: 70ms;
+    --reveal-shift: 60px;
   }
 
   * { box-sizing: border-box; }
@@ -491,7 +492,6 @@
   .stop.is-armed,
   .cta-card.is-armed {
     opacity: 0;
-    transform: translateY(15px);
     transition: opacity var(--reveal-duration) var(--reveal-ease),
                 transform var(--reveal-duration) var(--reveal-ease);
   }
@@ -499,7 +499,47 @@
   .stop.is-visible,
   .cta-card.is-visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
+  }
+
+  /* Directional entry, alternating per station - not a fixed side.
+     Verified live in the browser before writing this (both languages,
+     screenshotted mid-offset) rather than assumed: station 1 enters from
+     the reading-START side (right in Hebrew, left in English), station 2
+     from the reading-END side, alternating by nth-child - so the actual
+     physical direction flips correctly between dir="rtl"/dir="ltr" (same
+     principle already used by .route's dashed line and the lang toggle's
+     own fixed-corner positioning) while which station starts from which
+     LOGICAL side stays constant regardless of language. .cta-card
+     continues the same alternation as if it were the 6th station (even -
+     reading-end side), since it shares this exact ruleset with .stop
+     rather than being a special case.
+
+     :not(.is-visible) is load-bearing, not decoration - .is-armed is
+     never removed once revealed (see the script), so a revealed element
+     carries BOTH .is-armed and .is-visible at once. These selectors'
+     specificity (an attribute selector + :nth-child) is higher than
+     plain .stop.is-visible's, so without :not(.is-visible) here they'd
+     keep winning the cascade even after reveal and the station would
+     stay stuck at its offset forever instead of settling to
+     translateX(0) - caught live testing this exact page (stop 1 held at
+     +60px after "revealing"), not a theoretical concern. */
+  html[dir="rtl"] .stop:nth-child(odd).is-armed:not(.is-visible),
+  html[dir="ltr"] .stop:nth-child(even).is-armed:not(.is-visible) {
+    transform: translateX(var(--reveal-shift));
+  }
+
+  html[dir="rtl"] .stop:nth-child(even).is-armed:not(.is-visible),
+  html[dir="ltr"] .stop:nth-child(odd).is-armed:not(.is-visible) {
+    transform: translateX(calc(-1 * var(--reveal-shift)));
+  }
+
+  html[dir="rtl"] .cta-card.is-armed:not(.is-visible) {
+    transform: translateX(calc(-1 * var(--reveal-shift)));
+  }
+
+  html[dir="ltr"] .cta-card.is-armed:not(.is-visible) {
+    transform: translateX(var(--reveal-shift));
   }
 
   /* Internal stagger for repeating card groups inside a station - same
