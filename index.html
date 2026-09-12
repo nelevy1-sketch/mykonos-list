@@ -1344,7 +1344,19 @@
       background: var(--bg-color);
     }
 
+    /* Extra breathing room BETWEEN section boxes specifically, on top of the
+       16px .bottom-sheet already gives every modal's direct children (locker/
+       seats/members modals included, not just this one) - scoped here via
+       adjacent-sibling so it never touches that shared modal-body gap. Only
+       kicks in from the 2nd box onward, not before the first one. */
+    .admin-section-box + .admin-section-box {
+      margin-top: 10px;
+    }
+
     .admin-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 0.85rem;
       font-weight: 800;
       color: var(--primary-dark);
@@ -1355,6 +1367,29 @@
     [data-theme="dark"] .admin-section-title {
       color: var(--glow-color);
       border-bottom-color: var(--border-color);
+    }
+
+    /* The emoji every section title already had, now its own element so it
+       can get a soft circular backdrop instead of sitting bare in the text
+       run - NOT part of the translatable dict value anymore (an emoji needs
+       no translation; keeping it in dashboardText would only require the
+       exact same literal character in both he/en entries, a duplicate
+       fact that could drift). Reuses --primary-soft, the same soft-accent
+       token already paired with --primary-dark elsewhere in this file (the
+       seats banner's own action badge) - a proven combo, not a new one.
+       First child in source order in both dir="rtl" and dir="ltr" - flexbox
+       places it leading either way, matching where the emoji already read
+       before this change (first character of the combined string). */
+    .admin-section-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      font-size: 0.95rem;
     }
 
     .admin-field {
@@ -2450,8 +2485,9 @@
       </div>
 
       <div class="admin-section-box">
-        <div class="admin-section-title" id="adminTripSectionTitle">
-          🌍 סוג טיול ויעד
+        <div class="admin-section-title">
+          <span class="admin-section-icon" aria-hidden="true">🌍</span>
+          <span id="adminTripSectionTitle">סוג טיול ויעד</span>
         </div>
 
         <div class="admin-field">
@@ -2570,8 +2606,9 @@
       </div>
 
       <div class="admin-section-box">
-        <div class="admin-section-title" id="adminModulesSectionTitle">
-          🧩 מודולים פעילים בטיול
+        <div class="admin-section-title">
+          <span class="admin-section-icon" aria-hidden="true">🧩</span>
+          <span id="adminModulesSectionTitle">מודולים פעילים בטיול</span>
         </div>
 
         <div class="admin-field">
@@ -2613,8 +2650,9 @@
       </div>
 
       <div class="admin-section-box">
-        <div class="admin-section-title" id="adminMembersTitle">
-          👥 ניהול חברי הקבוצה (הקלד והקש Enter)
+        <div class="admin-section-title">
+          <span class="admin-section-icon" aria-hidden="true">👥</span>
+          <span id="adminMembersTitle">ניהול חברי הקבוצה (הקלד והקש Enter)</span>
         </div>
 
         <div class="tags-input-container" id="adminTagsContainer">
@@ -2631,8 +2669,9 @@
       </div>
 
       <div class="admin-section-box">
-        <div class="admin-section-title" id="adminShareTitle">
-          🔗 שיתוף הטיול
+        <div class="admin-section-title">
+          <span class="admin-section-icon" aria-hidden="true">🔗</span>
+          <span id="adminShareTitle">שיתוף הטיול</span>
         </div>
 
         <p class="admin-hint" id="adminShareHint">
@@ -2650,8 +2689,9 @@
       </div>
 
       <div class="admin-section-box">
-        <div class="admin-section-title" id="adminNewTripTitle">
-          ✈️ טיול נוסף
+        <div class="admin-section-title">
+          <span class="admin-section-icon" aria-hidden="true">✈️</span>
+          <span id="adminNewTripTitle">טיול נוסף</span>
         </div>
 
         <p class="admin-hint" id="adminNewTripHint">
@@ -2860,7 +2900,7 @@
         seatsModalTitle: "✈️ מפת הושבה קבוצתית",
         seatMismatchTitle: "מושבים שלא מוצגים במפה (לא תואמים את התצורה הנוכחית):",
         adminModalTitle: "🛠️ פאנל ניהול אדמין",
-        adminTripSectionTitle: "🌍 סוג טיול ויעד",
+        adminTripSectionTitle: "סוג טיול ויעד",
         adminTripTypeLabel: "סוג הטיול:",
         adminTypeAbroad: "טיסה לחו״ל (כולל טיסות וצ׳ק־אין)",
         adminTypeLocal: "טיול בארץ",
@@ -2886,8 +2926,8 @@
         adminWhatsappGroupLabel: "קישור לקבוצת וואטסאפ (אופציונלי):",
         adminShowAccentLabel: "🎨 הצג מבטא צבעוני לפי אופי הטיול",
         saveFlightBtn: "שמור הגדרות טיול",
-        adminMembersTitle: "👥 ניהול חברי הקבוצה (הקלד והקש Enter)",
-        adminModulesSectionTitle: "🧩 מודולים פעילים בטיול",
+        adminMembersTitle: "ניהול חברי הקבוצה (הקלד והקש Enter)",
+        adminModulesSectionTitle: "מודולים פעילים בטיול",
         adminFeatPackingLabel: "🎒 רשימת ציוד",
         adminFeatShoppingLabel: "🛒 קניות משותפות",
         adminFeatPlacesLabel: "📍 מקומות ותמונות",
@@ -2897,10 +2937,10 @@
         adminMultiLegHint: "עריכת מועד ההתחלה/סיום הכולל בטיול מרובה יעדים תתאפשר בקרוב - את היעדים כבר אפשר לערוך למעלה",
         adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
         saveModulesBtn: "שמור מודולים",
-        adminShareTitle: "🔗 שיתוף הטיול",
+        adminShareTitle: "שיתוף הטיול",
         adminShareHint: "שולחים לחברי הקבוצה קישור לטיול, עם הודעה מוכנה מראש.",
         adminShareWhatsappBtn: "💬 שיתוף בוואטסאפ",
-        adminNewTripTitle: "✈️ טיול נוסף",
+        adminNewTripTitle: "טיול נוסף",
         adminNewTripHint: "הטיול הנוכחי נשאר כמו שהוא - האשף פותח טיול חדש ונפרד, ואתם תהיו המארגנים שלו.",
         adminNewTripBtn: "יצירת טיול חדש",
         spliitGateTitle: "הוספת קישור להתחשבנות",
@@ -2948,7 +2988,7 @@
         seatsModalTitle: "✈️ Group seat map",
         seatMismatchTitle: "Seats not shown on the map (don't match the current configuration):",
         adminModalTitle: "🛠️ Organizer settings",
-        adminTripSectionTitle: "🌍 Trip type and destination",
+        adminTripSectionTitle: "Trip type and destination",
         adminTripTypeLabel: "Trip type:",
         adminTypeAbroad: "International flight (flights and check-in)",
         adminTypeLocal: "Local trip",
@@ -2974,8 +3014,8 @@
         adminWhatsappGroupLabel: "WhatsApp group link (optional):",
         adminShowAccentLabel: "🎨 Show a color accent for trip character",
         saveFlightBtn: "Save trip settings",
-        adminMembersTitle: "👥 Group members (type a name and press Enter)",
-        adminModulesSectionTitle: "🧩 Active trip modules",
+        adminMembersTitle: "Group members (type a name and press Enter)",
+        adminModulesSectionTitle: "Active trip modules",
         adminFeatPackingLabel: "🎒 Packing list",
         adminFeatShoppingLabel: "🛒 Group shopping",
         adminFeatPlacesLabel: "📍 Places & photos",
@@ -2985,10 +3025,10 @@
         adminMultiLegHint: "Editing the overall start/end date of a multi-destination trip will be available soon - you can already edit destinations above",
         adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
         saveModulesBtn: "Save modules",
-        adminShareTitle: "🔗 Share the trip",
+        adminShareTitle: "Share the trip",
         adminShareHint: "Send the group a link to the trip, with a ready-made message.",
         adminShareWhatsappBtn: "💬 Share on WhatsApp",
-        adminNewTripTitle: "✈️ Another trip",
+        adminNewTripTitle: "Another trip",
         adminNewTripHint: "This trip stays exactly as it is - the wizard opens a new, separate trip, and you will be its organiser.",
         adminNewTripBtn: "Create a new trip",
         spliitGateTitle: "Add a link for expense splitting",
