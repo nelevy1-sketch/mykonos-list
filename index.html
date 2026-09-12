@@ -6738,15 +6738,27 @@
         ).textContent = action;
       };
 
+      // Was isFlight && diffOut>0 (only the trip's very first departure,
+      // via the module-level `flightOut`/`diffOut` above - a single
+      // trip-wide value with no leg-awareness at all, predating the legs
+      // feature). window.getRelevantFlight() (legs.js, per-leg seat-map
+      // investigation, docs/schema-legs.md) generalizes this to "is ANY
+      // flight relevant right now" - legs[0] before its own departure,
+      // any later leg's own departure within 24h, or the return flight
+      // within 24h of trip end (legId:"return" sentinel - no legs[N+1] to
+      // represent it). Still gated on isFlight: getRelevantFlight() only
+      // knows about time/legs, not tripType - a camping/local/reserve trip
+      // has legs too but no flights or seat map at all.
+      const relevantFlight =
+        isFlight
+          ? window.getRelevantFlight({ legs: currentLegs })
+          : null;
+
       seatsBannerBtn.style.display =
-        isFlight && diffOut > 0
-          ? "flex"
-          : "none";
+        relevantFlight ? "flex" : "none";
 
       lockerCardContainer.style.display =
-        isFlight && diffOut > 0
-          ? "flex"
-          : "none";
+        relevantFlight ? "flex" : "none";
 
       if (diffOut > 0) {
         applyCardsForPhase("before");
@@ -7059,7 +7071,34 @@
         }
       }
 
-      const { groups, letters } = parseSeatLayout(seatLayout);
+      // Which seatLayout string actually applies right now - the map must
+      // match the flight that's relevant, not always the trip's own legacy
+      // field. window.getRelevantFlight() (legs.js) returns the same
+      // {legId,isReturn} shape used for the banner's own visibility above;
+      // called again here (not reused from there) because renderPlaneSeats()
+      // runs on its own trigger (openSeatsModal), not inside
+      // updateClockAndPhases(). isReturn -> trip.returnSeatLayout (return
+      // flight is a sibling trip-level field, not a leg - no legs[N+1],
+      // docs/schema-legs.md investigation, commit 2's own comment in
+      // legBuilder.js). Otherwise the matching leg's own seatLayout, falling
+      // back to the trip's legacy `seatLayout` for a leg that predates the
+      // field - same fallback chain already used in seedAdminLegsEditor()
+      // (leg.seatLayout || seatLayout || "3-3"). No relevant flight at all
+      // (modal opened outside any flight window, e.g. a stale banner click)
+      // falls back to the plain trip-level `seatLayout` too - the pre-commit-4
+      // behavior, not a blank/broken map.
+      const relevantFlight =
+        window.getRelevantFlight({ legs: currentLegs });
+
+      const activeSeatLayout =
+        relevantFlight
+          ? relevantFlight.isReturn
+            ? returnSeatLayout
+            : (currentLegs.find(leg => leg.id === relevantFlight.legId) || {}).seatLayout ||
+              seatLayout
+          : seatLayout;
+
+      const { groups, letters } = parseSeatLayout(activeSeatLayout);
 
       // Built once per render, not once per row - identical for every row
       // in a given layout. AISLE keeps its original meaning (where row-num
