@@ -411,12 +411,104 @@
     opacity: .7;
   }
 
+  /* ---------- SPLASH ---------- */
+  /* Normal document flow, not position:fixed over the content - a fixed
+     full-screen overlay sized with vh has a known iOS Safari quirk (the
+     address-bar show/hide changes the visual viewport without matching vh),
+     which reads as a layout jump right as the splash disappears - exactly
+     wrong for a page whose audience is mostly iOS. Sitting in flow as the
+     first element instead means dismissing it is just this element
+     collapsing to nothing, with the real page already sitting right below
+     it - overflow:hidden (here, so ITS OWN collapse never shows a scrollbar
+     flicker) + opacity is what actually produces that, not a second overlay
+     mechanism to reason about. body.splash-lock (below) keeps the page from
+     being scrolled INTO while this is up, since nothing stops a fast
+     scroll from reaching real content during the ~1s window otherwise. */
+  body.splash-lock { overflow: hidden; }
+
+  .splash {
+    position: relative;
+    z-index: 30;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: var(--bg);
+    opacity: 1;
+    transition: opacity .35s ease;
+  }
+
+  /* Height collapses to 0 only AFTER the opacity transition finishes
+     (transition-delay on height matches the opacity duration exactly) - the
+     collapse itself happens while already fully invisible, so the real
+     content below sliding up into view never reads as a visible jump. */
+  .splash.is-done {
+    opacity: 0;
+    height: 0;
+    transition: opacity .35s ease, height 0s .35s;
+    pointer-events: none;
+  }
+
+  .splash-icon { display: block; }
+
+  .splash-name {
+    font: 800 1.5rem/1 'Heebo', sans-serif;
+    letter-spacing: -.01em;
+    background: linear-gradient(135deg, #fff 40%, var(--c-abroad));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
+    /* Skipped entirely, not just de-animated - matches scroll-behavior:auto
+       right above (removing the behavior, not softening it), and a splash
+       that still appears-then-vanishes with no fade would read as a flash/
+       glitch, not a gentler version of the effect. Pure CSS, no JS branch
+       needed to decide this - evaluated before first paint either way. */
+    .splash { display: none; }
+    body.splash-lock { overflow: visible; }
   }
 </style>
 </head>
-<body>
+<body class="splash-lock">
+
+<!-- Single definition, reused by both the splash below and the hero further
+     down (<use>) - same icon in two places is exactly the "same fact copied
+     twice, drifts apart" risk this codebase avoids elsewhere, even in a
+     static marketing page with no build step. -->
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="gtIcon" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="114" fill="#0B1015"/>
+    <path d="M134 386 C 228 386, 182 268, 258 238 C 302 219, 336 200, 352 168" fill="none" stroke="#2DD4C8" stroke-width="26" stroke-linecap="round" stroke-dasharray="6 46"/>
+    <circle cx="134" cy="386" r="30" fill="#0B1015" stroke="#2DD4C8" stroke-width="24"/>
+    <path d="M362 84 C 312 84, 276 120, 276 164 C 276 204, 312 244, 362 302 C 412 244, 448 204, 448 164 C 448 120, 412 84, 362 84 Z" fill="#2DD4C8"/>
+    <circle cx="362" cy="160" r="26" fill="#0B1015"/>
+  </symbol>
+</svg>
+
+<!-- Visible immediately on parse, no JS required to show it - only the tiny
+     releaseSplash() in the script at the bottom of this page is needed to
+     dismiss it, and even that has an independent safety-net timer (see the
+     script) plus the <noscript> rescue right below for when no JS runs at
+     all. z-index above .lang-toggle's own (20) so those fixed corner
+     buttons don't poke through while this is up. -->
+<div class="splash" id="splash" aria-hidden="true">
+  <svg class="splash-icon" viewBox="0 0 512 512" width="64" height="64"><use href="#gtIcon"></use></svg>
+  <span class="splash-name">GitTrip</span>
+</div>
+
+<!-- Without this, a visitor with JS disabled or failing gets body.splash-lock
+     forever (overflow:hidden - the WHOLE page becomes unscrollable, not just
+     a stray visual) with no releaseSplash() ever firing to lift it. There is
+     no difference between "hasn't loaded yet" and "never will" without an
+     explicit no-JS rescue. -->
+<noscript><style>.splash{display:none} body.splash-lock{overflow:visible}</style></noscript>
 
 <div class="lang-toggle" role="group" aria-label="Language / שפה">
   <button type="button" class="lang-btn" id="langHeBtn" onclick="setLang('he')">🇮🇱 עברית</button>
@@ -426,7 +518,7 @@
 <div class="shell">
 
   <div class="hero">
-    <span class="plane" style="transform:none"><svg viewBox="0 0 512 512" width="52" height="52" aria-hidden="true"><rect width="512" height="512" rx="114" fill="#0B1015"/><path d="M134 386 C 228 386, 182 268, 258 238 C 302 219, 336 200, 352 168" fill="none" stroke="#2DD4C8" stroke-width="26" stroke-linecap="round" stroke-dasharray="6 46"/><circle cx="134" cy="386" r="30" fill="#0B1015" stroke="#2DD4C8" stroke-width="24"/><path d="M362 84 C 312 84, 276 120, 276 164 C 276 204, 312 244, 362 302 C 412 244, 448 204, 448 164 C 448 120, 412 84, 362 84 Z" fill="#2DD4C8"/><circle cx="362" cy="160" r="26" fill="#0B1015"/></svg></span>
+    <span class="plane" style="transform:none"><svg viewBox="0 0 512 512" width="52" height="52" aria-hidden="true"><use href="#gtIcon"></use></svg></span>
     <h1 id="heroTitle">הטיול הבא שלכם<br>מתוכנן ביחד</h1>
     <p id="heroSub">לא עוד קבוצת וואטסאפ עמוסה ורשימות שאף אחד לא בטוח מי עדכן אחרון. GitTrip — מקום אחד, עדכני לכולם, בזמן אמת.</p>
   </div>
@@ -618,6 +710,48 @@
 </div>
 
 <script>
+  // Splash dismissal - deliberately the first thing this script does, so its
+  // timer starts counting as close to "script began executing" as possible.
+  // Showing the splash needs no JS at all (plain HTML/CSS, visible the
+  // instant it's parsed) - this only ever RELEASES it. reduced-motion is a
+  // pure CSS media query (see the stylesheet), evaluated before first paint
+  // regardless of script timing, but the scroll lock (body.splash-lock)
+  // still needs lifting here even in that case - it's a class, not
+  // something the reduced-motion CSS alone touches.
+  (function () {
+    var splash = document.getElementById('splash');
+
+    function releaseSplash() {
+      if (splash) splash.classList.add('is-done');
+      document.body.classList.remove('splash-lock');
+    }
+
+    if (!splash) {
+      releaseSplash();
+      return;
+    }
+
+    var reduceMotion = false;
+    try {
+      reduceMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {}
+
+    if (reduceMotion) {
+      releaseSplash();
+      return;
+    }
+
+    setTimeout(releaseSplash, 1000);
+
+    // Independent safety net, not a fallback wired to the timer above - if
+    // anything throws anywhere else on this page before the 1000ms timer
+    // fires (a runtime error, not just JS being disabled), this still
+    // releases the splash on its own schedule. Two unrelated paths to the
+    // same release, not one path with a backup step.
+    setTimeout(releaseSplash, 2500);
+  })();
+
   // Standalone language toggle for this page only - deliberately does not import
   // tr()/applyLanguage from the main app (this page loads no app code by design,
   // see docs/roadmap.md language-toggle entry). Choice persists per-browser in
