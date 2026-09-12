@@ -2504,6 +2504,25 @@
           עריכת יעדים ותאריכים בטיול מרובה יעדים תתאפשר בקרוב
         </p>
 
+        <div class="admin-field" id="airlineField">
+          <label id="adminAirlineLabel">חברת תעופה (אופציונלי):</label>
+          <select id="adminAirline" class="admin-input">
+            <option value="" id="adminAirlineOther">אחר</option>
+            <option value="elal" id="adminAirlineElal">אל על</option>
+            <option value="airfrance" id="adminAirlineAirfrance">אייר פרנס</option>
+            <option value="lufthansa" id="adminAirlineLufthansa">לופטהנזה</option>
+            <option value="turkish" id="adminAirlineTurkish">טורקיש איירליינס</option>
+            <option value="britishairways" id="adminAirlineBa">בריטיש איירווייז</option>
+            <option value="klm" id="adminAirlineKlm">KLM</option>
+            <option value="aegean" id="adminAirlineAegean">אג'יאן איירליינס</option>
+            <option value="vueling" id="adminAirlineVueling">וולינג</option>
+            <option value="united" id="adminAirlineUnited">יונייטד איירליינס</option>
+          </select>
+          <p class="admin-hint" id="adminAirlineHint">
+            בחירת חברה תמלא למטה את הקישור לעמוד הצ'ק-אין הכללי שלה — עדיין תצטרכו להזין שם מספר הזמנה/שם. אפשר גם לערוך את הקישור ידנית בכל שלב.
+          </p>
+        </div>
+
         <div class="admin-field" id="checkinField">
           <label id="adminCheckinLabel">קישור לצ'ק-אין (URL):</label>
           <input
@@ -2851,6 +2870,18 @@
         adminDestLabel: "שם היעד:",
         adminStartLabel: "מועד התחלת הטיול:",
         adminEndLabel: "מועד סיום / חזרה:",
+        adminAirlineLabel: "חברת תעופה (אופציונלי):",
+        adminAirlineOther: "אחר",
+        adminAirlineElal: "אל על",
+        adminAirlineAirfrance: "אייר פרנס",
+        adminAirlineLufthansa: "לופטהנזה",
+        adminAirlineTurkish: "טורקיש איירליינס",
+        adminAirlineBa: "בריטיש איירווייז",
+        adminAirlineKlm: "KLM",
+        adminAirlineAegean: "אג׳יאן איירליינס",
+        adminAirlineVueling: "וולינג",
+        adminAirlineUnited: "יונייטד איירליינס",
+        adminAirlineHint: "בחירת חברה תמלא למטה את הקישור לעמוד הצ׳ק־אין הכללי שלה — עדיין תצטרכו להזין שם מספר הזמנה/שם. אפשר גם לערוך את הקישור ידנית בכל שלב.",
         adminCheckinLabel: "קישור לצ׳ק־אין (URL):",
         adminWhatsappGroupLabel: "קישור לקבוצת וואטסאפ (אופציונלי):",
         adminShowAccentLabel: "🎨 הצג מבטא צבעוני לפי אופי הטיול",
@@ -2927,6 +2958,18 @@
         adminDestLabel: "Destination name:",
         adminStartLabel: "Trip start:",
         adminEndLabel: "End / return:",
+        adminAirlineLabel: "Airline (optional):",
+        adminAirlineOther: "Other",
+        adminAirlineElal: "El Al",
+        adminAirlineAirfrance: "Air France",
+        adminAirlineLufthansa: "Lufthansa",
+        adminAirlineTurkish: "Turkish Airlines",
+        adminAirlineBa: "British Airways",
+        adminAirlineKlm: "KLM",
+        adminAirlineAegean: "Aegean Airlines",
+        adminAirlineVueling: "Vueling",
+        adminAirlineUnited: "United Airlines",
+        adminAirlineHint: "Picking an airline fills in the link below to its general check-in page — you'll still enter your booking reference/name there. You can edit the link manually anytime too.",
         adminCheckinLabel: "Check-in URL:",
         adminWhatsappGroupLabel: "WhatsApp group link (optional):",
         adminShowAccentLabel: "🎨 Show a color accent for trip character",
@@ -4887,6 +4930,11 @@
       document.getElementById("checkinField").style.display =
         selectedType === "abroad" ? "flex" : "none";
 
+      // Same gating as checkinField - it exists only to fill that field in,
+      // nothing to pick for a trip type with no check-in link at all.
+      document.getElementById("airlineField").style.display =
+        selectedType === "abroad" ? "flex" : "none";
+
       // Same gating as checkinField - the seat map itself only ever shows
       // for flight trips (seatsBannerBtn.style.display, further down),
       // so the layout pickers that feed it have nothing to configure for
@@ -4923,6 +4971,96 @@
     document
       .getElementById("adminTripType")
       .addEventListener("change", syncAdminFields);
+
+    // Each airline's own general check-in landing page (NOT a deep link into
+    // a specific reservation - see adminAirlineHint's wording, and the
+    // investigation this feature is based on: airlines don't expose a public
+    // URL scheme that accepts a booking reference as a query param, the
+    // reservation is always entered on the airline's own page). Every one of
+    // these was verified live in a real browser before being added here
+    // (not guessed from search-result snippets) - confirmed to land
+    // directly on a check-in form that works WITHOUT an existing account
+    // login, not a homepage, not a page that requires signing in first.
+    // Several well-known airlines were investigated and deliberately left
+    // out because they failed one of those checks: Ryanair and Israir
+    // require an account/personal-zone login for check-in; Arkia's
+    // anonymous check-in form exists but is restricted to Eilat-related
+    // flights only (the page itself says so); Wizz Air, easyJet, Pegasus,
+    // Delta and American Airlines do have an anonymous booking-lookup flow
+    // (confirmed live for all of them), but it only ever surfaces as a
+    // same-page tab/accordion toggled by JavaScript (`href="javascript:
+    // void(0)"` for Delta) - no URL was found that lands directly on the
+    // form itself, only on the airline's homepage defaulting to a
+    // different tab. Wizz Air additionally failed to render any content at
+    // all in testing, on top of that.
+    //
+    // These URLs WILL go stale over time (airline sites get redesigned) -
+    // there is no mechanism here that detects a broken link. See CHANGELOG.
+    const AIRLINE_CHECKIN_URLS = {
+      elal: "https://www.elal.com/CheckIn/Home/New_Identification/c",
+      airfrance: "https://wwws.airfrance.fr/en/check-in",
+      // Confirmed to also cover Austrian Airlines and SWISS (same Lufthansa
+      // Group check-in system, live-tested with all three brands landing on
+      // this same form) - but NOT Brussels Airlines or Eurowings, which run
+      // their own separate check-in sites despite being in the same group,
+      // and NOT a codeshare flight actually operated by a different airline
+      // (marked "operated by" on the ticket) - known, deliberate coverage
+      // gap, not a bug. An organizer flying one of those should pick
+      // "Other" and paste the operating carrier's own link.
+      lufthansa: "https://www.lufthansa.com/us/en/online-check-in",
+      turkish: "https://www.turkishairlines.com/en-int/flights/manage-booking",
+      britishairways: "https://www.britishairways.com/travel/olcilandingpageauthreq/public/en_us",
+      klm: "https://www.klm.com/check-in",
+      aegean: "https://en.aegeanair.com/plan/check-in/",
+      vueling: "https://tickets.vueling.com/checkin?c=en-EN",
+      united: "https://www.united.com/en/us/checkin"
+    };
+
+    document
+      .getElementById("adminAirline")
+      .addEventListener("change", () => {
+        const select = document.getElementById("adminAirline");
+        const url = AIRLINE_CHECKIN_URLS[select.value];
+
+        // "Other" (empty value) - deliberately a no-op, never touches the
+        // URL field. Same reasoning as leaving an unrelated field alone: a
+        // picker whose only job is to fill in a DIFFERENT field shouldn't
+        // clear that field just because the picker itself got reset.
+        if (!url) {
+          return;
+        }
+
+        const urlInput = document.getElementById("adminCheckinUrl");
+        const current = urlInput.value.trim();
+
+        if (!current || current === url) {
+          urlInput.value = url;
+          return;
+        }
+
+        // Field already holds something else the organizer typed/pasted -
+        // don't overwrite it silently. Read the airline's name from the
+        // option's own (already-translated) text rather than keeping a
+        // second he/en name list here that could drift from the dict above.
+        const airlineName =
+          select.options[select.selectedIndex].textContent.trim();
+
+        customConfirm(
+          tr(
+            `כבר יש קישור שמור. להחליף אותו בקישור הצ'ק-אין של ${airlineName}?`,
+            `A link is already saved. Replace it with ${airlineName}'s check-in link?`
+          )
+        ).then(confirmed => {
+          if (confirmed) {
+            urlInput.value = url;
+          } else {
+            // Nothing was actually changed - snap the picker back to
+            // "Other" rather than leaving it pointed at an airline whose
+            // link isn't the one actually saved in the field below it.
+            select.value = "";
+          }
+        });
+      });
 
     // Neither date-only nor datetime-local fields reliably open the native picker
     // on a click anywhere in the (CSS-enlarged) field - only a click on the
@@ -6156,6 +6294,13 @@
       document.getElementById(
         "adminCheckinUrl"
       ).value = checkinLink;
+
+      // Always resets to "Other" on open, never inferred from the saved
+      // checkinLink (even if it happens to already match one of the known
+      // airlines) - the picker is a one-time fill tool, not a stored trip
+      // field, so there's nothing to restore here. Matches the approved
+      // decision: no auto-detection, no surprises for an existing trip.
+      document.getElementById("adminAirline").value = "";
 
       document.getElementById("adminWhatsappGroupUrl").value = whatsappGroupLink;
       document.getElementById("adminWhatsappGroupError").classList.add("hidden");
