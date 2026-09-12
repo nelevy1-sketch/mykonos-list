@@ -4493,6 +4493,14 @@
         data.personalLocker &&
         typeof data.personalLocker === "object"
       ) {
+        // Loaded raw, every uid's record as-is - deliberately NOT filtered
+        // to "the current leg" here. Each record now carries its own
+        // legId (or none, for one saved before this field existed - see
+        // lockerCardLegId() below); filtering by "is this record relevant
+        // right now" is a read-time concern for whoever displays a card
+        // (currentLockerLegId()/lockerCardLegId(), used by every site
+        // below), same as every other collection hydrated wholesale here
+        // (memberProfiles, participantClaims) and filtered downstream.
         personalLockerCards = data.personalLocker;
       }
 
@@ -5150,6 +5158,12 @@
       ] = null;
 
       updates[`memberProfiles/${uid}`] = null;
+
+      // Deliberately NOT filtered by leg - releasing a member's Google
+      // account wipes their entire personalLocker record, whichever leg
+      // it currently belongs to. A partial delete (only the current leg's
+      // seat) would leave an orphaned record for a past/future leg behind
+      // a released account no one can edit anymore.
       updates[`personalLocker/${uid}`] = null;
 
       await db.ref(tripRoot).update(updates);
@@ -5252,10 +5266,67 @@
       }
     }
 
+    // Single source of truth for "which legId is a personalLocker
+    // read/write about right now" - shared by every site below (the one
+    // write, and every read: the form, the summary, the seat map, the
+    // mismatch list) so they can never disagree about whose seat counts
+    // as current. Mirrors getRelevantFlight()'s own {legId,isReturn}
+    // shape - isReturn becomes the "return" sentinel, the exact same
+    // string getRelevantFlight() itself already uses, not a second
+    // convention invented here. No relevant flight at all (banner
+    // hidden - mid-trip, or before any leg exists) falls back to
+    // legs[0] rather than "nothing counts as current" - the same
+    // fallback already decided below for a record with no legId of its
+    // own, so there is exactly one rule for "no leg info available"
+    // everywhere in this file, not two slightly different ones.
+    function currentLockerLegId() {
+      const relevantFlight =
+        window.getRelevantFlight({ legs: currentLegs });
+
+      if (relevantFlight) {
+        return relevantFlight.isReturn
+          ? "return"
+          : relevantFlight.legId;
+      }
+
+      return (currentLegs[0] && currentLegs[0].id) || null;
+    }
+
+    // A record with no legId of its own predates this field (every seat
+    // saved before commit 5) - decided to mean legs[0], the first/
+    // outbound flight, NOT "matches every leg." This is deliberately
+    // NOT the general packing/places rule ("no legId = belongs to the
+    // whole trip") - a seat is specific to one flight by nature, unlike
+    // e.g. a passport that's relevant all trip long. See docs/schema-
+    // legs.md investigation, commit 5 plan.
+    function lockerCardLegId(card) {
+      return (
+        (card && card.legId) ||
+        (currentLegs[0] && currentLegs[0].id) ||
+        null
+      );
+    }
+
+    // The signed-in user's OWN card, but only if it belongs to the
+    // currently relevant leg - a card left over from a past (or future)
+    // leg must read as "nothing saved for this flight," not show a
+    // stale seat as if it were the current one.
+    function currentUserLockerCard() {
+      if (!currentUser) {
+        return null;
+      }
+
+      const card = personalLockerCards[currentUser.uid];
+
+      if (!card || lockerCardLegId(card) !== currentLockerLegId()) {
+        return null;
+      }
+
+      return card;
+    }
+
     function loadSelectedLockerCard() {
-      const card = currentUser
-        ? personalLockerCards[currentUser.uid] || {}
-        : {};
+      const card = currentUserLockerCard() || {};
 
       document.getElementById("lockerSeat").value =
         card.seat || "";
@@ -5366,15 +5437,24 @@
       // link) must not get blocked just because the pre-filled seat value
       // happens to be stale now - only typing in a genuinely different
       // value re-triggers this check.
+      //
+      // currentUserLockerCard(), not the raw record - a seat saved for a
+      // DIFFERENT leg must not count as "unchanged" just because its text
+      // happens to match (or block re-validation because it doesn't):
+      // the form already showed "" for that case (loadSelectedLockerCard),
+      // so typing anything at all here is always a genuinely new value for
+      // THIS leg.
       const previousSeat =
-        (personalLockerCards[currentUser.uid]?.seat || "")
+        (currentUserLockerCard()?.seat || "")
           .trim()
           .toUpperCase();
+
+      const activeSeatLayout = resolveActiveSeatLayout();
 
       if (seat && seat !== previousSeat) {
         const row = parseInt(seat.replace(/\D/g, ""), 10);
         const letter = seat.replace(/[0-9]/g, "");
-        const { letters } = parseSeatLayout(seatLayout);
+        const { letters } = parseSeatLayout(activeSeatLayout);
 
         const rowValid =
           Number.isInteger(row) &&
@@ -5386,8 +5466,8 @@
         if (!rowValid || !letterValid) {
           seatError.textContent = !letterValid
             ? tr(
-                `אות לא תקפה לתצורת המושבים הנוכחית (${seatLayout}). אותיות תקפות: ${letters.join(", ")}`,
-                `Invalid letter for the current seat configuration (${seatLayout}). Valid letters: ${letters.join(", ")}`
+                `אות לא תקפה לתצורת המושבים הנוכחית (${activeSeatLayout}). אותיות תקפות: ${letters.join(", ")}`,
+                `Invalid letter for the current seat configuration (${activeSeatLayout}). Valid letters: ${letters.join(", ")}`
               )
             : tr(
                 `מספר שורה לא תקין (1-${SEAT_MAX_ROW})`,
@@ -5402,10 +5482,22 @@
 
       seatError.classList.add("hidden");
 
+      // legId tags this record with the SAME leg resolveActiveSeatLayout()
+      // just validated the seat against - the two must never disagree
+      // about which flight this save is for. This single record gets
+      // OVERWRITTEN on the next save for a different leg (no history) -
+      // accepted deliberately, because the display rule above guarantees
+      // only one leg is ever relevant at a time, so nothing currently
+      // reachable in the UI can show two legs' seats at once anyway. If
+      // that display rule is ever relaxed (e.g. a future "review the
+      // whole itinerary's seats" screen), this single-record assumption
+      // breaks silently - whoever does that will need to move this to a
+      // per-leg structure first.
       personalLockerCards[currentUser.uid] = {
         name,
         seat,
         link,
+        legId: currentLockerLegId(),
         updatedAt: Date.now()
       };
 
@@ -5428,9 +5520,11 @@
       const actionButton =
         document.getElementById("lockerActionButton");
 
-      const card = currentUser
-        ? personalLockerCards[currentUser.uid]
-        : null;
+      // currentUserLockerCard(), not the raw record - a card left over
+      // from a past/future leg reads as "nothing saved," same reasoning
+      // as loadSelectedLockerCard() above (this drives the home-screen
+      // summary text, the other drives the edit form - both must agree).
+      const card = currentUserLockerCard();
 
       if (!card) {
         summaryText.textContent = tr(
@@ -6760,6 +6854,15 @@
       lockerCardContainer.style.display =
         relevantFlight ? "flex" : "none";
 
+      // Ticks every second along with everything else here (setInterval
+      // below) - unlike the banner's own display above, the summary TEXT
+      // itself is a function of time too now (currentLockerLegId(), via
+      // getRelevantFlight()), not just of personalLockerCards data. Without
+      // this, a tab left open across a leg-transition boundary would keep
+      // showing the previous leg's seat until some unrelated data write
+      // happened to re-trigger updateLockerSummary() elsewhere.
+      updateLockerSummary();
+
       if (diffOut > 0) {
         applyCardsForPhase("before");
 
@@ -6993,6 +7096,48 @@
       return { groups, letters };
     }
 
+    // Which seatLayout string actually applies right now - shared by
+    // renderPlaneSeats() (the map/aisles) AND savePersonalLockerCard()'s
+    // own seat validation, so a seat typed for the currently relevant leg
+    // is checked against THAT leg's configuration, not always the trip's
+    // legacy field - the two used to disagree (validation stayed on the
+    // old trip-level `seatLayout` after commit 4 moved the map itself to
+    // this same logic), which could reject a seat that's actually valid
+    // for the leg being edited, or accept one that isn't.
+    //
+    // window.getRelevantFlight() (legs.js) returns the same {legId,
+    // isReturn} shape used for the banner's own visibility
+    // (updateClockAndPhases()); called again here (not reused from there)
+    // because both callers of this function run on their own trigger
+    // (openSeatsModal/savePersonalLockerCard), not inside
+    // updateClockAndPhases(). isReturn -> trip.returnSeatLayout (return
+    // flight is a sibling trip-level field, not a leg - no legs[N+1],
+    // docs/schema-legs.md investigation, commit 2's own comment in
+    // legBuilder.js). Otherwise the matching leg's own seatLayout, falling
+    // back to the trip's legacy `seatLayout` for a leg that predates the
+    // field - same fallback chain already used in seedAdminLegsEditor()
+    // (leg.seatLayout || seatLayout || "3-3"). No relevant flight at all
+    // (opened outside any flight window, e.g. a stale banner click) falls
+    // back to the plain trip-level `seatLayout` too - the pre-commit-4
+    // behavior, not a blank/broken map.
+    function resolveActiveSeatLayout() {
+      const relevantFlight =
+        window.getRelevantFlight({ legs: currentLegs });
+
+      if (!relevantFlight) {
+        return seatLayout;
+      }
+
+      if (relevantFlight.isReturn) {
+        return returnSeatLayout;
+      }
+
+      return (
+        (currentLegs.find(leg => leg.id === relevantFlight.legId) || {})
+          .seatLayout || seatLayout
+      );
+    }
+
     function renderPlaneSeats() {
       const container =
         document.getElementById("planeLayout");
@@ -7001,12 +7146,23 @@
 
       const seatMap = {};
 
+      // Only cards belonging to the leg this map is actually showing
+      // right now (resolveActiveSeatLayout()'s own legId, computed the
+      // same way) - a seat saved for a different leg must not appear as
+      // "occupied" on this one. lockerCardLegId() applies the decided
+      // legs[0] fallback for a card with no legId of its own.
+      const activeLockerLegId = currentLockerLegId();
+
       Object.keys(personalLockerCards)
         .forEach(uid => {
           const card =
             personalLockerCards[uid];
 
-          if (card && card.seat) {
+          if (
+            card &&
+            card.seat &&
+            lockerCardLegId(card) === activeLockerLegId
+          ) {
             const cleanSeat =
               card.seat
                 .trim()
@@ -7071,32 +7227,7 @@
         }
       }
 
-      // Which seatLayout string actually applies right now - the map must
-      // match the flight that's relevant, not always the trip's own legacy
-      // field. window.getRelevantFlight() (legs.js) returns the same
-      // {legId,isReturn} shape used for the banner's own visibility above;
-      // called again here (not reused from there) because renderPlaneSeats()
-      // runs on its own trigger (openSeatsModal), not inside
-      // updateClockAndPhases(). isReturn -> trip.returnSeatLayout (return
-      // flight is a sibling trip-level field, not a leg - no legs[N+1],
-      // docs/schema-legs.md investigation, commit 2's own comment in
-      // legBuilder.js). Otherwise the matching leg's own seatLayout, falling
-      // back to the trip's legacy `seatLayout` for a leg that predates the
-      // field - same fallback chain already used in seedAdminLegsEditor()
-      // (leg.seatLayout || seatLayout || "3-3"). No relevant flight at all
-      // (modal opened outside any flight window, e.g. a stale banner click)
-      // falls back to the plain trip-level `seatLayout` too - the pre-commit-4
-      // behavior, not a blank/broken map.
-      const relevantFlight =
-        window.getRelevantFlight({ legs: currentLegs });
-
-      const activeSeatLayout =
-        relevantFlight
-          ? relevantFlight.isReturn
-            ? returnSeatLayout
-            : (currentLegs.find(leg => leg.id === relevantFlight.legId) || {}).seatLayout ||
-              seatLayout
-          : seatLayout;
+      const activeSeatLayout = resolveActiveSeatLayout();
 
       const { groups, letters } = parseSeatLayout(activeSeatLayout);
 
@@ -7205,9 +7336,20 @@
       const box = document.getElementById("seatMismatchBox");
       const list = document.getElementById("seatMismatchList");
 
+      // Same leg the map itself just filtered to (renderPlaneSeats(), right
+      // above this call) - otherwise this list would mix in seats from
+      // OTHER legs that are simply not relevant right now, not actually
+      // "mismatched," alongside genuinely invalid ones for the current leg.
+      const activeLockerLegId = currentLockerLegId();
+
       const mismatches = Object.keys(personalLockerCards)
         .map(uid => {
           const card = personalLockerCards[uid];
+
+          if (lockerCardLegId(card) !== activeLockerLegId) {
+            return null;
+          }
+
           const cleanSeat = card?.seat?.trim().toUpperCase();
 
           if (!cleanSeat) {
