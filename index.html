@@ -1458,12 +1458,32 @@
        correctly under [dir="ltr"] like every other directional value in this
        file (same reasoning as the melt/breathing gradients on the home page). */
     .admin-leg-seat-row { display: flex; align-items: center; gap: 8px; padding-inline-start: 24px; }
-    .admin-leg-seat-label { flex: 0 0 auto; font-size: 0.72rem; color: var(--text-muted); }
+    /* flex:1 + min-width:0, not flex:0 0 auto - this is the element that
+       shrinks under pressure, mirroring .admin-leg-row .admin-input's own
+       min-width:0 below (the exact safety net this row's select was
+       missing - see the width fix's own comment). Text is short enough that
+       shrinking rarely if ever visibly wraps; it's a safety net, not the
+       normal case. */
+    .admin-leg-seat-label { flex: 1; min-width: 0; font-size: 0.72rem; color: var(--text-muted); }
     /* Overrides the generic ".admin-leg-row .admin-input{flex:1}" above (same
        specificity, later in the stylesheet wins) - the seat select is a
        short, fixed list of values ("3-3" etc), stretching it to fill the row
-       like the destination name input would look wrong. */
-    .admin-leg-seat-row .admin-input { flex: 0 0 auto; min-height: 34px; font-size: 0.82rem; padding: 4px 10px; }
+       like the destination name input would look wrong.
+       width:104px, not just flex:0 0 auto - flex-basis:auto (from the "auto"
+       in that shorthand) falls back to the element's own `width` property
+       when one is set, and nothing here was overriding the `width:100%` the
+       base .admin-input rule sets for every input/select with that class
+       (line ~1420, intentionally untouched - it's correct for every OTHER
+       use of .admin-input, including #adminReturnSeatLayout, which sits in
+       a plain column .admin-field, not a flex row with a shrink-resistant
+       sibling). That gap is exactly what let the select try to become
+       100% of this row's own width - confirmed in the browser (291px
+       rendered select inside a 317px row) before this fix. A fixed width
+       (not max-width) makes the select's own size predictable across
+       platforms too, not just flex-safe - a native <select> otherwise
+       sizes to its own content in a way that can render wider than
+       expected on some browsers/devices for the exact same option text. */
+    .admin-leg-seat-row .admin-input { flex: 0 0 auto; width: 104px; min-height: 34px; font-size: 0.82rem; padding: 4px 10px; }
     /* Toggled on #adminLegsList by syncAdminFields() for any non-abroad trip
        type - one class flips every current AND future leg row's seat line at
        once, same gating as #returnSeatLayoutField below (no per-row JS loop

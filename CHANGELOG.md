@@ -1,5 +1,19 @@
 # GitTrip — CHANGELOG
 
+## v4.48.1 — תיקון רגרסיה: גלישה אופקית בפאנל האדמין במובייל (commit 3)
+
+### 🐛 תיקון באג
+- **שורת "תצורת מושבים" הפר-רגל (v4.48.0) גרמה לפאנל האדמין כולו לגלוש אופקית ב-375px** — `.admin-leg-seat-row .admin-input{flex:0 0 auto}` שינה את ה-`flex`, אבל לא נגע ב-`width` שהכלל הבסיסי `.admin-input,select.admin-input{width:100%}` כבר קבע; כש-`flex-basis` הוא `auto` (מקרה של `flex:0 0 auto`), הדפדפן נופל חזרה על ה-`width` המפורש של האלמנט אם יש כזה — אז ה-`select` תפס `width:100%` **מתוך שורת ה-flex הפנימית שלו** (`.admin-leg-seat-row`, לא כל הפאנל), ודחף אותה לרוחב גדול משמעותית משורת היעד הרגילה מעליה. נמדד בפועל לפני התיקון: `select` ברוחב 291-293px בתוך שורה של 317px, `scrollWidth` 401px מול `clientWidth` 317px — הגלישה תפשטה בלי חיתוך דרך `.admin-leg-row`→`.admin-legs-list`→`.admin-field`→`.admin-section-box` עד ל-`.bottom-sheet` עצמו (`scrollWidth:430` מול `clientWidth:375`)
+- **תיקון**: `.admin-leg-seat-row .admin-input` מקבל `width:104px` מפורש (לא `max-width` — רוחב קבוע וצפוי, לא תלוי בגודל-תוכן-טבעי של `<select>` שמשתנה בין פלטפורמות; 104px מכסה בנוחות גם "2-4-2"/"3-4-3", הערך הארוך ביותר האפשרי). `.admin-leg-seat-label` עובר מ-`flex:0 0 auto` ל-`flex:1;min-width:0` — כך התווית היא זו שמתכווצת בעדינות במקום שה-`select` יידחס או יגלוש, אותו דפוס בדיוק שכבר עובד ב-`.admin-leg-row .admin-input{flex:1;min-width:0}` הקיים (לא נגעו בכלל הבסיסי `.admin-input,select.admin-input{width:100%}` עצמו — הוא תקין ומשמש מקומות אחרים כהלכה)
+
+### 🔍 מה שנבדק — בפועל בדפדפן, מספרי, לא רק חזותי
+- **RTL, 375px**: `#adminModal .bottom-sheet` — `clientWidth===scrollWidth===375`. `#adminLegsList` — `clientWidth===scrollWidth===317`. שני יעדים ("פריז"/"2-4-2", "לונדון"/"3-4-3") — כל `select` ברוחב 104px בדיוק, ערכים שונים ונכונים לכל רגל בנפרד (לא רק אחת)
+- **LTR (אנגלית), 375px**: אותה בדיקה חוזרת במלואה — `dir==="ltr"`, `bottom-sheet` ו-`adminLegsList` שוב `clientWidth===scrollWidth` בדיוק, שני היעדים עם ערכים שונים (`2-4-2`/`3-4-3`) ותוויות מתורגמות נכון ("Seat layout:"), שני ה-`select` ב-104px — אותה הגנה עובדת גם כששמות היעדים והתוויות מתחלפים לכיוון ההפוך
+- **`#adminReturnSeatLayout` (השדה הנפרד לטיסת חזרה, לא נגעו בו בתיקון הזה) נבדק מחדש אחרי השינוי, לא רק לפניו**: `display:flex`, `clientWidth===scrollWidth` הן על `#returnSeatLayoutField` (317/317) והן על ה-`select` עצמו (315/315) — לא הושפע, כצפוי, כי הוא חי מחוץ להקשר ה-flex של `.admin-leg-seat-row` ששונה
+- קונסול נקי לאורך כל הבדיקות
+
+נבדק בפועל: כל מה שלמעלה. v4.48.0 -> v4.48.1 (patch — תיקון רגרסיה, לא תכונה חדשה).
+
 ## v4.48.0 — מפת מושבים פר-רגל, commit 3: פאנל אדמין (index.html)
 
 ### ✨ תכונה חדשה
