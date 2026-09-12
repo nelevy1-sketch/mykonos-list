@@ -1438,7 +1438,12 @@
        directly (below) rather than a parallel color/border ruleset, so light/
        dark theming comes for free instead of being duplicated a third time. */
     .admin-legs-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
-    .admin-leg-row { display: flex; align-items: center; gap: 8px; }
+    /* Column, not the single row this used to be (docs/schema-legs.md
+       investigation, per-leg seat map commit 3) - each leg now has a second
+       line underneath its name for that leg's own seat layout, not crammed
+       into the same row as the name/reorder/remove controls (375px density). */
+    .admin-leg-row { display: flex; flex-direction: column; gap: 6px; }
+    .admin-leg-row-main { display: flex; align-items: center; gap: 8px; }
     .admin-leg-ordinal { flex: 0 0 auto; width: 16px; text-align: center; font-weight: 800; color: var(--text-muted); font-size: 0.78rem; }
     .admin-leg-row .admin-input { flex: 1; min-width: 0; }
     .admin-leg-up-btn, .admin-leg-remove-btn {
@@ -1447,6 +1452,24 @@
     }
     .admin-leg-up-btn:disabled { opacity: 0.35; cursor: default; }
     .admin-leg-remove-btn { color: #B3432F; }
+    /* Indented past the ordinal number above it, so it visually reads as
+       belonging to that destination, not a sibling field of its own.
+       inset-inline-start via padding-inline-start, not padding-right - mirrors
+       correctly under [dir="ltr"] like every other directional value in this
+       file (same reasoning as the melt/breathing gradients on the home page). */
+    .admin-leg-seat-row { display: flex; align-items: center; gap: 8px; padding-inline-start: 24px; }
+    .admin-leg-seat-label { flex: 0 0 auto; font-size: 0.72rem; color: var(--text-muted); }
+    /* Overrides the generic ".admin-leg-row .admin-input{flex:1}" above (same
+       specificity, later in the stylesheet wins) - the seat select is a
+       short, fixed list of values ("3-3" etc), stretching it to fill the row
+       like the destination name input would look wrong. */
+    .admin-leg-seat-row .admin-input { flex: 0 0 auto; min-height: 34px; font-size: 0.82rem; padding: 4px 10px; }
+    /* Toggled on #adminLegsList by syncAdminFields() for any non-abroad trip
+       type - one class flips every current AND future leg row's seat line at
+       once, same gating as #returnSeatLayoutField below (no per-row JS loop
+       needed, unlike updateAdminLegChrome()'s per-index visibility, which is
+       about row COUNT, a different concern from trip TYPE). */
+    .admin-legs-list.hide-seat-rows .admin-leg-seat-row { display: none; }
     .admin-transition-row { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
     .admin-transition-label { flex: 0 0 auto; font-size: 0.72rem; color: var(--text-muted); }
     .admin-transition-row .admin-input { min-height: 38px; font-size: 0.82rem; padding: 5px 10px; direction: ltr; text-align: center; }
@@ -2471,9 +2494,9 @@
             style="direction:ltr;">
         </div>
 
-        <div class="admin-field" id="seatLayoutField">
-          <label id="adminSeatLayoutLabel">תצורת מושבים במטוס:</label>
-          <select id="adminSeatLayout" class="admin-input" style="direction:ltr;">
+        <div class="admin-field" id="returnSeatLayoutField">
+          <label id="adminReturnSeatLayoutLabel">תצורת מושבים לטיסת החזרה:</label>
+          <select id="adminReturnSeatLayout" class="admin-input" style="direction:ltr;">
             <option value="2-2">2-2</option>
             <option value="3-3">3-3</option>
             <option value="2-4-2">2-4-2</option>
@@ -2688,6 +2711,10 @@
     let checkinLink = "";
     let whatsappGroupLink = "";
     let seatLayout = "3-3";
+    // The return flight's own layout - a trip-level field, not a leg (there's
+    // no legs[N+1] to represent flying home from the last destination).
+    // docs/schema-legs.md investigation, per-leg seat map commit 3.
+    let returnSeatLayout = "3-3";
     let tripOwnerId = "";
     let currentSpliitUrl = "";
     let currentItineraryDays = {};
@@ -2800,7 +2827,7 @@
         adminTypeLocal: "טיול בארץ",
         adminTypeCamping: "קמפינג / טבע",
         adminTypeReserve: "שירות מילואים / שטח (ללא טיסות)",
-        adminSeatLayoutLabel: "תצורת מושבים במטוס:",
+        adminReturnSeatLayoutLabel: "תצורת מושבים לטיסת החזרה:",
         adminDestLabel: "שם היעד:",
         adminStartLabel: "מועד התחלת הטיול:",
         adminEndLabel: "מועד סיום / חזרה:",
@@ -2876,7 +2903,7 @@
         adminTypeLocal: "Local trip",
         adminTypeCamping: "Camping / nature",
         adminTypeReserve: "Reserve duty / field activity (no flights)",
-        adminSeatLayoutLabel: "Seat configuration:",
+        adminReturnSeatLayoutLabel: "Return flight seat layout:",
         adminDestLabel: "Destination name:",
         adminStartLabel: "Trip start:",
         adminEndLabel: "End / return:",
@@ -4425,6 +4452,7 @@
       checkinLink = data.checkinLink || "";
       whatsappGroupLink = data.whatsappGroupLink || "";
       seatLayout = data.seatLayout || "3-3";
+      returnSeatLayout = data.returnSeatLayout || "3-3";
       tripOwnerId = data.ownerId || "";
 
       try {
@@ -4833,10 +4861,17 @@
 
       // Same gating as checkinField - the seat map itself only ever shows
       // for flight trips (seatsBannerBtn.style.display, further down),
-      // so the layout picker that feeds it has nothing to configure for
-      // any other trip type.
-      document.getElementById("seatLayoutField").style.display =
+      // so the layout pickers that feed it have nothing to configure for
+      // any other trip type. Two targets now, not one: the return-flight
+      // field, and every leg row's own seat line (one class on the shared
+      // container - see the .hide-seat-rows CSS comment - not a per-row loop).
+      document.getElementById("returnSeatLayoutField").style.display =
         selectedType === "abroad" ? "flex" : "none";
+
+      document.getElementById("adminLegsList").classList.toggle(
+        "hide-seat-rows",
+        selectedType !== "abroad"
+      );
 
       // Only abroad trips have a flight departure time worth asking for - every
       // other type just needs a date. Swap the input type in place and carry the
@@ -5699,6 +5734,9 @@
       const row = document.createElement("div");
       row.className = "admin-leg-row";
 
+      const mainLine = document.createElement("div");
+      mainLine.className = "admin-leg-row-main";
+
       const ordinal = document.createElement("span");
       ordinal.className = "admin-leg-ordinal";
 
@@ -5714,7 +5752,36 @@
       removeBtn.textContent = "✕";
       removeBtn.addEventListener("click", () => removeAdminLeg(index));
 
-      row.append(ordinal, inputEl, upBtn, removeBtn);
+      mainLine.append(ordinal, inputEl, upBtn, removeBtn);
+
+      // Second line: this leg's own seat configuration - docs/schema-legs.md
+      // investigation, per-leg seat map commit 3. A separate line under the
+      // name (see the CSS comment on .admin-leg-row for why), hidden
+      // entirely for a non-abroad trip type via the .hide-seat-rows class
+      // toggled on the shared #adminLegsList container (syncAdminFields()),
+      // not a per-row check here. Options list is the same 5 values as the
+      // static #adminReturnSeatLayout markup - keep them in sync if that
+      // list ever changes.
+      const seatRow = document.createElement("div");
+      seatRow.className = "admin-leg-seat-row";
+
+      const seatLabel = document.createElement("span");
+      seatLabel.className = "admin-leg-seat-label";
+      seatLabel.textContent = tr("תצורת מושבים:", "Seat layout:");
+
+      const seatSelect = document.createElement("select");
+      seatSelect.className = "admin-input";
+      seatSelect.style.direction = "ltr";
+      ["2-2", "3-3", "2-4-2", "3-3-3", "3-4-3"].forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        seatSelect.appendChild(option);
+      });
+
+      seatRow.append(seatLabel, seatSelect);
+
+      row.append(mainLine, seatRow);
       document.getElementById("adminLegsList").appendChild(row);
 
       // dirty: whether this leg's NAME has changed since it was last seeded
@@ -5725,7 +5792,7 @@
       // because a leg that's !dirty needs its existing lat/lon/timezone/
       // vibes reused verbatim (no network call, no vibes wipe), and only
       // the full object carries those.
-      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, dirty: false, originalLeg: null };
+      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, seatSelect, seatLabel, dirty: false, originalLeg: null };
       inputEl.addEventListener("input", () => {
         descriptor.dirty = inputEl.value.trim() !== (descriptor.originalLeg ? descriptor.originalLeg.name : "");
       });
@@ -5814,6 +5881,9 @@
       adminLegRowEls[index].input.value = "";
       adminLegRowEls[index].originalLeg = null;
       adminLegRowEls[index].dirty = true; // brand new (or reused, cleared) row - always geocode on save
+      // No real flight to reflect yet - the trip's own current value is a
+      // more useful starting guess than always resetting to "3-3".
+      adminLegRowEls[index].seatSelect.value = seatLayout || "3-3";
 
       adminLegRowCount++;
       updateAdminLegChrome();
@@ -5830,12 +5900,14 @@
         cur.input.value = next.input.value;
         cur.originalLeg = next.originalLeg;
         cur.dirty = next.dirty;
+        cur.seatSelect.value = next.seatSelect.value;
       }
 
       const last = adminLegRowEls[adminLegRowCount - 1];
       last.input.value = "";
       last.originalLeg = null;
       last.dirty = false;
+      last.seatSelect.value = seatLayout || "3-3";
 
       adminLegRowCount--;
       updateAdminLegChrome();
@@ -5850,6 +5922,7 @@
       [a.input.value, b.input.value] = [b.input.value, a.input.value];
       [a.originalLeg, b.originalLeg] = [b.originalLeg, a.originalLeg];
       [a.dirty, b.dirty] = [b.dirty, a.dirty];
+      [a.seatSelect.value, b.seatSelect.value] = [b.seatSelect.value, a.seatSelect.value];
     }
 
     // Re-seeds the editor from currentLegs every time the panel opens -
@@ -5878,6 +5951,16 @@
         adminLegRowEls[i].input.value = leg.name || "";
         adminLegRowEls[i].originalLeg = leg;
         adminLegRowEls[i].dirty = false;
+        // leg -> trip's own current seatLayout -> "3-3" - a leg that predates
+        // this field (or was never touched) falls back to the trip's old
+        // global value, exactly like countryCode's existing precedent, not
+        // reset to a hardcoded default (docs/schema-legs.md §8ব.11ব.3).
+        adminLegRowEls[i].seatSelect.value = leg.seatLayout || seatLayout || "3-3";
+        // Refreshed here every open, not wired into applyTripLanguage() -
+        // same reasoning as the transition row label below (doesn't exist
+        // on initial page load, so a language switch before the panel's
+        // first open would otherwise never reach it).
+        adminLegRowEls[i].seatLabel.textContent = tr("תצורת מושבים:", "Seat layout:");
       });
 
       // Rows left over in the DOM from a previous open where more legs were
@@ -5887,6 +5970,7 @@
         adminLegRowEls[i].input.value = "";
         adminLegRowEls[i].originalLeg = null;
         adminLegRowEls[i].dirty = false;
+        adminLegRowEls[i].seatSelect.value = seatLayout || "3-3";
       }
 
       for (let i = 0; i < legs.length - 1; i++) {
@@ -5929,9 +6013,11 @@
         "adminTripType"
       ).value = tripType;
 
+      // Row 0's own seat select (per-leg now, not a single global field) is
+      // seeded by seedAdminLegsEditor() below, alongside every other leg.
       document.getElementById(
-        "adminSeatLayout"
-      ).value = seatLayout;
+        "adminReturnSeatLayout"
+      ).value = returnSeatLayout;
 
       syncAdminFields();
 
@@ -6131,9 +6217,15 @@
             .value
             .trim();
 
+        // Row 0's own select, not a standalone global field anymore -
+        // adminLegRowEls[0] always exists (built once at page load,
+        // buildAdminLegRow(0, adminDestInput) below).
         const newSeatLayout =
+          adminLegRowEls[0].seatSelect.value;
+
+        const newReturnSeatLayout =
           document
-            .getElementById("adminSeatLayout")
+            .getElementById("adminReturnSeatLayout")
             .value;
 
         const whatsappGroupInput = document.getElementById("adminWhatsappGroupUrl");
@@ -6208,13 +6300,19 @@
             ? newCheckin
             : "";
 
-        // Same gating as checkinLink, same reason - the field is hidden
-        // (seatLayoutField) for any non-abroad trip type, so its live
-        // .value could be a stale leftover rather than something the
-        // organizer actually chose this save.
+        // Same gating as checkinLink, same reason - the fields are hidden
+        // (each leg row's seat line, and returnSeatLayoutField) for any
+        // non-abroad trip type, so their live .value could be a stale
+        // leftover rather than something the organizer actually chose this
+        // save.
         seatLayout =
           tripType === "abroad"
             ? newSeatLayout
+            : "3-3";
+
+        returnSeatLayout =
+          tripType === "abroad"
+            ? newReturnSeatLayout
             : "3-3";
 
         // Unlike checkinLink, not gated by trip type - a WhatsApp group is
@@ -6325,6 +6423,13 @@
           // to reuse, so buildLegs mints one, same as the wizard always does.
           const legIds = legDescriptors.map(r => r.originalLeg?.id || null);
 
+          // Each row's own seat select, by index - parallel to legIds/
+          // legNames above (docs/schema-legs.md investigation, per-leg seat
+          // map commit 3). Always the current select value, dirty or not -
+          // unlike name/location there's no network call to skip, so there's
+          // no reason to special-case an unchanged leg here.
+          const legSeatLayouts = legDescriptors.map(r => r.seatSelect.value);
+
           const legs = window.buildLegs({
             legNames,
             legLocations,
@@ -6333,7 +6438,8 @@
             endInputValue: newEnd,
             transitionInputValues,
             hasTime: adminHasTime,
-            legIds
+            legIds,
+            legSeatLayouts
           });
 
           // Preserve each existing leg's own vibes (renaming a leg is not a
@@ -6386,6 +6492,7 @@
             checkinLink,
             whatsappGroupLink,
             seatLayout,
+            returnSeatLayout,
             showAccent
           };
 
