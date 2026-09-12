@@ -1473,10 +1473,13 @@
        directly (below) rather than a parallel color/border ruleset, so light/
        dark theming comes for free instead of being duplicated a third time. */
     .admin-legs-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
-    /* Column, not the single row this used to be (docs/schema-legs.md
-       investigation, per-leg seat map commit 3) - each leg now has a second
-       line underneath its name for that leg's own seat layout, not crammed
-       into the same row as the name/reorder/remove controls (375px density). */
+    /* Column, not a single row (docs/schema-legs.md investigation, per-leg
+       seat map commit 3) - originally so each leg could carry a second line
+       underneath its name for that leg's own seat layout, without crowding
+       the name/reorder/remove controls at 375px. The seat line itself moved
+       out to #adminLegsSeatsList since (admin panel restructure, commit 3),
+       but the column layout stays useful on its own (room for future
+       per-leg fields) even with nothing but the main line left in it today. */
     .admin-leg-row { display: flex; flex-direction: column; gap: 6px; }
     .admin-leg-row-main { display: flex; align-items: center; gap: 8px; }
     .admin-leg-ordinal { flex: 0 0 auto; width: 16px; text-align: center; font-weight: 800; color: var(--text-muted); font-size: 0.78rem; }
@@ -1487,18 +1490,25 @@
     }
     .admin-leg-up-btn:disabled { opacity: 0.35; cursor: default; }
     .admin-leg-remove-btn { color: #B3432F; }
-    /* Indented past the ordinal number above it, so it visually reads as
-       belonging to that destination, not a sibling field of its own.
-       inset-inline-start via padding-inline-start, not padding-right - mirrors
-       correctly under [dir="ltr"] like every other directional value in this
-       file (same reasoning as the melt/breathing gradients on the home page). */
-    .admin-leg-seat-row { display: flex; align-items: center; gap: 8px; padding-inline-start: 24px; }
+    /* Own flat list in the "Flights and seats" box now (admin panel
+       restructure, commit 3) - same gap rhythm as .admin-legs-list above,
+       not the same container. Each row identifies its own destination by
+       name in its label (updateSeatLabel()) instead of by physical
+       adjacency to that destination's own row, which lived in a different
+       box entirely after the move - see docs/schema-legs.md investigation. */
+    .admin-legs-seats-list { display: flex; flex-direction: column; gap: 8px; }
+    /* No longer indented under an ordinal number - it isn't a sub-line of
+       the destination row anymore, it's a flat top-level row of its own
+       (see .admin-legs-seats-list above), identified by name in its label
+       instead of by position. */
+    .admin-leg-seat-row { display: flex; align-items: center; gap: 8px; }
     /* flex:1 + min-width:0, not flex:0 0 auto - this is the element that
        shrinks under pressure, mirroring .admin-leg-row .admin-input's own
        min-width:0 below (the exact safety net this row's select was
-       missing - see the width fix's own comment). Text is short enough that
-       shrinking rarely if ever visibly wraps; it's a safety net, not the
-       normal case. */
+       missing - see the width fix's own comment). Now carries the
+       destination name too ("Seats — Paris"), not just static "Seat
+       layout:" text, so it can run longer than before - still just shrinks/
+       wraps under pressure, no truncation, same safety net as always. */
     .admin-leg-seat-label { flex: 1; min-width: 0; font-size: 0.72rem; color: var(--text-muted); }
     /* Overrides the generic ".admin-leg-row .admin-input{flex:1}" above (same
        specificity, later in the stylesheet wins) - the seat select is a
@@ -1519,12 +1529,6 @@
        sizes to its own content in a way that can render wider than
        expected on some browsers/devices for the exact same option text. */
     .admin-leg-seat-row .admin-input { flex: 0 0 auto; width: 104px; min-height: 34px; font-size: 0.82rem; padding: 4px 10px; }
-    /* Toggled on #adminLegsList by syncAdminFields() for any non-abroad trip
-       type - one class flips every current AND future leg row's seat line at
-       once, same gating as #returnSeatLayoutField below (no per-row JS loop
-       needed, unlike updateAdminLegChrome()'s per-index visibility, which is
-       about row COUNT, a different concern from trip TYPE). */
-    .admin-legs-list.hide-seat-rows .admin-leg-seat-row { display: none; }
     .admin-transition-row { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
     .admin-transition-label { flex: 0 0 auto; font-size: 0.72rem; color: var(--text-muted); }
     .admin-transition-row .admin-input { min-height: 38px; font-size: 0.82rem; padding: 5px 10px; direction: ltr; text-align: center; }
@@ -2583,6 +2587,14 @@
           <span class="admin-section-icon" aria-hidden="true">✈️</span>
           <span id="adminFlightsSectionTitle">טיסות ומושבים</span>
         </div>
+
+        <!-- Each leg's own seat-select row (moved here from the destination
+             editor in "Trip details" - admin panel restructure, commit 3),
+             one per leg, populated/reordered entirely by buildAdminLegRow()/
+             updateAdminLegChrome()/addAdminLeg()/removeAdminLeg()/
+             moveAdminLegUp() - nothing here is written by hand except this
+             empty container itself. -->
+        <div class="admin-legs-seats-list" id="adminLegsSeatsList"></div>
 
         <div class="admin-field" id="airlineField">
           <label id="adminAirlineLabel">חברת תעופה (אופציונלי):</label>
@@ -4989,28 +5001,23 @@
       const selectedType =
         document.getElementById("adminTripType").value;
 
-      // airlineField/checkinField/returnSeatLayoutField all live inside
-      // #flightsSectionBox now (admin panel restructure, commit 2) and
+      // airlineField/checkinField/returnSeatLayoutField AND #adminLegsSeatsList
+      // (every leg's own seat-select row, moved here in admin panel
+      // restructure commit 3) all live inside #flightsSectionBox now and
       // always share this exact condition - one toggle on their shared
-      // container, not three identical ones on each field, so the
-      // condition can't drift between them. The seat map itself only ever
-      // shows for flight trips (seatsBannerBtn.style.display, further
-      // down), so these pickers have nothing to configure for any other
-      // trip type. #flightsSectionBox has no save button of its own to
-      // strand when hidden - that lives in the OTHER box, which is never
-      // hidden regardless of trip type (see its own HTML comment).
+      // container, not one per field, so the condition can't drift between
+      // them. No separate per-row/per-list class needed for the seat rows
+      // anymore either (the old .hide-seat-rows mechanism, removed - hiding
+      // their shared container already hides all of them, current AND
+      // future rows alike, the same guarantee that class existed to give).
+      // The seat map itself only ever shows for flight trips
+      // (seatsBannerBtn.style.display, further down), so none of this box
+      // has anything to configure for any other trip type.
+      // #flightsSectionBox has no save button of its own to strand when
+      // hidden - that lives in the OTHER box, which is never hidden
+      // regardless of trip type (see its own HTML comment).
       document.getElementById("flightsSectionBox").style.display =
         selectedType === "abroad" ? "flex" : "none";
-
-      // Every leg row's own seat-select line (one class on the shared
-      // container - see the .hide-seat-rows CSS comment - not a per-row
-      // loop). Still a separate toggle from the box above: this list isn't
-      // inside #flightsSectionBox (it's part of the destination editor in
-      // the other box) until commit 3 moves it there.
-      document.getElementById("adminLegsList").classList.toggle(
-        "hide-seat-rows",
-        selectedType !== "abroad"
-      );
 
       // Only abroad trips have a flight departure time worth asking for - every
       // other type just needs a date. Swap the input type in place and carry the
@@ -6068,21 +6075,27 @@
       removeBtn.addEventListener("click", () => removeAdminLeg(index));
 
       mainLine.append(ordinal, inputEl, upBtn, removeBtn);
+      row.append(mainLine);
+      document.getElementById("adminLegsList").appendChild(row);
 
-      // Second line: this leg's own seat configuration - docs/schema-legs.md
-      // investigation, per-leg seat map commit 3. A separate line under the
-      // name (see the CSS comment on .admin-leg-row for why), hidden
-      // entirely for a non-abroad trip type via the .hide-seat-rows class
-      // toggled on the shared #adminLegsList container (syncAdminFields()),
-      // not a per-row check here. Options list is the same 5 values as the
-      // static #adminReturnSeatLayout markup - keep them in sync if that
-      // list ever changes.
+      // This leg's own seat configuration - docs/schema-legs.md
+      // investigation, per-leg seat map commit 3. Built here (still driven
+      // by this same function, still one per leg, still index-aligned with
+      // adminLegRowEls) but appended to #adminLegsSeatsList in the "Flights
+      // and seats" box, NOT to `row` above - admin panel restructure,
+      // commit 3. It's a flat row there now, not a second line under this
+      // leg's name, since it no longer sits inside that box at all -
+      // identified by destination name in its own label (updateSeatLabel())
+      // instead of by physical adjacency. Hiding for a non-abroad trip type
+      // is handled by hiding #flightsSectionBox as a whole (syncAdminFields()) -
+      // no per-row or per-list class needed here anymore. Options list is
+      // the same 5 values as the static #adminReturnSeatLayout markup - keep
+      // them in sync if that list ever changes.
       const seatRow = document.createElement("div");
       seatRow.className = "admin-leg-seat-row";
 
       const seatLabel = document.createElement("span");
       seatLabel.className = "admin-leg-seat-label";
-      seatLabel.textContent = tr("תצורת מושבים:", "Seat layout:");
 
       const seatSelect = document.createElement("select");
       seatSelect.className = "admin-input";
@@ -6095,9 +6108,9 @@
       });
 
       seatRow.append(seatLabel, seatSelect);
+      document.getElementById("adminLegsSeatsList").appendChild(seatRow);
 
-      row.append(mainLine, seatRow);
-      document.getElementById("adminLegsList").appendChild(row);
+      updateSeatLabel(seatLabel, inputEl);
 
       // dirty: whether this leg's NAME has changed since it was last seeded
       // from RTDB (or is brand new) - drives which legs 11ব.2 actually
@@ -6107,13 +6120,41 @@
       // because a leg that's !dirty needs its existing lat/lon/timezone/
       // vibes reused verbatim (no network call, no vibes wipe), and only
       // the full object carries those.
-      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, seatSelect, seatLabel, dirty: false, originalLeg: null };
+      const descriptor = { row, input: inputEl, upBtn, removeBtn, ordinal, seatRow, seatSelect, seatLabel, dirty: false, originalLeg: null };
       inputEl.addEventListener("input", () => {
         descriptor.dirty = inputEl.value.trim() !== (descriptor.originalLeg ? descriptor.originalLeg.name : "");
       });
 
+      // Separate listener from the dirty-tracking one above on purpose - two
+      // different concerns (has this leg's name changed since it was saved,
+      // vs. what should the seat row's label say right now), kept
+      // independent so either can be found/changed/removed without touching
+      // the other. Live update, not just at creation/re-seed time (unlike
+      // the label's own text before this commit) - the destination name is
+      // now baked into this label, and a stale name in it while the
+      // organizer is mid-typing a new one would be actively misleading, not
+      // just outdated.
+      inputEl.addEventListener("input", () => {
+        updateSeatLabel(seatLabel, inputEl);
+      });
+
       adminLegRowEls[index] = descriptor;
       return descriptor;
+    }
+
+    // Single source of truth for what a leg's seat-row label says - shared
+    // by creation (buildAdminLegRow), every live keystroke (the listener
+    // above), and every place a name is set programmatically instead of
+    // typed (addAdminLeg/removeAdminLeg/moveAdminLegUp/seedAdminLegsEditor -
+    // none of those fire an "input" event, so each calls this directly).
+    // Empty name (a brand-new row, not yet named) falls back to the
+    // original generic label rather than rendering "Seats — " with nothing
+    // after the dash.
+    function updateSeatLabel(seatLabel, inputEl) {
+      const name = inputEl.value.trim();
+      seatLabel.textContent = name
+        ? tr(`מושבים — ${name}`, `Seats — ${name}`)
+        : tr("תצורת מושבים:", "Seat layout:");
     }
 
     function updateAdminLegChrome() {
@@ -6123,6 +6164,11 @@
         if (!r) return;
         const visible = i < adminLegRowCount;
         r.row.classList.toggle("hidden", !visible);
+        // Separate toggle, not inherited from `row` above - seatRow lives
+        // in #adminLegsSeatsList now, a different parent entirely (admin
+        // panel restructure, commit 3), so hiding `row` no longer hides it
+        // for free the way it did when seatRow was `row`'s own child.
+        r.seatRow.classList.toggle("hidden", !visible);
         if (!visible) return;
         r.ordinal.textContent = String(i + 1);
         r.ordinal.classList.toggle("hidden", !multi);
@@ -6199,6 +6245,10 @@
       // No real flight to reflect yet - the trip's own current value is a
       // more useful starting guess than always resetting to "3-3".
       adminLegRowEls[index].seatSelect.value = seatLayout || "3-3";
+      // .value set programmatically above, not typed - doesn't fire "input",
+      // so the label needs this explicit call (a REUSED row from an earlier
+      // open could otherwise still show its old, now-wrong destination name).
+      updateSeatLabel(adminLegRowEls[index].seatLabel, adminLegRowEls[index].input);
 
       adminLegRowCount++;
       updateAdminLegChrome();
@@ -6216,6 +6266,11 @@
         cur.originalLeg = next.originalLeg;
         cur.dirty = next.dirty;
         cur.seatSelect.value = next.seatSelect.value;
+        // Shifted programmatically, not typed - the seat row's label has to
+        // follow explicitly (see updateSeatLabel()'s own comment) or it
+        // would keep showing the destination name this slot had BEFORE the
+        // shift, now attached to the wrong leg entirely.
+        updateSeatLabel(cur.seatLabel, cur.input);
       }
 
       const last = adminLegRowEls[adminLegRowCount - 1];
@@ -6223,6 +6278,7 @@
       last.originalLeg = null;
       last.dirty = false;
       last.seatSelect.value = seatLayout || "3-3";
+      updateSeatLabel(last.seatLabel, last.input);
 
       adminLegRowCount--;
       updateAdminLegChrome();
@@ -6238,6 +6294,13 @@
       [a.originalLeg, b.originalLeg] = [b.originalLeg, a.originalLeg];
       [a.dirty, b.dirty] = [b.dirty, a.dirty];
       [a.seatSelect.value, b.seatSelect.value] = [b.seatSelect.value, a.seatSelect.value];
+      // Swapped programmatically, not typed - each seat row's label has to
+      // be told explicitly (see updateSeatLabel()'s own comment), or the two
+      // labels would stay pointed at each other's destination names after
+      // the reorder - the exact "follows the wrong leg" bug this whole
+      // per-name-label design exists to avoid in the first place.
+      updateSeatLabel(a.seatLabel, a.input);
+      updateSeatLabel(b.seatLabel, b.input);
     }
 
     // Re-seeds the editor from currentLegs every time the panel opens -
@@ -6274,8 +6337,10 @@
         // Refreshed here every open, not wired into applyTripLanguage() -
         // same reasoning as the transition row label below (doesn't exist
         // on initial page load, so a language switch before the panel's
-        // first open would otherwise never reach it).
-        adminLegRowEls[i].seatLabel.textContent = tr("תצורת מושבים:", "Seat layout:");
+        // first open would otherwise never reach it). Also picks up the
+        // real destination name just written to .value two lines above,
+        // same as every other write site now that the label carries it.
+        updateSeatLabel(adminLegRowEls[i].seatLabel, adminLegRowEls[i].input);
       });
 
       // Rows left over in the DOM from a previous open where more legs were
@@ -6286,6 +6351,7 @@
         adminLegRowEls[i].originalLeg = null;
         adminLegRowEls[i].dirty = false;
         adminLegRowEls[i].seatSelect.value = seatLayout || "3-3";
+        updateSeatLabel(adminLegRowEls[i].seatLabel, adminLegRowEls[i].input);
       }
 
       for (let i = 0; i < legs.length - 1; i++) {
