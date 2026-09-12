@@ -2487,7 +2487,7 @@
       <div class="admin-section-box">
         <div class="admin-section-title">
           <span class="admin-section-icon" aria-hidden="true">🌍</span>
-          <span id="adminTripSectionTitle">סוג טיול ויעד</span>
+          <span id="adminTripSectionTitle">פרטי טיול</span>
         </div>
 
         <div class="admin-field">
@@ -2540,6 +2540,50 @@
           עריכת יעדים ותאריכים בטיול מרובה יעדים תתאפשר בקרוב
         </p>
 
+        <div class="admin-field">
+          <label id="adminWhatsappGroupLabel">קישור לקבוצת וואטסאפ (אופציונלי):</label>
+          <input
+            type="text"
+            id="adminWhatsappGroupUrl"
+            class="admin-input"
+            placeholder="https://chat.whatsapp.com/..."
+            style="direction:ltr;">
+          <p class="field-error hidden" id="adminWhatsappGroupError"></p>
+        </div>
+
+        <div class="admin-field">
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="adminShowAccent" checked>
+            <span id="adminShowAccentLabel">🎨 הצג מבטא צבעוני לפי אופי הטיול</span>
+          </label>
+        </div>
+
+        <!-- Lives here, not in #flightsSectionBox below, on purpose - this
+             box is the only one of the two that's NEVER hidden regardless of
+             trip type (see #flightsSectionBox's own comment), so it's the
+             only place a save button can sit and stay reachable for every
+             trip type. The label still covers both boxes' fields ("trip AND
+             flights") - not a false promise, just describing what MAY be
+             saved when relevant, same as before when one button covered
+             every field in what was a single, bigger box. -->
+        <button
+          class="btn-admin-action btn-save-flight"
+          id="saveFlightBtn">
+          שמור פרטי טיול וטיסות
+        </button>
+      </div>
+
+      <!-- Hidden as a whole (not just its individual fields) for any
+           non-abroad trip type - see syncAdminFields(). Safe to hide
+           entirely, unlike the box above: it has no save button of its own
+           to strand, so nothing here needs to stay reachable when there's
+           nothing to configure. -->
+      <div class="admin-section-box" id="flightsSectionBox">
+        <div class="admin-section-title">
+          <span class="admin-section-icon" aria-hidden="true">✈️</span>
+          <span id="adminFlightsSectionTitle">טיסות ומושבים</span>
+        </div>
+
         <div class="admin-field" id="airlineField">
           <label id="adminAirlineLabel">חברת תעופה (אופציונלי):</label>
           <select id="adminAirline" class="admin-input">
@@ -2579,30 +2623,6 @@
             <option value="3-4-3">3-4-3</option>
           </select>
         </div>
-
-        <div class="admin-field">
-          <label id="adminWhatsappGroupLabel">קישור לקבוצת וואטסאפ (אופציונלי):</label>
-          <input
-            type="text"
-            id="adminWhatsappGroupUrl"
-            class="admin-input"
-            placeholder="https://chat.whatsapp.com/..."
-            style="direction:ltr;">
-          <p class="field-error hidden" id="adminWhatsappGroupError"></p>
-        </div>
-
-        <div class="admin-field">
-          <label class="admin-checkbox-row">
-            <input type="checkbox" id="adminShowAccent" checked>
-            <span id="adminShowAccentLabel">🎨 הצג מבטא צבעוני לפי אופי הטיול</span>
-          </label>
-        </div>
-
-        <button
-          class="btn-admin-action btn-save-flight"
-          id="saveFlightBtn">
-          שמור הגדרות טיול
-        </button>
       </div>
 
       <div class="admin-section-box">
@@ -2900,7 +2920,7 @@
         seatsModalTitle: "✈️ מפת הושבה קבוצתית",
         seatMismatchTitle: "מושבים שלא מוצגים במפה (לא תואמים את התצורה הנוכחית):",
         adminModalTitle: "🛠️ פאנל ניהול אדמין",
-        adminTripSectionTitle: "סוג טיול ויעד",
+        adminTripSectionTitle: "פרטי טיול",
         adminTripTypeLabel: "סוג הטיול:",
         adminTypeAbroad: "טיסה לחו״ל (כולל טיסות וצ׳ק־אין)",
         adminTypeLocal: "טיול בארץ",
@@ -2910,6 +2930,7 @@
         adminDestLabel: "שם היעד:",
         adminStartLabel: "מועד התחלת הטיול:",
         adminEndLabel: "מועד סיום / חזרה:",
+        adminFlightsSectionTitle: "טיסות ומושבים",
         adminAirlineLabel: "חברת תעופה (אופציונלי):",
         adminAirlineOther: "אחר",
         adminAirlineElal: "אל על",
@@ -2925,7 +2946,7 @@
         adminCheckinLabel: "קישור לצ׳ק־אין (URL):",
         adminWhatsappGroupLabel: "קישור לקבוצת וואטסאפ (אופציונלי):",
         adminShowAccentLabel: "🎨 הצג מבטא צבעוני לפי אופי הטיול",
-        saveFlightBtn: "שמור הגדרות טיול",
+        saveFlightBtn: "שמור פרטי טיול וטיסות",
         adminMembersTitle: "ניהול חברי הקבוצה (הקלד והקש Enter)",
         adminModulesSectionTitle: "מודולים פעילים בטיול",
         adminFeatPackingLabel: "🎒 רשימת ציוד",
@@ -2988,7 +3009,7 @@
         seatsModalTitle: "✈️ Group seat map",
         seatMismatchTitle: "Seats not shown on the map (don't match the current configuration):",
         adminModalTitle: "🛠️ Organizer settings",
-        adminTripSectionTitle: "Trip type and destination",
+        adminTripSectionTitle: "Trip details",
         adminTripTypeLabel: "Trip type:",
         adminTypeAbroad: "International flight (flights and check-in)",
         adminTypeLocal: "Local trip",
@@ -2998,6 +3019,7 @@
         adminDestLabel: "Destination name:",
         adminStartLabel: "Trip start:",
         adminEndLabel: "End / return:",
+        adminFlightsSectionTitle: "Flights and seats",
         adminAirlineLabel: "Airline (optional):",
         adminAirlineOther: "Other",
         adminAirlineElal: "El Al",
@@ -3013,7 +3035,7 @@
         adminCheckinLabel: "Check-in URL:",
         adminWhatsappGroupLabel: "WhatsApp group link (optional):",
         adminShowAccentLabel: "🎨 Show a color accent for trip character",
-        saveFlightBtn: "Save trip settings",
+        saveFlightBtn: "Save trip details and flights",
         adminMembersTitle: "Group members (type a name and press Enter)",
         adminModulesSectionTitle: "Active trip modules",
         adminFeatPackingLabel: "🎒 Packing list",
@@ -4967,23 +4989,24 @@
       const selectedType =
         document.getElementById("adminTripType").value;
 
-      document.getElementById("checkinField").style.display =
+      // airlineField/checkinField/returnSeatLayoutField all live inside
+      // #flightsSectionBox now (admin panel restructure, commit 2) and
+      // always share this exact condition - one toggle on their shared
+      // container, not three identical ones on each field, so the
+      // condition can't drift between them. The seat map itself only ever
+      // shows for flight trips (seatsBannerBtn.style.display, further
+      // down), so these pickers have nothing to configure for any other
+      // trip type. #flightsSectionBox has no save button of its own to
+      // strand when hidden - that lives in the OTHER box, which is never
+      // hidden regardless of trip type (see its own HTML comment).
+      document.getElementById("flightsSectionBox").style.display =
         selectedType === "abroad" ? "flex" : "none";
 
-      // Same gating as checkinField - it exists only to fill that field in,
-      // nothing to pick for a trip type with no check-in link at all.
-      document.getElementById("airlineField").style.display =
-        selectedType === "abroad" ? "flex" : "none";
-
-      // Same gating as checkinField - the seat map itself only ever shows
-      // for flight trips (seatsBannerBtn.style.display, further down),
-      // so the layout pickers that feed it have nothing to configure for
-      // any other trip type. Two targets now, not one: the return-flight
-      // field, and every leg row's own seat line (one class on the shared
-      // container - see the .hide-seat-rows CSS comment - not a per-row loop).
-      document.getElementById("returnSeatLayoutField").style.display =
-        selectedType === "abroad" ? "flex" : "none";
-
+      // Every leg row's own seat-select line (one class on the shared
+      // container - see the .hide-seat-rows CSS comment - not a per-row
+      // loop). Still a separate toggle from the box above: this list isn't
+      // inside #flightsSectionBox (it's part of the destination editor in
+      // the other box) until commit 3 moves it there.
       document.getElementById("adminLegsList").classList.toggle(
         "hide-seat-rows",
         selectedType !== "abroad"
