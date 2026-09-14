@@ -2010,7 +2010,7 @@
     </header>
 
     <div class="session-row" id="sessionRow">
-      <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
+      <button id="hamburgerMenuBtn" class="logout-link" style="font-size:1rem;" aria-label="תפריט" title="תפריט" onclick="openHamburgerMenu()">☰</button>
       <span class="session-right">
         <span id="sessionUserLabel"></span>
         <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת הפרטים שלי" title="עריכת הפרטים שלי">✏️</button>
@@ -2322,6 +2322,38 @@
       <span id="navExpenses">הוצאות</span>
     </a>
   </nav>
+
+  <div class="modal-overlay" id="hamburgerMenu" role="presentation">
+    <div
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="hamburgerMenuTitle">
+
+      <div class="sheet-handle"></div>
+
+      <div class="modal-header">
+        <div class="modal-title" id="hamburgerMenuTitle">☰ תפריט</div>
+
+        <button
+          class="modal-close"
+          aria-label="סגירה"
+          onclick="closeHamburgerMenu()">
+          ✕
+        </button>
+      </div>
+
+      <!-- docs/roadmap.md part 3 item 0, hamburger menu commit 1/3 -
+           deliberate deviation from "empty bottom-sheet": darkModeToggle
+           relocated here as-is (same id, same applyDarkModeUI()/
+           click-listener wiring, untouched) because that code calls
+           getElementById("darkModeToggle") unconditionally - deleting the
+           element would have broken dark mode the moment this commit
+           shipped. commit 2 gives it (and the other two items moving
+           here) real menu-item styling. -->
+      <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="profileModal" role="presentation">
     <div
@@ -2968,6 +3000,7 @@
         navItinerary: "תוכנית",
         navExpenses: "הוצאות",
         logoutLinkText: "יציאה",
+        hamburgerMenuTitle: "☰ תפריט",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
         profileNameLabel: "שם תצוגה:",
@@ -3058,6 +3091,7 @@
         navItinerary: "Plan",
         navExpenses: "Expenses",
         logoutLinkText: "Sign out",
+        hamburgerMenuTitle: "☰ Menu",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
         profileNameLabel: "Display name:",
@@ -3383,6 +3417,20 @@
       );
 
       document.getElementById("membersLink").title = membersLinkLabel;
+
+      // Icon-only, same as tripsLink/membersLink above - no visible text
+      // planned for this one (a hamburger glyph doesn't need a label next
+      // to it), so this stays a plain aria-label/title pair, not a
+      // dashboardText entry.
+      const hamburgerMenuBtnLabel =
+        lang === "en" ? "Menu" : "תפריט";
+
+      document.getElementById("hamburgerMenuBtn").setAttribute(
+        "aria-label",
+        hamburgerMenuBtnLabel
+      );
+
+      document.getElementById("hamburgerMenuBtn").title = hamburgerMenuBtnLabel;
 
       document.getElementById("forecastStrip").setAttribute(
         "aria-label",
@@ -5669,6 +5717,17 @@
 
     window.closeAdminModal = () => {
       closeSheet("adminModal");
+    };
+
+    // Sixth .modal-overlay sheet (docs/roadmap.md part 3 item 0, hamburger
+    // menu commit 1/3) - inherits backdrop-click/Escape for free from the
+    // generic .modal-overlay wiring below, same as every other sheet here.
+    window.openHamburgerMenu = () => {
+      openSheet("hamburgerMenu");
+    };
+
+    window.closeHamburgerMenu = () => {
+      closeSheet("hamburgerMenu");
     };
 
     document

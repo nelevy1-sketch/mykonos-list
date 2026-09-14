@@ -1,5 +1,30 @@
 # GitTrip — CHANGELOG
 
+## v4.59.0 — תפריט המבורגר: תשתית + כפתור ☰ (index.html, commit 1/3)
+
+### 🎯 מה נוסף
+משטח `.modal-overlay` שישי, `#hamburgerMenu` - עדיין כמעט ריק, זו רק התשתית. כפתור ☰ חדש **מחליף** את `darkModeToggle` באותו slot בדיוק ב-`.session-row` (לא נוסף לצידו) - `.session-row` נשארת דו-חלקית (עוגן יחיד מול `.session-right`) בדיוק כמו היום.
+
+### ⚠️ סטייה מכוונת מהתכנון - דווחת, לא בשקט
+התכנון ביקש "bottom-sheet ריק". בפועל: `applyDarkModeUI()` והמאזין ל-click על מצב כהה שניהם קוראים `document.getElementById("darkModeToggle")` **בלי תנאי** - מחיקה/הסתרה של האלמנט לגמרי הייתה **שוברת** את מתג המצב הכהה לחלוטין (או קורסת עם `TypeError`) מהרגע שה-commit הזה היה עולה, עד ש-commit 2 היה "רשמית" מטפל בזה. **הפתרון**: `darkModeToggle` **הועבר כמות שהוא** (אותו `id`, אותו קוד JS, בלי שינוי) לתוך `#hamburgerMenu` - לא נמחק, לא שוכפל. המשמעות המעשית: מתג המצב הכהה **ממשיך לעבוד** מהרגע הזה, רק ממוקם עכשיו בתוך התפריט. commit 2 (לפי התוכנית: "הזזת darkModeToggle/tripsLink/logoutLink") נשאר בפועל עם `tripsLink`+`logoutLink` בלבד להזזה, ועיצוב-פריט-תפריט אמיתי לשלושתם - `darkModeToggle` כבר במיקומו הסופי.
+
+### ✏️ המימוש
+- `openHamburgerMenu()`/`closeHamburgerMenu()` - זהים בדיוק לתבנית `openXModal()`/`closeXModal()` הקיימת בכל 5 המשטחים האחרים - יורשים backdrop-click ו-Escape **בחינם** מהחיווט הגנרי הקיים (`querySelectorAll(".modal-overlay")`/`document.addEventListener("keydown"...)`) - אפס קוד קואורדינציה חדש
+- `hamburgerMenuTitle` נוסף ל-`dashboardText` (תבנית רגילה). `hamburgerMenuBtn` (אייקון-בלבד, ☰ בלי טקסט מתוכנן) מקבל `aria-label`/`title` באותה תבנית טרנרי-מקומי כמו `tripsLink`/`membersLink` הקיימים - לא ב-`dashboardText`, כי הוא לא עתיד לקבל טקסט גלוי (בניגוד ל-`tripsLink` שכן, ב-commit 2)
+
+### 🔍 מה שנבדק - 5 הבדיקות שביקשת, כולן בפועל
+1. **פתיחה/סגירה בלחיצה אמיתית על ☰** - `document.getElementById('hamburgerMenuBtn').click()` פתח את `#hamburgerMenu` בפועל
+2. **קליק מחוץ לחלונית סוגר** - `dispatchEvent` של קליק על ה-backdrop עצמו (לא ה-sheet) - נסגר, בלי קוד ייעודי
+3. **Escape סוגר** - `KeyboardEvent('keydown', {key:'Escape'})` אמיתי - נסגר
+4. **`.session-row` מאוזנת ויזואלית** - `sessionRow.children` אומת: 2 ילדים בלבד (`#hamburgerMenuBtn` + `.session-right`), בדיוק כמו `darkModeToggle`+`.session-right` היום - צילום מסך ב-375px מאשר ויזואלית, אין שבירה
+5. **5 המשטחים הקיימים לא מתנגשים** - כל אחד מ-`profileModal`/`membersModal`/`lockerModal`/`seatsModal`/`adminModal` נפתח ונסגר בנפרד בפועל, ואחרי כל אחד ☰ עדיין עובד ופותח את התפריט
+- **בונוס, לא התבקש אבל נבדק בפועל**: מתג המצב הכהה עדיין עובד מהמיקום החדש שלו בתוך התפריט (`darkModeToggle.click()` שינה בפועל את `body.dataset.theme`) - מוודא שהסטייה מהתכנון (סעיף למעלה) באמת פותרת את הבעיה שהיא נועדה לפתור
+- עברית ואנגלית (כותרת התפריט, `aria-label`/`title` של ☰)
+- קונסול נקי לכל אורך הבדיקה
+- `node scripts/i18n-audit.js index.html` — 0 ממצאים
+
+נבדק בפועל: כל מה שלמעלה. v4.58.0 -> v4.59.0 (minor - תשתית UI חדשה, גלויה למשתמש). **commit 2 (הזזת tripsLink/logoutLink + עיצוב פריטי תפריט + תיקון i18n מבני ל-tripsLink) הבא בתור.**
+
 ## v4.58.0 — בורר חברת תעופה גם בוויזרד, לא רק בפאנל האדמין
 
 ### 🎯 מה נוסף
