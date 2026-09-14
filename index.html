@@ -2050,7 +2050,7 @@
     </header>
 
     <div class="session-row" id="sessionRow">
-      <button id="hamburgerMenuBtn" class="logout-link" style="font-size:1rem;" aria-label="תפריט" title="תפריט" onclick="openHamburgerMenu()">☰</button>
+      <button id="hamburgerMenuBtn" class="logout-link" style="font-size:1rem;" aria-label="תפריט" title="תפריט" onclick="openHamburgerMenu()">☰ <span id="hamburgerMenuBtnText">תפריט</span></button>
       <span class="session-right">
         <span id="sessionUserLabel"></span>
         <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת הפרטים שלי" title="עריכת הפרטים שלי">✏️</button>
@@ -3053,6 +3053,7 @@
         navExpenses: "הוצאות",
         logoutLinkText: "יציאה",
         hamburgerMenuTitle: "☰ תפריט",
+        hamburgerMenuBtnText: "תפריט",
         tripsLinkText: "הטיולים שלי",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
@@ -3145,6 +3146,7 @@
         navExpenses: "Expenses",
         logoutLinkText: "Sign out",
         hamburgerMenuTitle: "☰ Menu",
+        hamburgerMenuBtnText: "Menu",
         tripsLinkText: "My trips",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
@@ -3474,19 +3476,18 @@
 
       document.getElementById("membersLink").title = membersLinkLabel;
 
-      // Icon-only, same as membersLink above (tripsLink left this group in
-      // commit 2 - see its own comment) - no visible text planned for this
-      // one (a hamburger glyph doesn't need a label next to it), so this
-      // stays a plain aria-label/title pair, not a dashboardText entry.
-      const hamburgerMenuBtnLabel =
-        lang === "en" ? "Menu" : "תפריט";
-
+      // hamburgerMenuBtn now shows visible text (hamburgerMenuBtnText, in
+      // dashboardText - covered by the generic loop above) instead of being
+      // icon-only - same structural fix as tripsLink above: aria-label/title
+      // point at that exact same value, one source of truth instead of a
+      // separate hardcoded ternary. membersLink (just above) stays
+      // icon-only, so it keeps its own ternary.
       document.getElementById("hamburgerMenuBtn").setAttribute(
         "aria-label",
-        hamburgerMenuBtnLabel
+        text.hamburgerMenuBtnText
       );
 
-      document.getElementById("hamburgerMenuBtn").title = hamburgerMenuBtnLabel;
+      document.getElementById("hamburgerMenuBtn").title = text.hamburgerMenuBtnText;
 
       document.getElementById("forecastStrip").setAttribute(
         "aria-label",

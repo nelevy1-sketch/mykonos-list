@@ -1,5 +1,23 @@
 # GitTrip — CHANGELOG
 
+## v4.59.2 — טקסט גלוי ליד ☰ (index.html)
+
+### 🎯 מה נוסף
+כפתור `hamburgerMenuBtn` (☰) מקבל טקסט גלוי לצידו - "תפריט"/"Menu" - באותה מוסכמה בדיוק שהייתה ל-`darkModeToggle`/`logoutLink` לפני שעברו לתוך התפריט ב-commit 1/2 (סמל + span טקסט נפרד). עד עכשיו ☰ היה אייקון-בלבד, בלי שום טקסט - נראה "תלוש" בתוך שורת ה-session.
+
+### ✏️ המימוש
+- נבדק קודם: `hamburgerMenuBtn` הציג רק את הסמל ☰, שום טקסט - אז זו הוספה אמיתית, לא כפילות.
+- `hamburgerMenuBtnText` נוסף ל-`dashboardText.he`/`.en` (מכוסה ע"י הלולאה הגנרית). `aria-label`/`title` מצביעים ישירות על `text.hamburgerMenuBtnText` - **לא** טרנרי נפרד - בדיוק אותו תיקון מבני שכבר בוצע ל-`tripsLink` ב-commit 2, כדי לא לחזור על אותה בעיית i18n (שני מקורות שיכולים להתפצל).
+- הטרנרי הישן `hamburgerMenuBtnLabel` (שהיה קיים בדיוק בשביל המצב "אייקון-בלבד") - הוסר במלואו.
+
+### 🔍 מה שנבדק - כולל האיזון של .session-row
+1. **טקסט גלוי מוצג נכון** - "☰ תפריט" בעברית, "☰ Menu" באנגלית, כולל `aria-label`/`title` מאוחדים לאותו ערך
+2. **איזון `.session-row`** - נבדק עם `getBoundingClientRect()`: הכפתור (~75px) מול `.session-right` (~342px, נשלט ע"י שם המשתמש) - `justify-content:space-between` מפזר את השניים כראוי בלי קשר להבדל ברוחב. **מקרה קצה**: שם תצוגה ארוך מאוד (`"A Very Long Display Name Indeed"`) - `.session-right`'s טיפול overflow/ellipsis הקיים (`min-width:0`) סופג את הרוחב העודף, השורה לא נשברת ולא גולשת, גם באנגלית (LTR)
+3. קונסול נקי לכל אורך הבדיקה
+4. `node scripts/i18n-audit.js index.html` — 0 ממצאים
+
+נבדק בפועל: כל מה שלמעלה. v4.59.1 -> v4.59.2 (patch - שיפור נגישות/בהירות לרכיב קיים, לא יכולת חדשה). **חוזרים עכשיו ל-commit 3/3 (שיתוף ההזמנה בתפריט) שעדיין ממתין לאישור סופי.**
+
 ## v4.59.1 — תפריט המבורגר: הזזת tripsLink/logoutLink + עיצוב אחיד (index.html, commit 2/3)
 
 ### 🎯 מה נוסף
