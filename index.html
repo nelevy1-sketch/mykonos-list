@@ -6020,10 +6020,17 @@
 
       const shareUrl = url.href;
 
-      const message = tr(
-        `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
-        `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${shareUrl}`
-      );
+      // Same "trip to <trip title>" repetition authGateCopy() already
+      // guards against - see its comment.
+      const message = tripTitle
+        ? tr(
+            `היי חברים, הצטרפו אליי ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
+            `Hi everyone, join me for ${destinationName}! Everything is here:\n\n${shareUrl}`
+          )
+        : tr(
+            `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
+            `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${shareUrl}`
+          );
 
       document.getElementById(
         "adminShareWhatsappBtn"

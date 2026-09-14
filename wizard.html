@@ -2070,8 +2070,12 @@
             // default already, nothing to gain from writing it.
             const shareUrlObj = new URL(tripUrl(tripId));
 
-            if (destination) {
-                shareUrlObj.searchParams.set('d', destination);
+            if (tripTitle || destination) {
+                shareUrlObj.searchParams.set('d', tripTitle || destination);
+            }
+
+            if (tripTitle) {
+                shareUrlObj.searchParams.set('dt', '1');
             }
 
             if (tripData.organizerName) {
