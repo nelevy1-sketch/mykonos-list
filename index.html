@@ -2399,6 +2399,22 @@
           <span id="tripsLinkText">הטיולים שלי</span>
         </a>
 
+        <!-- docs/roadmap.md part 3 item 0 - plain href="wizard.html", no
+             params. Investigated first: wizard.html reads no URL param at
+             all (besides a debug flag), and has no cancel/back link of its
+             own - so a tripId/from param here would be dead weight, not a
+             "return to your trip" feature. A user who creates a trip by
+             mistake has the same recourse as today's adminNewTripBtn
+             (organizer-only, admin panel) always had: the browser's own
+             back button. Deliberately not adding a wizard-side
+             cancel/return mechanism in this commit - existing gap, not a
+             regression this menu item introduces, and a separate feature
+             if ever done. -->
+        <a id="newTripLink" class="menu-item hidden" href="wizard.html" aria-label="יצירת טיול חדש" title="יצירת טיול חדש">
+          <span class="menu-item-icon">➕</span>
+          <span id="newTripLinkText">יצירת טיול חדש</span>
+        </a>
+
         <!-- docs/roadmap.md part 3 item 0, hamburger menu commit 3/3 - calls
              the existing updateAdminShareLink() (previously only reachable
              from the organizer-only admin panel) from openHamburgerMenu()
@@ -3067,6 +3083,7 @@
         hamburgerMenuTitle: "☰ תפריט",
         hamburgerMenuBtnText: "תפריט",
         tripsLinkText: "הטיולים שלי",
+        newTripLinkText: "יצירת טיול חדש",
         hamburgerShareText: "שיתוף ההזמנה",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
@@ -3161,6 +3178,7 @@
         hamburgerMenuTitle: "☰ Menu",
         hamburgerMenuBtnText: "Menu",
         tripsLinkText: "My trips",
+        newTripLinkText: "Create a new trip",
         hamburgerShareText: "Share invite",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
@@ -3481,6 +3499,17 @@
       document.getElementById("tripsLink").title = text.tripsLinkText;
 
       // Same structural fix as tripsLink above, built correctly from the
+      // start (this element is new) - aria-label/title point straight at
+      // newTripLinkText, no separate ternary ever existed for this one to
+      // remove.
+      document.getElementById("newTripLink").setAttribute(
+        "aria-label",
+        text.newTripLinkText
+      );
+
+      document.getElementById("newTripLink").title = text.newTripLinkText;
+
+      // Same structural fix as tripsLink above, built correctly from the
       // start since this element is new in commit 3 - aria-label/title
       // point straight at hamburgerShareText, no separate ternary ever
       // existed for this one to remove.
@@ -3643,6 +3672,16 @@
         );
 
         document.getElementById("tripsLink").classList.toggle(
+          "hidden",
+          !user
+        );
+
+        // Unlike adminNewTripBtn (organizer-only, inside #adminModal), this
+        // is shown to every signed-in user - creating a trip makes you its
+        // organizer regardless of your role in any other trip, and
+        // wizard.html itself never assumed otherwise (see the investigation
+        // this was approved from).
+        document.getElementById("newTripLink").classList.toggle(
           "hidden",
           !user
         );
