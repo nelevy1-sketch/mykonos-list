@@ -1,5 +1,26 @@
 # GitTrip — CHANGELOG
 
+## v4.59.1 — תפריט המבורגר: הזזת tripsLink/logoutLink + עיצוב אחיד (index.html, commit 2/3)
+
+### 🎯 מה נוסף
+`tripsLink` ו-`logoutLink` עוברים פיזית מתוך `.session-row` אל תוך `#hamburgerMenu` - שם, לצד `darkModeToggle` שכבר עבר ב-commit 1, מקבלים טקסט גלוי (לא רק סמל) ועיצוב אחיד (`.menu-item`/`.menu-item-icon`) לשלושתם. `.session-row`/`.session-right` נשארות עם 3 ילדים בלבד: `sessionUserLabel`, `editNameBtn`, `membersLink`.
+
+### ✏️ המימוש
+- `.hamburger-menu-list` (flex column, gap 4px) עוטפת את שלושת הפריטים. `.menu-item` - שורה אחידה (אייקון + טקסט, ריפוד 14px/12px, `border-radius:14px`, `hover`/`active` עם `var(--card-bg)`) - נבנתה מ-`.logout-link` הקיימת כנקודת ייחוס, אבל כמחלקה נפרדת: `.logout-link` היא flex-row צר שמתחרה על מקום עם `#sessionUserLabel` (`flex-shrink:0` בכוונה בגלל זה), `.menu-item` יושבת ברשימה אנכית בעמודה משלה - הקשר עיצובי שונה לגמרי, לא היה נכון לשתף מחלקה אחת בין השניים.
+- `tripsLink` (`<a>`) ו-`logoutLink` (`<button>`) שניהם מקבלים פנימית `<span class="menu-item-icon">` + `<span id="...Text">` - `darkModeToggle` נשאר עם המבנה הפנימי שלו כפי שהיה (`applyDarkModeUI()` קובעת טקסט+אייקון כמחרוזת אחת משולבת, לא בנפרד) - רק `class="menu-item"` משותפת, לא צורת ה-markup הפנימית.
+- **תיקון i18n מבני ל-`tripsLink`**: `tripsLinkText` נוסף ל-`dashboardText.he`/`.en` (מכוסה אוטומטית ע"י הלולאה הגנרית ב-`applyTripLanguage()`, כמו כל טקסט אחר בדשבורד). הטרנרי הנפרד `tripsLinkLabel` שקבע את `aria-label`/`title` באופן עצמאי - **הוסר**. עכשיו `aria-label`/`title` של `tripsLink` מוצבים ישירות מאותו `text.tripsLinkText` שקובע גם את הטקסט הגלוי - מקור אמת אחד, לא שניים שיכולים להתפצל. `membersLink` (אייקון-בלבד, בלי תוכנית לטקסט גלוי) נשאר בתבנית הטרנרי הישנה בכוונה - התיקון חל רק על אלמנט שקיבל טקסט גלוי בפועל.
+
+### 🔍 מה שנבדק - 3 הבדיקות שביקשת, כולן בפועל בדפדפן אמיתי
+1. **שלוש הפעולות עובדות מהמיקום החדש**: מצב כהה - `darkModeToggle` בתוך התפריט אכן קובע `body.dataset.theme='dark'` ומחליף טקסט/אייקון (`☀️ מצב בהיר`), בפועל דרך קליק אמיתי; הטיולים שלי - `tripsLink.href` תקין; יציאה - קליק אמיתי על `logoutLink` הפעיל את ה-listener הקיים (`toast` + `auth.signOut()`), בלי שינוי בקוד ה-wiring עצמו (אותו `id`, אותה קריאת `getElementById` בדיוק כמו לפני ההעברה)
+2. **שתי שפות כולל ה-aria-label המאוחד**: עברית - `tripsLink` aria-label/title/טקסט גלוי שלושתם "הטיולים שלי"; אנגלית (`currentLanguage='en'` + `applyTripLanguage()`) - שלושתם "My trips" - מאומת שהם אותו ערך בדיוק, לא שני מקורות שיכולים להתפצל. גם `hamburgerMenuTitle`/`logoutLinkText` נבדקו בשתי השפות
+3. **`.session-right` - 3 ילדים, לא יותר**: `Array.from(sessionRight.children).map(c=>c.id)` בדום חי החזיר בדיוק `["sessionUserLabel","editNameBtn","membersLink"]`
+- בונוס: Escape סוגר את התפריט גם אחרי הפעולות למעלה (עדיין יורש מהחיווט הגנרי, לא נשבר מההעברה)
+- קונסול נקי לכל אורך הבדיקה, כולל 375px
+- `node scripts/i18n-audit.js index.html` — 0 ממצאים
+- **לא נבדק**: sign-in אמיתי מול Firebase (מגבלת הסביבה - נבדק דרך `handleAuthStateChanged()` האמיתית עם משתמש מדומה, לא reimplementation, כדי לחשוף את `.hidden`/`.session-right` כמו ב-production)
+
+נבדק בפועל: כל מה שלמעלה. v4.59.0 -> v4.59.1 (patch - המשך תשתית ה-commit 1, אין תכונה חדשה למשתמש שלא הייתה שם ב-commit 1 מלבד המיקום/העיצוב). **commit 3 (הוספת "שיתוף ההזמנה" לתפריט, קורא ל-`updateAdminShareLink()` הקיימת) הבא בתור.**
+
 ## v4.59.0 — תפריט המבורגר: תשתית + כפתור ☰ (index.html, commit 1/3)
 
 ### 🎯 מה נוסף

@@ -642,6 +642,46 @@
       color: var(--coral);
     }
 
+    /* docs/roadmap.md part 3 item 0, hamburger menu commit 2/3 - a vertical
+       list inside #hamburgerMenu, not a flex row squeezed against
+       #sessionUserLabel like .logout-link above, so it doesn't inherit
+       .logout-link's flex-shrink/white-space concerns (different layout
+       context entirely). Shared by darkModeToggle/tripsLink/logoutLink
+       once they're all in this list together. */
+    .hamburger-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      background: none;
+      color: var(--text-main);
+      font: inherit;
+      font-size: .95rem;
+      font-weight: 600;
+      text-decoration: none;
+      text-align: start;
+      cursor: pointer;
+      padding: 14px 12px;
+    }
+
+    .menu-item:hover,
+    .menu-item:active {
+      background: var(--card-bg);
+    }
+
+    .menu-item-icon {
+      flex-shrink: 0;
+      font-size: 1.15rem;
+    }
+
     .smart-context-card {
       background: var(--context-bg);
       border: 1px solid var(--context-border);
@@ -2014,9 +2054,7 @@
       <span class="session-right">
         <span id="sessionUserLabel"></span>
         <button type="button" class="edit-name-btn hidden" id="editNameBtn" aria-label="עריכת הפרטים שלי" title="עריכת הפרטים שלי">✏️</button>
-        <a id="tripsLink" class="logout-link hidden" href="index.html?trips=1" aria-label="הטיולים שלי" title="הטיולים שלי">🧳</a>
         <button type="button" id="membersLink" class="logout-link hidden" aria-label="מי בטיול" title="מי בטיול">👥</button>
-        <button id="logoutLink" class="logout-link hidden">🚪 <span id="logoutLinkText">יציאה</span></button>
       </span>
     </div>
 
@@ -2343,15 +2381,29 @@
         </button>
       </div>
 
-      <!-- docs/roadmap.md part 3 item 0, hamburger menu commit 1/3 -
-           deliberate deviation from "empty bottom-sheet": darkModeToggle
-           relocated here as-is (same id, same applyDarkModeUI()/
-           click-listener wiring, untouched) because that code calls
-           getElementById("darkModeToggle") unconditionally - deleting the
-           element would have broken dark mode the moment this commit
-           shipped. commit 2 gives it (and the other two items moving
-           here) real menu-item styling. -->
-      <button id="darkModeToggle" class="logout-link" style="font-size:.9rem;">🌙 מצב כהה</button>
+      <!-- docs/roadmap.md part 3 item 0, hamburger menu commit 2/3.
+           darkModeToggle was relocated here as-is in commit 1 (same id,
+           same applyDarkModeUI()/click-listener wiring, untouched) to
+           avoid breaking dark mode toggling before this commit could
+           formally move the other two - see commit 1's CHANGELOG entry.
+           Its own text is set as one combined string by applyDarkModeUI()
+           (icon+label change together based on theme state), so it isn't
+           split into separate icon/text spans like tripsLink/logoutLink
+           below - only .menu-item styling is shared, not the internal
+           markup shape. -->
+      <div class="hamburger-menu-list">
+        <button id="darkModeToggle" class="menu-item">🌙 מצב כהה</button>
+
+        <a id="tripsLink" class="menu-item hidden" href="index.html?trips=1" aria-label="הטיולים שלי" title="הטיולים שלי">
+          <span class="menu-item-icon">🧳</span>
+          <span id="tripsLinkText">הטיולים שלי</span>
+        </a>
+
+        <button id="logoutLink" class="menu-item hidden">
+          <span class="menu-item-icon">🚪</span>
+          <span id="logoutLinkText">יציאה</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3001,6 +3053,7 @@
         navExpenses: "הוצאות",
         logoutLinkText: "יציאה",
         hamburgerMenuTitle: "☰ תפריט",
+        tripsLinkText: "הטיולים שלי",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
         profileNameLabel: "שם תצוגה:",
@@ -3092,6 +3145,7 @@
         navExpenses: "Expenses",
         logoutLinkText: "Sign out",
         hamburgerMenuTitle: "☰ Menu",
+        tripsLinkText: "My trips",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
         profileNameLabel: "Display name:",
@@ -3398,15 +3452,17 @@
 
       document.getElementById("editNameBtn").title = editNameLabel;
 
-      const tripsLinkLabel =
-        lang === "en" ? "My trips" : "הטיולים שלי";
-
+      // tripsLink now shows visible text (tripsLinkText, in dashboardText -
+      // covered by the generic loop above like any other text) since
+      // commit 2 of the hamburger menu rollout, so its aria-label/title
+      // point at that exact same value instead of a second, separately
+      // hardcoded ternary - one source of truth, not two that could drift.
       document.getElementById("tripsLink").setAttribute(
         "aria-label",
-        tripsLinkLabel
+        text.tripsLinkText
       );
 
-      document.getElementById("tripsLink").title = tripsLinkLabel;
+      document.getElementById("tripsLink").title = text.tripsLinkText;
 
       const membersLinkLabel =
         lang === "en" ? "Who's on the trip" : "מי בטיול";
@@ -3418,10 +3474,10 @@
 
       document.getElementById("membersLink").title = membersLinkLabel;
 
-      // Icon-only, same as tripsLink/membersLink above - no visible text
-      // planned for this one (a hamburger glyph doesn't need a label next
-      // to it), so this stays a plain aria-label/title pair, not a
-      // dashboardText entry.
+      // Icon-only, same as membersLink above (tripsLink left this group in
+      // commit 2 - see its own comment) - no visible text planned for this
+      // one (a hamburger glyph doesn't need a label next to it), so this
+      // stays a plain aria-label/title pair, not a dashboardText entry.
       const hamburgerMenuBtnLabel =
         lang === "en" ? "Menu" : "תפריט";
 
