@@ -2599,6 +2599,7 @@ body.modal-open .modal-card {
         update(ref(db), {
           [`users/${currentUser.uid}/trips/${tripId}`]: {
             destination: window.getPrimaryLeg(tripData).name || "",
+            ...(tripData?.tripTitle ? { tripTitle: tripData.tripTitle } : {}),
             tripType: tripData?.tripType || "",
             language: tripData?.language || "he",
             startAt: tripData?.startAt || null,

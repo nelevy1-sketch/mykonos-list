@@ -4464,6 +4464,7 @@
             update(ref(db), {
               [`users/${user.uid}/trips/${tripId}`]: {
                 destination: window.getPrimaryLeg(trip).name || "",
+                ...(trip.tripTitle ? { tripTitle: trip.tripTitle } : {}),
                 tripType: trip.tripType || "",
                 language: trip.language || "he",
                 startAt: trip.startAt || null,
