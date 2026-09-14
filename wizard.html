@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="shared.css">
     <script src="version.js"></script>
     <script src="toast.js"></script>
+    <script src="urlShortener.js"></script>
     <script src="auth-gate.js"></script>
     <script src="legs.js"></script>
     <script src="datetime.js"></script>
@@ -2101,20 +2102,26 @@
             const shareUrl = shareUrlObj.href;
             document.getElementById('finalTripLink').value = shareUrl;
 
-            // Same wa.me pattern and same "trip to <trip title>" guard as
-            // index.html's updateAdminShareLink() - kept as a second,
+            // Best-effort only (urlShortener.js resolves to null on any
+            // failure) - falls straight back to the full link, exactly
+            // today's behavior, if it doesn't come back in time.
+            const whatsappLink = (await window.shortenUrl(shareUrl)) || shareUrl;
+
+            // Same "trip to <trip title>" guard as index.html's
+            // updateAdminShareLink() - the message text itself is a second,
             // independent copy (not a shared function) because wizard.html
             // has no tr() helper, unlike index.html/shopping.html/etc (see
-            // CLAUDE.md's own note on this). Any future change to the
-            // phrasing there needs the same change made here too.
+            // CLAUDE.md's own note on this) - only the shortenUrl() call
+            // above is actually shared, via urlShortener.js. Any future
+            // phrasing change there needs the same change made here too.
             const shareName = tripTitle || destination;
             const shareMessage = tripTitle
                 ? (currentLanguage === 'he'
-                    ? `היי חברים, הצטרפו אליי ל${shareName}! כל הפרטים כאן:\n\n${shareUrl}`
-                    : `Hi everyone, join me for ${shareName}! Everything is here:\n\n${shareUrl}`)
+                    ? `היי חברים, הצטרפו אליי ל${shareName}! כל הפרטים כאן:\n\n${whatsappLink}`
+                    : `Hi everyone, join me for ${shareName}! Everything is here:\n\n${whatsappLink}`)
                 : (currentLanguage === 'he'
-                    ? `היי חברים, הצטרפו אליי לטיול ל${shareName}! כל הפרטים כאן:\n\n${shareUrl}`
-                    : `Hi everyone, join me for our trip to ${shareName}! Everything is here:\n\n${shareUrl}`);
+                    ? `היי חברים, הצטרפו אליי לטיול ל${shareName}! כל הפרטים כאן:\n\n${whatsappLink}`
+                    : `Hi everyone, join me for our trip to ${shareName}! Everything is here:\n\n${whatsappLink}`);
             const whatsappBtn = document.getElementById('whatsappShareBtn');
             whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
             whatsappBtn.style.display = 'block';

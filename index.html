@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="shared.css">
   <script src="version.js"></script>
   <script src="toast.js"></script>
+  <script src="urlShortener.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
   <script src="legBuilder.js"></script>
@@ -6015,6 +6016,13 @@
     // "no l" already means Hebrew (the gate's own default, confirmed by
     // reading the code: no other pre-auth language source ever existed),
     // so there's nothing to gain from writing it explicitly.
+    // Guards the best-effort link-shortening upgrade below against a stale
+    // response landing after a newer call to updateAdminShareLink() (panel
+    // reopened, language toggled, trip data changed) - same "ignore it if
+    // a newer request has since started" idiom as itinerary.html/places.html's
+    // profileLoadGen.
+    let shareLinkRequestId = 0;
+
     function updateAdminShareLink() {
       const url = new URL(scopedTripUrl("index.html"));
 
@@ -6039,21 +6047,35 @@
       // Same "trip to <trip title>" repetition authGateCopy() already
       // guards against - see its comment. wizard.html's success-screen
       // WhatsApp button (generateTripAndSave()) duplicates this same
-      // message/wa.me pattern independently, not via a shared function -
-      // it has no tr() helper to share one with. Keep both in sync by hand.
-      const message = tripTitle
-        ? tr(
-            `היי חברים, הצטרפו אליי ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
-            `Hi everyone, join me for ${destinationName}! Everything is here:\n\n${shareUrl}`
-          )
-        : tr(
-            `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
-            `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${shareUrl}`
-          );
+      // message/wa.me text independently, not via a shared function - it
+      // has no tr() helper to share one with. Keep both in sync by hand.
+      // The link-shortening call below (window.shortenUrl) IS shared with
+      // it though, via urlShortener.js - that part doesn't need this.
+      const buildMessage = (linkForMessage) =>
+        tripTitle
+          ? tr(
+              `היי חברים, הצטרפו אליי ל${destinationName}! כל הפרטים כאן:\n\n${linkForMessage}`,
+              `Hi everyone, join me for ${destinationName}! Everything is here:\n\n${linkForMessage}`
+            )
+          : tr(
+              `היי חברים, הצטרפו אליי לטיול ל${destinationName}! כל הפרטים כאן:\n\n${linkForMessage}`,
+              `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${linkForMessage}`
+            );
 
-      document.getElementById(
-        "adminShareWhatsappBtn"
-      ).href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      const whatsappBtn = document.getElementById("adminShareWhatsappBtn");
+
+      // The button always gets a working link immediately, synchronously,
+      // same as before this change - never waits on the network for that.
+      whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(buildMessage(shareUrl))}`;
+
+      // Best-effort upgrade, applied silently if/when it resolves - never
+      // shown as loading, never blocks the href set above. A click before
+      // this resolves just gets the full link, not an error.
+      const requestId = ++shareLinkRequestId;
+      window.shortenUrl(shareUrl).then((shortUrl) => {
+        if (!shortUrl || requestId !== shareLinkRequestId) return;
+        whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(buildMessage(shortUrl))}`;
+      }).catch(() => {});
     }
 
     // Multi-destination leg editor for the admin panel (docs/schema-legs.md
