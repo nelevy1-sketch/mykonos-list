@@ -2495,6 +2495,15 @@
         </div>
 
         <div class="admin-field">
+          <label id="adminTripTitleLabel">שם הטיול (אופציונלי):</label>
+          <input
+            type="text"
+            id="adminTripTitleInput"
+            class="admin-input"
+            placeholder="לדוגמה: יורוטריפ של הבנות 2026">
+        </div>
+
+        <div class="admin-field">
           <label id="adminTripTypeLabel">סוג הטיול:</label>
 
           <select id="adminTripType" class="admin-input">
@@ -2942,6 +2951,7 @@
         seatMismatchTitle: "מושבים שלא מוצגים במפה (לא תואמים את התצורה הנוכחית):",
         adminModalTitle: "🛠️ פאנל ניהול אדמין",
         adminTripSectionTitle: "פרטי טיול",
+        adminTripTitleLabel: "שם הטיול (אופציונלי):",
         adminTripTypeLabel: "סוג הטיול:",
         adminTypeAbroad: "טיסה לחו״ל (כולל טיסות וצ׳ק־אין)",
         adminTypeLocal: "טיול בארץ",
@@ -3031,6 +3041,7 @@
         seatMismatchTitle: "Seats not shown on the map (don't match the current configuration):",
         adminModalTitle: "🛠️ Organizer settings",
         adminTripSectionTitle: "Trip details",
+        adminTripTitleLabel: "Trip name (optional):",
         adminTripTypeLabel: "Trip type:",
         adminTypeAbroad: "International flight (flights and check-in)",
         adminTypeLocal: "Local trip",
@@ -3275,6 +3286,11 @@
         lang === "en"
           ? "For example: Berlin, Thailand or the Galilee"
           : "לדוגמה: ברלין, תאילנד או הגליל";
+
+      document.getElementById("adminTripTitleInput").placeholder =
+        lang === "en"
+          ? "e.g. The girls' Eurotrip 2026"
+          : "לדוגמה: יורוטריפ של הבנות 2026";
 
       document.getElementById("adminTagInput").placeholder =
         lang === "en"
@@ -6431,6 +6447,10 @@
       }
 
       document.getElementById(
+        "adminTripTitleInput"
+      ).value = tripTitle;
+
+      document.getElementById(
         "adminTripType"
       ).value = tripType;
 
@@ -6639,6 +6659,12 @@
             .value
             .trim();
 
+        const newTripTitle =
+          document
+            .getElementById("adminTripTitleInput")
+            .value
+            .trim();
+
         const newCheckin =
           document
             .getElementById("adminCheckinUrl")
@@ -6747,9 +6773,17 @@
         // just as relevant for a local trip or reserve duty as abroad.
         whatsappGroupLink = newWhatsappGroup;
 
+        // Trip-level, like whatsappGroupLink above - not tied to legs/
+        // destination structure, so updated regardless of multiLeg.
+        tripTitle = newTripTitle;
+
         if (!multiLeg) {
           flightOut = new Date(newFlight);
-          destinationName = newDestination;
+          // Prefer the just-saved title over the just-saved destination -
+          // without this, the admin sees the destination flash briefly
+          // where the title should be, until the live listener catches up
+          // (same reasoning as authGateCopy()'s comment on this pair).
+          destinationName = newTripTitle || newDestination;
 
           if (tripType !== "reserve") {
             try {
@@ -6917,6 +6951,12 @@
         if (db && tripRoot) {
           const settings = {
             tripType,
+            // null (not "") actually removes the field from RTDB when
+            // cleared - same convention as settings.legs = null below,
+            // and distinguishes "no title" from "title not asked about
+            // yet" the same way tripCharacter's omit-when-absent does on
+            // trip creation (wizard.html).
+            tripTitle: newTripTitle || null,
             checkinLink,
             whatsappGroupLink,
             seatLayout,
@@ -6956,7 +6996,27 @@
             Object.assign(settings, multiLegWriteFields.tripFields, { legs: multiLegWriteFields.legs });
           }
 
-          db.ref(tripRoot).update(settings);
+          // Single atomic multi-path update, not two separate calls -
+          // trips/{tripId} gets every changed field (flattened to full
+          // paths so it can share one update() with the mirror below;
+          // same shallow-merge result as db.ref(tripRoot).update(settings)
+          // would have given). users/{tripOwnerId}/trips/{tripId} only
+          // needs tripTitle kept in sync - every other field there is a
+          // snapshot from create/join time, not live-synced (existing,
+          // pre-existing limitation for every other admin-edited field,
+          // not something this commit fixes - see CHANGELOG).
+          const updates = {};
+
+          Object.entries(settings).forEach(([key, value]) => {
+            updates[`${tripRoot}/${key}`] = value;
+          });
+
+          if (tripOwnerId) {
+            updates[`users/${tripOwnerId}/trips/${tripId}/tripTitle`] =
+              newTripTitle || null;
+          }
+
+          db.ref().update(updates);
         }
 
         closeAdminModal();
