@@ -1,5 +1,29 @@
 # GitTrip — CHANGELOG
 
+## v4.53.1 — index.html מעדיף tripTitle בכל מקום שמציג שם טיול (commit 2/5+)
+
+### 🎯 מקור יחיד לתיקון
+`destinationName` הוא המשתנה היחיד ב-index.html שמזין את כל נקודות התצוגה (כותרת העמוד, פוטר, קישור שיתוף, הודעת WhatsApp, שתי התראות) - תיקון נקודה אחת ([index.html:4540](index.html:4540)) `destinationName = data.tripTitle || primaryLeg.name || destinationName` מספיק לכולן. לא נגעתי בהן בנפרד - אומת בפועל, לא רק הונח.
+
+### 🔍 שני ממצאים נוספים מה-commit הקודם - שניהם תוקנו כאן
+לפני שהתחלתי, המשתמש דיווח שראה destination במקום כותרת גם ב"הטיולים שלי" - התברר בחקירה שזה **לא** `renderRecentTrips()` בוויזרד (שכבר תוקנה ב-commit 1), אלא שני מקומות נפרדים לגמרי ב-index.html שלא נסרקו בחקירה המקורית כי נבנו בסבב עבודה קודם:
+- **`renderTripPickerList()`** ([index.html:5891](index.html:5891)) - "הטיולים שלי" ב-index.html עצמו (נפרד מזה שבוויזרד). תוקן: `item?.tripTitle || item?.destination || id`
+- **כפתור "חזרה לטיול ל-X"** - מקור הנתונים שלו הוא `localStorage['trip-<id>-name']`, אותו cache בדיוק שכותרת העמוד קוראת ממנו מראש (pre-paint). תיקון יחיד בצד הכתיבה ([index.html:4550](index.html:4550), `data.tripTitle || data.destination`) מספיק לשני הצרכנים - **לא נדרש תיקון נפרד לכפתור עצמו**, אומת בבדיקה
+
+### 🧩 מה שהוחלט לא לגעת בו, ולמה
+- **`trip-<id>-headline`** ([index.html:4642](index.html:4642)) - cache שלישי, נפרד, ששומר את `#appTitle.textContent` המלא (כולל דגל) - יורש את התיקון אוטומטית כי הוא רק מעתיק את מה ש-`#appTitle` כבר מציג אחרי שהוא עצמו תוקן. לא נגעתי בתנאי השמירה שלו (`if (data.destination)`) - destination תמיד קיים בטיול תקין, אז זה לא צריך "או tripTitle"
+- **מסך ניהול (admin) - שינוי יעד ידני** ([index.html:6712](index.html:6712), `destinationName = newDestination`) - נבדק ואומת: זו state מקומי בלבד, הכתיבה בפועל ל-RTDB ([index.html:6919](index.html:6919)) היא `update()` חלקי שלא כולל `tripTitle` בכלל - אז `tripTitle` קיים בטיול נשאר בלתי פגוע גם כשהמארגן משנה יעד. לא הוספתי עריכת tripTitle לפאנל הניהול - מחוץ להיקף, לא התבקש
+- **places.html:214** (`alt` של תמונה בלי כיתוב) - שימוש שולי, לא הצגת "שם טיול" בפועל. נפילה ל-destination תואמת את מה שכבר סוכם
+
+### 🔍 מה שנבדק (שרת מקומי, gate עוקף ידנית - אין Firebase אמיתי)
+- **`renderTripPickerList()` ישירות** (`window.renderTripPickerList` - נגישה מ-window כי index.html סקריפט קלאסי) עם שני טיולים מזויפים - אחד עם `tripTitle`, אחד בלי. תוצאה מאומתת בצילום מסך: "טיול חברים לפורטוגל" (כותרת) מוצג לטיול הראשון, "רומא" (destination) לשני
+- **כפתור "חזרה לטיול"**: הוזרק `trip-backtest123-name` ל-localStorage עם ערך כותרת, נטען העמוד עם `?trips=1&from=backtest123`, `window.enterTripPickerMode()` הופעל ישירות - הטקסט שהתקבל: **"חזרה לטיול חברים לפורטוגל"**, לא "חזרה לטיול" הגנרי
+- קונסול נקי לכל אורך הבדיקה
+- `node scripts/i18n-audit.js index.html` — 0 ממצאים
+- **לא נבדק**: זרימה מלאה מול Firebase אמיתי (מגבלת הסביבה) - כולל commit 2ב (ארבע נקודות ה-auto-register) שעדיין לא בוצע, ולכן חבר שמצטרף (לא המארגן) עדיין לא יראה tripTitle נכון בשום מקום עד שזה יתוקן
+
+נבדק בפועל: כל מה שלמעלה. v4.53.0 -> v4.53.1 (patch — תיקון תצוגה, אין שינוי סכמה). **commit 2ב (תיקון הכתיבה בארבע נקודות ה-auto-register) עדיין פתוח.**
+
 ## v4.53.0 — שדה "שם הטיול" נפרד מהיעד (commit 1/5: סכימה + wizard.html)
 
 ### 🌍 הבעיה שזה פותר

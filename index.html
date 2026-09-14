@@ -4537,18 +4537,22 @@
       const primaryLeg = window.getPrimaryLeg(legInput);
       const lastLeg = window.getLastLeg(legInput);
 
-      destinationName = primaryLeg.name || destinationName;
+      // tripTitle (optional, organizer-entered - see wizard.html) is the
+      // trip's display name when set; destination stays the geocoding/
+      // flag/weather/timezone source either way, never the display name
+      // itself once a title exists.
+      destinationName = data.tripTitle || primaryLeg.name || destinationName;
       organizerName = data.organizerName || organizerName;
 
       try {
         localStorage.setItem("lastTripId", tripId);
       } catch (e) {}
 
-      if (data.destination) {
+      if (data.tripTitle || data.destination) {
         try {
           localStorage.setItem(
             "trip-" + (tripId || "legacy") + "-name",
-            data.destination
+            data.tripTitle || data.destination
           );
         } catch (e) {}
       }
@@ -5888,7 +5892,7 @@
 
         return (
           `<a class="trip-picker-card" href="index.html?tripId=${encodeURIComponent(id)}">` +
-          `<div class="trip-picker-card-info"><strong>${escapeHtml(item?.destination || id)}</strong>` +
+          `<div class="trip-picker-card-info"><strong>${escapeHtml(item?.tripTitle || item?.destination || id)}</strong>` +
           `<span>${escapeHtml(sub)}</span></div>` +
           `<span class="trip-picker-card-arrow">›</span></a>`
         );
