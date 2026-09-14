@@ -2809,6 +2809,11 @@
     let tripCharacter = "";
     let showAccent = true;
     let destinationName = "הטיול הבא";
+    // Tracked separately from destinationName (which already merges the two)
+    // so updateAdminShareLink() and the authGate copy can tell whether the
+    // current display name is an organizer-entered title or a plain
+    // destination - see authGateCopy()'s own comment on why that matters.
+    let tripTitle = "";
     let organizerName = "";
     let latCoord = 32.0853;
     let lonCoord = 34.7818;
@@ -2849,6 +2854,10 @@
     const invitationParams = new URLSearchParams(window.location.search);
     const invitationDestination = invitationParams.get("d") || "";
     const invitationOrganizer = invitationParams.get("h") || "";
+    // Set only when d is an organizer-entered trip title (tripTitle), not a
+    // plain destination - see updateAdminShareLink(). Lets authGateCopy()
+    // avoid "trip to <trip name>" when the title already reads as one.
+    const invitationDestinationIsTitle = invitationParams.get("dt") === "1";
 
     // Seeds the gate's language before any real trip data can load - the
     // only other source (below) is hardcoded "he" and always was, for
@@ -3214,14 +3223,25 @@
 
       let title;
 
+      // A tripTitle ("Friends trip to Portugal") already reads as a full
+      // phrase - "invited you to a trip to Friends trip to Portugal" repeats
+      // the word "trip". Only the plain-destination phrasing keeps "trip to".
       if (destName && hostName) {
-        title = lang === "en"
-          ? `${hostName} invited you on a trip to ${destName} ✈️`
-          : `${hostName} הזמין אותך לטיול ל${destName} ✈️`;
+        title = invitationDestinationIsTitle
+          ? (lang === "en"
+              ? `${hostName} invited you to ${destName} ✈️`
+              : `${hostName} הזמין אותך ל${destName} ✈️`)
+          : (lang === "en"
+              ? `${hostName} invited you on a trip to ${destName} ✈️`
+              : `${hostName} הזמין אותך לטיול ל${destName} ✈️`);
       } else if (destName) {
-        title = lang === "en"
-          ? `You've been invited on a trip to ${destName} ✈️`
-          : `הוזמנת לטיול ל${destName} ✈️`;
+        title = invitationDestinationIsTitle
+          ? (lang === "en"
+              ? `You've been invited to ${destName} ✈️`
+              : `הוזמנת ל${destName} ✈️`)
+          : (lang === "en"
+              ? `You've been invited on a trip to ${destName} ✈️`
+              : `הוזמנת לטיול ל${destName} ✈️`);
       } else {
         title = lang === "en"
           ? "You've been invited on a trip ✈️"
@@ -3351,6 +3371,10 @@
 
       if (invitationDestination) {
         showcaseUrl.searchParams.set("d", invitationDestination);
+      }
+
+      if (invitationDestinationIsTitle) {
+        showcaseUrl.searchParams.set("dt", "1");
       }
 
       if (invitationOrganizer) {
@@ -4542,6 +4566,7 @@
       // flag/weather/timezone source either way, never the display name
       // itself once a title exists.
       destinationName = data.tripTitle || primaryLeg.name || destinationName;
+      tripTitle = data.tripTitle || "";
       organizerName = data.organizerName || organizerName;
 
       try {
@@ -5979,6 +6004,10 @@
 
       if (destinationName) {
         url.searchParams.set("d", destinationName);
+      }
+
+      if (tripTitle) {
+        url.searchParams.set("dt", "1");
       }
 
       if (organizerName) {

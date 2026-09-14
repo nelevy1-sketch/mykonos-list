@@ -1114,6 +1114,11 @@
   // the wizard to start a new trip.
   var ctaTripId = null;
   var ctaDestination = '';
+  // Set only when d is an organizer-entered trip title, not a plain
+  // destination - see index.html's updateAdminShareLink()/authGateCopy().
+  // "Back to the trip to <trip name>" repeats "trip" when d is a title;
+  // this flag lets updateCtaButton() drop the redundant "trip to".
+  var ctaDestinationIsTitle = false;
   var ctaBackUrl = null;
 
   // d/h are link input, not trusted - same as index.html's authGate. .textContent
@@ -1137,12 +1142,17 @@
 
     var rawDestination = params.get("d") || "";
     ctaDestination = truncateForCta(rawDestination, 30);
+    ctaDestinationIsTitle = params.get("dt") === "1";
 
     var backUrl = new URL("index.html", window.location.href);
     backUrl.searchParams.set("tripId", ctaTripId);
 
     if (rawDestination) {
       backUrl.searchParams.set("d", rawDestination);
+    }
+
+    if (ctaDestinationIsTitle) {
+      backUrl.searchParams.set("dt", "1");
     }
 
     if (params.get("h")) {
@@ -1170,7 +1180,9 @@
     }
     var btn = document.getElementById("ctaBtn");
     btn.textContent = ctaDestination
-      ? (currentLang === "en" ? "✈️ Back to the trip to " + ctaDestination : "✈️ חזרה לטיול ל" + ctaDestination)
+      ? (ctaDestinationIsTitle
+          ? (currentLang === "en" ? "✈️ Back to " + ctaDestination : "✈️ חזרה ל" + ctaDestination)
+          : (currentLang === "en" ? "✈️ Back to the trip to " + ctaDestination : "✈️ חזרה לטיול ל" + ctaDestination))
       : (currentLang === "en" ? "✈️ Back to the trip" : "✈️ חזרה לטיול");
   }
 
