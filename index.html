@@ -1656,6 +1656,15 @@
 
     .trip-picker-list {
       display: grid;
+      /* Explicit, not the implicit auto-sized column this had before - an
+         auto column grows to each card's own max-content width (a long
+         title, uncapped), which is wider than the grid itself and forces
+         the whole list to overflow instead of letting the title's own
+         ellipsis (.trip-picker-card-info strong) do its job. Found testing
+         the new delete button, which narrows the space left for the title
+         and made this trigger at realistic lengths, not just extreme ones -
+         same root cause either way. */
+      grid-template-columns: minmax(0, 1fr);
       gap: 8px;
       margin-bottom: 14px;
     }
@@ -1663,14 +1672,37 @@
     .trip-picker-card {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      gap: 6px;
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 13px 15px;
+    }
+
+    .trip-picker-card-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
       text-decoration: none;
       color: inherit;
+    }
+
+    .trip-picker-delete-btn {
+      flex-shrink: 0;
+      min-width: 36px;
+      min-height: 36px;
+      border: 0;
+      border-radius: 10px;
+      background: #F6DFDA;
+      color: #93372A;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .trip-picker-card-info {
@@ -5933,12 +5965,87 @@
         const sub = [typeText, date].filter(Boolean).join(" · ");
 
         return (
-          `<a class="trip-picker-card" href="index.html?tripId=${encodeURIComponent(id)}">` +
+          `<div class="trip-picker-card">` +
+          `<a class="trip-picker-card-link" href="index.html?tripId=${encodeURIComponent(id)}">` +
           `<div class="trip-picker-card-info"><strong>${escapeHtml(item?.tripTitle || item?.destination || id)}</strong>` +
           `<span>${escapeHtml(sub)}</span></div>` +
-          `<span class="trip-picker-card-arrow">›</span></a>`
+          `<span class="trip-picker-card-arrow">›</span></a>` +
+          `<button type="button" class="trip-picker-delete-btn" onclick="deleteTripPickerEntry('${escapeHtml(id)}')" aria-label="${escapeHtml(tr("מחיקה", "Delete"))}">🗑️</button>` +
+          `</div>`
         );
       }).join("");
+    }
+
+    // Mirrors wizard.html's deleteRecentTrip() (same ownerId check, same
+    // two-outcome split, same security reasoning - see its own comment and
+    // the CHANGELOG entry this was fixed under) - a second, independent
+    // implementation because index.html is on the compat SDK while
+    // wizard.html is modular (CLAUDE.md's own note on why these 5+1 pages
+    // split that way).
+    async function deleteTripPickerEntry(tripId) {
+      if (!currentUser) {
+        return;
+      }
+
+      let isOrganizer = false;
+
+      try {
+        const ownerSnap = await db.ref(`trips/${tripId}/ownerId`).once("value");
+        const ownerId = ownerSnap.val();
+        // Missing ownerId (a trip that predates the field) falls back to
+        // the organizer path on purpose - see wizard.html's
+        // deleteRecentTrip() for the full reasoning, unchanged here.
+        isOrganizer = !ownerId || ownerId === currentUser.uid;
+      } catch (error) {
+        console.error("Error checking trip ownership:", error);
+        customAlert(
+          tr(
+            "לא ניתן היה לבדוק את הרשאות הטיול. נסו שוב.",
+            "Could not check trip permissions. Please try again."
+          )
+        );
+        return;
+      }
+
+      const confirmMessage = isOrganizer
+        ? tr(
+            "למחוק את הטיול לצמיתות? הפעולה תמחק אותו עבור כל המשתתפים ולא ניתנת לביטול.",
+            "Permanently delete this trip? This removes it for every participant and cannot be undone."
+          )
+        : tr(
+            "להסיר את הטיול הזה מהרשימה שלך? הטיול עצמו יישאר קיים עבור שאר המשתתפים.",
+            "Remove this trip from your list? The trip itself stays intact for the other participants."
+          );
+
+      if (!(await customConfirm(confirmMessage, { danger: true }))) {
+        return;
+      }
+
+      try {
+        await db.ref().update(
+          isOrganizer
+            ? {
+                [`trips/${tripId}`]: null,
+                [`users/${currentUser.uid}/trips/${tripId}`]: null
+              }
+            : {
+                [`users/${currentUser.uid}/trips/${tripId}`]: null
+              }
+        );
+      } catch (error) {
+        console.error("Error deleting trip:", error);
+        customAlert(
+          tr(
+            "מחיקת הטיול נכשלה. נסו שוב.",
+            "Failed to delete the trip. Please try again."
+          )
+        );
+        return;
+      }
+
+      db.ref("users/" + currentUser.uid + "/trips")
+        .once("value")
+        .then((snapshot) => renderTripPickerList(snapshot.val() || {}));
     }
 
     function startTripListener() {
