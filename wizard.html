@@ -587,6 +587,15 @@
                 <input type="text" id="finalTripLink" readonly>
                 <button type="button" class="btn btn-submit" id="copyLinkBtn" onclick="copyLink()" style="flex: 0 0 100px;">העתק לינק</button>
             </div>
+            <!-- Same wa.me pattern as index.html's #adminShareWhatsappBtn
+                 (updateAdminShareLink()) - a separate row below the copy box,
+                 not folded into its flex row, so it reads as its own action
+                 rather than a third item squeezed next to a text input.
+                 Kept in sync with a cross-reference comment there too - see
+                 this file's own build-the-message code in
+                 generateTripAndSave() for why the two can't share one
+                 function (wizard.html has no tr() helper). -->
+            <a class="btn btn-outline" id="whatsappShareBtn" target="_blank" rel="noopener" href="#" style="display:none; text-decoration:none; text-align:center; margin-top:10px;">💬 שיתוף בוואטסאפ</a>
             <div class="spliit-box" id="spliitBox" style="display:none;">
                 <label id="spliitLabel">קישור להתחשבנות קבוצתית (Spliit) <span style="font-weight:400;color:var(--gray);">(אופציונלי)</span></label>
                 <p class="field-hint" id="spliitHint">צרו קבוצה ב-Spliit עם אותם השמות שהזנתם, ואז הדביקו כאן את הקישור - כך כפתור "הוצאות" יוביל את כל הקבוצה לאותו מקום.</p>
@@ -797,6 +806,7 @@
             spliitOpenLink: "פתיחת Spliit ליצירת קבוצה ↗",
             spliitSave: "שמירה",
             copyBtn: "העתק לינק",
+            whatsappShareBtn: "💬 שיתוף בוואטסאפ",
             prevBtn: "הקודם",
             nextBtn: "הבא",
             createBtn: "צור טיול ב-Firebase 🚀",
@@ -875,6 +885,7 @@
             spliitOpenLink: "Open Spliit to create a group ↗",
             spliitSave: "Save",
             copyBtn: "Copy Link",
+            whatsappShareBtn: "💬 Share on WhatsApp",
             prevBtn: "Back",
             nextBtn: "Next",
             createBtn: "Create Trip in Firebase 🚀",
@@ -1051,6 +1062,7 @@
         document.getElementById('spliitOpenLink').textContent = t.spliitOpenLink;
         document.getElementById('saveSpliitBtn').textContent = t.spliitSave;
         document.getElementById('copyLinkBtn').textContent = t.copyBtn;
+        document.getElementById('whatsappShareBtn').textContent = t.whatsappShareBtn;
         document.getElementById('prevBtn').textContent = t.prevBtn;
         document.getElementById('modalCloseBtn').textContent = t.modalClose;
         document.getElementById('openTripBtn').textContent = t.openTrip;
@@ -2088,6 +2100,25 @@
 
             const shareUrl = shareUrlObj.href;
             document.getElementById('finalTripLink').value = shareUrl;
+
+            // Same wa.me pattern and same "trip to <trip title>" guard as
+            // index.html's updateAdminShareLink() - kept as a second,
+            // independent copy (not a shared function) because wizard.html
+            // has no tr() helper, unlike index.html/shopping.html/etc (see
+            // CLAUDE.md's own note on this). Any future change to the
+            // phrasing there needs the same change made here too.
+            const shareName = tripTitle || destination;
+            const shareMessage = tripTitle
+                ? (currentLanguage === 'he'
+                    ? `היי חברים, הצטרפו אליי ל${shareName}! כל הפרטים כאן:\n\n${shareUrl}`
+                    : `Hi everyone, join me for ${shareName}! Everything is here:\n\n${shareUrl}`)
+                : (currentLanguage === 'he'
+                    ? `היי חברים, הצטרפו אליי לטיול ל${shareName}! כל הפרטים כאן:\n\n${shareUrl}`
+                    : `Hi everyone, join me for our trip to ${shareName}! Everything is here:\n\n${shareUrl}`);
+            const whatsappBtn = document.getElementById('whatsappShareBtn');
+            whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+            whatsappBtn.style.display = 'block';
+
             document.getElementById('openTripBtn').href = shareUrl;
             document.getElementById('resultLinkBox').style.display = 'flex';
             document.getElementById('spliitBox').style.display = 'block';
@@ -2180,6 +2211,7 @@
         document.getElementById('summaryTitle').textContent = t.sumTitle;
         document.getElementById('summaryText').textContent = t.sumText;
         document.getElementById('resultLinkBox').style.display = 'none';
+        document.getElementById('whatsappShareBtn').style.display = 'none';
         document.getElementById('spliitBox').style.display = 'none';
         lastCreatedTripId = null;
         document.getElementById('successActions').style.display = 'none';

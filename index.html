@@ -6037,7 +6037,10 @@
       const shareUrl = url.href;
 
       // Same "trip to <trip title>" repetition authGateCopy() already
-      // guards against - see its comment.
+      // guards against - see its comment. wizard.html's success-screen
+      // WhatsApp button (generateTripAndSave()) duplicates this same
+      // message/wa.me pattern independently, not via a shared function -
+      // it has no tr() helper to share one with. Keep both in sync by hand.
       const message = tripTitle
         ? tr(
             `היי חברים, הצטרפו אליי ל${destinationName}! כל הפרטים כאן:\n\n${shareUrl}`,
