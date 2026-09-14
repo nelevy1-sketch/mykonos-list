@@ -5144,6 +5144,12 @@
     //
     // These URLs WILL go stale over time (airline sites get redesigned) -
     // there is no mechanism here that detects a broken link. See CHANGELOG.
+    //
+    // wizard.html has its own independent copy of this same list (its own
+    // airline picker, same 9 airlines) - not shared, same reasoning as
+    // every other index.html/wizard.html duplication (no tr() there). If
+    // you add/update an airline here, update wizard.html too, and vice
+    // versa - nothing keeps the two lists in sync automatically.
     const AIRLINE_CHECKIN_URLS = {
       elal: "https://www.elal.com/CheckIn/Home/New_Identification/c",
       airfrance: "https://wwws.airfrance.fr/en/check-in",
