@@ -2399,6 +2399,18 @@
           <span id="tripsLinkText">הטיולים שלי</span>
         </a>
 
+        <!-- docs/roadmap.md part 3 item 0, hamburger menu commit 3/3 - calls
+             the existing updateAdminShareLink() (previously only reachable
+             from the organizer-only admin panel) from openHamburgerMenu()
+             below, not a duplicate implementation. That function has no
+             organizer check inside it - it only ever set #adminShareWhatsappBtn,
+             which sits unreachable inside #adminModal for non-organizers, so
+             this needed a second target element, not a second function. -->
+        <a id="hamburgerShareBtn" class="menu-item hidden" target="_blank" rel="noopener" href="#" aria-label="שיתוף ההזמנה" title="שיתוף ההזמנה">
+          <span class="menu-item-icon">💬</span>
+          <span id="hamburgerShareText">שיתוף ההזמנה</span>
+        </a>
+
         <button id="logoutLink" class="menu-item hidden">
           <span class="menu-item-icon">🚪</span>
           <span id="logoutLinkText">יציאה</span>
@@ -3055,6 +3067,7 @@
         hamburgerMenuTitle: "☰ תפריט",
         hamburgerMenuBtnText: "תפריט",
         tripsLinkText: "הטיולים שלי",
+        hamburgerShareText: "שיתוף ההזמנה",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
         profileNameLabel: "שם תצוגה:",
@@ -3148,6 +3161,7 @@
         hamburgerMenuTitle: "☰ Menu",
         hamburgerMenuBtnText: "Menu",
         tripsLinkText: "My trips",
+        hamburgerShareText: "Share invite",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
         profileNameLabel: "Display name:",
@@ -3466,6 +3480,17 @@
 
       document.getElementById("tripsLink").title = text.tripsLinkText;
 
+      // Same structural fix as tripsLink above, built correctly from the
+      // start since this element is new in commit 3 - aria-label/title
+      // point straight at hamburgerShareText, no separate ternary ever
+      // existed for this one to remove.
+      document.getElementById("hamburgerShareBtn").setAttribute(
+        "aria-label",
+        text.hamburgerShareText
+      );
+
+      document.getElementById("hamburgerShareBtn").title = text.hamburgerShareText;
+
       const membersLinkLabel =
         lang === "en" ? "Who's on the trip" : "מי בטיול";
 
@@ -3618,6 +3643,17 @@
         );
 
         document.getElementById("tripsLink").classList.toggle(
+          "hidden",
+          !user
+        );
+
+        // Unlike adminGearBtn (organizer-only, isOrganizer() gate below),
+        // this is shown to every signed-in participant - the whole point of
+        // commit 3 was making WhatsApp sharing reachable beyond the
+        // organizer-only admin panel. See updateAdminShareLink()'s own
+        // comment for why calling it needed a second target element, not a
+        // second function.
+        document.getElementById("hamburgerShareBtn").classList.toggle(
           "hidden",
           !user
         );
@@ -5779,7 +5815,14 @@
     // Sixth .modal-overlay sheet (docs/roadmap.md part 3 item 0, hamburger
     // menu commit 1/3) - inherits backdrop-click/Escape for free from the
     // generic .modal-overlay wiring below, same as every other sheet here.
+    //
+    // updateAdminShareLink() call added in commit 3/3 - refreshes
+    // hamburgerShareBtn's link on every open, same as
+    // openAdminPanelIfAllowed() already does for adminShareWhatsappBtn, so
+    // whoever opens the menu (organizer or not) always gets a current link,
+    // not whatever was last computed for the admin panel.
     window.openHamburgerMenu = () => {
+      updateAdminShareLink();
       openSheet("hamburgerMenu");
     };
 
@@ -6291,11 +6334,22 @@
               `Hi everyone, join me for our trip to ${destinationName}! Everything is here:\n\n${linkForMessage}`
             );
 
-      const whatsappBtn = document.getElementById("adminShareWhatsappBtn");
+      // Two targets since commit 3 (docs/roadmap.md part 3 item 0) -
+      // adminShareWhatsappBtn (organizer-only admin panel, original target)
+      // and hamburgerShareBtn (every signed-in participant, via the menu -
+      // see its own HTML comment for why it needed a second element rather
+      // than a second function). Both always kept in sync, not just whichever
+      // surface happens to be open right now.
+      const whatsappBtns = [
+        document.getElementById("adminShareWhatsappBtn"),
+        document.getElementById("hamburgerShareBtn")
+      ];
 
-      // The button always gets a working link immediately, synchronously,
+      // Both buttons always get a working link immediately, synchronously,
       // same as before this change - never waits on the network for that.
-      whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(buildMessage(shareUrl))}`;
+      whatsappBtns.forEach(btn => {
+        btn.href = `https://wa.me/?text=${encodeURIComponent(buildMessage(shareUrl))}`;
+      });
 
       // Best-effort upgrade, applied silently if/when it resolves - never
       // shown as loading, never blocks the href set above. A click before
@@ -6303,7 +6357,9 @@
       const requestId = ++shareLinkRequestId;
       window.shortenUrl(shareUrl).then((shortUrl) => {
         if (!shortUrl || requestId !== shareLinkRequestId) return;
-        whatsappBtn.href = `https://wa.me/?text=${encodeURIComponent(buildMessage(shortUrl))}`;
+        whatsappBtns.forEach(btn => {
+          btn.href = `https://wa.me/?text=${encodeURIComponent(buildMessage(shortUrl))}`;
+        });
       }).catch(() => {});
     }
 
