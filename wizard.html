@@ -446,8 +446,12 @@
         <!-- STEP 1: General Info -->
         <div class="form-step active" data-step="1">
             <div class="form-group">
-                <label id="lblDestination">שם הטיול / היעד 🌍</label>
-                <input type="text" id="tripDestination" placeholder="למשל: ברלין, תאילנד או קמפינג בגליל" autocomplete="off" required>
+                <label id="lblTripTitle" for="tripTitle">שם הטיול (אופציונלי)</label>
+                <input type="text" id="tripTitle" placeholder="לדוגמה: יורוטריפ של הבנות 2026" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label id="lblDestination">יעד 🌍</label>
+                <input type="text" id="tripDestination" placeholder="מקום אמיתי - למשל: ברלין, תאילנד, הגליל" autocomplete="off" required>
                 <div class="legs-list" id="legsList"></div>
                 <div class="error-text" id="destinationError" aria-live="polite"></div>
                 <button type="button" class="multi-leg-toggle-btn" id="multiLegToggleBtn">נוסעים ליותר ממקום אחד? 🗺️</button>
@@ -739,8 +743,10 @@
         he: {
             title: "יוצרים טיול חדש ✈️",
             subtitle: "הגדר את המאפיינים, בחר מה יופיע וקבל אפליקציה מותאמת אישית לקבוצה שלך",
-            destLabel: "שם הטיול / היעד 🌍",
-            destPlaceholder: "למשל: ברלין, תאילנד או קמפינג בגליל",
+            tripTitleLabel: "שם הטיול (אופציונלי)",
+            tripTitlePlaceholder: "לדוגמה: יורוטריפ של הבנות 2026",
+            destLabel: "יעד 🌍",
+            destPlaceholder: "מקום אמיתי - למשל: ברלין, תאילנד, הגליל",
             typeLabel: "סוג הטיול (משפיע על קטגוריות ומבנה)",
             typeHint: "הבחירה משנה את הצבעים, הפעולות והמודולים בדף הנחיתה.",
             optAbroad: "טיסה לחו\"ל ✈️",
@@ -815,8 +821,10 @@
         en: {
             title: "Create New Trip ✈️",
             subtitle: "Configure options, select modules and get a custom app link for your group",
-            destLabel: "Trip Destination / Name 🌍",
-            destPlaceholder: "e.g., Berlin, Thailand or Galilee camping",
+            tripTitleLabel: "Trip name (optional)",
+            tripTitlePlaceholder: "e.g. The girls' Eurotrip 2026",
+            destLabel: "Destination 🌍",
+            destPlaceholder: "A real place - e.g. Berlin, Thailand, Galilee",
             typeLabel: "Trip Type (Affects categories & structure)",
             typeHint: "The choice changes the colors, actions and modules on the landing page.",
             optAbroad: "International flight ✈️",
@@ -979,6 +987,8 @@
         const t = translations[lang];
         document.getElementById('uiTitle').textContent = t.title;
         document.getElementById('uiSubtitle').textContent = t.subtitle;
+        document.getElementById('lblTripTitle').textContent = t.tripTitleLabel;
+        document.getElementById('tripTitle').placeholder = t.tripTitlePlaceholder;
         document.getElementById('lblDestination').textContent = t.destLabel;
         document.getElementById('tripDestination').placeholder = t.destPlaceholder;
         document.getElementById('multiLegToggleBtn').textContent = t.multiLegToggle;
@@ -1098,7 +1108,7 @@
             const openLabel = currentLanguage === 'he' ? 'פתח' : 'Open';
             const copyLabel = currentLanguage === 'he' ? 'העתק קישור' : 'Copy link';
             const deleteLabel = currentLanguage === 'he' ? 'מחיקה' : 'Delete';
-            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a class="recent-open-btn" href="${escapeHtml(url)}" aria-label="${escapeHtml(openLabel)}"><span>${escapeHtml(openLabel)}</span></a><button type="button" class="recent-copy-btn" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')" aria-label="${escapeHtml(copyLabel)}"><span>${escapeHtml(copyLabel)}</span></button><button type="button" class="danger recent-delete-btn" onclick="deleteRecentTrip('${escapeHtml(item.tripId)}')" aria-label="${escapeHtml(deleteLabel)}"><span>${escapeHtml(deleteLabel)}</span></button></div></article>`;
+            return `<article class="recent-card"><div class="recent-card-info"><strong>${escapeHtml(item.tripTitle || item.destination || item.tripId)}</strong><span>${escapeHtml(date)}${langBadge ? ' · ' + escapeHtml(langBadge) : ''}</span></div><div class="recent-card-actions"><a class="recent-open-btn" href="${escapeHtml(url)}" aria-label="${escapeHtml(openLabel)}"><span>${escapeHtml(openLabel)}</span></a><button type="button" class="recent-copy-btn" onclick="copyRecentTrip('${escapeHtml(item.tripId)}')" aria-label="${escapeHtml(copyLabel)}"><span>${escapeHtml(copyLabel)}</span></button><button type="button" class="danger recent-delete-btn" onclick="deleteRecentTrip('${escapeHtml(item.tripId)}')" aria-label="${escapeHtml(deleteLabel)}"><span>${escapeHtml(deleteLabel)}</span></button></div></article>`;
         }).join('');
     }
 
@@ -1157,6 +1167,7 @@
     function saveWizardDraft() {
         try {
             const draft = {
+                tripTitle: document.getElementById('tripTitle').value,
                 destination: document.getElementById('tripDestination').value,
                 // legs[0] duplicates `destination` above (kept only as a fallback
                 // for a draft saved by an older version of this page, before this
@@ -1194,6 +1205,7 @@
         try { draft = JSON.parse(raw); } catch (e) { return; }
         if (!draft) return;
 
+        if (draft.tripTitle) document.getElementById('tripTitle').value = draft.tripTitle;
         if (draft.destination) document.getElementById('tripDestination').value = draft.destination;
 
         // legs (if present) is the current format and overrides destination
@@ -1565,7 +1577,9 @@
             .slice(0, legRowCount)
             .map(r => r.input.value.trim())
             .join(currentLanguage === 'he' ? ' ← ' : ' → ');
+        const tripTitleValue = document.getElementById('tripTitle').value.trim();
         const rows = [
+            ...(tripTitleValue ? [[currentLanguage === 'he' ? 'שם הטיול' : 'Trip name', tripTitleValue]] : []),
             [destinationLabel, destinationValue],
             [currentLanguage === 'he' ? 'סוג טיול' : 'Trip type', typeSelect.options[typeSelect.selectedIndex].textContent],
             [currentLanguage === 'he' ? 'התחלה' : 'Starts', formatTripDate(document.getElementById('tripStart').value)],
@@ -1971,6 +1985,13 @@
         // §2.1, §4.
         const tripFields = window.deriveTripFields(legs, legLocations);
         const destination = tripFields.destination;
+        // Free-text label the organizer typed into the separate "trip name"
+        // field, distinct from destination (which drives geocoding/flag/
+        // weather/timezone - see the investigation this field came out of).
+        // Optional and omitted entirely when blank, same convention as
+        // tripCharacter below - every display site that reads it must fall
+        // back to destination, never assume it exists.
+        const tripTitle = document.getElementById('tripTitle').value.trim();
 
         const tripData = {
             schemaVersion: 2,
@@ -1982,6 +2003,7 @@
             // indistinguishable for every trip created before this field
             // existed.
             ...(tripCharacter ? { tripCharacter } : {}),
+            ...(tripTitle ? { tripTitle } : {}),
             vibes: legVibes,
             language: currentLanguage,
             participants,
@@ -2021,6 +2043,7 @@
                 [`trips/${tripId}`]: tripData,
                 [`users/${organizer.uid}/trips/${tripId}`]: {
                     destination,
+                    ...(tripTitle ? { tripTitle } : {}),
                     tripType,
                     language: currentLanguage,
                     startAt: tripData.startAt,
@@ -2136,6 +2159,7 @@
         participants = [];
         selectedVibes = [];
         resetLegs();
+        document.getElementById('tripTitle').value = '';
         document.getElementById('tripDestination').value = '';
         document.getElementById('tripType').value = 'abroad';
         document.getElementById('tripCharacter').value = '';
