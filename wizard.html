@@ -718,7 +718,7 @@
 <!-- Firebase SDK & Wizard Logic -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     // נתוני ההתחברות האמיתיים של הפרויקט שלך מתוך Firebase Console
@@ -2153,22 +2153,50 @@
     window.deleteRecentTrip = async function(tripId) {
         const isOwned = Boolean(cloudTrips && cloudTrips[tripId]);
 
-        const confirmMessage = isOwned
+        // Security fix: this used to delete trips/{tripId} - the WHOLE trip,
+        // for every participant - for any signed-in user who merely had it
+        // in their own cloudTrips mirror, organizer or not (the mirror never
+        // carried ownerId, so there was nothing to check against). Now reads
+        // the trip's real ownerId before deciding which action applies.
+        // Missing ownerId (a trip that predates the field) falls back to the
+        // OLD, ownership-blind behavior on purpose - it's the only way such
+        // a trip stays deletable by anyone at all, not a bug left unhandled.
+        let isOrganizer = false;
+        if (isOwned && currentUser) {
+            try {
+                const ownerId = (await get(ref(db, `trips/${tripId}/ownerId`))).val();
+                isOrganizer = !ownerId || ownerId === currentUser.uid;
+            } catch (error) {
+                console.error('Error checking trip ownership:', error);
+                customAlert(currentLanguage === 'he' ? 'לא ניתן היה לבדוק את הרשאות הטיול. נסו שוב.' : 'Could not check trip permissions. Please try again.');
+                return;
+            }
+        }
+
+        const confirmMessage = !isOwned
             ? (currentLanguage === 'he'
-                ? 'למחוק את הטיול לצמיתות? הפעולה תמחק אותו עבור כל המשתתפים ולא ניתנת לביטול.'
-                : 'Permanently delete this trip? This removes it for every participant and cannot be undone.')
-            : (currentLanguage === 'he'
                 ? 'להסיר את הטיול הזה מהרשימה שלך? (הטיול עצמו לא יימחק, כי הוא לא שויך לחשבון שלך במכשיר הזה)'
-                : "Remove this trip from your list? (The trip itself won't be deleted, since it isn't linked to your account on this device)");
+                : "Remove this trip from your list? (The trip itself won't be deleted, since it isn't linked to your account on this device)")
+            : isOrganizer
+                ? (currentLanguage === 'he'
+                    ? 'למחוק את הטיול לצמיתות? הפעולה תמחק אותו עבור כל המשתתפים ולא ניתנת לביטול.'
+                    : 'Permanently delete this trip? This removes it for every participant and cannot be undone.')
+                : (currentLanguage === 'he'
+                    ? 'להסיר את הטיול הזה מהרשימה שלך? הטיול עצמו יישאר קיים עבור שאר המשתתפים.'
+                    : "Remove this trip from your list? The trip itself stays intact for the other participants.");
 
         if (!(await customConfirm(confirmMessage, { danger: true }))) return;
 
         if (isOwned && currentUser) {
             try {
-                await update(ref(db), {
-                    [`trips/${tripId}`]: null,
-                    [`users/${currentUser.uid}/trips/${tripId}`]: null
-                });
+                await update(ref(db), isOrganizer
+                    ? {
+                        [`trips/${tripId}`]: null,
+                        [`users/${currentUser.uid}/trips/${tripId}`]: null
+                    }
+                    : {
+                        [`users/${currentUser.uid}/trips/${tripId}`]: null
+                    });
             } catch (error) {
                 console.error('Error deleting trip:', error);
                 customAlert(currentLanguage === 'he' ? 'מחיקת הטיול נכשלה. נסו שוב.' : 'Failed to delete the trip. Please try again.');
