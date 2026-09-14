@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="shared.css">
     <script src="version.js"></script>
     <script src="toast.js"></script>
+    <script src="auth-gate.js"></script>
     <script src="legs.js"></script>
     <script src="datetime.js"></script>
     <script src="legBuilder.js"></script>
@@ -61,6 +62,14 @@
 
             /* knob for the shared dialog in shared.css */
             --dlg-danger-glow: rgba(209, 67, 67, .45);
+
+            /* shared.css's .auth-card (auth-gate.js gate) reads these names -
+               wizard.html doesn't opt into [data-tokens="core"], so alias them
+               to the equivalent tokens already defined above instead of
+               duplicating literal colors. */
+            --card-bg: var(--surface);
+            --line: var(--border);
+            --shadow-float: var(--shadow);
         }
 
         [data-theme="dark"] {
@@ -129,6 +138,10 @@
         .auth-chip img { width:27px; height:27px; border-radius:50%; }
         .auth-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .auth-btn { min-height:40px; border:1.5px solid var(--border); border-radius:999px; padding:7px 13px; background:var(--surface); color:var(--primary-dark); font-weight:700; cursor:pointer; }
+        .auth-card .auth-icon { font-size:42px; margin-bottom:8px; }
+        .auth-card h2 { margin:0 0 7px; color:var(--primary-dark); }
+        .auth-card p { margin:0 0 18px; color:var(--gray); line-height:1.5; }
+        .google-signin-btn { width:100%; min-height:50px; border:1.5px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font-weight:800; font-size:1rem; cursor:pointer; }
         .lang-btn {
             background: var(--surface-translucent, rgba(255,255,255,.86));
             border: 1.5px solid var(--border);
@@ -389,6 +402,18 @@
 })();
 </script>
 
+<div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
+
+<div class="auth-gate hidden" id="authGate">
+    <div class="auth-card">
+        <div class="auth-icon">✈️</div>
+        <h2 id="wizardGateTitle">כניסה ליצירת הטיול</h2>
+        <p id="wizardGateText">התחברו באמצעות Google כדי ליצור את הטיול ולשמור אותו.</p>
+        <button type="button" class="google-signin-btn" id="wizardGoogleBtn">G&nbsp;&nbsp; כניסה עם Google</button>
+    </div>
+</div>
+
+<div id="wizardApp" class="hidden">
 <!-- Top Bar with Language Buttons -->
 <div class="top-bar">
     <div class="top-bar-group">
@@ -590,6 +615,7 @@
     </div>
     <div class="recent-list" id="recentTripsList"></div>
 </section>
+</div>
 
 <!-- Preview Modal -->
 <div class="modal-overlay" id="previewModal" role="presentation">
@@ -779,6 +805,8 @@
             successText: "הנה הקישור הייחודי לקבוצה שלך:",
             signIn: "כניסה עם Google",
             signOut: "יציאה",
+            gateTitle: "כניסה ליצירת הטיול",
+            gateText: "התחברו באמצעות Google כדי ליצור את הטיול ולשמור אותו.",
             openTrip: "פתח את הטיול",
             newTrip: "צור טיול חדש",
             myTrips: "הטיולים שלי",
@@ -853,6 +881,8 @@
             successText: "Here is the unique link for your group:",
             signIn: "Sign in with Google",
             signOut: "Sign out",
+            gateTitle: "Sign in to create your trip",
+            gateText: "Sign in with Google to create the trip and save it.",
             openTrip: "Open trip",
             newTrip: "Create another trip",
             myTrips: "My trips",
@@ -1094,6 +1124,9 @@
             googleButton.textContent = t.signIn;
             googleButton.title = t.signIn;
         }
+        document.getElementById('wizardGateTitle').textContent = t.gateTitle;
+        document.getElementById('wizardGateText').textContent = t.gateText;
+        document.getElementById('wizardGoogleBtn').innerHTML = 'G&nbsp;&nbsp; ' + t.signIn;
     }
 
     async function signInOrganizer(provider = googleProvider) {
@@ -1252,9 +1285,13 @@
 
     document.getElementById('googleAuthBtn').addEventListener('click', () => handleProviderSignIn(googleProvider));
     document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
+    document.getElementById('wizardGoogleBtn').addEventListener('click', () => handleProviderSignIn(googleProvider));
 
-    onAuthStateChanged(auth, user => {
+    function handleAuthStateChanged(user) {
         currentUser = user;
+        document.getElementById('authLoading').classList.add('hidden');
+        document.getElementById('authGate').classList.toggle('hidden', Boolean(user));
+        document.getElementById('wizardApp').classList.toggle('hidden', !user);
         if (stopCloudTrips) { stopCloudTrips(); stopCloudTrips = null; }
         cloudTrips = {};
         if (user) {
@@ -1265,7 +1302,14 @@
         }
         updateAuthUI();
         renderRecentTrips();
-    });
+    }
+
+    onAuthStateChanged(auth, handleAuthStateChanged);
+    if (window.armAuthGate) {
+        window.armAuthGate(() => {
+            if (auth.currentUser) { handleAuthStateChanged(auth.currentUser); }
+        });
+    }
 
     function toInputDate(date) {
         const offset = date.getTimezoneOffset() * 60000;
