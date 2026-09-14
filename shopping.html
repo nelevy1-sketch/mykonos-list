@@ -2638,6 +2638,7 @@ body.modal-open .modal-card {
         : "he";
 
     destinationName =
+      tripData.tripTitle ||
       window.getPrimaryLeg(tripData).name ||
       destinationName;
 
@@ -2696,10 +2697,10 @@ body.modal-open .modal-card {
     try {
       localStorage.setItem(`trip-${tripId || "legacy"}-type`, tripType);
 
-      if (window.getPrimaryLeg(tripData).name) {
+      if (tripData.tripTitle || window.getPrimaryLeg(tripData).name) {
         localStorage.setItem(
           `trip-${tripId || "legacy"}-name`,
-          window.getPrimaryLeg(tripData).name
+          tripData.tripTitle || window.getPrimaryLeg(tripData).name
         );
       }
     } catch (e) {}

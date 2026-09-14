@@ -1587,10 +1587,10 @@
           trip.tripType || "abroad"
         );
 
-        if (window.getPrimaryLeg(trip).name) {
+        if (trip.tripTitle || window.getPrimaryLeg(trip).name) {
           localStorage.setItem(
             `trip-${tripId || "legacy"}-name`,
-            window.getPrimaryLeg(trip).name
+            trip.tripTitle || window.getPrimaryLeg(trip).name
           );
         }
       } catch (e) {}
@@ -1658,15 +1658,16 @@
 
       document.title =
         `${tr("רשימת ציוד", "Packing list")} • ` +
-        `${window.getPrimaryLeg(trip).name || ""}`;
+        `${trip.tripTitle || window.getPrimaryLeg(trip).name || ""}`;
 
       // Guarded: this function also runs once, early, from the cached-
       // language flash fix below - before trip.destination is known. Only
       // repaint the name once we actually have (or have confirmed the lack
       // of) real data, so that early call does not stomp on the name the
       // bootstrap script already painted from cache.
-      if (window.getPrimaryLeg(trip).name || tripDataLoaded) {
+      if (trip.tripTitle || window.getPrimaryLeg(trip).name || tripDataLoaded) {
         $("destination").textContent =
+          trip.tripTitle ||
           window.getPrimaryLeg(trip).name ||
           tr("הטיול שלנו", "Our trip");
       }

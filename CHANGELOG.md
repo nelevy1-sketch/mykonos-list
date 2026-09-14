@@ -1,5 +1,25 @@
 # GitTrip — CHANGELOG
 
+## v4.53.4 — packing.html + shopping.html מעדיפים tripTitle (commit 4/6)
+
+### ⚠️ לא זהה מבנית ל-commit 3 - נבדק בנפרד, לא הונח
+**packing.html** זהה ל-itinerary/places (משתני `trip`, `$('destination')`, קורא ל-`window.getPrimaryLeg(trip).name` בנפרד בכל נקודה) - רק מפורמט רב-שורתי במקום ממוזער. אותו תיקון בשלוש נקודות בדיוק כמו commit 3.
+
+**shopping.html שונה מהותית**: משתמש במשתנה מודול יחיד `destinationName` (בדיוק כמו index.html ב-commit 2) - לא קורא ל-`getPrimaryLeg().name` בנפרד בכל אתר תצוגה. המשמעות: **תיקון נקודה אחת** (`destinationName = tripData.tripTitle || window.getPrimaryLeg(tripData).name || destinationName`, ב-`syncTripUI()`) מספיק לכל הצרכנים - לא שלוש נקודות נפרדות כמו בשלושת העמודים האחרים. ה-kicker (`#destinationKicker`, לא `#destination` - id שונה כמו שכבר ידוע) ו-`document.title` שניהם כבר קוראים מ-`destinationName` ולא נגעתי בהם בנפרד. cache ה-`trip-<id>-name` (ב-`syncTripUI()` גם הוא, לא ב-`applyTheme()` נפרד כמו בשאר) הוא כן נקודת מגע שנייה, נפרדת - קורא ל-`getPrimaryLeg().name` משלו, לא דרך `destinationName`, אז תוקן בנפרד.
+
+**תגלית נוספת, לא מתוכננת**: הודעת השיתוף ב-WhatsApp של shopping.html (`` `...של ${destinationName}...` ``, שתי שורות ~3259-3260) גם היא קוראת מ-`destinationName` - יורשת את התיקון אוטומטית, בלי נגיעה נפרדת. אומת בבדיקה, לא רק הונח.
+
+### 🔍 מה שנבדק - checklist נפרד לכל קובץ
+**packing.html**: נטען בלי שגיאת קונסול. הביטוי המדויק מהקובץ הורץ נגד ה-DOM האמיתי (`document.title`, `#destination`) - עם כותרת: "רשימת ציוד • טיול חברים לפורטוגל". בלי כותרת: "רשימת ציוד • רומא"
+
+**shopping.html**: נטען בלי שגיאת קונסול. הביטוי המדויק מ-`syncTripUI()` הורץ נגד ה-DOM האמיתי, כולל שלושת הצרכנים (kicker, title, הודעת WhatsApp) - עם כותרת: kicker="טיול חברים לפורטוגל", title="רשימת קניות • טיול חברים לפורטוגל", הודעת WhatsApp כוללת את הכותרת ולא את היעד. בלי כותרת: שלושתם נופלים נכון ל-"רומא". גם צילום מסך בהקשר מלא - ה-kicker בראש העמוד מציג את הכותרת נכון
+
+- קונסול נקי לכל אורך הבדיקה בשני הקבצים
+- `node scripts/i18n-audit.js packing.html shopping.html` - 3 ממצאים ב-shopping.html, אותם ממצאים שכבר אומתו כקיימים מראש ב-commit 2ב (כפתורי ייצוא שפה) - לא חדשים, לא קשורים
+- **לא נבדק**: זרימה מלאה מול Firebase אמיתי (מגבלת הסביבה)
+
+נבדק בפועל: כל מה שלמעלה. v4.53.3 -> v4.53.4 (patch - תיקון תצוגה, אין שינוי סכמה). **commit 5 (אימות showcase) הבא בתור, ואז commit 6 (עריכת tripTitle בפאנל האדמין).**
+
 ## v4.53.3 — itinerary.html + places.html מעדיפים tripTitle (commit 3/6)
 
 ### ✏️ שלוש נקודות מגע בכל קובץ, לא אחת
