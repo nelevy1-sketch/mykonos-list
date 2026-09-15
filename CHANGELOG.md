@@ -1,5 +1,27 @@
 # GitTrip — CHANGELOG
 
+## v4.63.0 — תשתית Leaflet + Tabler, טאב "מפה" ריק (places.html, commit 3/5 - מפת מסלול)
+
+### 🎯 מה נוסף
+טאב רביעי, "מפה", ליד מקומות/תמונות/מוזיקה ב-places.html - **מבנה בלבד, בלי תוכן פנימי עדיין.** Leaflet (1.9.4, BSD-2-Clause, ללא מפתח API) נטען מ-jsDelivr - script קלאסי + stylesheet, אותה תבנית טעינה כמו שאר הספריות בפרויקט. `mapView.js` חדש - קובץ נפרד (לא קוד מוטמע בתוך places.html), חושף `window.renderTripMap(containerId, places, options)` שכרגע רק מדפיסה `console.log` - שום רינדור אמיתי עדיין.
+
+### ✏️ Tabler - SVG בודד, לא webfont
+הורד קובץ `map-pin.svg` בודד מ-`@tabler/icons` (v3.46.0, קו-מתאר, לא `-webfont`) ונשמר בריפו עצמו (שורש הריפו, אותו מיקום כמו כל שאר קובצי האייקונים הסטטיים הקיימים - `favicon.svg`, `gittrip-icon.svg` וכו') - **לא** תלות CDN חיה. זה פותר גם את בעיית המשקל (673KB ל-webfont המלא מול כמה מאות בייטים לקובץ בודד) וגם את הבאג המתועד (`tabler/tabler-icons#1452` ואחרים) שבו אייקוני filled לא נטענים כלל מה-CDN - קובץ SVG בודד לא תלוי במנגנון ה-webfont/CSS class בכלל. הקובץ לא בשימוש בשום מקום בקוד עדיין - מוכן לקומיט עתידי שבו הסיכות בפועל יצוירו על המפה.
+
+### ✏️ `mapView.js` - עצמאי מכוונה, לא קשור ל-places.html
+נבנה כ-entry point עצמאי (`window.renderTripMap`), לא כפונקציה פנימית של places.html - בהתאם לדרישה המפורשת שלא להניח איפה זה יושב (הדיון העתידי על העברת תצוגת המקומות ל-itinerary.html). הפילטור לפי רגל (`activeLegFilter`) הוא באחריות הקורא, לא של `mapView.js` עצמו - אותה חלוקת אחריות שכבר קיימת בשאר הפונקציונליות בעמוד (`geoRefLeg()`/`aiSuggestLeg()`).
+
+### 🔍 מה שנבדק
+1. `window.L` זמין בקונסולה, `window.L.version === "1.9.4"`
+2. `window.renderTripMap` זמינה כפונקציה
+3. הטאב "מפה" קיים ב-DOM, לחיצה עליו (`document.getElementById('mapTab').click()`) עוברת נכון - `mapTab` הופך active, `mapView` נחשף, `placesView` מוסתר (נבדק ישירות ב-DOM)
+4. צילום מסך מאשר ויזואלית - 4 טאבים, "מפה" מודגש כשנבחר
+5. קונסול נקי - שום שגיאת טעינה מ-jsDelivr
+6. `fabAction()` נבדק - קליק על ה-FAB בטאב "מפה" הוא no-op נקי (אין ענף `else` שמתאים, אין שגיאה) - לא נגעו בזה, מחוץ להיקף ה-commit הזה
+7. `node scripts/i18n-audit.js places.html` — 0 ממצאים
+
+נבדק בפועל: כל מה שלמעלה. v4.62.0 -> v4.63.0 (minor - טאב חדש גלוי למשתמש, גם אם עדיין ריק). **commit 4/5 (רינדור סיכות בפועל + רשימת "לא אותרו") הבא בתור.**
+
 ## v4.62.0 — geocoding למקומות שמורים - קואורדינטות בזמן שמירה (places.html, commit 1/5 - מפת מסלול)
 
 ### 🎯 מה נוסף

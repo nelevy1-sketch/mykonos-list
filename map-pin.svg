@@ -1,0 +1,23 @@
+<!-- map-pin.svg - @tabler/icons v3.46.0, outline set, MIT license
+     (github.com/tabler/tabler-icons). Downloaded and committed here rather
+     than loaded from the -webfont CDN build - that build has a long-standing,
+     documented bug where filled icons (only) fail to load from jsDelivr/cdnjs
+     (tabler/tabler-icons#1452, #1415, #528); outline-only avoids it entirely,
+     and a single committed SVG avoids the ~673KB full-webfont download for
+     one icon. -->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-map-pin"
+>
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+  <path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0" />
+</svg>
