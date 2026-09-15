@@ -127,6 +127,91 @@ const TEXT = {
   }
 };
 
+// Dark map tiles (trip-route-map investigation, dark-tiles follow-up).
+//
+// CartoDB dark_all was chosen over the key-free alternative (Esri "Dark Gray
+// Canvas") after an actual side-by-side visual test, not just reading specs -
+// Esri's tiles rendered as a light/medium gray "canvas" style, clearly closer
+// to muted-gray than to a real dark mode, especially next to this app's own
+// near-black dark theme (#0B1015, see the theme-color meta tag in
+// places.html). CartoDB dark_all was genuinely dark in the same test.
+//
+// *** ACTION REQUIRED BEFORE THIS SHIPS ***
+// CARTO_DARK_KEY below is a placeholder, not a real key - map tiles will NOT
+// load with it as-is. Get a free key (takes ~1 minute, email only, no CARTO
+// account, no credit card, 5M tile requests/month) at:
+//   https://carto.com/basemaps/apikey/
+// then replace the string below with the real key. Do NOT commit/push this
+// file until that replacement is done - CLAUDE.md's pre-commit rule applies
+// here like anywhere else, but this is also flagged explicitly because a
+// placeholder key fails silently-ish (broken/blank tiles, not a JS error).
+//
+// This key is NOT a secret and does not need a Cloud Function proxy (unlike
+// e.g. a Gemini API key) - it's designed to be embedded directly in a
+// client-side tile request URL, the same way every CARTO/Mapbox/similar
+// tile key works. GitHub Pages being static hosting changes nothing here;
+// there's no server-side value to protect. Optional (not required):  CARTO's
+// own dashboard (dashboard.basemaps.carto.com/keys) lets you restrict a key
+// to specific domains/referrers - a mild anti-abuse measure, not encryption.
+const CARTO_DARK_KEY = "cb1_3mi6_1_bcb832d295be0078fcdd9ec7";
+
+const OSM_LIGHT_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const CARTO_DARK_TILE_URL = `https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=${CARTO_DARK_KEY}`;
+
+// Both OpenStreetMap and CARTO attribution are required any time CARTO's
+// tiles are shown (docs.carto.com/faqs/carto-basemaps) - kept as one
+// constant, always both credited, rather than swapped per-layer. Simpler
+// than syncing the attribution control every time the tile layer's URL
+// changes, and over-crediting CARTO while the light OSM tiles happen to be
+// active isn't a problem the way under-crediting would be.
+const TILE_ATTRIBUTION =
+  '&copy; OpenStreetMap contributors, tiles by <a href="https://carto.com/attributions">CARTO</a>';
+
+function isDarkTheme() {
+  return document.documentElement.dataset.theme === "dark";
+}
+
+// Falls back from the dark CARTO tiles to the plain OSM light tiles if they
+// repeatedly fail to load (key revoked, CARTO outage/policy change, quota
+// exhausted - all real, external, out-of-this-app's-control failure modes,
+// see the dark-tiles investigation's own risk list) - a broken/blank map is
+// not acceptable, a map that silently reverts to its light style is. A
+// single stray tile error (flaky connection, one bad tile) is normal and
+// not a reason to give up - only reacts once several land close together.
+// Not wired up for the OSM light layer itself - there's no further fallback
+// tier planned if OSM is what's failing, that's already the last resort.
+function attachTileFallback(layer, tilesAreDark) {
+  layer.off("tileerror");
+
+  if (!tilesAreDark) {
+    return;
+  }
+
+  const FAILURE_WINDOW_MS = 3000;
+  const FAILURE_THRESHOLD = 3;
+  let errorCount = 0;
+  let windowStart = 0;
+
+  layer.on("tileerror", () => {
+    const now = Date.now();
+
+    if (now - windowStart > FAILURE_WINDOW_MS) {
+      windowStart = now;
+      errorCount = 0;
+    }
+
+    errorCount++;
+
+    if (errorCount >= FAILURE_THRESHOLD) {
+      console.warn(
+        "CARTO dark map tiles failed to load repeatedly - falling back to OSM light tiles"
+      );
+      layer.setUrl(OSM_LIGHT_TILE_URL);
+      layer.off("tileerror");
+    }
+  });
+}
+
 // Tracks the current Leaflet instance across calls - renderTripMap() is
 // re-entrant (leg filter changes, language changes, a place is added/edited)
 // and container.innerHTML is rebuilt from scratch each time, which detaches
@@ -134,6 +219,13 @@ const TEXT = {
 // (window resize, etc.) alive unless .remove() is called on it first - a
 // real leak across repeated calls in one session, not just tidiness.
 let currentMap = null;
+
+// The single tile layer instance for the current map - swapped in place via
+// .setUrl() (both on initial render and on a live theme toggle, see
+// window.updateMapTheme below) rather than removed/re-added, so there's
+// always exactly one layer/one attribution control entry, never a stacked
+// pair mid-swap.
+let currentTileLayer = null;
 
 // Same "ignore it if a newer request has since started" idiom already used
 // elsewhere in this app (itinerary.html/places.html's own profileLoadGen,
@@ -215,10 +307,12 @@ window.renderTripMap = function renderTripMap(containerId, places, options = {})
 
     currentMap = L.map(mapDiv).setView([avgLat, avgLon], 14);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-      maxZoom: 19
-    }).addTo(currentMap);
+    const startDark = isDarkTheme();
+    currentTileLayer = L.tileLayer(
+      startDark ? CARTO_DARK_TILE_URL : OSM_LIGHT_TILE_URL,
+      { attribution: TILE_ATTRIBUTION, maxZoom: 19 }
+    ).addTo(currentMap);
+    attachTileFallback(currentTileLayer, startDark);
 
     // Computed from the places themselves, not from marker.getLatLng() after
     // adding them - bounds/view need to settle ONCE, before any pin starts
@@ -278,4 +372,22 @@ window.renderTripMap = function renderTripMap(containerId, places, options = {})
       t.notLocated + withoutCoords.map(p => p.name).join(", ");
     container.appendChild(list);
   }
+};
+
+// Called from applyTheme() (places.html) every time the theme is set - on
+// load AND on the theme button's own click - so the map's tile layer flips
+// live in the same moment as every other themed element on the page,
+// instead of only updating the next time the map tab happens to be
+// re-entered. A no-op (not an error) when the map tab was never opened this
+// session - currentMap/currentTileLayer don't exist yet, and the next
+// renderTripMap() call already picks the right tiles for the theme at that
+// point, same as this function would.
+window.updateMapTheme = function updateMapTheme() {
+  if (!currentMap || !currentTileLayer) {
+    return;
+  }
+
+  const wantsDark = isDarkTheme();
+  currentTileLayer.setUrl(wantsDark ? CARTO_DARK_TILE_URL : OSM_LIGHT_TILE_URL);
+  attachTileFallback(currentTileLayer, wantsDark);
 };
