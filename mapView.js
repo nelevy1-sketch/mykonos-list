@@ -84,10 +84,18 @@ function colorForCategory(category) {
 const PIN_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0"/></svg>';
 
+// The animation class lives on an INNER div, not on Leaflet's own
+// className option (which targets .leaflet-marker-icon, the element
+// Leaflet itself positions via an inline `transform: translate3d(...)`).
+// Animating `transform` on that same element/property would fight Leaflet's
+// own positioning transform (inline styles win over a class's @keyframes on
+// the same property) - a real conflict, not just a style nit. The color and
+// drop-shadow/glow live entirely in CSS on this inner div too (not inline),
+// so there's exactly one thing setting `filter` on it, not two.
 function pinIcon(color) {
   return L.divIcon({
     className: "trip-map-pin",
-    html: `<div style="color:${color};filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">${PIN_SVG}</div>`,
+    html: `<div class="trip-map-pin-inner" style="color:${color}">${PIN_SVG}</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 30], // near the visual point of the pin, not its center
     popupAnchor: [0, -28]
@@ -127,6 +135,23 @@ const TEXT = {
 // real leak across repeated calls in one session, not just tidiness.
 let currentMap = null;
 
+// Same "ignore it if a newer request has since started" idiom already used
+// elsewhere in this app (itinerary.html/places.html's own profileLoadGen,
+// index.html's shareLinkRequestId) - the entrance animation staggers
+// marker.addTo() calls with setTimeout (commit 5/5), and renderTripMap()
+// can run again (leg filter flipped, language changed) before those timers
+// finish. Without this guard, a stale timeout would call .addTo() on
+// whatever currentMap happens to be *now* - possibly a newer map instance
+// for a completely different filtered set of places - adding a leftover
+// marker from the render that was just superseded.
+let renderGeneration = 0;
+
+// Gap between one pin's entrance and the next - deliberately not "however
+// long the CSS animation takes", the two are independent: this controls
+// when each pin STARTS appearing, the CSS controls how each one animates
+// once it does.
+const STAGGER_MS = 90;
+
 // containerId: the id of an element already in the DOM to render into (the
 //   caller creates/owns this element - this file never creates or looks up
 //   its own container div beyond what's passed in).
@@ -145,6 +170,8 @@ window.renderTripMap = function renderTripMap(containerId, places, options = {})
   if (!container) {
     return;
   }
+
+  const myGeneration = ++renderGeneration;
 
   if (currentMap) {
     currentMap.remove();
@@ -193,17 +220,11 @@ window.renderTripMap = function renderTripMap(containerId, places, options = {})
       maxZoom: 19
     }).addTo(currentMap);
 
-    const markerLatLngs = [];
-
-    withCoords.forEach(place => {
-      const marker = L.marker([place.lat, place.lon], {
-        icon: pinIcon(colorForCategory(place.category))
-      })
-        .addTo(currentMap)
-        .bindPopup(escapeHtml(place.name));
-
-      markerLatLngs.push(marker.getLatLng());
-    });
+    // Computed from the places themselves, not from marker.getLatLng() after
+    // adding them - bounds/view need to settle ONCE, before any pin starts
+    // its staggered entrance below, not keep shifting under the animation as
+    // markers appear one by one.
+    const markerLatLngs = withCoords.map(place => [place.lat, place.lon]);
 
     // Deliberate refinement of "center on the average" (as specified) rather
     // than a literal average + fixed zoom: with 2+ places spread across a
@@ -216,6 +237,38 @@ window.renderTripMap = function renderTripMap(containerId, places, options = {})
     if (markerLatLngs.length > 1) {
       currentMap.fitBounds(L.latLngBounds(markerLatLngs), { padding: [24, 24] });
     }
+
+    // Staggered entrance (commit 5/5): pins drop in one after another, not
+    // all at once - matches every other pin's own CSS animation delay
+    // between drop+bounce and its one-time glow (trip-map-pin-inner in
+    // places.html). Skipped entirely (not just visually neutralized) under
+    // prefers-reduced-motion - every pin appears immediately, together, not
+    // "fast" one-by-one - the CSS override below is a second, independent
+    // guard for the animation itself, not a substitute for skipping the
+    // staggered timing too.
+    const reducedMotion =
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    withCoords.forEach((place, index) => {
+      const addMarker = () => {
+        if (myGeneration !== renderGeneration) {
+          return;
+        }
+
+        L.marker([place.lat, place.lon], {
+          icon: pinIcon(colorForCategory(place.category))
+        })
+          .addTo(currentMap)
+          .bindPopup(escapeHtml(place.name));
+      };
+
+      if (reducedMotion) {
+        addMarker();
+      } else {
+        setTimeout(addMarker, index * STAGGER_MS);
+      }
+    });
   }
 
   if (withoutCoords.length) {
