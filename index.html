@@ -3726,7 +3726,10 @@
         if (user && tripRoot) {
           startTripListener();
         } else if (user && !tripRoot) {
-          resolveTripSelection({ skipLastTripId: forceTripPicker });
+          resolveTripSelection({
+            skipLastTripId: forceTripPicker,
+            forceTripPicker
+          });
         }
 
         renderLinkedMembers();
@@ -6117,15 +6120,21 @@
 
       enterTripPickerMode();
 
+      // Threaded through to renderTripPickerList() below so its own
+      // single-trip shortcut (see that function's comment) can tell "the
+      // user explicitly asked to see the list" apart from "the app decided
+      // to land here on its own" - only the former should suppress it.
+      const pickerOptions = { forceTripPicker: Boolean(options.forceTripPicker) };
+
       if (!db || !currentUser) {
-        renderTripPickerList({});
+        renderTripPickerList({}, pickerOptions);
         return;
       }
 
       db.ref("users/" + currentUser.uid + "/trips")
         .once("value")
-        .then(snapshot => renderTripPickerList(snapshot.val() || {}))
-        .catch(() => renderTripPickerList({}));
+        .then(snapshot => renderTripPickerList(snapshot.val() || {}, pickerOptions))
+        .catch(() => renderTripPickerList({}, pickerOptions));
     }
 
     const TRIP_PICKER_TYPE_META = {
@@ -6135,7 +6144,7 @@
       reserve: { icon: "🪖", he: "מילואים / שטח", en: "Reserve duty" }
     };
 
-    function renderTripPickerList(trips) {
+    function renderTripPickerList(trips, options = {}) {
       const entries = Object.entries(trips || {});
 
       document.getElementById("tripPickerEmpty").style.display =
@@ -6147,7 +6156,14 @@
       }
 
       // Exactly one trip - no real choice to make, skip straight to it.
-      if (entries.length === 1) {
+      // BUT only when the user didn't explicitly ask to see this list
+      // (options.forceTripPicker) - otherwise "הטיולים שלי" (or refreshing
+      // the list after deleting an entry from it) could never actually show
+      // the list itself when it happens to hold exactly one trip. Found via
+      // a real bug report: tripsLink's own "?trips=1" request was landing
+      // straight back inside a specific trip instead of showing the picker,
+      // for anyone whose users/{uid}/trips list had exactly one entry.
+      if (entries.length === 1 && !options.forceTripPicker) {
         location.replace("index.html?tripId=" + encodeURIComponent(entries[0][0]));
         return;
       }
@@ -6247,9 +6263,14 @@
         return;
       }
 
+      // forceTripPicker: true - the user is actively looking at #tripPicker
+      // right now (they just deleted/removed an entry from it). Redirecting
+      // them straight into whatever single trip happens to remain would be
+      // just as surprising a bounce as the tripsLink bug this was fixed
+      // alongside - see renderTripPickerList()'s own comment.
       db.ref("users/" + currentUser.uid + "/trips")
         .once("value")
-        .then((snapshot) => renderTripPickerList(snapshot.val() || {}));
+        .then((snapshot) => renderTripPickerList(snapshot.val() || {}, { forceTripPicker: true }));
     }
 
     function startTripListener() {
