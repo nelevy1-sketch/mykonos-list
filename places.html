@@ -50,6 +50,7 @@
   <script src="toast.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="geocode.js"></script>
   <script src="member.js"></script>
   <script src="auth-gate.js"></script>
   <style>
@@ -277,7 +278,17 @@ async function requestPlaceSuggestions(triggerBtn){if(!profile)return toast(tr('
 // actually found and verified the place (places-ai-technical-plan.md, "the
 // human is the only verification layer").
 function renderPlaceSuggestions(list){placeSuggestions=list;$('placeSuggestions').classList.remove('hidden');$('placeSuggestions').innerHTML=list.map((p,i)=>`<article class="place-card ai-suggestion-card"><div class="place-top"><div class="place-icon">✨</div><div class="place-copy"><h3>${escapeHtml(p.name)}</h3><div class="entry-meta"><span class="entry-note">${escapeHtml(p.city)}</span></div></div></div><p class="ai-suggestion-reason">${escapeHtml(p.reason)}</p><p class="ai-suggestion-disclaimer">⚠️ ${tr('לא מאומת - בדקו במפות לפני שמירה','Not verified - check maps before saving')}</p><div class="ai-suggestion-actions"><a class="secondary-btn" target="_blank" rel="noopener" href="${buildMapsSearchUrl(p.name,p.city)}">${tr('🔍 חפש במפות','🔍 Search maps')}</a><button type="button" class="primary-btn" data-save-suggestion="${i}">${tr('שמור הצעה זו','Save suggestion')}</button></div></article>`).join('');document.querySelectorAll('[data-save-suggestion]').forEach(btn=>{btn.onclick=()=>{const p=placeSuggestions[Number(btn.dataset.saveSuggestion)];btn.closest('.ai-suggestion-card').remove();if(!$('placeSuggestions').children.length)$('placeSuggestions').classList.add('hidden');openPlaceForm(null,{name:p.name,note:p.reason})}})}
-async function savePlace(){const name=$('placeName').value.trim();if(!name)return toast(tr('יש להזין שם מקום','Enter a place name'));const mapUrl=$('placeMap').value.trim();if(mapUrl&&!validUrl(mapUrl))return toast(tr('קישור המפה אינו תקין','Map link is invalid'));const legId=$('placeLeg').value,fields={name,category:$('placeCategory').value,mapUrl,note:$('placeNote').value.trim()};if(editingPlaceId){
+async function savePlace(){const name=$('placeName').value.trim();if(!name)return toast(tr('יש להזין שם מקום','Enter a place name'));const mapUrl=$('placeMap').value.trim();if(mapUrl&&!validUrl(mapUrl))return toast(tr('קישור המפה אינו תקין','Map link is invalid'));const legId=$('placeLeg').value,fields={name,category:$('placeCategory').value,mapUrl,note:$('placeNote').value.trim()};
+// docs/schema-legs.md, trip-route-map investigation, commit 1/5 - geocoded
+// once at save time (geocode.js), not at map-render time (a future map view
+// just reads lat/lon back, never re-geocodes). Single attempt only, no
+// retry - see geocode.js's own comment for why one was tried and confirmed
+// not to help for Nominatim. A place that still can't be located gets no
+// lat/lon field at all, not a 0/0 placeholder - commit 4 shows those in a
+// "not located" list instead of hiding them silently, same principle as
+// personalLocker's seat-mismatch list.
+const geo=await window.geocodeName(name,{language:trip.language==='en'?'en':'he'});if(geo){fields.lat=geo.lat;fields.lon=geo.lon}
+if(editingPlaceId){
 // docs/schema-legs.md §5.4, step 9.1 - legId is now editable (it wasn't
 // before this step). An explicit `null`, not omission, is required to
 // CLEAR a previously-set legId when the user picks "ללא שיוך": update()
