@@ -330,7 +330,21 @@ async function savePlace(){const name=$('placeName').value.trim();if(!name)retur
 // lat/lon field at all, not a 0/0 placeholder - commit 4 shows those in a
 // "not located" list instead of hiding them silently, same principle as
 // personalLocker's seat-mismatch list.
-const geo=await window.geocodeName(name,{language:trip.language==='en'?'en':'he'});if(geo){fields.lat=geo.lat;fields.lon=geo.lon}
+//
+// Real bug found after commit 4 shipped: a place named "מסעדה" (the generic
+// Hebrew word for "restaurant") in a Berlin trip geocoded to a real village
+// of that name in the Golan Heights - a WRONG match accepted as a right one,
+// not a visible "not located" failure. geocode.js's own countryCode option
+// (Nominatim's countrycodes filter) fixes this - resolve the place's own
+// leg if it has one, falling back to the trip's primary leg otherwise (same
+// fallback geoRefLeg()/aiSuggestLeg() already use above), so even an
+// unassigned place still gets a country to filter by whenever the trip has
+// one. A leg from before countryCode existed (or genuinely unknown) simply
+// has no code to pass - geocodeName() already treats that as "search
+// unfiltered," the exact behavior this file had before this fix, not a new
+// failure mode.
+const geoLeg=legId?window.getLegs(trip).find(l=>l.id===legId):window.getPrimaryLeg(trip);
+const geo=await window.geocodeName(name,{language:trip.language==='en'?'en':'he',countryCode:geoLeg?.countryCode});if(geo){fields.lat=geo.lat;fields.lon=geo.lon}
 if(editingPlaceId){
 // docs/schema-legs.md §5.4, step 9.1 - legId is now editable (it wasn't
 // before this step). An explicit `null`, not omission, is required to
