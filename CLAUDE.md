@@ -165,6 +165,16 @@ itinerary.html על גבי `[data-tokens="core"]` עם `var(--muted)`. איחו�
 `addPlaceToDay()` הוא נתיב-קיצור ממקום קיים ("כבר שמרתי את זה, תוסיף
 אותו ליום X"), לא תחליף לטופס-פעילות המלא. איחוד עתידי אפשרי, לא עכשיו.
 
+**`userChip` מציג את שני השמות ביחד רק ב-`itinerary.html`/`places.html`,
+לא ב-`packing.html`/`shopping.html`** - `loadProfile()` בשני העמודים
+הראשונים כותב `` `${profile.name} · ${user.displayName||''}` `` (השם
+הנבחר בטיול + זהות Google הגולמית, עם " · " ביניהם) - קוד מכוון, לא
+טעות-הקלדה, אבל בלי הערה שמסבירה למה. `packing.html` מציג רק
+`user.displayName||user.email` (בלי `profile.name` בכלל); ל-`shopping.html`
+אין `userChip` כלל. לא regression מעבודה כלשהי - חוסר-עקביות ישן בין
+העמודים, נתפס תוך כדי חקירה נפרדת (לא קשור למעבר places→itinerary). לא
+תוקן/אוחד - רק תועד.
+
 **מחלקות `character-X` (מבטא לפי `tripCharacter`) תמיד על `documentElement`,
 בכל 6 העמודים - כולל ב-index.html, למרות ש-`theme-X` שם דווקא על `document.body`.**
 עקביות מכוונת בין העמודים למחלקות *חדשות* - כדי שלא יתווסף עוד פיצול
