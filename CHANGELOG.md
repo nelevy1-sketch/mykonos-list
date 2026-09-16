@@ -1,5 +1,21 @@
 # GitTrip — CHANGELOG
 
+## v4.70.2 — תיקון: מפת המסלול לא הגיבה חי לשינוי מצב כהה/בהיר (itinerary.html)
+
+### 🎯 הבאג
+כשטאב "מפה" כבר פתוח ב-itinerary.html, מעבר בין מצב כהה/בהיר לא שינה את אריחי המפה - נשארה תקועה על מה שהיה בכניסה. עבד נכון ב-places.html המקורי.
+
+### 🔍 מה נמצא
+`applyTheme()` ב-itinerary.html **לא קרא בכלל** ל-`window.updateMapTheme()` - השורה הזו הייתה קיימת ב-`applyTheme()` של places.html, ופשוט לא הועברה ב-commit 3/5 (מעבר טאב המפה ל-itinerary.html). `grep` על הקובץ כולו אישר: אפס קריאות ל-`updateMapTheme` בכל הקובץ.
+
+### ✏️ התיקון
+שורה אחת: `if(window.updateMapTheme)window.updateMapTheme()` בסוף `applyTheme()`, זהה למה שכבר קיים ב-places.html.
+
+### 🔍 מה שנבדק - בפועל, לא רק קריאת קוד
+מפה פתוחה עם סיכה אמיתית, מצב כהה: `tileBefore` = CartoDB `dark_all`. לחיצה על `themeBtn` (כפתור אמיתי, לא קריאת פונקציה ישירה): `tileAfter` = OSM `tile.openstreetmap.org` - **הוחלף מיידית**, בלי כניסה חוזרת לטאב. נבדק גם בכיוון ההפוך (בהיר→כהה) - חזר נכון ל-CartoDB. קונסול נקי בטאב טרי.
+
+v4.70.1 -> v4.70.2 (patch - תיקון regression מ-commit 3/5, בלי שינוי סכימה).
+
 ## v4.70.1 — תיקון: "מקומות ותמונות" נשאר ב-6 מקומות נוספים בדף הבית (index.html)
 
 ### 🎯 הבאג
