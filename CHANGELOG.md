@@ -1,5 +1,27 @@
 # GitTrip — CHANGELOG
 
+## v4.70.3 — תיקון: כפתור ☰ קרס בשקט בתוך tripPicker (index.html)
+
+### 🎯 הבאג
+בתוך מסך "הטיולים שלי" (`tripPicker`, מגיע כש-`tripId` חסר), לחיצה על כפתור ה-☰ לא עשתה כלום - לא פתחה תפריט, לא סגרה כלום.
+
+### 🔍 מה נמצא - קליק אמיתי, לא רק קריאת קוד
+קריאה ל-`window.openHamburgerMenu()` שכפלה שגיאה מפורשת: `TypeError: Failed to construct 'URL': Invalid URL` בתוך `updateAdminShareLink()`. הסיבה: `scopedTripUrl("index.html")` מחזירה, בכוונה, מחרוזת יחסית כש-`!tripId` - אבל `updateAdminShareLink()` עושה `new URL(...)` **בלי ארגומנט base**, שזורק על כל קלט לא-מוחלט. `openHamburgerMenu()` קורא ל-`updateAdminShareLink()` *לפני* `openSheet()` - החריגה הבלתי-מטופלת עוצרת הכל, כולל פתיחת הגיליון עצמו. קרה בכל פעם, לא רק במקרה קצה - כי `tripId` תמיד חסר במסך הזה בדיוק.
+
+לא regression מעבודה קודמת - קוד ישן (`openHamburgerMenu`/`updateAdminShareLink`/`tripPicker`), נתפס בחקירה נפרדת.
+
+### ✏️ התיקון - guard יחיד, כמו שאושר (אפשרות א)
+`if (!tripId) return;` בתחילת `updateAdminShareLink()` - מדלג על חישוב קישור השיתוף (אין למה לשתף בלי טיול פעיל בכל מקרה), לא נוגע בשום דבר אחר. `hamburgerShareBtn`/`adminShareWhatsappBtn` כבר `class="menu-item hidden"` כברירת מחדל - לא נחשפים בהקשר הזה, לא תוקן/שונה.
+
+### 🔍 מה שנבדק - בפועל
+1. **קליק אמיתי על הכפתור** (`computer` click, לא `.click()`) בתוך tripPicker מדומה - התפריט נפתח (`.open` class נוסף) - לפני התיקון זה לא קרה בכלל.
+2. **"מצב כהה"/"יצירת טיול חדש"/"יציאה"** - מוצגים ותקינים (שלושתם מוצגים לפי `Boolean(user)` בלבד, לא לפי `tripId` - אומת שהם גלויים ומקושרים נכון כשמדמים משתמש מחובר). **צילום מסך אמיתי** מאשר: 4 פריטים בתפריט (מצב בהיר/הטיולים שלי/יצירת טיול חדש/יציאה), בלי "שיתוף ההזמנה".
+3. **`hamburgerShareBtn` נשאר `hidden`** - אומת ישירות אחרי הפתיחה.
+4. **אין regression בנתיב הרגיל** - עם `tripId` אמיתי, `updateAdminShareLink()` עדיין מחשב קישור `wa.me` תקין במלואו, בלי guard חוסם.
+5. קונסול נקי בטאב טרי, `i18n-audit` - 0 ממצאים.
+
+v4.70.2 -> v4.70.3 (patch - תיקון באג ישן, בלי שינוי סכימה).
+
 ## v4.70.2 — תיקון: מפת המסלול לא הגיבה חי לשינוי מצב כהה/בהיר (itinerary.html)
 
 ### 🎯 הבאג

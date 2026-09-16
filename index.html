@@ -6355,7 +6355,20 @@
     // profileLoadGen.
     let shareLinkRequestId = 0;
 
+    // Guard added after a real crash: scopedTripUrl("index.html") returns a
+    // bare relative string when there's no tripId (by design - see its own
+    // comment), and new URL() with no base throws on a relative string.
+    // openHamburgerMenu() calls this before openSheet() - the uncaught
+    // TypeError aborted the whole function, so the menu never opened at
+    // all, silently, in tripPicker mode (index.html?trips=1, the one place
+    // this page runs with no tripId at all). Nothing meaningful to link to
+    // without a trip anyway - hamburgerShareBtn/adminShareWhatsappBtn are
+    // already hidden in that context, untouched by this guard.
     function updateAdminShareLink() {
+      if (!tripId) {
+        return;
+      }
+
       const url = new URL(scopedTripUrl("index.html"));
 
       if (destinationName) {
