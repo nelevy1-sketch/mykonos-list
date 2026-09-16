@@ -119,10 +119,12 @@ function escapeHtml(value) {
 const TEXT = {
   he: {
     empty: "אין עדיין מקומות ממופים לרגל הזו - הוסיפו מקום עם שם מזוהה כדי לראות אותו כאן.",
+    emptyButton: "מעבר לטאב \"מקומות\"",
     notLocated: "לא אותרו על המפה: "
   },
   en: {
     empty: "No mapped places for this leg yet - add a place with a recognizable name to see it here.",
+    emptyButton: "Go to the Places tab",
     notLocated: "Not located on the map: "
   }
 };
@@ -254,6 +256,11 @@ const STAGGER_MS = 90;
 //   file is what splits "has coordinates" (goes on the map) from "doesn't"
 //   (goes in the not-located list below it), not the caller.
 // options.language: "he" | "en", defaults to "he".
+// options.onEmptyAction: optional callback, shown as a button in the empty
+//   state (no places have coordinates yet). This file doesn't know the
+//   caller's own tab-switching function (or even that it lives inside tabs
+//   at all - see the file-level comment above) - the caller decides what
+//   the button does, this file only renders it when a callback is given.
 window.renderTripMap = function renderTripMap(containerId, places, options = {}) {
   const container = document.getElementById(containerId);
 
@@ -291,7 +298,22 @@ window.renderTripMap = function renderTripMap(containerId, places, options = {})
   if (withCoords.length === 0) {
     const empty = document.createElement("div");
     empty.className = "trip-map-empty";
-    empty.textContent = t.empty;
+
+    const message = document.createElement("p");
+    message.style.margin = "0";
+    message.textContent = t.empty;
+    empty.appendChild(message);
+
+    if (typeof options.onEmptyAction === "function") {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "primary-btn";
+      button.style.cssText = "margin-top:14px;padding:0 22px;cursor:pointer";
+      button.textContent = t.emptyButton;
+      button.onclick = options.onEmptyAction;
+      empty.appendChild(button);
+    }
+
     container.appendChild(empty);
   } else {
     const mapDiv = document.createElement("div");

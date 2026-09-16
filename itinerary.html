@@ -205,7 +205,7 @@ function renderPlaces(){renderPlaceLegFilter();const cats=distinctPlaceCategorie
 // places-into-itinerary merge, commit 3/5 - the real wiring (was a no-op
 // placeholder in commit 2/5). Verbatim from places.html - window.renderTripMap()
 // itself (mapView.js) needed zero changes, exactly as expected going in.
-function renderMap(){if(tab!=='map')return;const filtered=Object.fromEntries(Object.entries(places||{}).filter(([,x])=>activeLegFilter==='all'||!x.legId||x.legId===activeLegFilter));window.renderTripMap('mapContainer',filtered,{language:trip.language==='en'?'en':'he'})}
+function renderMap(){if(tab!=='map')return;const filtered=Object.fromEntries(Object.entries(places||{}).filter(([,x])=>activeLegFilter==='all'||!x.legId||x.legId===activeLegFilter));window.renderTripMap('mapContainer',filtered,{language:trip.language==='en'?'en':'he',onEmptyAction:()=>setTab('places')})}
 async function deleteEntry(path,id,msg){if(await customConfirm(msg,{danger:true}))await remove(ref(db,`${root}/${path}/${id}`))}
 function openPlaceForm(id,draft){editingPlaceId=id||null;const x=id?places[id]:(draft||null);$('placeName').value=x?.name||'';$('placeMap').value=x?.mapUrl||'';$('placeNote').value=x?.note||'';$('placeModalTitle').textContent=id?tr('עריכת מקום','Edit place'):tr('הוספת מקום','Add a place');$('savePlace').textContent=id?tr('עדכון','Update'):tr('שמירה','Save');const defaultLegId=id?(x?.legId||''):(activeLegFilter!=='all'?activeLegFilter:'');populatePlaceLegSelect(defaultLegId);refreshPlaceCategoryOptions(x?.category||'');$('placeOverlay').classList.remove('hidden')}
 const PLACES_AI_FUNCTION_URL='https://us-central1-mykonos-list.cloudfunctions.net/suggestPlaces';
