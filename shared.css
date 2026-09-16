@@ -85,7 +85,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  /* Must outrank .modal-overlay (index.html: 9999) - a customConfirm/
+     customAlert can fire while a bottom-sheet modal is already open
+     (lockerModal's overwrite warning, adminCheckinUrl's replace-link
+     confirm) and needs to render ON TOP of it, not behind it. Found via
+     a real bug report: the sheet visually covered the dialog, so only a
+     sliver of its buttons was reachable - not just a cosmetic z-fight. */
+  z-index: 10000;
   padding: 20px;
   animation: dialogFadeIn .15s ease;
 }
