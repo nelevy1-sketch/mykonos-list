@@ -2538,27 +2538,27 @@
 
       <div class="admin-field">
         <label id="lockerFlightNumberLabel">
-          מספר טיסה (למשל LY391):
+          מספר טיסה (אופציונלי):
         </label>
 
         <input
           type="text"
           id="lockerFlightNumber"
           class="admin-input"
-          placeholder="LY391"
+          placeholder="לדוגמה: LY391"
           style="text-transform:uppercase;direction:ltr;">
       </div>
 
       <div class="admin-field">
         <label id="lockerFlightTimeLabel">
-          שעת המראה (למשל 14:30):
+          שעת המראה (אופציונלי):
         </label>
 
         <input
           type="text"
           id="lockerFlightTime"
           class="admin-input"
-          placeholder="14:30"
+          placeholder="לדוגמה: 14:30"
           style="direction:ltr;">
       </div>
 
@@ -3123,8 +3123,8 @@
         profileSaveBtnText: "שמירה",
         lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
         lockerNameLabel: "בחר את השם שלך:",
-        lockerFlightNumberLabel: "מספר טיסה (למשל LY391):",
-        lockerFlightTimeLabel: "שעת המראה (למשל 14:30):",
+        lockerFlightNumberLabel: "מספר טיסה (אופציונלי):",
+        lockerFlightTimeLabel: "שעת המראה (אופציונלי):",
         lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
         lockerLinkLabel: "קישור לכרטיס דיגיטלי / ברקוד (URL):",
         lockerSaveBtn: "שמור נתונים אישיים",
@@ -3220,8 +3220,8 @@
         profileSaveBtnText: "Save",
         lockerModalTitle: "🎟️ Personal ticket & seat vault",
         lockerNameLabel: "Choose your name:",
-        lockerFlightNumberLabel: "Flight number (for example LY391):",
-        lockerFlightTimeLabel: "Departure time (for example 14:30):",
+        lockerFlightNumberLabel: "Flight number (optional):",
+        lockerFlightTimeLabel: "Departure time (optional):",
         lockerSeatLabel: "Plane seat number (for example 20A):",
         lockerLinkLabel: "Digital ticket / barcode link (URL):",
         lockerSaveBtn: "Save personal details",
@@ -3489,6 +3489,16 @@
         lang === "en"
           ? "050-1234567, or +1... if abroad"
           : "050-1234567, או ‎+1... בחו״ל";
+
+      document.getElementById("lockerFlightNumber").placeholder =
+        lang === "en"
+          ? "e.g. LY391"
+          : "לדוגמה: LY391";
+
+      document.getElementById("lockerFlightTime").placeholder =
+        lang === "en"
+          ? "e.g. 14:30"
+          : "לדוגמה: 14:30";
 
       document.querySelectorAll(".modal-close").forEach(button => {
         button.setAttribute("aria-label", lang === "en" ? "Close" : "סגירה");
