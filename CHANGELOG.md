@@ -1,5 +1,28 @@
 # GitTrip — CHANGELOG
 
+## v4.70.0 — places.html מתנקה, תווית "זיכרונות", commit 4/5 (מעבר מקומות ל-itinerary.html)
+
+### 🎯 מה נוסף/השתנה
+`places.html` מאבד את הטאבים "מקומות"/"מפה" (שכבר עברו במלואם ל-itinerary.html ב-commits 2-3/5) - נשארים "תמונות"/"מוזיקה" בלבד, פעילים כרגיל. הניווט התחתון בכל 6 הדפים מציג "זיכרונות" 📸 במקום "מקומות" עבור הקישור ל-`places.html` (ה-URL עצמו לא השתנה - קישורים/סימניות ישנים ימשיכו לעבוד).
+
+### ✏️ מה הוסר, מה נשאר
+- **הוסר**: כל 19 הפונקציות/markup שהועברו ב-commit 2-3 (`categories`, `savePlace`, `renderPlaces`, `renderMap`, `openPlaceForm`, `openDayPicker`, GEO_RULES וכו') + 4 תגי head (leaflet.css/js, mapView.js, geocode.js) + כל ה-CSS הייחודי להם (טולבר/חיפוש/AI-suggest/מפה).
+- **נשאר, לא נגוע**: `renderPhotos`/`renderMusic`/כל מנגנון התגובות-ריאקציות-אפלود ותיוג מוזיקה.
+- **`.place-card,.music-card` → `.music-card` בלבד**; `.place-top`/`.place-icon`/`.place-copy`/`.entry-meta`/`.tag`/`.card-top-actions`/`.filter-chips`/`.cards`/`.primary-btn` **נשארו** - אלה קלאסים משותפים שכרטיס המוזיקה עצמו כבר משתמש בהם (לא "places-only" כמו שהשם עשוי לרמז).
+- **`.tabs{grid-template-columns:repeat(2,1fr)}`** - תוקן ממילא כתוצאה של הסרת 2 טאבים (4→2) - זה בדיוק אותו באג-חוסר-התאמה שכבר נתפס קודם (task נפרד, נזנח עכשיו כי הוא כבר לא רלוונטי).
+- **`updateFab()`/`fabAction()`/`setTab()`** - הצטמצמו ל-2 טאבים בלבד, בלי לוגיקת "מפה"/"מקומות".
+
+### 🐛 באג ה-GEO_RULES (מ-v4.68.0) - נעלם, לא "תוקן"
+כל הבלוק שהכיל את הבאג (`categories()`/`GEO_RULES`/וכו') הוסר לגמרי מהקובץ הזה - אין יותר קוד שיכול לזרוק את ה-`ReferenceError`. לא reorder כמו ב-itinerary.html (שם הקוד עדיין נחוץ) - כאן הוא פשוט לא קיים יותר.
+
+### 🔍 מה שנבדק בפועל
+1. **places.html נטען בלי שגיאות** - נבדק בטאב נקי, כולל תרחיש ה-bootstrap עם שפה שמורה (אותו תרחיש שחשף את באג ה-GEO_RULES ב-v4.68.0) - עכשיו נקי כי אין `categories()` לזרוק שגיאה.
+2. **מוזיקה+תמונות עובדים במלואם** - נבדק: מעבר טאבים, FAB פותח את הטופס הנכון בכל טאב (עם ה-toast הרגיל "בחרו קודם שם" כשאין פרופיל - לא נשבר), ולידציה בסיסית.
+3. **תווית "זיכרונות" בניווט התחתון** - נבדק בפועל בשני דפים שונים (`itinerary.html`, `index.html`) + באותו הדף עצמו - כולם מציגים "זיכרונות". **הבחנה חשובה**: itinerary.html מכיל *גם* טאב פנימי בשם "מקומות" (רשימת המקומות שעברה אליו) - זה **לא** שונה, בכוונה - זה תיאור מדויק של מה שהטאב עושה, לא קשור לניווט התחתון ששמו הוחלף.
+4. **אין קוד מת** - נבדק בפועל: `document.getElementById()` על כל אלמנט שהוסר (placeOverlay, dayPickerOverlay, mapView, mapContainer, placesTab, mapTab, legFilterSelect, placeFilters, placeSuggestions, placesList) מחזיר `null`. `i18n-audit` - 0 ממצאים חדשים (3 שנמצאו ב-shopping.html לא קשורים - כפתורי שפת-ייצוא קיימים מראש).
+
+v4.69.0 -> v4.70.0 (minor - שינוי UI גלוי, בלי שינוי סכימה - places/{id} עדיין לא השתנה).
+
 ## v4.69.0 — טאב המפה עובר ל-itinerary.html, commit 3/5 (מעבר מקומות ל-itinerary.html)
 
 ### 🎯 מה נוסף
