@@ -136,15 +136,13 @@ const TEXT = {
 // near-black dark theme (#0B1015, see the theme-color meta tag in
 // places.html). CartoDB dark_all was genuinely dark in the same test.
 //
-// *** ACTION REQUIRED BEFORE THIS SHIPS ***
-// CARTO_DARK_KEY below is a placeholder, not a real key - map tiles will NOT
-// load with it as-is. Get a free key (takes ~1 minute, email only, no CARTO
-// account, no credit card, 5M tile requests/month) at:
+// CARTO_DARK_KEY below is the real, live key (replaced the original
+// "YOUR_CARTO_KEY_HERE" placeholder before that commit shipped - verified
+// visually, dark tiles loading with no watermark, before it was swapped in).
+// If this key is ever revoked/rate-limited and needs replacing, get a new
+// free one (takes ~1 minute, email only, no CARTO account, no credit card,
+// 5M tile requests/month) at:
 //   https://carto.com/basemaps/apikey/
-// then replace the string below with the real key. Do NOT commit/push this
-// file until that replacement is done - CLAUDE.md's pre-commit rule applies
-// here like anywhere else, but this is also flagged explicitly because a
-// placeholder key fails silently-ish (broken/blank tiles, not a JS error).
 //
 // This key is NOT a secret and does not need a Cloud Function proxy (unlike
 // e.g. a Gemini API key) - it's designed to be embedded directly in a
