@@ -157,6 +157,14 @@ itinerary.html על גבי `[data-tokens="core"]` עם `var(--muted)`. איחו�
 (ראה docs/roadmap.md part 3 item 0, commit ה-empty-states - במפורש
 לא אוחד שם, כדי לא לערבב תיקון עם רה-פקטור).
 
+**שני מימושים עצמאיים לאותה מטרה: הוספת מקום לתוכנית היומית** -
+`addPlaceToDay()`/`openDayPicker()` (מ-places.html, עובר ל-itinerary.html
+ב-commit 2/5 של מעבר מקומות ל-itinerary.html) ו-`openActivityForm()`/
+`saveActivity()` (כבר קיים ב-itinerary.html) - שניהם כותבים בדיוק לאותו
+נתיב (`itinerary/days/{day}/activities`), עכשיו באותו קובץ ממש. לא אוחד -
+`addPlaceToDay()` הוא נתיב-קיצור ממקום קיים ("כבר שמרתי את זה, תוסיף
+אותו ליום X"), לא תחליף לטופס-פעילות המלא. איחוד עתידי אפשרי, לא עכשיו.
+
 **מחלקות `character-X` (מבטא לפי `tripCharacter`) תמיד על `documentElement`,
 בכל 6 העמודים - כולל ב-index.html, למרות ש-`theme-X` שם דווקא על `document.body`.**
 עקביות מכוונת בין העמודים למחלקות *חדשות* - כדי שלא יתווסף עוד פיצול
