@@ -50,6 +50,7 @@
   <script src="toast.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="permissions.js"></script>
   <script src="member.js"></script>
   <script src="auth-gate.js"></script>
 
@@ -1887,12 +1888,48 @@
 
         expensesEl.onclick = event => {
           event.preventDefault();
-          toast(
-            tr(
-              "המארגן עדיין לא הוסיף קישור להתחשבנות - ניתן להוסיף מדף הבית",
-              "The organizer hasn't added an expenses link yet - it can be added from the home page"
-            )
-          );
+
+          if (window.isOrganizer(user, trip.ownerId)) {
+            const overlay = document.createElement("div");
+            overlay.className = "custom-dialog-overlay";
+
+            overlay.innerHTML =
+              '<div class="custom-dialog-card">' +
+              '<div class="custom-dialog-brand">✈️ GitTrip</div>' +
+              '<p class="custom-dialog-message">' +
+              tr(
+                "עדיין לא הוספתם קישור להתחשבנות - ",
+                "You haven't added an expenses link yet - "
+              ) +
+              '<a href="' + scoped("index.html") +
+              '" style="color:var(--primary);font-weight:700">' +
+              tr("לחצו כאן", "click here") +
+              "</a>" +
+              tr(
+                " כדי לחזור לדף הבית ולהוסיף.",
+                " to go back to the home page and add one."
+              ) +
+              "</p>" +
+              '<div class="custom-dialog-actions">' +
+              '<button class="custom-dialog-btn confirm">' +
+              tr("הבנתי", "OK") +
+              "</button></div></div>";
+
+            document.body.appendChild(overlay);
+
+            const cleanup = () => overlay.remove();
+            overlay.querySelector("button").onclick = cleanup;
+            overlay.onclick = e => {
+              if (e.target === overlay) cleanup();
+            };
+          } else {
+            toast(
+              tr(
+                "המארגן עדיין לא הוסיף קישור להתחשבנות - ניתן להוסיף מדף הבית",
+                "The organizer hasn't added an expenses link yet - it can be added from the home page"
+              )
+            );
+          }
         };
       }
 
