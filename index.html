@@ -2537,6 +2537,11 @@
       </div>
 
       <div class="admin-field">
+        <label id="lockerLegLabel">טיסה:</label>
+        <select id="lockerLegId" class="admin-input"></select>
+      </div>
+
+      <div class="admin-field">
         <label id="lockerFlightNumberLabel">
           מספר טיסה (למשל LY391):
         </label>
@@ -3123,6 +3128,7 @@
         profileSaveBtnText: "שמירה",
         lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
         lockerNameLabel: "בחר את השם שלך:",
+        lockerLegLabel: "טיסה:",
         lockerFlightNumberLabel: "מספר טיסה (למשל LY391):",
         lockerFlightTimeLabel: "שעת המראה (למשל 14:30):",
         lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
@@ -3220,6 +3226,7 @@
         profileSaveBtnText: "Save",
         lockerModalTitle: "🎟️ Personal ticket & seat vault",
         lockerNameLabel: "Choose your name:",
+        lockerLegLabel: "Flight:",
         lockerFlightNumberLabel: "Flight number (for example LY391):",
         lockerFlightTimeLabel: "Departure time (for example 14:30):",
         lockerSeatLabel: "Plane seat number (for example 20A):",
@@ -5774,15 +5781,18 @@
       }
     }
 
-    // Single source of truth for "which legId is a personalLocker
-    // read/write about right now" - shared by every site below (the one
-    // write, and every read: the form, the summary, the seat map, the
-    // mismatch list) so they can never disagree about whose seat counts
-    // as current. Mirrors getRelevantFlight()'s own {legId,isReturn}
-    // shape - isReturn becomes the "return" sentinel, the exact same
-    // string getRelevantFlight() itself already uses, not a second
-    // convention invented here. No relevant flight at all (banner
-    // hidden - mid-trip, or before any leg exists) falls back to
+    // "Which legId is time-relevant right now" - drives the home-screen
+    // summary and the seat map/mismatch list (currentUserLockerCard()
+    // below and both activeLockerLegId sites further down), so those
+    // three agree on whose seat counts as current. NOT the write path
+    // anymore, and not the form's own read either - lockerModal has its
+    // own explicit leg picker now (lockerLegId/populateLockerLegSelect),
+    // precisely so a save/view isn't forced to be about whichever leg
+    // this function would pick. Mirrors getRelevantFlight()'s own
+    // {legId,isReturn} shape - isReturn becomes the "return" sentinel,
+    // the exact same string getRelevantFlight() itself already uses, not
+    // a second convention invented here. No relevant flight at all
+    // (banner hidden - mid-trip, or before any leg exists) falls back to
     // legs[0] rather than "nothing counts as current" - the same
     // fallback already decided below for a record with no legId of its
     // own, so there is exactly one rule for "no leg info available"
@@ -5818,7 +5828,13 @@
     // The signed-in user's OWN card, but only if it belongs to the
     // currently relevant leg - a card left over from a past (or future)
     // leg must read as "nothing saved for this flight," not show a
-    // stale seat as if it were the current one.
+    // stale seat as if it were the current one. Drives ONLY the
+    // home-screen summary (updateLockerSummary) and the seat banner/map
+    // now - the edit form itself uses lockerCardForLeg() below, against
+    // whatever leg the user explicitly picked in lockerModal's own
+    // selector, not this time-based one. The two are allowed to disagree
+    // (see lockerLegId's own comment) - this function's job didn't
+    // change, it just gained a sibling instead of a second caller.
     function currentUserLockerCard() {
       if (!currentUser) {
         return null;
@@ -5833,8 +5849,65 @@
       return card;
     }
 
+    // Same "a card for a different leg reads as nothing saved" rule as
+    // currentUserLockerCard() above, but against a caller-supplied legId
+    // instead of the time-relevant one - what the lockerModal form itself
+    // needs now that it has its own explicit leg picker.
+    function lockerCardForLeg(legId) {
+      if (!currentUser) {
+        return null;
+      }
+
+      const card = personalLockerCards[currentUser.uid];
+
+      if (!card || lockerCardLegId(card) !== legId) {
+        return null;
+      }
+
+      return card;
+    }
+
+    // Explicit picker for which flight this record is about - the previous
+    // version silently inferred it from currentLockerLegId() (purely
+    // time-based, via getRelevantFlight()), so there was no way to save or
+    // even VIEW details for a leg other than whichever one happens to be
+    // "current" right now. getRelevantFlight() itself is untouched - it
+    // still, separately, drives the seat banner/map (currentUserLockerCard/
+    // updateLockerSummary above) - only this form got its own explicit
+    // control. Defaults to currentLockerLegId()'s own answer, so opening
+    // the modal during the obviously-relevant flight's own window (or on a
+    // single-leg trip, where there's really only one meaningful choice
+    // before the return leg) pre-selects the sensible option and the
+    // picker doesn't have to be touched at all.
+    function populateLockerLegSelect() {
+      const select = document.getElementById("lockerLegId");
+
+      const options = currentLegs.map(leg => ({
+        value: leg.id,
+        label: leg.name || leg.id
+      }));
+
+      options.push({
+        value: "return",
+        label: tr("טיסת החזרה", "Return flight")
+      });
+
+      select.innerHTML = options
+        .map(option =>
+          `<option value="${escapeHtml(option.value)}">` +
+          `${escapeHtml(option.label)}</option>`
+        )
+        .join("");
+
+      select.value =
+        currentLockerLegId() ||
+        (options[0] && options[0].value) ||
+        "";
+    }
+
     function loadSelectedLockerCard() {
-      const card = currentUserLockerCard() || {};
+      const legId = document.getElementById("lockerLegId").value;
+      const card = lockerCardForLeg(legId) || {};
 
       document.getElementById("lockerFlightNumber").value =
         card.flightNumber || "";
@@ -5860,6 +5933,7 @@
       }
 
       openSheet("lockerModal");
+      populateLockerLegSelect();
       loadSelectedLockerCard();
     };
 
@@ -5919,6 +5993,13 @@
       );
 
     document
+      .getElementById("lockerLegId")
+      .addEventListener(
+        "change",
+        loadSelectedLockerCard
+      );
+
+    document
       .querySelectorAll(".modal-overlay")
       .forEach(modal => {
         modal.addEventListener("click", event => {
@@ -5957,8 +6038,27 @@
         : { he: "הטיסה הקודמת", en: "the previous flight" };
     }
 
+    // Same shape as resolveActiveSeatLayout() (seat-map screen, untouched),
+    // but keyed off a caller-supplied legId instead of getRelevantFlight()'s
+    // time-based answer - the save form validates against whichever leg
+    // the user actually picked in lockerLegId, not whichever leg happens to
+    // be "current" right now. The two can legitimately disagree (that's the
+    // whole point of adding the picker), so this can't just call
+    // resolveActiveSeatLayout() and reuse its answer.
+    function seatLayoutForLeg(legId) {
+      if (legId === "return") {
+        return returnSeatLayout;
+      }
+
+      return (
+        (currentLegs.find(leg => leg.id === legId) || {}).seatLayout ||
+        seatLayout
+      );
+    }
+
     window.savePersonalLockerCard = async () => {
       const name = currentProfile?.name;
+      const targetLegId = document.getElementById("lockerLegId").value;
 
       const flightNumber =
         document
@@ -6001,18 +6101,18 @@
       // happens to be stale now - only typing in a genuinely different
       // value re-triggers this check.
       //
-      // currentUserLockerCard(), not the raw record - a seat saved for a
-      // DIFFERENT leg must not count as "unchanged" just because its text
-      // happens to match (or block re-validation because it doesn't):
-      // the form already showed "" for that case (loadSelectedLockerCard),
-      // so typing anything at all here is always a genuinely new value for
-      // THIS leg.
+      // lockerCardForLeg(targetLegId), not the raw record - a seat saved
+      // for a DIFFERENT leg must not count as "unchanged" just because its
+      // text happens to match (or block re-validation because it
+      // doesn't): the form already showed "" for that case
+      // (loadSelectedLockerCard), so typing anything at all here is always
+      // a genuinely new value for the SELECTED leg.
       const previousSeat =
-        (currentUserLockerCard()?.seat || "")
+        (lockerCardForLeg(targetLegId)?.seat || "")
           .trim()
           .toUpperCase();
 
-      const activeSeatLayout = resolveActiveSeatLayout();
+      const activeSeatLayout = seatLayoutForLeg(targetLegId);
 
       if (seat && seat !== previousSeat) {
         const row = parseInt(seat.replace(/\D/g, ""), 10);
@@ -6045,9 +6145,9 @@
 
       seatError.classList.add("hidden");
 
-      // legId tags this record with the SAME leg resolveActiveSeatLayout()
-      // just validated the seat against - the two must never disagree
-      // about which flight this save is for. This single record gets
+      // legId tags this record with the SAME leg seatLayoutForLeg() just
+      // validated the seat against - the two must never disagree about
+      // which flight this save is for. This single record gets
       // OVERWRITTEN on the next save for a different leg (no history) -
       // still accepted deliberately (one record, no schema expansion into
       // per-leg storage), but no longer SILENTLY: an existing record for a
@@ -6056,7 +6156,6 @@
       // details without being told. Saving again for the SAME leg (an
       // update, not an overwrite of different data) skips this entirely.
       const existingCard = personalLockerCards[currentUser.uid];
-      const targetLegId = currentLockerLegId();
 
       if (existingCard) {
         const existingLegId = lockerCardLegId(existingCard);
@@ -7946,30 +8045,32 @@
       return { groups, letters };
     }
 
-    // Which seatLayout string actually applies right now - shared by
-    // renderPlaneSeats() (the map/aisles) AND savePersonalLockerCard()'s
-    // own seat validation, so a seat typed for the currently relevant leg
-    // is checked against THAT leg's configuration, not always the trip's
-    // legacy field - the two used to disagree (validation stayed on the
-    // old trip-level `seatLayout` after commit 4 moved the map itself to
-    // this same logic), which could reject a seat that's actually valid
-    // for the leg being edited, or accept one that isn't.
+    // Which seatLayout string applies to whichever flight is time-relevant
+    // right now - drives renderPlaneSeats() (the map/aisles). No longer
+    // shared with savePersonalLockerCard()'s own seat validation: that
+    // form now has its own explicit leg picker (lockerLegId), so it needs
+    // whichever leg the user actually SELECTED, not this function's
+    // time-based answer - see seatLayoutForLeg() (mirrors this function's
+    // own legId->seatLayout resolution, minus the time lookup) above
+    // savePersonalLockerCard(). The two intentionally can disagree now
+    // (that's the whole point of the picker), so this function staying
+    // purely time-based, unmodified, is correct - only its second caller
+    // moved off it.
     //
     // window.getRelevantFlight() (legs.js) returns the same {legId,
     // isReturn} shape used for the banner's own visibility
     // (updateClockAndPhases()); called again here (not reused from there)
-    // because both callers of this function run on their own trigger
-    // (openSeatsModal/savePersonalLockerCard), not inside
-    // updateClockAndPhases(). isReturn -> trip.returnSeatLayout (return
-    // flight is a sibling trip-level field, not a leg - no legs[N+1],
-    // docs/schema-legs.md investigation, commit 2's own comment in
-    // legBuilder.js). Otherwise the matching leg's own seatLayout, falling
-    // back to the trip's legacy `seatLayout` for a leg that predates the
-    // field - same fallback chain already used in seedAdminLegsEditor()
-    // (leg.seatLayout || seatLayout || "3-3"). No relevant flight at all
-    // (opened outside any flight window, e.g. a stale banner click) falls
-    // back to the plain trip-level `seatLayout` too - the pre-commit-4
-    // behavior, not a blank/broken map.
+    // because this function runs on its own trigger (openSeatsModal), not
+    // inside updateClockAndPhases(). isReturn -> trip.returnSeatLayout
+    // (return flight is a sibling trip-level field, not a leg - no
+    // legs[N+1], docs/schema-legs.md investigation, commit 2's own
+    // comment in legBuilder.js). Otherwise the matching leg's own
+    // seatLayout, falling back to the trip's legacy `seatLayout` for a
+    // leg that predates the field - same fallback chain already used in
+    // seedAdminLegsEditor() (leg.seatLayout || seatLayout || "3-3"). No
+    // relevant flight at all (opened outside any flight window, e.g. a
+    // stale banner click) falls back to the plain trip-level `seatLayout`
+    // too - the pre-commit-4 behavior, not a blank/broken map.
     function resolveActiveSeatLayout() {
       const relevantFlight =
         window.getRelevantFlight({ legs: currentLegs });
