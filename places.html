@@ -105,6 +105,25 @@
        container around it. Height chosen to roughly match #placesScroll's
        own visible area on a typical phone screen, not an arbitrary number. */
     .trip-map-canvas{width:100%;height:60vh;min-height:320px;border-radius:var(--radius);overflow:hidden}
+    /* dark-tiles flicker investigation: Leaflet's own default
+       .leaflet-container background is a hardcoded #ddd (leaflet.css),
+       regardless of this app's theme - visible for the brief moment before
+       tiles finish loading and cover the area, and again on every re-entry
+       to the map tab (renderTripMap() rebuilds the map from scratch each
+       time, see mapView.js's own comment on why). That's what read as a
+       light-map "flash" even in dark mode. Fixing the resting background to
+       match the theme doesn't skip Leaflet's normal per-tile fade-in (that
+       part is standard, expected behavior in any slippy map) - it just
+       means the color underneath it is already correct, so tiles filling in
+       looks like the map settling in, not a wrong-theme flash.
+       Compound selector (no space) on purpose, verified directly against
+       the live DOM - L.map(mapDiv) adds "leaflet-container" as an EXTRA
+       class on the same element mapView.js already gave "trip-map-canvas",
+       not on some child of it. A descendant-combinator version of this
+       selector (".trip-map-canvas .leaflet-container") looks equally
+       plausible but silently matches nothing. */
+    .trip-map-canvas.leaflet-container{background:#e9e9e9}
+    [data-theme=dark] .trip-map-canvas.leaflet-container{background:#0B1015}
     .trip-map-empty{padding:40px 16px;text-align:center;color:var(--muted);font-size:.86rem}
     .trip-map-not-located{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--muted);font-size:.8rem}
     /* Leaflet's own default .leaflet-div-icon draws a white box with a
