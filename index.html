@@ -2537,6 +2537,32 @@
       </div>
 
       <div class="admin-field">
+        <label id="lockerFlightNumberLabel">
+          מספר טיסה (למשל LY391):
+        </label>
+
+        <input
+          type="text"
+          id="lockerFlightNumber"
+          class="admin-input"
+          placeholder="LY391"
+          style="text-transform:uppercase;direction:ltr;">
+      </div>
+
+      <div class="admin-field">
+        <label id="lockerFlightTimeLabel">
+          שעת המראה (למשל 14:30):
+        </label>
+
+        <input
+          type="text"
+          id="lockerFlightTime"
+          class="admin-input"
+          placeholder="14:30"
+          style="direction:ltr;">
+      </div>
+
+      <div class="admin-field">
         <label id="lockerSeatLabel">
           מספר מושב במטוס (למשל 20A):
         </label>
@@ -3097,6 +3123,8 @@
         profileSaveBtnText: "שמירה",
         lockerModalTitle: "🎟️ כספת כרטיס אישי ומושב",
         lockerNameLabel: "בחר את השם שלך:",
+        lockerFlightNumberLabel: "מספר טיסה (למשל LY391):",
+        lockerFlightTimeLabel: "שעת המראה (למשל 14:30):",
         lockerSeatLabel: "מספר מושב במטוס (למשל 20A):",
         lockerLinkLabel: "קישור לכרטיס דיגיטלי / ברקוד (URL):",
         lockerSaveBtn: "שמור נתונים אישיים",
@@ -3192,6 +3220,8 @@
         profileSaveBtnText: "Save",
         lockerModalTitle: "🎟️ Personal ticket & seat vault",
         lockerNameLabel: "Choose your name:",
+        lockerFlightNumberLabel: "Flight number (for example LY391):",
+        lockerFlightTimeLabel: "Departure time (for example 14:30):",
         lockerSeatLabel: "Plane seat number (for example 20A):",
         lockerLinkLabel: "Digital ticket / barcode link (URL):",
         lockerSaveBtn: "Save personal details",
@@ -5806,6 +5836,12 @@
     function loadSelectedLockerCard() {
       const card = currentUserLockerCard() || {};
 
+      document.getElementById("lockerFlightNumber").value =
+        card.flightNumber || "";
+
+      document.getElementById("lockerFlightTime").value =
+        card.flightTime || "";
+
       document.getElementById("lockerSeat").value =
         card.seat || "";
 
@@ -5903,8 +5939,39 @@
       }
     });
 
-    window.savePersonalLockerCard = () => {
+    // Display label for a card's legId in the overwrite-warning below -
+    // "return" gets the same wording already used elsewhere in this file
+    // for the return flight (adminReturnSeatLayoutLabel), a real leg gets
+    // its own name, and a legId that no longer matches any current leg
+    // (organizer removed it since the card was saved) falls back to a
+    // generic phrase rather than showing "undefined".
+    function lockerLegLabel(legId) {
+      if (legId === "return") {
+        return { he: "טיסת החזרה", en: "the return flight" };
+      }
+
+      const leg = currentLegs.find(item => item.id === legId);
+
+      return leg
+        ? { he: `רגל "${leg.name}"`, en: `the "${leg.name}" leg` }
+        : { he: "הטיסה הקודמת", en: "the previous flight" };
+    }
+
+    window.savePersonalLockerCard = async () => {
       const name = currentProfile?.name;
+
+      const flightNumber =
+        document
+          .getElementById("lockerFlightNumber")
+          .value
+          .trim()
+          .toUpperCase();
+
+      const flightTime =
+        document
+          .getElementById("lockerFlightTime")
+          .value
+          .trim();
 
       const seatInput = document.getElementById("lockerSeat");
       const seatError = document.getElementById("lockerSeatError");
@@ -5982,18 +6049,41 @@
       // just validated the seat against - the two must never disagree
       // about which flight this save is for. This single record gets
       // OVERWRITTEN on the next save for a different leg (no history) -
-      // accepted deliberately, because the display rule above guarantees
-      // only one leg is ever relevant at a time, so nothing currently
-      // reachable in the UI can show two legs' seats at once anyway. If
-      // that display rule is ever relaxed (e.g. a future "review the
-      // whole itinerary's seats" screen), this single-record assumption
-      // breaks silently - whoever does that will need to move this to a
-      // per-leg structure first.
+      // still accepted deliberately (one record, no schema expansion into
+      // per-leg storage), but no longer SILENTLY: an existing record for a
+      // DIFFERENT leg than the one being saved now gets an explicit
+      // confirm first, so a returning user can't lose last week's flight
+      // details without being told. Saving again for the SAME leg (an
+      // update, not an overwrite of different data) skips this entirely.
+      const existingCard = personalLockerCards[currentUser.uid];
+      const targetLegId = currentLockerLegId();
+
+      if (existingCard) {
+        const existingLegId = lockerCardLegId(existingCard);
+
+        if (existingLegId !== targetLegId) {
+          const label = lockerLegLabel(existingLegId);
+
+          const confirmed = await customConfirm(
+            tr(
+              `כבר יש לך פרטי טיסה שמורים ל${label.he} - שמירה תחליף אותם.`,
+              `You already have flight details saved for ${label.en} - saving will replace them.`
+            )
+          );
+
+          if (!confirmed) {
+            return;
+          }
+        }
+      }
+
       personalLockerCards[currentUser.uid] = {
         name,
+        flightNumber,
+        flightTime,
         seat,
         link,
-        legId: currentLockerLegId(),
+        legId: targetLegId,
         updatedAt: Date.now()
       };
 
