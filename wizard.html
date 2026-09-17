@@ -1675,10 +1675,6 @@
                 return false;
             }
         }
-        if (step === 2 && participants.length === 0) {
-            document.getElementById('participantsError').textContent = t.alertParticipants;
-            return false;
-        }
         if (step === 3 && !Object.values(selectedFeatures()).some(Boolean)) {
             document.getElementById('featuresError').textContent = t.alertFeatures;
             return false;
