@@ -4338,9 +4338,17 @@ body.modal-open .modal-card {
     runTransaction(ref(db, `${listPath(currentListType)}/${id}/done`), current => !current);
   }
 
-  function deleteItem(id) {
+  async function deleteItem(id) {
     saveUndoBackup(id);
-    remove(ref(db, `${listPath(currentListType)}/${id}`));
+
+    try {
+      await remove(ref(db, `${listPath(currentListType)}/${id}`));
+    } catch (error) {
+      console.error('[shopping.html] item delete failed', error);
+      showToast(tr('המחיקה נכשלה. נסו שוב.', 'Failed to delete. Please try again.'));
+      return;
+    }
+
     showToast(tr('הפריט נמחק', 'Item deleted'), true);
   }
 
