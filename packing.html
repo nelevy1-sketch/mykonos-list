@@ -2319,12 +2319,21 @@
       }
 
       const idToDelete = activeList;
-      activeList = "main";
 
-      await update(ref(db), {
-        [`${userBase()}/listMeta/${idToDelete}`]: null,
-        [`${userBase()}/items/${idToDelete}`]: null
-      });
+      try {
+        await update(ref(db), {
+          [`${userBase()}/listMeta/${idToDelete}`]: null,
+          [`${userBase()}/items/${idToDelete}`]: null
+        });
+      } catch (error) {
+        console.error("[packing.html] list delete failed", error);
+        customAlert(
+          tr("המחיקה נכשלה. נסו שוב.", "Failed to delete. Please try again.")
+        );
+        return;
+      }
+
+      activeList = "main";
 
       $("manageListOverlay").classList.add("hidden");
       renderMine();
@@ -3474,16 +3483,32 @@
       document
         .querySelectorAll("[data-sub-delete]")
         .forEach(button => {
-          button.onclick = () => {
+          button.onclick = async () => {
             const categoryId = requireCategory(button, "data-sub-delete");
             const [itemId, subId] = button.dataset.subDelete.split(":");
 
-            remove(
-              ref(
-                db,
-                `${userBase()}/items/${categoryId}/${itemId}/subItems/${subId}`
-              )
-            );
+            if (
+              !(await customConfirm(
+                tr("למחוק את תת-הפריט?", "Delete this sub-item?"),
+                { danger: true }
+              ))
+            ) {
+              return;
+            }
+
+            try {
+              await remove(
+                ref(
+                  db,
+                  `${userBase()}/items/${categoryId}/${itemId}/subItems/${subId}`
+                )
+              );
+            } catch (error) {
+              console.error("[packing.html] sub-item delete failed", error);
+              customAlert(
+                tr("המחיקה נכשלה. נסו שוב.", "Failed to delete. Please try again.")
+              );
+            }
           };
         });
 
@@ -3640,7 +3665,16 @@
         updates[`${userBase()}/items/${categoryId}/${id}`] = null;
       });
 
-      await update(ref(db), updates);
+      try {
+        await update(ref(db), updates);
+      } catch (error) {
+        console.error("[packing.html] bulk delete failed", error);
+        customAlert(
+          tr("המחיקה נכשלה. נסו שוב.", "Failed to delete. Please try again.")
+        );
+        return;
+      }
+
       setSelectionMode(false);
       toast(tr("הפריטים נמחקו", "Items deleted"));
     }
@@ -4763,12 +4797,20 @@
           { danger: true }
         )
       ) {
-        await remove(
-          ref(
-            db,
-            `${userBase()}/items/${editingCategoryId}/${editingId}`
-          )
-        );
+        try {
+          await remove(
+            ref(
+              db,
+              `${userBase()}/items/${editingCategoryId}/${editingId}`
+            )
+          );
+        } catch (error) {
+          console.error("[packing.html] item delete failed", error);
+          customAlert(
+            tr("המחיקה נכשלה. נסו שוב.", "Failed to delete. Please try again.")
+          );
+          return;
+        }
 
         $("editOverlay")
           .classList
