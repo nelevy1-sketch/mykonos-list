@@ -1,5 +1,21 @@
 # GitTrip — CHANGELOG
 
+## v4.72.12 — places.html: טיפול בכשלון בכל נתיבי המחיקה
+
+### 🎯 מה השתנה
+`deleteEntry` (משותפת - קישורי מוזיקה), `deleteComment`, `deleteReply` - נוסף `try/catch` סביב ה-`remove()` הקיים, עם `console.error`+`toast("המחיקה נכשלה. נסו שוב.")` בכשלון במקום כשלון שקט. `deleteEntry` גם עברה לתבנית early-return (`if(!(await customConfirm(...)))return;`) לעקביות עם שלוש הפונקציות האחרות - ללא שינוי התנהגות.
+
+**`deletePhoto` - זהירות מיוחדת כמו שסומן מראש**: לפונקציה הזו כבר היה `try/catch` חלקי, רק סביב מחיקת ה-Storage, עם `console.warn(e)` קיים. **לא נגעתי בענף הזה בכלל** - הוספתי `try/catch` נפרד ועצמאי רק סביב שורת ה-`remove()` של ה-RTDB, שהייתה היחידה בלי שום טיפול.
+
+### 🔍 מה שנבדק בפועל
+כל ארבע הפונקציות נבדקו בדפדפן עם hook זמני (הוסר ואומת שהוסר לפני push) שחושף אותן זמנית ל-`window` וממלא state מקומי, עם כתיבות אמיתיות מול הפרויקט האמיתי ב-Firebase (לא מדומות):
+- `deleteComment`/`deleteReply`/`deleteEntry` - כל אחת נדחתה עם `PERMISSION_DENIED` אמיתי, `toast("המחיקה נכשלה. נסו שוב.")` הוצג בכל אחת, `console.error` נרשם עם השם הנכון של כל פונקציה.
+- `deletePhoto` - **אומת בפועל ששני מסלולי הכשלון עצמאיים לגמרי, לא מתערבבים**: תמונת-בדיקה עם `storagePath` מזויף גרמה לכשלון Storage אמיתי (`storage/unauthorized`, 403) שהופיע כ-`console.warn` בודד בדיוק כמו קודם - ואז, בנפרד, כשלון RTDB אמיתי (`PERMISSION_DENIED`) הופיע כ-`console.error` חדש + `toast` כשלון. שני האזהרות הופיעו כל אחת פעם אחת בלבד - לא כפילות, לא הסתרה.
+
+`node --check` על התוכן המדויק שנכנס ל-commit - תקין. `node scripts/i18n-audit.js` - אין ממצאים חדשים.
+
+v4.72.11 -> v4.72.12 (patch - תיקון באג, אין שינוי סכימה).
+
 ## v4.72.11 — shopping.html: deleteItem לא מכריז הצלחה כוזבת
 
 ### 🎯 מה השתנה
