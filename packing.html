@@ -1498,7 +1498,8 @@
       $("toast").textContent = text;
       $("toast").classList.add("show");
 
-      setTimeout(() => {
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
         $("toast").classList.remove("show");
       }, 2200);
     }

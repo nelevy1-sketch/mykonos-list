@@ -3448,7 +3448,8 @@ body.modal-open .modal-card {
     undoBtn.style.display = showUndo ? 'block' : 'none';
     
     toast.classList.add('show');
-    setTimeout(() => { toast.classList.remove('show'); }, 3500);
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => { toast.classList.remove('show'); }, 3500);
   }
 
   function saveUndoBackup(itemId) {
