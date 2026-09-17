@@ -263,6 +263,28 @@ CSS כמו בשאר העמודים.
 undo אחד בלבד, לא היסטוריה, וזה מספיק כדי לדעת שהוא לא
 תמיד יגן על מה שהמשתמש חושב שהוא מגן עליו.
 
+## `onclick="fn('${escapeHtml(x)}')"` - escaping מסוג HTML לא מגן על מחרוזת JS מקוננת
+
+`index.html` (`deleteTripPickerEntry`) ו-`wizard.html` (`copyRecentTrip`/
+`deleteRecentTrip`) מטמיעים ערך בתוך `onclick="fn('${escapeHtml(id)}')"` -
+attribute בגרשיים כפולים, עם מחרוזת JavaScript בגרש בודד בתוכו. **אומת
+בפועל (v4.72.9)**: HTML entities מפוענחים בזמן ה-parsing של ה-markup,
+לפני שהדפדפן מריץ את קוד ה-`onclick` - `&#39;` הופך בחזרה לגרש רגיל עוד
+לפני שקוד ה-JS בתוך ה-attribute בכלל מתבצע. **escaping מסוג HTML לא יכול,
+מבנית, להגן על תוחם מחרוזת JavaScript מקונן בתוך attribute** - זה דורש
+JS-string-escaping (backslash לפני גרש), לא HTML-entity-escaping.
+
+כרגע זה לא ניתן לניצול בפועל: הערך היחיד שמגיע לשלושת המקומות האלה הוא
+`tripId`, שלעולם לא יכול להכיל גרש (`'trip_' + base36`, מאומת בקוד היצירה
+ב-wizard.html). **אם בעתיד ייכתב `onclick` חדש בתבנית הזו עם שדה חופשי
+אמיתי** (שם/כותרת שהמשתמש הקליד) - `escapeHtml()` לא תגן עליו, גם עם
+הגרש הבודד שהיא כן מטפלת בו כיום.
+
+**רעיון להקשחה עתידית, לא בוצע**: להחליף את שלושת ה-`onclick` האלה
+ב-`addEventListener` + `data-*` attribute (הערך יושב ב-`dataset`, לא
+מוטמע כמחרוזת JS) - מסיר את כל סוג הפגיעות מהשורש, לא רק מוסיף עוד שכבת
+escaping. משימה נפרדת, לא נעשה כחלק מ-v4.72.9.
+
 ## בדיקת UI בדפדפן — שרת מקומי
 
 `.claude/launch.json` מגדיר שרת קבצים סטטי מקומי

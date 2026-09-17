@@ -1,5 +1,19 @@
 # GitTrip — CHANGELOG
 
+## v4.72.9 — escapeHtml(): הוספת גרש בודד (index.html, wizard.html)
+
+### 🎯 מה השתנה
+`escapeHtml()` ב-`index.html`/`wizard.html` לא טיפלה בגרש בודד (`'`→`&#39;`), בשונה מ-`packing.html`/`places.html`/`itinerary.html` שכן. הוספה שורה אחת בכל קובץ.
+
+**חשוב להיות מדויקים לגבי מה זה בפועל מתקן**: זו **הגנה מקדימה (defense-in-depth)**, לא סגירת דליפה שהייתה ניתנת לניצול. בדקתי בפועל (לא רק לוגית) את שלושת המקומות שהדוח ציין - `deleteTripPickerEntry`/`copyRecentTrip`/`deleteRecentTrip` - כולם מטמיעים ערך בתוך `onclick="fn('${escapeHtml(id)}')"`: attribute בגרשיים **כפולים**, עם מחרוזת JavaScript בגרש **בודד** בתוכו. אימתתי (השוואת המחרוזת שהוזנה ל-`innerHTML` מול מה שה-DOM שומר בפועל אחרי parsing) ש-HTML entities מפוענחים בזמן ה-parsing, **לפני** שהדפדפן מריץ את קוד ה-`onclick` - כלומר `&#39;` הופך בחזרה לגרש רגיל עוד לפני שקוד ה-JS בתוך ה-attribute בכלל מתבצע. escaping מסוג HTML **לא יכול, מבנית, להגן על תוחם מחרוזת JavaScript מקונן בתוך attribute** - זה דורש JS-string-escaping (backslash), לא HTML-entity-escaping. בדקתי גם: אין באף אחד מהקבצים האלה שימוש ב-`escapeHtml()` בתוך attribute עם גרש בודד כתוחם (`attr='...'`) - איפה שהתיקון הזה *כן* היה עוזר. כלומר בקוד הקיים היום, השינוי הזה לא משנה שום דבר בפועל בשני הכיוונים - לא שובר, לא מתקן וקטור אמיתי.
+
+זה עדיין תיקון סביר: `tripId` (הערך היחיד שמגיע לשלושת המקומות האלה) לעולם לא יכול להכיל גרש (`'trip_' + base36`, מאומת בקוד היצירה ב-wizard.html) - כך שאין כרגע שום נתיב לניצול בפועל, גם בלי קשר לפער ב-escapeHtml. אבל אם בעתיד ייכתב `onclick` חדש עם שדה חופשי אמיתי (שם/כותרת) - התיקון הזה **לא** יגן עליו; יידרש טיפול אחר (ר' התיעוד ב-CLAUDE.md).
+
+### 🔍 מה שנבדק בפועל
+`escapeHtml("O'Brien")`/`escapeHtml("trip_o'brien")` בקונסולה - מחזיר `&#39;` נכון. בנייה ידנית של תבנית ה-`onclick` המדויקת מ-`deleteTripPickerEntry` עם ID שמכיל גרש, השוואת המחרוזת שהוזנה ל-innerHTML מול `getAttribute('onclick')`/`innerHTML` אחרי parsing - זה מה שחשף שה-entity מפוענח בחזרה. `node --check` על התוכן המדויק שנכנס ל-commit בשני הקבצים - תקין.
+
+v4.72.8 -> v4.72.9 (patch - הקשחה מקדימה, אין שינוי סכימה).
+
 ## v4.72.8 — toast(): תיקון race condition בין קריאות מהירות
 
 ### 🎯 מה השתנה
