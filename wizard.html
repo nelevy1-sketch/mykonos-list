@@ -1346,6 +1346,7 @@
 
     getRedirectResult(auth).catch(error => {
         console.error('Redirect sign-in failed:', error);
+        customAlert(currentLanguage === 'he' ? 'פעולת ההתחברות נכשלה. בדקו שהספק מופעל ב-Firebase ונסו שוב.' : 'Authentication failed. Check that the provider is enabled in Firebase and try again.');
     });
 
     async function requireOrganizer() {

@@ -2945,7 +2945,13 @@
       db = firebase.database();
       auth = firebase.auth();
 
-      auth.getRedirectResult().catch(() => {});
+      auth.getRedirectResult().catch(() => {
+        customAlert(
+          currentLanguage === "en"
+            ? "Google sign-in failed. Please try again."
+            : "הכניסה עם Google נכשלה. נסו שוב."
+        );
+      });
     } catch (e) {
       console.warn("Firebase Init Error");
       document.getElementById("authLoading").classList.add("hidden");

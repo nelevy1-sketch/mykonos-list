@@ -1913,7 +1913,14 @@ body.modal-open .modal-card {
     });
   }
 
-  getRedirectResult(auth).catch(() => {});
+  getRedirectResult(auth).catch(() => {
+    showToast(
+      tr(
+        "הכניסה עם Google נכשלה. נסו שוב.",
+        "Google sign-in failed. Please try again."
+      )
+    );
+  });
 
   const urlParams =
     new URLSearchParams(window.location.search);

@@ -1,5 +1,17 @@
 # GitTrip — CHANGELOG
 
+## v4.72.6 — הודעה למשתמש כשכניסת Google ב-redirect נכשלת (index/shopping/wizard)
+
+### 🎯 מה השתנה
+`getRedirectResult().catch()` היה ריק לגמרי ב-index.html/shopping.html (אפס הודעה, אפס `console.warn`) ומדפיס רק ל-console ב-wizard.html - כשל שקט בדיוק מהסוג שה-checklist דורש `console.warn`+משוב למשתמש. הוספתי הודעה למשתמש (`customAlert`/`showToast`, לפי מה שכל עמוד כבר משתמש בו) בכל אחד מהשלושה - בדיוק אותה הודעה שכל עמוד כבר מציג במסלול ה-popup המקביל שלו (`dashboardGoogleBtn`/`shoppingGoogleBtn`/`handleProviderSignIn`), לא ניסוח חדש. `itinerary.html`/`places.html`/`packing.html` כבר עשו את זה נכון (`toast(error.message)`) - זו לא הייתה בעיה ב-6/6 העמודים.
+
+`getRedirectResult()` נדחה (`reject`) רק כשבאמת בוצע redirect וההתחברות דרכו נכשלה - אם המשתמש מעולם לא ניסה redirect, ה-Promise מתמלא בהצלחה עם ערך ריק, לא נדחה. אין צורך בדגל נפרד כדי להבדיל "עוד לא ניסה" מ"ניסה ונכשל" - עצם ההגעה ל-`.catch()` היא כבר האות הרלוונטי.
+
+### 🔍 מה שנבדק בפועל
+נבדק בדפדפן שמסלול ה-popup הרגיל (הרוב המכריע של המשתמשים) לא מציג שום הודעה חדשה בטעות - `getRedirectResult()` נפתר בשקט (לא נדחה) כשלא בוצע redirect מעולם, כמו שהוסבר למעלה, כך שההודעה החדשה לא מופיעה בטעינת עמוד רגילה.
+
+v4.72.5 -> v4.72.6 (patch - הודעת שגיאה, אין שינוי סכימה).
+
 ## v4.72.5 — ויזרד: הסרת חסימת "לפחות חבר קבוצה אחד"
 
 ### 🎯 מה השתנה
