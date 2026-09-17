@@ -1981,6 +1981,21 @@
         style="width:100%;margin-bottom:12px">
       </select>
       <button class="google-signin-btn" id="claimMemberBtn">זה אני</button>
+      <button
+        type="button"
+        id="memberGateManualToggle"
+        style="display:block;width:100%;margin-top:10px;padding:4px;background:none;border:none;color:var(--primary);text-decoration:underline;font:inherit;font-size:.85rem;cursor:pointer">
+        השם שלי לא ברשימה
+      </button>
+      <div id="memberGateManualRow" class="hidden" style="margin-top:10px">
+        <input
+          type="text"
+          id="memberGateManualInput"
+          class="admin-input"
+          placeholder="הקלידו את שמכם"
+          style="width:100%;margin-bottom:8px">
+        <button class="google-signin-btn" id="memberGateManualBtn">הצטרפות</button>
+      </div>
     </div>
   </div>
 
@@ -3658,6 +3673,15 @@
       document.getElementById("claimMemberBtn").textContent =
         lang === "en" ? "This is me" : "זה אני";
 
+      document.getElementById("memberGateManualToggle").textContent =
+        lang === "en" ? "My name isn't listed" : "השם שלי לא ברשימה";
+
+      document.getElementById("memberGateManualInput").placeholder =
+        lang === "en" ? "Type your name" : "הקלידו את שמכם";
+
+      document.getElementById("memberGateManualBtn").textContent =
+        lang === "en" ? "Join" : "הצטרפות";
+
       applyDarkModeUI();
     }
 
@@ -4301,6 +4325,98 @@
     document
       .getElementById("claimMemberBtn")
       .addEventListener("click", claimMember);
+
+    document
+      .getElementById("memberGateManualToggle")
+      .addEventListener("click", () => {
+        const row = document.getElementById("memberGateManualRow");
+        const nowHidden = row.classList.toggle("hidden");
+
+        if (!nowHidden) {
+          document.getElementById("memberGateManualInput").focus();
+        }
+      });
+
+    // Fallback for the fallback (see the comment above loadMemberProfile's
+    // auto-register call) - reaches the exact same autoRegisterMember used
+    // there, just with the typed text standing in for
+    // currentUser.displayName. tryClaim/writeProfile/rollbackClaim are
+    // uid-keyed either way, so this can never collide with a claim made
+    // through the closed-select path above.
+    async function claimMemberManually() {
+      if (!currentUser || currentProfile || !tripRoot) {
+        return;
+      }
+
+      const input = document.getElementById("memberGateManualInput");
+      const name = input.value.trim();
+
+      if (!name) {
+        return customAlert(tr("יש להקליד שם", "Please enter a name"));
+      }
+
+      const btn = document.getElementById("memberGateManualBtn");
+      btn.disabled = true;
+
+      try {
+        currentProfile = await window.autoRegisterMember({
+          uid: currentUser.uid,
+          displayName: name,
+          email: currentUser.email,
+          photoURL: currentUser.photoURL,
+          fallbackName: tr("משתתף", "Traveler"),
+          tryClaim: (key, uid) => new Promise((resolve, reject) => {
+            db.ref(`${tripRoot}/participantClaims/${key}`).transaction(
+              current => (current === null || current === uid) ? uid : undefined,
+              (error, committed, resultSnapshot) => {
+                if (error) return reject(error);
+                resolve(Boolean(committed) && resultSnapshot.val() === uid);
+              },
+              false
+            );
+          }),
+          writeProfile: profile =>
+            db.ref(`${tripRoot}/memberProfiles/${currentUser.uid}`).set(profile),
+          rollbackClaim: (key, uid) => new Promise((resolve, reject) => {
+            db.ref(`${tripRoot}/participantClaims/${key}`).transaction(
+              current => (current === uid ? null : current),
+              error => (error ? reject(error) : resolve()),
+              false
+            );
+          })
+        });
+
+        document.getElementById("memberGate").classList.add("hidden");
+
+        syncSessionUserLabel();
+        updateLockerSelectOptions();
+        updateLockerSummary();
+      } catch (error) {
+        console.error("[index.html] claimMemberManually: auto-register failed", error);
+
+        customAlert(
+          tr(
+            "ההצטרפות נכשלה. בדקו את החיבור ונסו שוב.",
+            "Joining failed. Check your connection and try again."
+          )
+        );
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    document
+      .getElementById("memberGateManualBtn")
+      .addEventListener("click", claimMemberManually);
+
+    document
+      .getElementById("memberGateManualInput")
+      .addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          claimMemberManually();
+        }
+      });
 
     const tripTypeConfig = {
       abroad: {
