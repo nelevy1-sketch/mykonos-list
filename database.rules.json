@@ -1,0 +1,100 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "trips": {
+      "$tripId": {
+
+        ".read": "auth != null",
+
+        ".write": "auth != null && (!data.exists() ? newData.child('ownerId').val() === auth.uid : data.child('ownerId').val() === auth.uid)",
+
+        "memberProfiles": {
+          "$uid": {
+            ".write": "auth != null && (data.parent().parent().child('ownerId').val() === auth.uid || (auth.uid === $uid && newData.exists() && ((!data.exists() && data.parent().parent().child('participantClaims').child(newData.child('participantKey').val()).val() === auth.uid) || (data.exists() && newData.child('participantKey').val() === data.child('participantKey').val()))))"
+          }
+        },
+
+        "personalLocker": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || data.parent().parent().child('ownerId').val() === auth.uid)"
+          }
+        },
+
+        "participantClaims": {
+          "$claimKey": {
+            ".write": "auth != null && (!data.exists() || data.val() === auth.uid || data.parent().parent().child('ownerId').val() === auth.uid)",
+            ".validate": "newData.val() === auth.uid"
+          }
+        },
+
+        "packing": {
+          "users": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid"
+            }
+          }
+        },
+
+        "shopping": {
+          "lists": {
+            "$listType": {
+              "$itemId": {
+                ".write": "auth != null"
+              }
+            }
+          },
+          "status": {
+            "$listType": {
+              ".write": "auth != null"
+            }
+          }
+        },
+
+        "places": {
+          "items": {
+            "$placeId": {
+              ".write": "auth != null"
+            }
+          }
+        },
+
+        "itinerary": {
+          "days": {
+            "$dayKey": {
+              "activities": {
+                "$activityId": {
+                  ".write": "auth != null"
+                }
+              }
+            }
+          }
+        },
+
+        "photos": {
+          "items": {
+            "$photoId": {
+              ".write": "auth != null"
+            }
+          }
+        },
+
+        "music": {
+          "items": {
+            "$musicId": {
+              ".write": "auth != null"
+            }
+          }
+        }
+      }
+    }
+  }
+}
