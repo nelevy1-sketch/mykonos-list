@@ -1,5 +1,32 @@
 # GitTrip — CHANGELOG
 
+## v4.72.17 — places.html: safeWrite() בשמונה פונקציות (אשכול 2, commit 4)
+
+### 🎯 מה השתנה
+נוסף `<script src="safeWrite.js">`, והוחל בשמונה פונקציות (תשעה ענפי כתיבה):
+
+שלוש הפונקציות שהוזכרו בבקשה - `saveEditComment()`, `saveEditReply()`, `sendReply()` - אותו דפוס בדיוק כמו `deleteComment`/`deleteReply` שכבר תוקנו באשכול 3.
+
+**הרחבת היקף** (כמו ב-packing.html/shopping.html): נמצאו עוד חמש פונקציות באותו קובץ עם אותו דפוס בדיוק (כתיבה לא מוגנת, toast-הצלחה/שינוי מצב כוזב) שלא הוזכרו בבקשה - נכללו באותו commit:
+
+1. **`toggleReaction()`** - `set()` על ריאקציה, לא מוגן בכלל.
+2. **`addComment()`** - `push()` לא מוגן; בכשלון, `$('commentInput').value=''` היה מתאפס למרות שהכתיבה נכשלה (טקסט שהמשתמש הקליד היה נעלם).
+3. **`toggleCommentLike()`** - `set()`/`remove()` על לייק, לא מוגן.
+4. **`saveMusic()`** - שני ענפים (`update()` לעדכון שיר קיים, `push()` להוספת שיר חדש) - שני context labels נפרדים: `saveMusic-update`/`saveMusic-add`.
+5. **`saveCaption()`** - `update()` על כיתוב תמונה, לא מוגן, בלי הודעת כשלון בכלל קודם.
+
+בכל אחת: כשלון עוצר לפני איפוס קלט/מצב עריכה (`editingCommentKey`/`replyingToCommentId` נשארים כמו שהיו) ומציג הודעת כשלון, במקום להניח הצלחה.
+
+### 🔍 מה שנבדק בפועל
+כל שמונה הפונקציות נבדקו בדפדפן עם hook זמני (הוסר ואומת שהוסר לפני push - `grep -n "__test" places.html` מחזיר קוד יציאה 1), עם כתיבות אמיתיות מול הפרויקט האמיתי ב-Firebase, דרך קליקים אמיתיים על ה-UI (תפריט "⋮"→"עריכה", טופס תגובה אמיתי, טופס מוזיקה אמיתי) ולא קריאה ישירה לפונקציה:
+
+- **כשלון אמיתי (`PERMISSION_DENIED`)** באחת: הודעת הכשלון הנכונה הוצגה, `console.error` נרשם עם ה-context label הנכון (`[safeWrite] <name>`), ומצב העריכה/הקלט **לא** התאפס - כולל `addComment` (טקסט "New comment text" נשאר בשדה) ו-`sendReply` (טקסט "New reply text" נשאר בשדה).
+- **הצלחה** (`window.safeWrite` מוחלף זמנית בפונקציה שמחזירה `true`, אין גישה לחשבון Google אמיתי בסביבה הזו): `saveMusic`'s add-branch סגר את הטופס נכון; `addComment` ניקה את השדה נכון; `toggleReaction`/`toggleCommentLike` הסתיימו בלי הודעת כשלון כוזבת. `saveEditComment`/`saveEditReply`/`sendReply` אימתו שהמצב הפנימי (`editingCommentKey=null`/`replyingToCommentId=null`) מתעדכן נכון בהצלחה - אבל ה-DOM לא משתקף מיד, כי שלוש הפונקציות האלה **גם בקוד המקורי, לפני השינוי הזה**, לא קראו ל-`renderComments()` אחרי הצלחה - הן מסתמכות על ה-listener החי של RTDB שירוץ מחדש render בעצמו. זה תוצר-לוואי של שיטת הבדיקה עם stub (אין round-trip אמיתי דרך ה-listener), לא רגרסיה - מתועד לשקיפות, באותה רוח כמו ממצא ה-self-correction ב-`itemsMap` שתועד ב-packing.html.
+
+`node --check` על התוכן המדויק שנכנס ל-commit - תקין. `node scripts/i18n-audit.js` - אין ממצאים חדשים (רק ממצאי shopping.html הידועים מראש).
+
+v4.72.16 -> v4.72.17 (patch - תיקון באג, אין שינוי סכימה).
+
 ## v4.72.16 — shopping.html: safeWrite() ב-updateBaseQty ו-addModalForm (אשכול 2, commit 3)
 
 ### 🎯 מה השתנה
