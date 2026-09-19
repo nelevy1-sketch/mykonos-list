@@ -37,6 +37,7 @@
   <script src="legBuilder.js"></script>
   <script src="member.js"></script>
   <script src="auth-gate.js"></script>
+  <script src="safeWrite.js"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -5806,10 +5807,21 @@
       // a released account no one can edit anymore.
       updates[`personalLocker/${uid}`] = null;
 
-      await db.ref(tripRoot).update(updates);
+      if (
+        !(await safeWrite(db.ref(tripRoot).update(updates), "releaseMember"))
+      ) {
+        customAlert(
+          tr(
+            "ניתוק החשבון נכשל. נסו שוב.",
+            "Failed to release the account. Please try again."
+          )
+        );
+
+        return;
+      }
     }
 
-    window.removeMemberTag = index => {
+    window.removeMemberTag = async index => {
       if (
         tripRoot &&
         !requireOrganizerAccess()
@@ -5831,12 +5843,29 @@
         );
       }
 
-      groupMembers.splice(index, 1);
-      saveTripCollection("group_members", groupMembers);
+      const updatedMembers = groupMembers.filter((_, i) => i !== index);
+
+      if (
+        !(await safeWrite(
+          saveTripCollection("group_members", updatedMembers),
+          "removeMemberTag"
+        ))
+      ) {
+        customAlert(
+          tr(
+            "הסרת השם נכשלה. נסו שוב.",
+            "Failed to remove the name. Please try again."
+          )
+        );
+
+        return;
+      }
+
+      groupMembers = updatedMembers;
       renderAdminTags();
     };
 
-    adminTagInput.addEventListener("keypress", event => {
+    adminTagInput.addEventListener("keypress", async event => {
       if (event.key !== "Enter") {
         return;
       }
@@ -5856,8 +5885,25 @@
         value &&
         !groupMembers.includes(value)
       ) {
-        groupMembers.push(value);
-        saveTripCollection("group_members", groupMembers);
+        const updatedMembers = [...groupMembers, value];
+
+        if (
+          !(await safeWrite(
+            saveTripCollection("group_members", updatedMembers),
+            "addMemberTag"
+          ))
+        ) {
+          customAlert(
+            tr(
+              "הוספת השם נכשלה. נסו שוב.",
+              "Failed to add the name. Please try again."
+            )
+          );
+
+          return;
+        }
+
+        groupMembers = updatedMembers;
         adminTagInput.value = "";
         renderAdminTags();
       }
@@ -6093,7 +6139,7 @@
       );
     }
 
-    window.savePersonalLockerCard = () => {
+    window.savePersonalLockerCard = async () => {
       const name = currentProfile?.name;
       const targetLegId = currentLockerLegId();
 
@@ -6204,11 +6250,23 @@
       };
 
       if (tripRoot) {
-        db.ref(
-          `${tripRoot}/personalLocker/${currentUser.uid}`
-        ).set(
-          personalLockerCards[currentUser.uid]
-        );
+        if (
+          !(await safeWrite(
+            db
+              .ref(`${tripRoot}/personalLocker/${currentUser.uid}`)
+              .set(personalLockerCards[currentUser.uid]),
+            "savePersonalLockerCard"
+          ))
+        ) {
+          customAlert(
+            tr(
+              "שמירת הכרטיס האישי נכשלה. נסו שוב.",
+              "Failed to save your ticket details. Please try again."
+            )
+          );
+
+          return;
+        }
       }
 
       updateLockerSummary();
@@ -7167,12 +7225,27 @@
           expenses: document.getElementById("adminFeatExpenses").checked
         };
 
-        enabledFeatures = { ...enabledFeatures, ...newFeatures };
+        const updatedFeatures = { ...enabledFeatures, ...newFeatures };
 
         if (db && tripRoot) {
-          await db.ref(`${tripRoot}/features`).update(newFeatures);
+          if (
+            !(await safeWrite(
+              db.ref(`${tripRoot}/features`).update(newFeatures),
+              "saveModulesBtn"
+            ))
+          ) {
+            customAlert(
+              tr(
+                "שמירת המודולים נכשלה. נסו שוב.",
+                "Failed to save modules. Please try again."
+              )
+            );
+
+            return;
+          }
         }
 
+        enabledFeatures = updatedFeatures;
         applyFeatureVisibility();
         closeAdminModal();
 
@@ -7608,7 +7681,18 @@
               newTripTitle || null;
           }
 
-          db.ref().update(updates);
+          if (
+            !(await safeWrite(db.ref().update(updates), "saveFlightBtn"))
+          ) {
+            customAlert(
+              tr(
+                "שמירת הגדרות הטיול נכשלה. נסו שוב.",
+                "Failed to save trip settings. Please try again."
+              )
+            );
+
+            return;
+          }
         }
 
         closeAdminModal();
