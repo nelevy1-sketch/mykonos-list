@@ -478,6 +478,35 @@
       display: none;
     }
 
+    /* Mouse users have no touch gesture and the scrollbar above is hidden by
+       default - same gap already fixed for packing.html's .quick-picks (see
+       its CSS comment for why this is a real reachability gap, not just
+       undiscoverable, and why a wheel-to-horizontal JS listener was rejected
+       in favor of this). Hardcoded rgba here, not var(--line): this page
+       isn't registered to [data-tokens="core"], and --line has no local
+       alias here the way --glow-color does - matches the rgba already used
+       for this card's own border-top just above. */
+    @media (hover: hover) and (pointer: fine) {
+      .forecast-strip {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,.4) transparent;
+      }
+
+      .forecast-strip::-webkit-scrollbar {
+        display: block;
+        height: 5px;
+      }
+
+      .forecast-strip::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .forecast-strip::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,.4);
+        border-radius: 999px;
+      }
+    }
+
     .forecast-day {
       flex: 0 0 auto;
       display: flex;

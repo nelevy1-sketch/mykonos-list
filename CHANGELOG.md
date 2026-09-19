@@ -1,5 +1,23 @@
 # GitTrip — CHANGELOG
 
+## v4.72.19 — scrollbar עכבר לרצועות גוללות אופקיות (אשכול 6, ממצא 1)
+
+### 🎯 מה השתנה
+`.day-tabs`/`.filter-chips` (itinerary.html), `.filter-chips` (places.html), `.forecast-strip` (index.html) - כולן היו עם `overflow-x:auto` + `scrollbar-width:none` בלי שום fallback למשתמשי עכבר (בלי touch gesture, ובלי scrollbar נראה - אין דרך להגיע לתוכן שגלש). אותו דפוס בדיוק שכבר תוקן ב-`.quick-picks`/`.category-chips` (packing.html) - **לא** wheel-listener (זה נשקל ונדחה שם במפורש, ר' ההערה ב-CSS) אלא `@media (hover:hover) and (pointer:fine)` שמחזיר scrollbar דק וגלוי רק למכשירי עכבר אמיתיים.
+
+**הרחבת היקף מאושרת מראש**: `.filter-chips` (itinerary.html **וגם** places.html - שני קבצים נפרדים, אותה מחלקה, בלי CSS משותף) לא הוזכר בדוח המקורי אבל אותו באג בדיוק - תוקן באותו commit לפי בקשה מפורשת.
+
+**הבדל מכוון בין הקבצים**: `itinerary.html`/`places.html` על `[data-tokens="core"]` - `var(--line)` מוגדר ומעוצב לפי ערכת הנושא (אומת: `#C7DFDC` באור, `#223038` בכהה, שניהם עובדים). `index.html` **לא** רשום ל-`core` ו-`--line` **לא קיים בו בכלל** (בניגוד ל-`--glow-color` שכן שוכפל מקומית) - שימוש עיוור ב-`var(--line)` שם היה נופל ל-scrollbar בצבע ברירת-מחדל של הדפדפן, לא צבע ממותג. נעשה שימוש ב-rgba קשיח (`rgba(255,255,255,.4)`) תואם לשכנים הקיימים של forecast-strip (`border-top: rgba(255,255,255,.16)`).
+
+**באג שנתפס ותוקן תוך כדי הבדיקה**: הבלוק הראשון שנכתב ל-`.forecast-strip` כלל רק `scrollbar-color` בלי `scrollbar-width:thin` - `scrollbar-width:none` מהכלל הבסיסי המשיך לנצח (`getComputedStyle` הראה `scrollbarWidth:"none"` בפועל). תוקן להוסיף את שתי המאפיינים יחד, כמו בשלושת המקומות האחרים.
+
+### 🔍 מה שנבדק בפועל
+לכל אחד מארבעת המקומות: `getComputedStyle` על אלמנט אמיתי מהקובץ אישר `scrollbarColor`/`scrollbarWidth` נכונים - גם במצב בהיר וגם כהה (עבור itinerary/places). אומת גם שבמצב מגע (`resize_window` preset מובייל, מדמה touch) `hover:hover` **לא** תואם ו-`scrollbar-width` נשאר `none` - ההתנהגות המקורית במגע לא נפגעה. שני צילומי מסך בהקשר העמוד המלא (`.forecast-strip` ב-index.html, `.day-tabs` ב-itinerary.html) מראים scrollbar דק וגלוי מתחת לרצועה.
+
+`node scripts/i18n-audit.js` - אין ממצאים חדשים (רק ממצאי shopping.html הידועים מראש). שינוי CSS בלבד, אין JS חדש שדורש `node --check`.
+
+v4.72.18 -> v4.72.19 (patch - תיקון באג, אין שינוי סכימה).
+
 ## v4.72.18 — itinerary.html: safeWrite() בארבע פונקציות (אשכול 2, commit 5 - סגירה)
 
 ### 🎯 מה השתנה
