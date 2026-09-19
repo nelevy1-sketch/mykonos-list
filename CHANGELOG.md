@@ -1,5 +1,28 @@
 # GitTrip — CHANGELOG
 
+## v4.72.15 — packing.html: safeWrite() בשבע פונקציות (אשכול 2, commit 2)
+
+### 🎯 מה השתנה
+נוסף `<script src="safeWrite.js">`, והוחל ב-7 פונקציות שכתבו ל-RTDB בלי `try/catch` (או בלי `await` בכלל), עם UI-הצלחה שרץ תמיד ללא תנאי:
+
+`createListReturningId`/`createList`, `duplicateList`, `setListVisibility`, `bulkToggleDone`, `bulkToggleShared`, `confirmBulkMove`, `saveEdit` (שני הענפים - שינוי-מקום ו"נשאר באותה רשימה", עם שני context labels נפרדים ל-`safeWrite`: `saveEdit-move`/`saveEdit`).
+
+בכל אחת: קפיצת `activeList` (ב-`createList`/`duplicateList`/`saveEdit`'s move-branch) עברה להתבצע **רק אחרי** `safeWrite` מוצלח - בדיוק כמו שכבר תוקן ל-`deleteList` באשכול 3, לא לפני. `bulkToggleDone`/`bulkToggleShared`/`confirmBulkMove` - `setSelectionMode(false)` (שמנקה את הבחירה) גם הוא רץ רק אחרי הצלחה, לא לפני - כשלון משאיר את הבחירה כמו שהייתה, לא "תקוע" ולא נמחקת בטעות.
+
+`createList()` עצמה קיבלה תיקון קטן נוסף: הבדיקה `if (!trimmed) return;` עברה **לפני** הקריאה ל-`createListReturningId`, כדי ש"שם ריק" (מקרה תקין, שקט) יישאר מובחן מ"הכתיבה נכשלה" (כשלון אמיתי, דורש הודעה) - שני המקרים היו מתכנסים לאותו `if (!id) return;` שקט קודם.
+
+### 🔍 מה שנבדק בפועל
+כל 7 הפונקציות (8 עם שני ענפי `saveEdit`) נבדקו בדפדפן עם hook זמני (הוסר ואומת שהוסר לפני push), עם כתיבות אמיתיות מול הפרויקט האמיתי ב-Firebase:
+- **כשלון אמיתי (`PERMISSION_DENIED`)** בכל אחת - הודעת כשלון נכונה הוצגה, `console.error` נרשם עם ה-context הנכון, ו-`activeList`/`selectionMode`/`selectedIds`/מודאלים (`editOverlay`) **לא** השתנו/נסגרו.
+- **`saveEdit`'s move-branch ספציפית** - נבדק פעמיים: פעם ראשונה עם `editListSelect` לא מאוכלס נכון (חשף פער בבדיקה שלי עצמה, לא בקוד - `<select>.value` לא נתפס בלי `<option>` תואם), ואז שוב דרך `openEdit()` האמיתית שממלאת את האפשרויות כמו שהמשתמש היה רואה - אישר ש-`activeList` נשאר על הקטגוריה המקורית בכשלון.
+- **הצלחה** (`safeWrite` מוחלף זמנית בפונקציה שמחזירה `true`, אין גישה לחשבון Google אמיתי בסביבה הזו) - `saveEdit`'s move-branch קפץ נכון ל-`activeList` החדש וסגר את המודאל; `bulkToggleDone` ניקה את מצב הבחירה נכון.
+
+**ממצא צדדי, לא קשור לתיקון הזה**: בבדיקת ההצלחה של `createList`/`duplicateList` נצפה ש-`activeList` קופץ לרגע לרשימה החדשה ואז חוזר ל-`"all"` - התברר שזה מנגנון תיקון-עצמי **קיים מראש ומתועד** ב-`renderLists()` (משם: "activeList קיים ותקין? אם לא, all") שמפעיל את עצמו בכל פעם ש-`activeList` לא נמצא עדיין ב-`ids` המקומי - וזה קורה כאן רק כי ה-stub לא עדכן את `items` המקומי כמו כתיבה אמיתית הייתה עושה (דרך ה-listener). לא נגרם ע"י השינוי הזה, ולא בהיקף המשימה.
+
+`node --check` על התוכן המדויק שנכנס ל-commit - תקין. `node scripts/i18n-audit.js` - אין ממצאים חדשים.
+
+v4.72.14 -> v4.72.15 (patch - תיקון באג, אין שינוי סכימה).
+
 ## v4.72.14 — index.html: safeWrite() בחמש נקודות כתיבה שקטות (אשכול 2, commit 1)
 
 ### 🎯 מה השתנה

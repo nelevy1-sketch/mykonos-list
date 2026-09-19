@@ -53,6 +53,7 @@
   <script src="permissions.js"></script>
   <script src="member.js"></script>
   <script src="auth-gate.js"></script>
+  <script src="safeWrite.js"></script>
 
   <style>
     /* design tokens, dark mode, bottom nav, sheets and dialogs live in shared.css
@@ -2203,18 +2204,38 @@
 
       const id = `list_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-      await set(
-        ref(db, `${userBase()}/listMeta/${id}`),
-        { name: trimmed, createdAt: Date.now() }
-      );
+      if (
+        !(await window.safeWrite(
+          set(ref(db, `${userBase()}/listMeta/${id}`), {
+            name: trimmed,
+            createdAt: Date.now()
+          }),
+          "createListReturningId"
+        ))
+      ) {
+        return null;
+      }
 
       return id;
     }
 
     async function createList(name) {
-      const id = await createListReturningId(name);
+      const trimmed = (name || "").trim();
+
+      if (!trimmed) {
+        return;
+      }
+
+      const id = await createListReturningId(trimmed);
 
       if (!id) {
+        toast(
+          tr(
+            "יצירת הרשימה נכשלה. נסו שוב.",
+            "Failed to create the list. Please try again."
+          )
+        );
+
         return;
       }
 
@@ -2253,7 +2274,16 @@
         updates[`${userBase()}/items/${newId}/${id}`] = item;
       });
 
-      await update(ref(db), updates);
+      if (!(await window.safeWrite(update(ref(db), updates), "duplicateList"))) {
+        toast(
+          tr(
+            "שכפול הרשימה נכשל. נסו שוב.",
+            "Failed to duplicate the list. Please try again."
+          )
+        );
+
+        return;
+      }
 
       activeList = newId;
       $("manageListOverlay").classList.add("hidden");
@@ -2275,7 +2305,14 @@
         updates[`${userBase()}/items/${activeList}/${id}/isPublic`] = isPublic;
       });
 
-      await update(ref(db), updates);
+      if (!(await window.safeWrite(update(ref(db), updates), "setListVisibility"))) {
+        toast(
+          tr("השינוי נכשל. נסו שוב.", "The change failed. Please try again.")
+        );
+
+        return;
+      }
+
       $("manageListOverlay").classList.add("hidden");
 
       toast(
@@ -3698,7 +3735,14 @@
         updates[`${userBase()}/items/${categoryId}/${id}/isDone`] = !allDone;
       });
 
-      await update(ref(db), updates);
+      if (!(await window.safeWrite(update(ref(db), updates), "bulkToggleDone"))) {
+        toast(
+          tr("העדכון נכשל. נסו שוב.", "Failed to update. Please try again.")
+        );
+
+        return;
+      }
+
       setSelectionMode(false);
     }
 
@@ -3722,7 +3766,14 @@
         updates[`${userBase()}/items/${categoryId}/${id}/isPublic`] = !allShared;
       });
 
-      await update(ref(db), updates);
+      if (!(await window.safeWrite(update(ref(db), updates), "bulkToggleShared"))) {
+        toast(
+          tr("העדכון נכשל. נסו שוב.", "Failed to update. Please try again.")
+        );
+
+        return;
+      }
+
       setSelectionMode(false);
     }
 
@@ -3801,7 +3852,14 @@
         return;
       }
 
-      await update(ref(db), updates);
+      if (!(await window.safeWrite(update(ref(db), updates), "confirmBulkMove"))) {
+        toast(
+          tr("ההעברה נכשלה. נסו שוב.", "Failed to move. Please try again.")
+        );
+
+        return;
+      }
+
       $("bulkMoveOverlay").classList.add("hidden");
       setSelectionMode(false);
 
@@ -4353,24 +4411,43 @@
       if (targetList && targetList !== sourceList) {
         const existingItem = items?.[sourceList]?.[editingId];
 
-        await update(ref(db), {
-          [`${userBase()}/items/${sourceList}/${editingId}`]: null,
-          [`${userBase()}/items/${targetList}/${editingId}`]: {
-            ...existingItem,
-            ...fields
-          }
-        });
+        if (
+          !(await window.safeWrite(
+            update(ref(db), {
+              [`${userBase()}/items/${sourceList}/${editingId}`]: null,
+              [`${userBase()}/items/${targetList}/${editingId}`]: {
+                ...existingItem,
+                ...fields
+              }
+            }),
+            "saveEdit-move"
+          ))
+        ) {
+          toast(
+            tr("השמירה נכשלה. נסו שוב.", "Failed to save. Please try again.")
+          );
+
+          return;
+        }
 
         activeList = targetList;
         toast(tr("הפריט הועבר", "Item moved"));
       } else {
-        await update(
-          ref(
-            db,
-            `${userBase()}/items/${sourceList}/${editingId}`
-          ),
-          fields
-        );
+        if (
+          !(await window.safeWrite(
+            update(
+              ref(db, `${userBase()}/items/${sourceList}/${editingId}`),
+              fields
+            ),
+            "saveEdit"
+          ))
+        ) {
+          toast(
+            tr("השמירה נכשלה. נסו שוב.", "Failed to save. Please try again.")
+          );
+
+          return;
+        }
       }
 
       $("editOverlay")
