@@ -67,6 +67,7 @@
 <script src="datetime.js"></script>
 <script src="member.js"></script>
 <script src="auth-gate.js"></script>
+<script src="safeWrite.js"></script>
 
 <title>רשימת קניות | Trip Companion</title>
 
@@ -4052,7 +4053,16 @@ body.modal-open .modal-card {
       return;
     }
 
-    runTransaction(ref(db, `${listPath(currentListType)}/${id}/qty`), current => ((parseInt(current) || 1) + delta).toString());
+    if (
+      !(await window.safeWrite(
+        runTransaction(ref(db, `${listPath(currentListType)}/${id}/qty`), current => ((parseInt(current) || 1) + delta).toString()),
+        "updateBaseQty"
+      ))
+    ) {
+      showToast(tr('העדכון נכשל. נסו שוב.', 'Failed to update. Please try again.'));
+      return;
+    }
+
     showToast(tr('הכמות עודכנה בהצלחה', 'Quantity updated'), true);
   }
 
@@ -4086,24 +4096,44 @@ body.modal-open .modal-card {
       
       if (shouldUpdate) {
         saveUndoBackup(existingKey);
-        runTransaction(ref(db, `${listPath(currentListType)}/${existingKey}/qty`), current => ((parseInt(current) || 1) + inputQty).toString());
+
+        if (
+          !(await window.safeWrite(
+            runTransaction(ref(db, `${listPath(currentListType)}/${existingKey}/qty`), current => ((parseInt(current) || 1) + inputQty).toString()),
+            "addModalForm-updateQty"
+          ))
+        ) {
+          showToast(tr('העדכון נכשל. נסו שוב.', 'Failed to update. Please try again.'));
+          return;
+        }
+
         showToast(tr(`עודכן ל-${targetQty} ${unit}`, `Updated to ${targetQty} ${unit}`), true);
       }
     } else {
       const newItemRef = push(listRef);
-      set(newItemRef, {
-        name: normalizedName,
-        qty: inputQty.toString(),
-        unit: unit,
-        category: detectedCategory,
-        by: user,
-        buyer: '',
-        done: false,
-        isPriority: false,
-        auditStatus: '',
-        personalQtyMap: {},
-        notes: note ? [note] : []
-      });
+
+      if (
+        !(await window.safeWrite(
+          set(newItemRef, {
+            name: normalizedName,
+            qty: inputQty.toString(),
+            unit: unit,
+            category: detectedCategory,
+            by: user,
+            buyer: '',
+            done: false,
+            isPriority: false,
+            auditStatus: '',
+            personalQtyMap: {},
+            notes: note ? [note] : []
+          }),
+          "addModalForm-newItem"
+        ))
+      ) {
+        showToast(tr('הוספת הפריט נכשלה. נסו שוב.', 'Failed to add the item. Please try again.'));
+        return;
+      }
+
       showToast(tr(`הוספנו את "${normalizedName}" לרשימה`, `Added "${normalizedName}" to the list`));
     }
 
