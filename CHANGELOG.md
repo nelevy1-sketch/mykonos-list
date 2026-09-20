@@ -1,5 +1,33 @@
 # GitTrip — CHANGELOG
 
+## v4.77.0 — עמוד "ההישגים שלי" - שלד (שלב 1/4, בלי דאטה אמיתית)
+
+### 🎯 מה השתנה
+עמוד חדש, `achievements.html` - שלד בלבד לאשכול הגיימיפיקציה: גלובוס + choropleth (צבע-בסיס אחיד, עוד בלי ביקורים אמיתיים) + atmosphere, במסך מלא (לא bottom-sheet), בהקשר-אמיתי של האפליקציה (auth flow, dark mode, hamburger menu, Firebase Hosting) - לא בסביבת-בדיקה מבודדת כמו `globe-test.html`.
+
+**קישור חדש בתפריט ההמבורגר** - `#achievementsLink` ("🏆 ההישגים שלי"), מוסתר כש-`!user` (בניגוד ל-`showcaseLink` הסמוך, שתמיד גלוי) - "ההישגים שלי" חסר משמעות למשתמש לא-מחובר, זה דאטה אישית חוצת-טיולים.
+
+**עמוד חדש, לא אחד משאר 5 הדפים המבוססי-טיול** - במפורש **לא** נטענים: `legs.js`/`legBuilder.js` (כל פונקציה בשניהם פועלת על `legs` של טיול בודד - אין טיול יחיד כאן), `permissions.js` (הפונקציה היחידה שם משווה משתמש ל-`ownerId` של טיול - אין מה להשוות כאן), `member.js` (קורא `trips/{tripId}/memberProfiles` - אין tripId). **בלי bottom-nav** - מוצג/מוסתר לפי `data-feature`/`enabledFeatures` של טיול ספציפי (`index.html`'s `applyFeatureVisibility`), שאין להם מקבילה כאן - אותו תקדים בדיוק כמו `wizard.html`/`gittrip-showcase.html`, שני העמודים היחידים האחרים שמגיעים מחוץ לזרימת-הטיול, ששניהם גם משמיטים את ה-bottom-nav. **מצב כהה בזיכרון-מפתח נפרד** (`achievementsDarkMode`, לא `trip-{tripId}-theme` של `itinerary.html`) - `data-theme` על `documentElement` ישירות (לא על `body` כמו הפתרון הישן של `index.html`, שהיה תיקון-עקיפה למגבלה היסטורית ספציפית שלא רלוונטית לעמוד חדש).
+
+**globe.gl מוטמע בדיוק לפי השיטה שאומתה ב-`globe-test.html`** - dynamic import של `globe.gl.min.js` (לא +esm), זיהוי-פורמט AVIF/WebP/JPEG אמיתי (לא `<picture>` - הטקסטורה עוברת דרך Three.js TextureLoader), טעינה פרוגרסיבית עם placeholder, ותיקון ה-double-fetch (commit `d417bc3`) מובנה מההתחלה - `globeImageUrl()` נקרא ישירות עם הפורמט הנבחר, לא דרך preload נפרד.
+
+**טקסטורות הועתקו (לא הועברו) למיקום קבוע חדש**, `globe-assets/` - `globe-test-assets/` וגם `globe-test.html` עצמו נשארו בדיוק כפי שהיו, לא נגעו. `firebase.json` קיבל כלל `Cache-Control` מקביל (`immutable, max-age=31536000`) לתיקייה החדשה - חריגה קטנה ומכוונת ל"אל תיגע בקובץ אחר" כדי לא לשלוח את הטקסטורות החדשות עם caching חלש יותר משכבר תוקן.
+
+**ידוע ומוכר, נדחה לשלב אחר**: אין תמיכה באנגלית בעמוד הזה בכלל (אין `tr()`, אין `dashboardText` מקביל) - בניגוד לכל שאר העמודים. שלד-בדיקה בלבד, לא הוחלט בטעות - יתווסף כשהפיצ'ר עצמו מתקדם.
+
+### 🔍 מה שנבדק בפועל
+בדפדפן, עם hook-בדיקה זמני שהוסר ואומת שהוסר לפני ה-commit:
+1. שער-כניסה (לא מחובר) - מוצג נכון, כניסה עם Google.
+2. משתמש מדומה מחובר - הגלובוס נבנה, choropleth+atmosphere מוצגים נכון במסך מלא.
+3. טקסטורה - `globe-assets/earth-blue-marble.avif`, **בקשת רשת אחת בלבד** (לא 2 - אומת ישירות ב-Resource Timing, לא הונח).
+4. מצב כהה/בהיר - טוגל עובד, `achievementsDarkMode` נשמר נכון, לא משפיע על FPS.
+5. FPS - 30 (דסקטופ) / 60 (מובייל, גרירה אמיתית עם האצבע) - עקבי עם הבסיס שכבר אושר ב-`globe-test.html`, אין רגרסיה מהאינטגרציה לעמוד האמיתי.
+6. קישור התפריט - `href`/`aria-label`/נראות-לפי-משתמש נכונים, נבדק דרך `handleAuthStateChanged` אמיתי ב-`index.html`.
+
+`node --check` על סקריפט ה-module. `scripts/i18n-audit.js` - 0 ממצאים חדשים (אבל ר' ההערה למעלה - זה כי אין תשתית i18n בעמוד בכלל, לא כי הכיסוי מלא).
+
+**תכונה חדשה (עמוד + קישור) → minor bump.**
+
 ## v4.76.2 — תיקון: "חזרה לתפריט" - openMenu=1 נשמר דרך redirect פנימי
 
 ### 🎯 מה השתנה

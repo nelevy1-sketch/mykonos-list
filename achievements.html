@@ -1,0 +1,344 @@
+<!doctype html>
+<!-- GitTrip - version tracked in version.js
+     Stage 1/4 of the gamification achievement-map feature - skeleton only.
+     Globe + choropleth (uniform placeholder color) + atmosphere, real
+     integration (auth, dark mode, hamburger menu, Firebase Hosting) -
+     NO real visit data yet (users/{uid}/visits, countryContinent.js) and
+     NO country/city/continent toggle yet. Both are separate later stages.
+
+     Cross-trip page, deliberately NOT structured like the 5 trip-scoped
+     module pages (itinerary/packing/shopping/places) despite sharing most
+     of their conventions - there is no single tripId here ("my
+     achievements" spans every trip), so several trip-scoped pieces those
+     pages load are intentionally NOT loaded here:
+     - legs.js/legBuilder.js: every function in both operates on one
+       trip's own `legs` array - no such single trip exists on this page.
+     - permissions.js: its one function compares a user to a single trip's
+       ownerId - nothing to compare against here.
+     - member.js: reads trips/{tripId}/memberProfiles/{uid} - no tripId.
+     - bottom-nav: gated per-trip by data-feature/enabledFeatures
+       (index.html's applyFeatureVisibility) - no trip to read that from.
+       Same precedent already set by wizard.html and gittrip-showcase.html,
+       the two other pages reached outside the per-trip flow - both omit
+       it too.
+     Dark mode uses its own non-trip-scoped localStorage key
+     (achievementsDarkMode, mirroring index.html's indexDarkMode - the
+     other page with no single trip in scope for theming) rather than
+     itinerary.html's trip-{tripId}-theme - and data-theme lives on
+     documentElement directly (the plain, correct form - index.html's own
+     body-scoped variant is a workaround for THAT page's specific legacy
+     history, not something to repeat in a new page that has no such
+     history). No theme-{tripType} accent class either - that's a
+     per-trip "character" concept this cross-trip page has no value for.
+-->
+<html lang="he" dir="rtl" data-tokens="core">
+<head>
+<script>
+(function () {
+  var savedTheme = localStorage.getItem('achievementsDarkMode');
+  var shouldStartDark =
+    savedTheme === 'dark'
+      ? true
+      : savedTheme === 'light'
+        ? false
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  if (shouldStartDark) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+})();
+</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0B1015">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GitTrip">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png">
+  <title>ההישגים שלי</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <script src="version.js"></script>
+  <script src="toast.js"></script>
+  <script src="auth-gate.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      background: var(--bg);
+      overflow: hidden;
+      height: 100dvh;
+      margin: 0;
+    }
+    body {
+      color: var(--text);
+      font-family: 'Assistant', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    button { font: inherit; cursor: pointer; }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      padding: max(14px, env(safe-area-inset-top)) 16px 10px;
+    }
+    .page-head h1 {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--primary-dark);
+    }
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      flex: 0 0 auto;
+    }
+
+    /* Full-screen globe, not a bottom-sheet - this is the whole point of
+       stage 1: confirm the choropleth+atmosphere layer renders correctly
+       at real page size/position, not the artificial sandbox layout
+       globe-test.html used. */
+    #globeContainer {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+    }
+
+    #fpsHud {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      inset-inline-end: 8px;
+      z-index: 5;
+      background: rgba(0, 0, 0, 0.55);
+      color: #7f7;
+      font: 700 13px/1.3 "SF Mono", Consolas, monospace;
+      padding: 4px 8px;
+      border-radius: 8px;
+      pointer-events: none;
+      direction: ltr;
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
+
+<div class="overlay hidden" id="loginOverlay">
+  <div class="sheet login">
+    <div class="handle"></div>
+    <h2 id="loginTitle">כניסה נדרשת</h2>
+    <p id="loginText">ההישגים שלך אישיים - יש להתחבר עם Google כדי לראות אותם.</p>
+    <button class="google-btn" id="googleBtn">G&nbsp;&nbsp; כניסה עם Google</button>
+  </div>
+</div>
+
+<div class="hidden" id="appContainer" style="display:flex;flex-direction:column;flex:1;min-height:0">
+  <header class="page-head">
+    <a class="icon-btn" href="index.html" aria-label="חזרה לתפריט" title="חזרה לתפריט">⌂</a>
+    <h1>🏆 ההישגים שלי</h1>
+    <button class="icon-btn" id="themeBtn" aria-label="החלפת מצב תצוגה" title="החלפת מצב תצוגה">🌙</button>
+  </header>
+
+  <div id="globeContainer"></div>
+</div>
+
+<div id="fpsHud">FPS --</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getRedirectResult, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// Same project config as every other page - no database import yet
+// (stage 1 has no real data to read: users/{uid}/visits comes in stage 2).
+const config = {
+  apiKey: "AIzaSyDhTtqVrBiKfKLxdOVmd_XwBEJm5oh_vMg",
+  authDomain: "gittrip.app",
+  databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
+  projectId: "mykonos-list",
+  storageBucket: "mykonos-list.firebasestorage.app",
+  messagingSenderId: "471388041921",
+  appId: "1:471388041921:web:c0100252c6397f67dc1a40",
+  measurementId: "G-0VXCEZ117S"
+};
+const app = initializeApp(config), auth = getAuth(app), provider = new GoogleAuthProvider();
+
+const $ = id => document.getElementById(id);
+
+// --- Theme toggle (own key, own element - see the file header comment
+// for why this isn't itinerary.html's trip-scoped version). ---
+function applyTheme() {
+  const stored = localStorage.getItem('achievementsDarkMode');
+  const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const shouldBeDark = stored === 'dark' ? true : stored === 'light' ? false : systemDark;
+
+  if (shouldBeDark) document.documentElement.dataset.theme = 'dark';
+  else delete document.documentElement.dataset.theme;
+
+  $('themeBtn').textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
+}
+$('themeBtn').onclick = () => {
+  localStorage.setItem('achievementsDarkMode', document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  applyTheme();
+};
+applyTheme();
+
+// --- Auth gate - identical mechanics to itinerary.html's (doGoogleSignIn,
+// the popup->redirect fallback, getRedirectResult, armAuthGate watchdog)
+// which has no tripId dependency in any of those parts. The one part that
+// WAS tripId-dependent there (listen() vs toast('Missing tripId')) doesn't
+// carry over - there's nothing to listen to yet in stage 1. ---
+function doGoogleSignIn() {
+  signInWithPopup(auth, provider).catch(error => {
+    const fallbackCodes = [
+      "auth/popup-blocked", "auth/popup-closed-by-user",
+      "auth/cancelled-popup-request", "auth/web-storage-unsupported",
+      "auth/operation-not-supported-in-this-environment"
+    ];
+    if (fallbackCodes.includes(error?.code) || /missing initial state/i.test(error?.message || "")) {
+      signInWithRedirect(auth, provider);
+    } else if (window.toast) {
+      window.toast(error.message, "error");
+    }
+  });
+}
+getRedirectResult(auth).catch(error => {
+  if (window.toast) window.toast(error.message, "error");
+});
+$('googleBtn').onclick = doGoogleSignIn;
+
+function handleAuthStateChanged(user) {
+  $('authLoading').classList.add('hidden');
+  $('loginOverlay').classList.toggle('hidden', !!user);
+  $('appContainer').classList.toggle('hidden', !user);
+
+  if (user && !globeStarted) {
+    globeStarted = true;
+    startGlobe();
+  }
+}
+onAuthStateChanged(auth, handleAuthStateChanged);
+if (window.armAuthGate) {
+  window.armAuthGate(() => { if (auth.currentUser) handleAuthStateChanged(auth.currentUser); });
+}
+
+// --- Globe: ported from globe-test.html, verified there first (including
+// the double-fetch fix from commit d417bc3 - globeImageUrl() is called
+// directly with the chosen format's URL, never through a separate
+// preload()+decode() step, which measurably doubled the real network
+// cost of the texture when tried). Only the texture path changed (moved
+// from globe-test-assets/ to globe-assets/, a copy not a move - the old
+// test page keeps working unaffected). No FPS debug report panel here
+// (that lived in globe-test.html only) - just the small always-visible
+// counter, since this stage is still explicitly a performance check, not
+// the finished feature. ---
+let globeStarted = false;
+
+(function startFpsCounter() {
+  const fpsEl = $('fpsHud');
+  let frames = 0;
+  let lastReportAt = performance.now();
+
+  function tick(now) {
+    frames++;
+    const elapsed = now - lastReportAt;
+    if (elapsed >= 500) {
+      const fps = Math.round((frames * 1000) / elapsed);
+      fpsEl.textContent = `FPS ${fps}`;
+      fpsEl.style.color = fps >= 50 ? "#7f7" : fps >= 30 ? "#fd7" : "#f77";
+      frames = 0;
+      lastReportAt = now;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+})();
+
+const AVIF_TEST = "data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAG1pZjFhdmlmbWlhZgAAANZtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAACJpbG9jAAAAAERAAAEAAQAAAAAA+gABAAAAAAAAACQAAAAjaWluZgAAAAAAAQAAABVpbmZlAgAAAAABAABhdjAxAAAAAA5waXRtAAAAAAABAAAAVmlwcnAAAAA4aXBjbwAAAAxhdjFDgSACAAAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAABZpcG1hAAAAAAAAAAEAAQOBAgMAAAAsbWRhdBIACgc4AAaQENBpMhcZQmMEwAA0AACQQMkcYUuNGtYQVLH7IA==";
+const WEBP_TEST = "data:image/webp;base64,UklGRjgAAABXRUJQVlA4ICwAAACQAQCdASoBAAEAAsBMJaACdLoAA5gA/u5DH+5sc4twV/9tD/9aH/60P+lAAA==";
+
+function canDecodeFormat(dataUri) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth > 0);
+    img.onerror = () => resolve(false);
+    img.src = dataUri;
+  });
+}
+
+const TEXTURE_BASE = "globe-assets/earth-blue-marble";
+const PLACEHOLDER_URL = TEXTURE_BASE + "-placeholder.jpg";
+
+async function pickBestTextureFormat() {
+  const [avifOk, webpOk] = await Promise.all([canDecodeFormat(AVIF_TEST), canDecodeFormat(WEBP_TEST)]);
+  if (avifOk) return TEXTURE_BASE + ".avif";
+  if (webpOk) return TEXTURE_BASE + ".webp";
+  return TEXTURE_BASE + ".jpg";
+}
+
+async function startGlobe() {
+  await import("https://cdn.jsdelivr.net/npm/globe.gl@2/dist/globe.gl.min.js");
+  const Globe = window.Globe;
+
+  const topoRes = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+  const topology = await topoRes.json();
+
+  await import("https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js");
+  const countries = window.topojson.feature(topology, topology.objects.countries);
+
+  const world = Globe()($('globeContainer'))
+    .width($('globeContainer').clientWidth)
+    .height($('globeContainer').clientHeight)
+    .globeImageUrl(PLACEHOLDER_URL)
+    .backgroundColor("rgba(0,0,0,0)")
+    // Uniform placeholder color for every country - no real visit data
+    // yet (stage 2). Only verifying the layer renders at the right
+    // size/position on the real full-screen page here.
+    .polygonsData(countries.features)
+    .polygonCapColor(() => "rgba(46, 204, 113, 0.65)")
+    .polygonSideColor(() => "rgba(0, 0, 0, 0.15)")
+    .polygonStrokeColor(() => "#111")
+    .polygonAltitude(0.01)
+    .polygonsTransitionDuration(0)
+    .showAtmosphere(true)
+    .atmosphereColor("#3a9bdc")
+    .atmosphereAltitude(0.15);
+
+  window.addEventListener("resize", () => {
+    world.width($('globeContainer').clientWidth).height($('globeContainer').clientHeight);
+  });
+
+  pickBestTextureFormat()
+    .then(url => {
+      $('globeContainer').style.transition = "opacity 150ms ease";
+      $('globeContainer').style.opacity = "0.55";
+      setTimeout(() => {
+        world.globeImageUrl(url);
+        setTimeout(() => { $('globeContainer').style.opacity = "1"; }, 60);
+      }, 150);
+    })
+    .catch(err => console.warn("[achievements] texture upgrade failed, staying on placeholder", err));
+}
+</script>
+
+</body>
+</html>

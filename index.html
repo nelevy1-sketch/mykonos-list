@@ -2493,6 +2493,17 @@
           <span id="hamburgerShareText">שיתוף ההזמנה</span>
         </a>
 
+        <!-- Gated on !user like tripsLink/newTripLink above (unlike
+             showcaseLink below) - "my achievements" has no meaning signed
+             out, it's cross-trip personal data (users/{uid}/visits, from
+             stage 2 on - gamification investigation). Stage 1 (this
+             commit) is skeleton only: globe + choropleth in a uniform
+             placeholder color, no real visit data yet. -->
+        <a id="achievementsLink" class="menu-item hidden" href="achievements.html" aria-label="ההישגים שלי" title="ההישגים שלי">
+          <span class="menu-item-icon">🏆</span>
+          <span id="achievementsLinkText">ההישגים שלי</span>
+        </a>
+
         <!-- Not gated on !user like tripsLink/newTripLink/hamburgerShareBtn
              above - this needs no signed-in user's data, same reasoning as
              darkModeToggle staying unconditionally visible. Same tab (no
@@ -3206,6 +3217,7 @@
         tripsLinkText: "הטיולים שלי",
         newTripLinkText: "יצירת טיול חדש",
         hamburgerShareText: "שיתוף ההזמנה",
+        achievementsLinkText: "ההישגים שלי",
         showcaseLinkText: "מה זה GitTrip?",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
@@ -3304,6 +3316,7 @@
         tripsLinkText: "My trips",
         newTripLinkText: "Create a new trip",
         hamburgerShareText: "Share invite",
+        achievementsLinkText: "My achievements",
         showcaseLinkText: "What is GitTrip?",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
@@ -3659,6 +3672,15 @@
 
       // Same structural pattern as hamburgerShareBtn above - built correctly
       // from the start since this element is new.
+      document.getElementById("achievementsLink").setAttribute(
+        "aria-label",
+        text.achievementsLinkText
+      );
+
+      document.getElementById("achievementsLink").title = text.achievementsLinkText;
+
+      // Same structural pattern as hamburgerShareBtn above - built correctly
+      // from the start since this element is new.
       document.getElementById("showcaseLink").setAttribute(
         "aria-label",
         text.showcaseLinkText
@@ -3848,6 +3870,14 @@
         // comment for why calling it needed a second target element, not a
         // second function.
         document.getElementById("hamburgerShareBtn").classList.toggle(
+          "hidden",
+          !user
+        );
+
+        // "My achievements" is cross-trip personal data (users/{uid}/visits,
+        // from stage 2 on) - gated on sign-in like tripsLink/newTripLink
+        // above, not always-visible like showcaseLink below.
+        document.getElementById("achievementsLink").classList.toggle(
           "hidden",
           !user
         );
