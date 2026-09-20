@@ -2,6 +2,23 @@
   "database": {
     "rules": "database.rules.json"
   },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "database.rules.json",
+      ".git/**",
+      "node_modules/**",
+      "functions/**",
+      "scripts/**",
+      "docs/**",
+      "*.md",
+      "allfns.tsv",
+      "dup_names.txt",
+      "barcodeReader.js"
+    ]
+  },
   "functions": [
     {
       "source": "functions",
