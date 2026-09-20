@@ -1,8 +1,36 @@
 <!doctype html>
 <!-- GitTrip - version tracked in version.js
-     Stage 3/4 of the gamification achievement-map feature: a
-     country/city/continent view toggle. Still NO manual-entry UI (stage
-     4). Country-level view (stage 2) is unchanged.
+     Stage 4/4 (final) of the gamification achievement-map feature: manual
+     visit entry, for trips taken before the app existed. Stages 1-3
+     (globe/choropleth, country-level data, the view toggle) are unchanged.
+
+     Country picker is a <select>, not free text - the task's own reasoning
+     (prevent input that doesn't match an existing ISO code) matches this
+     file's whole existing design: every color/aggregation function here
+     already assumes countryCode is a real, matching ISO alpha-2 code, and a
+     free-text field would silently produce a visit that colors nothing
+     (same failure shape as an unmapped continent code above). Options are
+     built from window.COUNTRY_CONTINENT's own 248 alpha-2 keys (already
+     loaded, already the single source of truth for "what counts as a valid
+     country" on this page since stage 3) - not a second, independent list.
+     Display names are generated at runtime via Intl.DisplayNames(['he'],
+     {type:'region'}) - the browser's own CLDR data, the same source behind
+     Hebrew country names in every other Intl-aware app, not a new
+     248-entry table hand-typed or scraped into this file (confirmed
+     empirically: resolves all 248 codes with zero failures, sorted
+     alphabetically by the resulting Hebrew name for the dropdown).
+
+     visitedAt: the date input is optional (the task's own instruction - a
+     user adding a pre-app trip may not remember the exact date) and
+     defaults to "today" when left blank, not to null - every existing
+     reader of visitedAt already assumes a valid ISO string it can wrap in
+     new Date() (CLAUDE.md's own documented invariant for this field), and
+     null would silently break that assumption for whichever future stage
+     reads it, for a field the UI here never even surfaces to justify the
+     risk. cityName, by contrast, genuinely has no fallback that means
+     anything (unlike a date, there's no sensible "default city") and is
+     left null when blank, exactly like it already legitimately is on old
+     trip-level backfilled visits (see the backfill script's own comment).
 
      Country identification: world-atlas's countries-110m.json keys each
      polygon feature by its ISO 3166-1 NUMERIC code (feature.id, e.g. "380"
@@ -115,6 +143,10 @@
        turn a visit's raw cityName string into globe coordinates, not
        reimplemented. Untouched - see the file header comment above. -->
   <script src="legGeocode.js"></script>
+  <!-- Manual visit entry (stage 4) dependency - same try/catch+console.error
+       write wrapper every other page already uses (CLAUDE.md, "safeWrite"),
+       reused as-is, not reimplemented. -->
+  <script src="safeWrite.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -186,6 +218,29 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
+    /* Manual visit form (stage 4) - .overlay/.sheet/.field/.sheet-actions
+       chrome all come from shared.css's core tokens (already proven working
+       on this page by loginOverlay above) - only the form-element/button
+       styling shared.css never centralizes is added here, same page-local
+       duplicate as itinerary.html/places.html's own identical rule. */
+    .field input, .field select, .field textarea {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 10px 12px;
+    }
+    .primary-btn {
+      min-height: 48px;
+      border: 0;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 14px;
+      font-weight: 800;
+    }
+
     /* Full-screen globe, not a bottom-sheet - this is the whole point of
        stage 1: confirm the choropleth+atmosphere layer renders correctly
        at real page size/position, not the artificial sandbox layout
@@ -238,6 +293,32 @@
   </div>
 
   <div id="globeContainer"></div>
+
+  <button class="fab" id="addVisitFab" aria-label="הוספת ביקור ידני" title="הוספת ביקור ידני">+</button>
+
+  <div class="overlay hidden" id="addVisitOverlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2>הוספת ביקור ידני</h2>
+      <p>לביקורים מלפני שהתחלת להשתמש באפליקציה.</p>
+      <div class="field">
+        <label for="visitCountry">מדינה</label>
+        <select id="visitCountry"><option value="" disabled selected>בחר מדינה...</option></select>
+      </div>
+      <div class="field">
+        <label for="visitCity">עיר (אופציונלי)</label>
+        <input id="visitCity" maxlength="120" placeholder="למשל: רומא">
+      </div>
+      <div class="field">
+        <label for="visitDate">תאריך הביקור (אופציונלי)</label>
+        <input id="visitDate" type="date">
+      </div>
+      <div class="sheet-actions">
+        <button class="secondary-btn" data-close="addVisitOverlay" id="cancelAddVisit">ביטול</button>
+        <button class="primary-btn" id="saveManualVisit">שמירה</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="fpsHud">FPS --</div>
@@ -248,7 +329,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // Same project config as every other page.
 const config = {
@@ -566,6 +647,83 @@ document.querySelectorAll("#viewTabs .tab").forEach(btn => {
   btn.onclick = () => setView(btn.dataset.view);
 });
 
+// --- Manual visit entry (stage 4) - for trips taken before the app
+// existed. Writes go through the existing live users/{uid}/visits
+// onValue listener below, exactly like every other write in this app -
+// there is no separate "refresh the globe" step here on purpose: the
+// listener already recomputes country/continent/city info from raw
+// records and repaints whatever view is active on every snapshot, so a
+// successful push() into that same path updates the globe on its own. ---
+let countrySelectBuilt = false;
+
+function buildCountrySelectOptions() {
+  const codes = Object.keys(window.COUNTRY_CONTINENT || {});
+  let displayNames = null;
+  try {
+    displayNames = new Intl.DisplayNames(["he"], { type: "region" });
+  } catch (error) {
+    console.warn("[achievements] Intl.DisplayNames unavailable - country picker falls back to raw ISO codes", error);
+  }
+  return codes
+    .map(code => ({ code, name: (displayNames && displayNames.of(code)) || code }))
+    .sort((a, b) => a.name.localeCompare(b.name, "he"));
+}
+
+function openAddVisitForm() {
+  if (!countrySelectBuilt) {
+    buildCountrySelectOptions().forEach(({ code, name }) => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = name;
+      $("visitCountry").appendChild(opt);
+    });
+    countrySelectBuilt = true;
+  }
+  $("visitCountry").value = ""; // back to the placeholder - never assume the previous open's choice still applies
+  $("visitCity").value = "";
+  $("visitDate").value = "";
+  $("addVisitOverlay").classList.remove("hidden");
+}
+
+async function saveManualVisit() {
+  if (!auth.currentUser) return;
+  const countryCode = $("visitCountry").value;
+  if (!countryCode) {
+    if (window.toast) window.toast("יש לבחור מדינה", "error");
+    return;
+  }
+  const cityName = $("visitCity").value.trim() || null;
+  const dateValue = $("visitDate").value; // "YYYY-MM-DD" or "" (optional per the task)
+  // A date-only string is spec-guaranteed (ECMA-262) to parse as UTC
+  // midnight, so this always round-trips to a valid ISO string - never
+  // null. Defaults to "now" when left blank - see file header comment on
+  // why visitedAt specifically always gets a real value while cityName
+  // does not.
+  const visitedAt = dateValue ? new Date(dateValue).toISOString() : new Date().toISOString();
+  const record = {
+    source: "manual",
+    countryCode: countryCode.toUpperCase(),
+    cityName,
+    visitedAt,
+    createdAt: new Date().toISOString()
+  };
+  if (!(await window.safeWrite(push(ref(db, `users/${auth.currentUser.uid}/visits`), record), "saveManualVisit"))) {
+    if (window.toast) window.toast("השמירה נכשלה. נסו שוב.", "error");
+    return;
+  }
+  if (window.toast) window.toast("הביקור נוסף", "success");
+  $("addVisitOverlay").classList.add("hidden");
+}
+
+$("addVisitFab").onclick = openAddVisitForm;
+$("saveManualVisit").onclick = saveManualVisit;
+document.querySelectorAll("[data-close]").forEach(btn => {
+  btn.onclick = () => $(btn.dataset.close).classList.add("hidden");
+});
+$("addVisitOverlay").onclick = event => {
+  if (event.target.id === "addVisitOverlay") $("cancelAddVisit").click();
+};
+
 function startVisitsListener(uid) {
   onValue(ref(db, `users/${uid}/visits`), snapshot => {
     latestVisits = snapshot.val();
@@ -689,6 +847,7 @@ async function startGlobe() {
     })
     .catch(err => console.warn("[achievements] texture upgrade failed, staying on placeholder", err));
 }
+
 </script>
 
 </body>
