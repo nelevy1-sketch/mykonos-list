@@ -788,6 +788,23 @@
       cursor: pointer;
     }
 
+    /* Plain text link, not a filled chip like .btn-sm-action - this is a
+       low-priority, rarely-shown secondary action (only appears when the
+       field actually diverges from the Google name), so it shouldn't carry
+       the same visual weight as a primary action. */
+    .text-link-btn {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
     .section-heading {
       display: flex;
       align-items: end;
@@ -2506,6 +2523,9 @@
       <div class="admin-field">
         <label id="profileNameLabel" for="profileNameInput">שם תצוגה:</label>
         <input type="text" id="profileNameInput" class="admin-input" maxlength="40">
+        <button type="button" class="text-link-btn hidden" id="resetNameToGoogleBtn">
+          <span id="resetNameToGoogleBtnText">איפוס לשם מ-Google</span>
+        </button>
       </div>
 
       <div class="admin-field">
@@ -3168,6 +3188,7 @@
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
         profileNameLabel: "שם תצוגה:",
+        resetNameToGoogleBtnText: "איפוס לשם מ-Google",
         profilePhoneLabel: "מספר טלפון (אופציונלי):",
         profilePhoneHint: "יוצג לחברי הטיול, כדי שיוכלו לפתוח איתך שיחת וואטסאפ.",
         profileRemovePhoneText: "הסרת המספר",
@@ -3265,6 +3286,7 @@
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
         profileNameLabel: "Display name:",
+        resetNameToGoogleBtnText: "Reset to Google name",
         profilePhoneLabel: "Phone number (optional):",
         profilePhoneHint: "Shown to your trip's members, so they can start a WhatsApp chat with you.",
         profileRemovePhoneText: "Remove number",
@@ -4077,6 +4099,25 @@
     // tight, actually unreadable (measured: both fields truncate to a
     // few characters at 375px). Reuses openSheet()/closeSheet() - same
     // mechanism as membersModal/lockerModal, no new modal machinery.
+    // Only worth offering when there's a Google name to reset TO, and it
+    // actually differs from what's in the field right now - showing it
+    // when the field already matches would just be noise with nothing to
+    // do. currentUser itself is never mutated after sign-in (only ever
+    // assigned once, in the auth-state-changed handler), so comparing
+    // against currentUser.displayName live on every keystroke is safe -
+    // there's no risk of it drifting out from under this check while the
+    // modal is open.
+    function updateResetNameBtnVisibility() {
+      const nameInput = document.getElementById("profileNameInput");
+      const resetBtn = document.getElementById("resetNameToGoogleBtn");
+      const googleName = currentUser?.displayName?.trim();
+
+      resetBtn.classList.toggle(
+        "hidden",
+        !googleName || googleName === nameInput.value.trim()
+      );
+    }
+
     function openProfileModal() {
       if (!currentProfile) {
         return;
@@ -4084,6 +4125,8 @@
 
       document.getElementById("profileNameInput").value =
         currentProfile.name || "";
+
+      updateResetNameBtnVisibility();
 
       document.getElementById("profilePhoneInput").value =
         currentProfile.phone ? "+" + currentProfile.phone : "";
@@ -4199,6 +4242,19 @@
     document
       .getElementById("profileRemovePhoneBtn")
       .addEventListener("click", removeSavedPhone);
+
+    document
+      .getElementById("profileNameInput")
+      .addEventListener("input", updateResetNameBtnVisibility);
+
+    document
+      .getElementById("resetNameToGoogleBtn")
+      .addEventListener("click", () => {
+        const nameInput = document.getElementById("profileNameInput");
+        nameInput.value = currentUser.displayName;
+        updateResetNameBtnVisibility();
+        nameInput.focus();
+      });
 
     document
       .getElementById("profilePhoneInput")
