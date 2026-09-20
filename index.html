@@ -35,6 +35,7 @@
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
   <script src="legBuilder.js"></script>
+  <script src="legGeocode.js"></script>
   <script src="member.js"></script>
   <script src="auth-gate.js"></script>
   <script src="safeWrite.js"></script>
@@ -7342,29 +7343,6 @@
         );
       });
 
-    // Same shape/endpoint as the inline single-leg geocode below and as
-    // wizard.html's geocodeDestination() - a separate function only because
-    // the multi-leg save path (below) needs to call it per-leg, in
-    // parallel, which the single-leg inline block never needed to.
-    async function geocodeAdminDestinationName(name) {
-      try {
-        const response = await fetch(
-          "https://geocoding-api.open-meteo.com/v1/search" +
-          `?name=${encodeURIComponent(name)}` +
-          `&count=1` +
-          `&language=${currentLanguage}` +
-          "&format=json"
-        );
-        if (!response.ok) return {};
-        const data = await response.json();
-        const match = data.results?.[0];
-        return match ? { lat: match.latitude, lon: match.longitude, countryCode: match.country_code || "", timezone: match.timezone || "" } : {};
-      } catch (error) {
-        console.error("Geocoding error", error);
-        return {};
-      }
-    }
-
     document
       .getElementById("saveFlightBtn")
       .addEventListener("click", async () => {
@@ -7536,42 +7514,19 @@
           destinationName = newTripTitle || newDestination;
 
           if (tripType !== "reserve") {
-            try {
-              const geoResponse = await fetch(
-                "https://geocoding-api.open-meteo.com/v1/search" +
-                `?name=${encodeURIComponent(newDestination)}` +
-                `&count=1` +
-                `&language=${currentLanguage}` +
-                "&format=json"
-              );
+            const geoResult = await window.geocodeLegDestination(newDestination, currentLanguage);
 
-              const geoData =
-                await geoResponse.json();
-
-              if (
-                geoData &&
-                geoData.results &&
-                geoData.results.length > 0
-              ) {
-                latCoord =
-                  geoData.results[0].latitude;
-
-                lonCoord =
-                  geoData.results[0].longitude;
-
-                countryCode =
-                  geoData.results[0].country_code ||
-                  countryCode;
-
-                tripTimezone =
-                  geoData.results[0].timezone ||
-                  tripTimezone;
-              }
-            } catch (error) {
-              console.error(
-                "Geocoding error",
-                error
-              );
+            if (geoResult.lat != null) {
+              latCoord = geoResult.lat;
+              lonCoord = geoResult.lon;
+              countryCode = geoResult.countryCode || countryCode;
+              tripTimezone = geoResult.timezone || tripTimezone;
+            } else {
+              // Same "keep the previous value" behavior as before this
+              // change - just no longer silent about it (previously only a
+              // network error was logged here; an empty-but-ok response
+              // from both services fell through with no warning at all).
+              console.warn(`[admin] geocoding failed for destination "${newDestination}" - keeping previous lat/lon/timezone/countryCode`, { tripId });
             }
           }
 
@@ -7616,11 +7571,15 @@
                 countryCode: r.originalLeg.countryCode || ""
               });
             }
-            return tripType === "reserve" ? Promise.resolve({}) : geocodeAdminDestinationName(legNames[i]);
+            return tripType === "reserve" ? Promise.resolve({}) : window.geocodeLegDestination(legNames[i], currentLanguage);
           }));
 
           legLocations.forEach((loc, i) => {
-            if (tripType !== "reserve" && !loc.timezone) {
+            // lat, not timezone: a leg rescued by legGeocode.js's Nominatim
+            // fallback has real lat/lon/countryCode but a legitimately null
+            // timezone (Nominatim never returns one) - that's not a failed
+            // leg, so it must not warn as one.
+            if (tripType !== "reserve" && loc.lat == null) {
               console.warn(`[admin] geocoding failed for leg "${legNames[i]}" - saving without lat/lon/timezone`, { tripId, leg: legNames[i] });
             }
           });

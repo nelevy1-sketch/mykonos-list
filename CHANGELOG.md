@@ -1,5 +1,28 @@
 # GitTrip — CHANGELOG
 
+## v4.74.1 — geocoding יעד: fallback ל-Nominatim כש-Open-Meteo ריק (עברית)
+
+### 🎯 מה השתנה
+Open-Meteo (המקור היחיד עד כה ל-`lat`/`lon`/`timezone`/`countryCode` של יעד-רגל, בוויזרד ובפאנל האדמין) מחזיר ריק לחלוטין לרוב החיפושים בעברית ("שטוקהולם", "קליפורניה") - **אומת ישירות מול ה-API החי**: פרמטר ה-`language` שהתיעוד הקודם (הערה ב-`geocode.js`) הניח שמשפיע על ההתאמה עצמה **לא משפיע בכלל** - אותה שאילתה עברית עם `language=he` ועם `language=en` חוזרת ריקה באותה מידה. זו מגבלה מבנית של Open-Meteo נגד טקסט לא-לטיני, לא פרמטר שגוי.
+
+**נוסף `legGeocode.js`** (קובץ חדש, נטען ב-wizard.html+index.html בלבד) - פונקציה משותפת אחת, `window.geocodeLegDestination(name, language)`: מנסה Open-Meteo קודם (המסלול המהיר, ללא שינוי להתנהגות קיימת), ורק כשריק - Nominatim (אותו שירות ש-`geocode.js` כבר משתמש בו למקומות בודדים, אך **לא** דרך `geocode.js` עצמו - נדרש `addressdetails=1` כדי לקבל `country_code` בכלל, ש-`geocodeQuery` הקיים לא מבקש). `countryCode` מומר ל-אותיות גדולות בכניסה היחידה הזו (Nominatim מחזיר קטן, כל שאר הקוד - כולל שער ה-VAT היווני ב-shopping.html, `countryCode==="GR"` - מניח גדול). `timezone` נשאר `null` ברגל שניצלה ע"י Nominatim בכוונה (השירות הזה לא מחזיר timezone באף תצורה) - נסמך על שרשרת ה-fallback הקיימת (`docs/schema-legs.md` §4: רגל→טיול→שעון מכשיר), לא תלות חדשה.
+
+**Throttle גלובלי אחד** (לא מוכפל per-call) - קריאות Nominatim מצטרפות לתור-הבטחות משותף אחד עם מרווח ~1.1 שנייה בין קריאה לקריאה, כדי לא להפר את מדיניות-הקצב של Nominatim (~1/שנייה) כשכמה רגליים נכשלות יחד ב-`Promise.all` הקיים (וויזרד + פאנל אדמין מרובה-רגליים).
+
+הוסרו שלושת המימושים הכפולים (`wizard.html`'s `geocodeDestination`, `index.html`'s `geocodeAdminDestinationName` + הבלוק ה-inline של רגל-בודדת) - כולם קוראים עכשיו ל-`window.geocodeLegDestination`. תיקון נלווה: תנאי ה-`console.warn` על כשלון geocoding עבר מ-`!loc.timezone` ל-`loc.lat == null` בשני הקבצים - רגל שניצלה ע"י Nominatim יש לה `lat`/`lon` תקינים אך `timezone` ריק כדין, וזו כבר לא "כשלון".
+
+### 🔍 מה שנבדק בפועל
+מול ה-API-ים החיים (לא מדומה), דרך `window.geocodeLegDestination` ישירות בדפדפן:
+1. "שטוקהולם"/"קליפורניה" - Open-Meteo ריק, Nominatim מוצא, `countryCode` `"SE"`/`"US"` (גדול, לא `"se"`/`"us"`).
+2. "אתונה" - `countryCode:"GR"` (גדול) - שער ה-VAT היווני (`shopping.html`, לא נגע) ימשיך לעבוד נכון.
+3. "Rome"/"אתונה"/"פירנצה" - נמצאים ישירות ב-Open-Meteo, `timezone` מגיע מלא כרגיל - אין שינוי התנהגות למסלול המהיר.
+4. 2-3 יעדים שנכשלים ב-Open-Meteo יחד, דרך `Promise.all` - הקריאות ל-Nominatim מסתדרות בתור (נמדד: ~1.25 שניות לשתי קריאות, תואם ~1.1 שניות המרווח המחויב, לא כמה מאות ms שהיו בלי throttle).
+5. "גוטנבורג" (איות עברי לא-סטנדרטי, מהדיווח המקורי) - עדיין ריק בשני השירותים, מתדרדר ל-`{lat:null,lon:null,timezone:null,countryCode:null}` בלי חריגה - רשת הביטחון הקיימת (`hasValidCoords`, "לא זמין" במזג אוויר) עדיין הכרחית, לא כל geocoding מצליח עכשיו.
+
+`node --check` על שני הקבצים (הסקריפט המודולרי של wizard.html, הסקריפט הקלאסי של index.html) ועל `legGeocode.js` עצמו. `scripts/i18n-audit.js` - 0 ממצאים חדשים (3 הממצאים הקיימים ב-shopping.html לא קשורים לשינוי הזה).
+
+**תיקון באג → patch bump.**
+
 ## v4.74.0 — index.html: עריכת תאריכי-קצה בטיול מרובה-רגליים
 
 ### 🎯 מה השתנה
