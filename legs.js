@@ -473,6 +473,33 @@
         });
     }
 
+    // Gamification achievement-map investigation (not yet in
+    // docs/schema-legs.md - see roadmap once the feature lands): whether a
+    // leg counts as a "real visit" (at least one night, not a same-day
+    // stopover). Built on window.dateKeyInZone (datetime.js) - calendar-day
+    // keys, NOT `endAt - startAt >= 24h`. A raw-hours check would wrongly
+    // say "no visit" for a genuine overnight stay well under 24 raw hours
+    // (arrive 22:00, depart 08:00 the next morning - ~10 hours, but two
+    // different calendar dates crossed, so one real night). This exact
+    // reinvention has already cost this codebase real bugs before -
+    // tripDayDates() above used the wrong leg's timezone for months because
+    // no test could tell getPrimaryLeg from getLastLeg on a single-leg
+    // trip, and index.html's daysBetweenKeys() carries its own comment
+    // documenting the identical near-midnight failure mode this guards
+    // against. Comparing day-keys instead of raw milliseconds sidesteps it
+    // here the same way.
+    function isRealVisit(leg) {
+        if (!leg || !leg.startAt || !leg.endAt) {
+            return false;
+        }
+
+        const tz = leg.timezone || null;
+        const startKey = window.dateKeyInZone(new Date(leg.startAt), tz);
+        const endKey = window.dateKeyInZone(new Date(leg.endAt), tz);
+
+        return startKey !== endKey;
+    }
+
     window.getLegs = getLegs;
     window.getPrimaryLeg = getPrimaryLeg;
     window.getLastLeg = getLastLeg;
@@ -484,4 +511,5 @@
     window.getCurrentLegName = getCurrentLegName;
     window.getRelevantFlight = getRelevantFlight;
     window.tripDayDates = tripDayDates;
+    window.isRealVisit = isRealVisit;
 })();
