@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+  globe.gl mobile-performance prototype - throwaway test page, not linked
+  from anywhere in the real app (no hamburger menu entry, no index.html
+  reference). Manual-URL access only. Deliberately isolated: does not load
+  any of this repo's shared scripts (version.js/legs.js/etc) and does not
+  touch any existing file.
+
+  Purpose: measure real FPS on mobile with the specific combination the
+  gamification investigation flagged as the risky one - globe + choropleth
+  polygon layer + atmosphere halo, together - not to build the real feature.
+
+  Loading strategy (deliberately dynamic, not static <script src=...> and
+  not a top-level `import Globe from '...'`): globe.gl and topojson-client
+  are both fetched via the dynamic import() operator inside an async IIFE
+  below, so this page's own Network tab shows whether "only loaded on this
+  page" code-splitting actually behaves the way it should - not just in
+  theory.
+-->
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>globe.gl perf test</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: -apple-system, system-ui, sans-serif;
+  }
+
+  #globeContainer {
+    width: 100%;
+    height: 100%;
+  }
+
+  #hud {
+    position: fixed;
+    top: 8px;
+    inset-inline-start: 8px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.65);
+    color: #0f0;
+    font: 700 20px/1.3 "SF Mono", Consolas, monospace;
+    padding: 8px 12px;
+    border-radius: 8px;
+    pointer-events: none;
+    direction: ltr;
+    text-align: left;
+  }
+
+  #hud .label {
+    color: #8f8;
+    font-size: 11px;
+    font-weight: 400;
+  }
+
+  #report {
+    position: fixed;
+    bottom: 8px;
+    inset-inline: 8px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ddd;
+    font: 12px/1.5 "SF Mono", Consolas, monospace;
+    padding: 10px 12px;
+    border-radius: 8px;
+    max-height: 40vh;
+    overflow-y: auto;
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
+  }
+
+  #report .ok { color: #7f7; }
+  #report .err { color: #f77; }
+  #report .warn { color: #fd7; }
+</style>
+</head>
+<body>
+
+<div id="globeContainer"></div>
+
+<div id="hud">
+  <div class="label">FPS (live)</div>
+  <div id="fpsValue">--</div>
+</div>
+
+<div id="report">Loading globe.gl + world-atlas via dynamic import()…</div>
+
+<script>
+(async function () {
+  const reportEl = document.getElementById("report");
+  const fpsValueEl = document.getElementById("fpsValue");
+
+  function log(msg, cls) {
+    const line = document.createElement("div");
+    if (cls) line.className = cls;
+    line.textContent = msg;
+    reportEl.appendChild(line);
+    reportEl.scrollTop = reportEl.scrollHeight;
+  }
+
+  // --- FPS counter: plain requestAnimationFrame loop, independent of
+  // globe.gl's own internal render loop - this measures the page's real,
+  // observed framerate (whatever is actually reaching the screen), not a
+  // number reported from inside Three.js itself. Updates the visible
+  // number twice a second so it's readable while dragging, not flickering
+  // every single frame. ---
+  (function startFpsCounter() {
+    let frames = 0;
+    let lastReportAt = performance.now();
+
+    function tick(now) {
+      frames++;
+      const elapsed = now - lastReportAt;
+      if (elapsed >= 500) {
+        const fps = Math.round((frames * 1000) / elapsed);
+        fpsValueEl.textContent = fps;
+        fpsValueEl.style.color = fps >= 50 ? "#7f7" : fps >= 30 ? "#fd7" : "#f77";
+        frames = 0;
+        lastReportAt = now;
+      }
+      requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+  })();
+
+  // --- Real transfer-size measurement, not a theoretical guess. Reads the
+  // Resource Timing entries for the exact URLs this page actually fetched.
+  // transferSize is 0 for a cross-origin resource unless the server sends
+  // Timing-Allow-Origin (jsdelivr does) - encodedBodySize is the fallback
+  // when that's blocked, noted explicitly in the report so the number's
+  // provenance is never silently ambiguous. ---
+  function reportTransferSize(label, urlSubstring) {
+    const entries = performance.getEntriesByType("resource")
+      .filter(e => e.name.includes(urlSubstring));
+
+    if (!entries.length) {
+      log(`  ${label}: NOT FOUND in Resource Timing (check Network tab manually)`, "warn");
+      return 0;
+    }
+
+    // A dynamically-imported ES module can pull in more than one network
+    // request (the module itself plus anything it imports internally) -
+    // sum everything matching, and say how many requests that covers.
+    let total = 0;
+    let usedFallback = false;
+
+    entries.forEach(e => {
+      if (e.transferSize > 0) {
+        total += e.transferSize;
+      } else {
+        total += e.encodedBodySize;
+        usedFallback = true;
+      }
+    });
+
+    const kb = (total / 1024).toFixed(1);
+    log(`  ${label}: ${kb} KB (${entries.length} request${entries.length > 1 ? "s" : ""}${usedFallback ? ", transferSize blocked - used encodedBodySize" : ""})`);
+    return total;
+  }
+
+  let globeLibBytes = 0;
+  let topoLibBytes = 0;
+  let countriesDataBytes = 0;
+
+  try {
+    log("Step 1/4: dynamic import() of globe.gl…");
+    const t0 = performance.now();
+
+    // Dynamic import only - never a static <script src> tag, never a
+    // top-level `import Globe from '...'` declaration. This is the exact
+    // thing being tested: does globe.gl actually stay out of every OTHER
+    // page's bundle, loading only here, on demand.
+    //
+    // Loads the package's own pre-bundled UMD file (dist/globe.gl.min.js -
+    // its package.json's own "unpkg"/"jsdelivr" field), NOT the jsdelivr
+    // "+esm" transform endpoint - tried that first and it was actively
+    // misleading for a bundle-size measurement: "+esm" doesn't serve
+    // globe.gl's own bundle, it re-resolves three.js's ENTIRE internal
+    // module graph live into 70+ separate small requests (confirmed via
+    // Resource Timing - real count, not a guess). That's an artifact of
+    // jsdelivr's on-the-fly ESM-ification of a package that ships bare
+    // Node-style imports, not a property of globe.gl itself, and it would
+    // have made the "measured bundle size" number meaningless. The UMD
+    // file has no ESM exports, so it's imported here purely for its side
+    // effect (attaching window.Globe) - dynamic import() still fetches
+    // and executes any .js file as a module regardless of whether it
+    // contains export statements, which is exactly the "one bundle,
+    // loaded on demand" scenario a real implementation would actually ship.
+    await import("https://cdn.jsdelivr.net/npm/globe.gl@2/dist/globe.gl.min.js");
+    const Globe = window.Globe;
+
+    log(`  loaded in ${(performance.now() - t0).toFixed(0)}ms`, "ok");
+
+    log("Step 2/4: dynamic import() of topojson-client (to convert TopoJSON -> GeoJSON client-side)…");
+    // Same reasoning - its own bundled dist file, side-effect import (attaches window.topojson).
+    await import("https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js");
+    const topoModule = window.topojson;
+
+    log("Step 3/4: fetching world-atlas countries-110m.json (low-res TopoJSON, not GeoJSON)…");
+    const topoRes = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+    if (!topoRes.ok) throw new Error(`countries-110m.json fetch failed: ${topoRes.status}`);
+    const topology = await topoRes.json();
+
+    // client-side TopoJSON -> GeoJSON conversion, chosen over a
+    // preprocessing step per the task's own "pick whichever is simpler"
+    // instruction - topojson-client is a single small dependency and this
+    // is a one-line call, not worth a build step for a throwaway test page.
+    const countries = topoModule.feature(topology, topology.objects.countries);
+
+    log(`  ${countries.features.length} country polygons decoded`, "ok");
+
+    log("Step 4/4: building the globe (choropleth polygons + atmosphere)…");
+
+    const world = Globe()(document.getElementById("globeContainer"))
+      .globeImageUrl("//unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
+      .backgroundColor("#000")
+      // Choropleth layer - uniform color for every country, no real visit
+      // data needed for a performance test. altitude/transition kept
+      // minimal but non-zero (0 would mean "not a choropleth at all",
+      // which wouldn't represent the real feature's actual render cost).
+      .polygonsData(countries.features)
+      .polygonCapColor(() => "rgba(46, 204, 113, 0.65)")
+      .polygonSideColor(() => "rgba(0, 0, 0, 0.15)")
+      .polygonStrokeColor(() => "#111")
+      .polygonAltitude(0.01)
+      .polygonsTransitionDuration(0)
+      // Atmosphere (halo) - explicitly on, per the task: this exact
+      // combination (choropleth + atmosphere together) is the one flagged
+      // as the real risk to measure, not either alone.
+      .showAtmosphere(true)
+      .atmosphereColor("#3a9bdc")
+      .atmosphereAltitude(0.15);
+
+    // No .polygonLabel(), no .labelsData(), no auto-rotate, no extra
+    // layers - deliberately the minimal representative set, nothing more.
+
+    window.addEventListener("resize", () => {
+      world.width(window.innerWidth).height(window.innerHeight);
+    });
+
+    log("Globe built. Rotate with a finger/mouse and watch the FPS counter (top-left).", "ok");
+
+    // Give the browser a moment to finish the actual network transfers
+    // before reading Resource Timing - the entries exist as soon as each
+    // request completes, but batching this after everything above ensures
+    // the globe texture image (a real, separate load) is counted too.
+    setTimeout(() => {
+      log("");
+      log("--- Bundle size report (measured, not estimated) ---");
+      globeLibBytes = reportTransferSize("globe.gl (dynamic import)", "globe.gl");
+      topoLibBytes = reportTransferSize("topojson-client (dynamic import)", "topojson-client");
+      countriesDataBytes = reportTransferSize("countries-110m.json", "countries-110m.json");
+      const textureBytes = reportTransferSize("earth texture image", "earth-blue-marble");
+
+      const totalKb = ((globeLibBytes + topoLibBytes + countriesDataBytes + textureBytes) / 1024).toFixed(1);
+      log(`  TOTAL (these 4 resources): ${totalKb} KB`, "ok");
+      log("");
+      log("Cross-check this against your browser's own Network tab (filter by this page's load) - the numbers above come from the Resource Timing API, same underlying data Chrome DevTools reads from, but verify independently before trusting it for a real capacity decision.", "warn");
+    }, 1500);
+
+  } catch (err) {
+    log(`ERROR: ${err.message}`, "err");
+    console.error(err);
+  }
+})();
+</script>
+
+</body>
+</html>
