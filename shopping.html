@@ -1014,7 +1014,8 @@
     margin-bottom:8px;
   }
 
-  .form-group label {
+  .form-group label,
+  .form-group .field-label-text {
     font-size:11px;
     font-weight:700;
     color:var(--sea);
@@ -1524,7 +1525,7 @@ body.modal-open .modal-card {
 
     <form id="addModalForm">
       <div class="form-group">
-        <label id="productNameLabel">שם המוצר</label>
+        <label id="productNameLabel" for="modalNameInput">שם המוצר</label>
         <input
           type="text"
           id="modalNameInput"
@@ -1535,9 +1536,9 @@ body.modal-open .modal-card {
 
       <div class="form-row">
         <div class="form-group" style="flex:1;">
-          <label id="baseQtyLabel">כמות בסיס משותפת</label>
+          <span id="baseQtyLabel" class="field-label-text">כמות בסיס משותפת</span>
 
-          <div class="modal-qty-picker">
+          <div class="modal-qty-picker" role="group" aria-labelledby="baseQtyLabel">
             <button
               type="button"
               id="modalQtyDecBtn"
@@ -1559,7 +1560,7 @@ body.modal-open .modal-card {
         </div>
 
         <div class="form-group" style="flex:1;">
-          <label id="unitLabel">יחידה</label>
+          <label id="unitLabel" for="modalUnitInput">יחידה</label>
 
           <select id="modalUnitInput">
             <option value="יח'">יח'</option>
@@ -1571,7 +1572,7 @@ body.modal-open .modal-card {
       </div>
 
       <div class="form-group">
-        <label id="noteLabel">הערה אישית (אופציונלי)</label>
+        <label id="noteLabel" for="modalNoteInput">הערה אישית (אופציונלי)</label>
         <input
           type="text"
           id="modalNoteInput"

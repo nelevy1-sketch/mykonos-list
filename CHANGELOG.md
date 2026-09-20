@@ -1,5 +1,21 @@
 # GitTrip — CHANGELOG
 
+## v4.72.22 — shopping.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 2/6)
+
+### 🎯 מה השתנה
+4 תוויות ב-`addModalForm` (מודל "הוספת פריט חדש") היו `<label>` בלי `for`. נוסף `for="<id הקיים>"` ל-3 (`productNameLabel`→`modalNameInput`, `unitLabel`→`modalUnitInput`, `noteLabel`→`modalNoteInput`).
+
+**אותו מקרה חריג כמו ב-packing.html**: `baseQtyLabel` מתייג בורר-כמות מותאם (כפתור `-`, תצוגת מספר, כפתור `+`) - לא שדה יחיד. הוחלף ל-`<span>`+`role="group" aria-labelledby"` על `.modal-qty-picker`, אותה תבנית בדיוק כמו `listVisibilityLabel` ב-packing.html.
+
+**באג שנתפס ותוקן תוך כדי**: לקובץ הזה יש כלל CSS ספציפי `.form-group label {font-size:11px;font-weight:700;color:var(--sea)}` (לא קיים ב-packing.html) - שינוי התג מ-`<label>` ל-`<span>` היה מאבד את העיצוב הזה בשקט. הורחב הסלקטור ל-`.form-group label, .form-group .field-label-text` והוסף `class="field-label-text"` ל-span - אומת חזותית שהעיצוב זהה לתוויות השכנות ("יחידה").
+
+### 🔍 מה שנבדק בפועל
+כל 4 ה-id-ים אומתו כ-unique. נבדק בדפדפן: כל שלושת הזוגות מחזירים את התווית הנכונה (`querySelector('label[for="X"]')`), הקבוצה מחזירה `aria-labelledby` נכון, **וצילום מסך אישר שאין רגרסיה חזותית** - "כמות בסיס משותפת" נראית זהה ל"יחידה" הסמוכה לה.
+
+`node --check`+`i18n-audit` נקיים (רק ממצאי shopping.html הידועים מראש, שורות זזו ב-1 בגלל השורה שנוספה).
+
+v4.72.21 -> v4.72.22 (patch - תיקון נגישות, אין שינוי סכימה).
+
 ## v4.72.21 — packing.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 1/6)
 
 ### 🎯 מה השתנה
