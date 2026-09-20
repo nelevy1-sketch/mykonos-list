@@ -241,6 +241,46 @@
       font-weight: 800;
     }
 
+    /* Country combobox (typing filters a list, not a native <select> -
+       replaces stage 4's scroll-only dropdown). Modeled on shared.css's
+       own "CORE ACTION MENU" .action-menu-dropdown (same colors/border/
+       radius/shadow) rather than a new look - just full-width and
+       scrollable instead of a small fixed-width menu, since this is a
+       248-item filtered list, not a handful of actions. Plain DOM (no
+       native browser popup like <select>/<datalist>) on purpose - RTL and
+       dark mode then follow this page's own CSS exactly, instead of an
+       OS-rendered popup that may not (datalist's real-world filtering
+       behavior is also inconsistent across browsers/iOS Safari support is
+       weak - not reliable enough for "must match a known code" validation). */
+    .combo {
+      position: relative;
+    }
+    .combo-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      inset-inline: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      z-index: 20;
+    }
+    .combo-option {
+      padding: 10px 14px;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+    .combo-option:hover {
+      background: var(--surface-2);
+    }
+    .combo-empty {
+      padding: 10px 14px;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
     /* Full-screen globe, not a bottom-sheet - this is the whole point of
        stage 1: confirm the choropleth+atmosphere layer renders correctly
        at real page size/position, not the artificial sandbox layout
@@ -303,7 +343,10 @@
       <p>לביקורים מלפני שהתחלת להשתמש באפליקציה.</p>
       <div class="field">
         <label for="visitCountry">מדינה</label>
-        <select id="visitCountry"><option value="" disabled selected>בחר מדינה...</option></select>
+        <div class="combo">
+          <input id="visitCountry" type="text" autocomplete="off" placeholder="הקלד לחיפוש מדינה...">
+          <div class="combo-list hidden" id="visitCountryList"></div>
+        </div>
       </div>
       <div class="field">
         <label for="visitCity">עיר (אופציונלי)</label>
@@ -654,32 +697,77 @@ document.querySelectorAll("#viewTabs .tab").forEach(btn => {
 // listener already recomputes country/continent/city info from raw
 // records and repaints whatever view is active on every snapshot, so a
 // successful push() into that same path updates the globe on its own. ---
-let countrySelectBuilt = false;
+// countryOptions carries both the Hebrew name (displayed, per the user's
+// choice) and the English name (matched against but never shown) - typing
+// "France" for a Hebrew-only-displayed "צרפת" is a real, expected input
+// path (an English keyboard/habit), not just Hebrew substrings.
+let countryOptions = null; // built lazily, once - [{code, nameHe, nameEn}]
+let selectedCountryCode = ""; // only set when a suggestion is actually clicked - cleared on every real keystroke, so free text can never pass validation
 
-function buildCountrySelectOptions() {
+function buildCountryOptions() {
   const codes = Object.keys(window.COUNTRY_CONTINENT || {});
-  let displayNames = null;
+  let namesHe = null, namesEn = null;
   try {
-    displayNames = new Intl.DisplayNames(["he"], { type: "region" });
+    namesHe = new Intl.DisplayNames(["he"], { type: "region" });
+    namesEn = new Intl.DisplayNames(["en"], { type: "region" });
   } catch (error) {
     console.warn("[achievements] Intl.DisplayNames unavailable - country picker falls back to raw ISO codes", error);
   }
   return codes
-    .map(code => ({ code, name: (displayNames && displayNames.of(code)) || code }))
-    .sort((a, b) => a.name.localeCompare(b.name, "he"));
+    .map(code => ({
+      code,
+      nameHe: (namesHe && namesHe.of(code)) || code,
+      nameEn: (namesEn && namesEn.of(code)) || code
+    }))
+    .sort((a, b) => a.nameHe.localeCompare(b.nameHe, "he"));
 }
 
+function getCountryOptions() {
+  if (!countryOptions) countryOptions = buildCountryOptions();
+  return countryOptions;
+}
+
+function renderCountryList(query) {
+  const list = $("visitCountryList");
+  const q = query.trim().toLowerCase();
+  const matches = q
+    ? getCountryOptions().filter(o => o.nameHe.toLowerCase().includes(q) || o.nameEn.toLowerCase().includes(q))
+    : getCountryOptions();
+  list.innerHTML = matches.length
+    ? matches.map(o => `<div class="combo-option" data-code="${o.code}">${escapeHtml(o.nameHe)}</div>`).join("")
+    : `<div class="combo-empty">לא נמצאה מדינה תואמת</div>`;
+  list.classList.remove("hidden");
+}
+
+$("visitCountry").oninput = () => {
+  selectedCountryCode = ""; // any real typing invalidates a previous pick - see the variable's own comment
+  renderCountryList($("visitCountry").value);
+};
+$("visitCountry").onfocus = () => renderCountryList($("visitCountry").value);
+$("visitCountry").onblur = () => {
+  // Delayed, not immediate: a suggestion's own mousedown (below) must run
+  // first, or the list would already be hidden by the time the click lands.
+  setTimeout(() => $("visitCountryList").classList.add("hidden"), 150);
+};
+$("visitCountryList").addEventListener("mousedown", event => {
+  const option = event.target.closest(".combo-option");
+  if (!option) return;
+  event.preventDefault(); // keep focus in the input - a plain click would blur it first
+  selectedCountryCode = option.dataset.code;
+  $("visitCountry").value = option.textContent;
+  $("visitCountryList").classList.add("hidden");
+});
+$("visitCountry").addEventListener("keydown", event => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  const firstMatch = $("visitCountryList").querySelector(".combo-option");
+  if (firstMatch) firstMatch.dispatchEvent(new MouseEvent("mousedown"));
+});
+
 function openAddVisitForm() {
-  if (!countrySelectBuilt) {
-    buildCountrySelectOptions().forEach(({ code, name }) => {
-      const opt = document.createElement("option");
-      opt.value = code;
-      opt.textContent = name;
-      $("visitCountry").appendChild(opt);
-    });
-    countrySelectBuilt = true;
-  }
-  $("visitCountry").value = ""; // back to the placeholder - never assume the previous open's choice still applies
+  selectedCountryCode = "";
+  $("visitCountry").value = "";
+  $("visitCountryList").classList.add("hidden");
   $("visitCity").value = "";
   $("visitDate").value = "";
   $("addVisitOverlay").classList.remove("hidden");
@@ -687,9 +775,9 @@ function openAddVisitForm() {
 
 async function saveManualVisit() {
   if (!auth.currentUser) return;
-  const countryCode = $("visitCountry").value;
+  const countryCode = selectedCountryCode;
   if (!countryCode) {
-    if (window.toast) window.toast("יש לבחור מדינה", "error");
+    if (window.toast) window.toast("יש לבחור מדינה מהרשימה", "error");
     return;
   }
   const cityName = $("visitCity").value.trim() || null;
@@ -847,7 +935,6 @@ async function startGlobe() {
     })
     .catch(err => console.warn("[achievements] texture upgrade failed, staying on placeholder", err));
 }
-
 </script>
 
 </body>
