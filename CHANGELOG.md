@@ -1,5 +1,23 @@
 # GitTrip — CHANGELOG
 
+## v4.74.2 — authDomain: מעבר ל-gittrip.app (6 עמודים)
+
+### 🎯 מה השתנה
+`authDomain` עודכן בכל 6 ה-`firebaseConfig` הנפרדים (אין קובץ קונפיג משותף - כל עמוד מחזיק עותק עצמאי) מ-`"mykonos-list.firebaseapp.com"` ל-`"gittrip.app"`. זה השלב האחרון של מעבר Firebase Hosting + חיבור דומיין מותאם-אישית - המטרה המקורית: לתקן באג Safari הנובע מ-`authDomain` שונה מהמארח בפועל.
+
+**וידוא לפני השינוי, לא הנחה**:
+1. `gittrip.app` מאושר "Connected" בקונסולת Firebase (בדיקת המשתמש).
+2. `gittrip.app` כבר ברשימת Authentication → Authorized domains - **אומת ישירות** מול ה-endpoint הציבורי של Identity Toolkit (`getProjectConfig`, אותו קריאה שה-SDK של הלקוח כבר עושה בכל טעינת עמוד, עם אותו מפתח API הציבורי שכבר משוטח בקוד) - לא הונח מהתיעוד. הרשימה בפועל: `localhost`, `mykonos-list.firebaseapp.com`, `mykonos-list.web.app`, `nelevy1-sketch.github.io`, `gittrip.app`.
+
+**וידוא אחרי השינוי, לפני commit**: `grep` על כל 6 הקבצים - בדיוק 6 הופעות של `gittrip.app`, אפס הופעות שנשארו של הערך הישן. `node --check` על שני הסקריפטים הקלאסיים/מודולריים הרלוונטיים (index.html קלאסי, וכל 5 העמודים המודולריים) - תקין בכולם.
+
+**סיכון קריטי שהובהר מראש**: זה commit שמשפיע בו-זמנית על GitHub Pages וגם Firebase Hosting - שניהם מגישים בדיוק את אותו קוד מהריפו הזה. ברגע שנדחף, גם המשתמשים החיים היום ב-GitHub Pages מקבלים את השינוי, לא רק מי שכבר עבר ל-gittrip.app.
+
+### 🔍 מה שנבדק בפועל
+בדיקת ה-authDomain/DNS/TLS/Authorized-domains בוצעה לפני ה-commit (לא נבדקה כאן ההתחברות בפועל - זו בדיקה שדורשת חשבון Google אמיתי, מבוצעת ע"י המשתמש עצמו מיד אחרי push, בטאב אינקוגניטו טרי, גם ל-gittrip.app וגם לוודא ש-github.io הישן לא נשבר).
+
+**תיקון באג (Safari authDomain mismatch) → patch bump.**
+
 ## v4.74.1 — geocoding יעד: fallback ל-Nominatim כש-Open-Meteo ריק (עברית)
 
 ### 🎯 מה השתנה
