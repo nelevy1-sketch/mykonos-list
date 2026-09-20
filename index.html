@@ -3801,17 +3801,6 @@
 
     if (auth) {
       function handleAuthStateChanged(user) {
-        // TEMPORARY diagnostic - "back to menu" bug investigation
-        // (docs/roadmap.md-adjacent, not yet filed). Remove before the next
-        // real commit once the real cause is confirmed from this output.
-        console.log("[DIAG openMenu]", {
-          hasUser: !!user,
-          uid: user ? user.uid : null,
-          openMenuOnLoad,
-          hasAutoOpenedMenu,
-          urlNow: location.href
-        });
-
         currentUser = user;
 
         document.getElementById("authLoading").classList.add("hidden");
@@ -6499,6 +6488,31 @@
       }
     }
 
+    // Shared by both trip-selection redirects below (lastTripId, and
+    // renderTripPickerList's single-trip auto-pick) - each one replaces the
+    // current URL entirely with a bare "index.html?tripId=X", which used to
+    // silently drop ?openMenu=1 when the incoming URL carried it
+    // (gittrip-showcase.html's "back to menu" button). Confirmed as a real
+    // bug, not hypothetical: reproduced directly - the menu opens briefly on
+    // THIS page (right after handleAuthStateChanged's own openMenuOnLoad
+    // check, which still runs since location.replace() doesn't halt the
+    // rest of this synchronous script), then this redirect tears the page
+    // down before that intent carries forward, landing on a fresh page
+    // whose URL has no openMenu param at all. Reads the CURRENT location's
+    // own query string directly (not invitationParams, which is a
+    // different, earlier snapshot) - this is genuinely about the URL being
+    // redirected away from, at the moment of the redirect.
+    function redirectToTrip(tripId) {
+      const target = new URL("index.html", location.href);
+      target.searchParams.set("tripId", tripId);
+
+      if (new URLSearchParams(location.search).get("openMenu") === "1") {
+        target.searchParams.set("openMenu", "1");
+      }
+
+      location.replace(target.href);
+    }
+
     let tripPickerStarted = false;
 
     function resolveTripSelection(options = {}) {
@@ -6520,7 +6534,7 @@
         } catch (e) {}
 
         if (lastTripId) {
-          location.replace("index.html?tripId=" + encodeURIComponent(lastTripId));
+          redirectToTrip(lastTripId);
           return;
         }
       }
@@ -6571,7 +6585,7 @@
       // straight back inside a specific trip instead of showing the picker,
       // for anyone whose users/{uid}/trips list had exactly one entry.
       if (entries.length === 1 && !options.forceTripPicker) {
-        location.replace("index.html?tripId=" + encodeURIComponent(entries[0][0]));
+        redirectToTrip(entries[0][0]);
         return;
       }
 
