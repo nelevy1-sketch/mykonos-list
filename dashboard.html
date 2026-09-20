@@ -1,0 +1,638 @@
+<!doctype html>
+<!-- GitTrip - PRIVATE internal analytics dashboard. NOT one of the app's 6
+     pages, NOT version.js-tracked (same precedent as globe-test.html - an
+     isolated tool page, not user-visible app behavior - see CLAUDE.md's own
+     version-management section: scripts/dev-tool pages are exempt), NOT
+     linked from anywhere in the app (no hamburger-menu entry, no link from
+     index.html or any other page).
+
+     Stage 1/N of a private analytics investigation (see the research report
+     this was built from): page skeleton + the "free" metrics already
+     derivable from trips/ with ZERO new instrumentation - no _analytics/
+     path, no new database.rules.json rules, no safeWrite changes, no
+     Chart.js yet (plain tables only - a later stage adds charts once there
+     is real data worth graphing).
+
+     SECURITY MODEL - read this before changing anything here:
+     "Not linked from the menu" is NOT the security boundary. firebase.json
+     serves the ENTIRE repo root as static hosting ("public": ".") - this
+     file is reachable by URL to anyone who guesses/knows it, exactly like
+     achievements.html/globe-test.html already are. The REAL boundary is
+     two independent layers, both required:
+       1. This page's own auth-gate below checks auth.uid === ALLOWED_UID
+          (one specific, hardcoded Firebase UID) - not "any signed-in user"
+          like every other page in this app. A different signed-in Google
+          account sees an explicit "access denied" screen and this file
+          NEVER calls get(ref(db,'trips')) for them - not even once, not
+          even to immediately discard the result. The fetch is gated behind
+          the UID check, not just the rendering.
+       2. database.rules.json's trips/$tripId is (and stays, per this
+          stage's own explicit scope) ".read": "auth != null" - readable by
+          ANY authenticated user, not just ALLOWED_UID. That rule is NOT
+          changed here - this page's UID check restricts who sees the
+          AGGREGATED DASHBOARD, it does not and cannot restrict who could
+          already read the raw trips/ tree today with their own account.
+          Tightening that read rule (if ever wanted) is explicitly out of
+          scope for this stage - a separate, deliberate decision.
+     A hardcoded UID in client-side source is not a secret the way a
+     password or API key is: knowing a UID string does not let anyone
+     authenticate AS that user (that still requires their real Google
+     credentials) - it only lets someone recognize the string. Safe to ship
+     as plain source, same way this app's public Firebase config already is.
+
+     Data model assumptions below are read directly from wizard.html's own
+     trip-creation code (the source of truth, not assumed) - see inline
+     comments at each metric for exactly which trip field/shape backs it.
+-->
+<html lang="he" dir="rtl" data-tokens="core">
+<head>
+<script>
+(function () {
+  var savedTheme = localStorage.getItem('dashboardDarkMode');
+  var shouldStartDark =
+    savedTheme === 'dark'
+      ? true
+      : savedTheme === 'light'
+        ? false
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  if (shouldStartDark) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+})();
+</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>דשבורד אנליטיקס - GitTrip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <script src="toast.js"></script>
+  <script src="auth-gate.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      background: var(--bg);
+      margin: 0;
+    }
+    body {
+      color: var(--text);
+      font-family: 'Assistant', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      min-height: 100vh;
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .dash-shell {
+      width: min(720px, 100%);
+      margin: 0 auto;
+      padding: max(14px, env(safe-area-inset-top)) 16px 0;
+    }
+
+    .dash-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .dash-head h1 {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--primary-dark);
+    }
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .metric-card h2 {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+      font-weight: 750;
+      color: var(--primary-dark);
+    }
+    .metric-big {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .metric-note {
+      margin: 8px 0 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .metric-empty {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .metric-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.85rem;
+    }
+    .metric-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .metric-row-label {
+      flex: 1;
+      min-width: 0;
+    }
+    .metric-row-count {
+      font-weight: 750;
+      color: var(--text);
+    }
+    .metric-row-percent {
+      color: var(--muted);
+      font-size: 0.78rem;
+      min-width: 3.2em;
+      text-align: left;
+      direction: ltr;
+    }
+
+    /* Access-denied / login: same .overlay/.sheet chrome as every other
+       page (shared.css core tokens) - this page's own auth check just
+       decides WHICH of the two ever gets its "hidden" class removed. */
+    .denied-icon {
+      font-size: 2.4rem;
+      text-align: center;
+      margin: 0 0 4px;
+    }
+    .denied-email {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      word-break: break-all;
+      margin: 0 0 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-loading" id="authLoading"><div class="auth-spinner"></div></div>
+
+<div class="overlay hidden" id="loginOverlay">
+  <div class="sheet login">
+    <div class="handle"></div>
+    <h2>כניסה נדרשת</h2>
+    <p>הדשבורד הזה פרטי - יש להתחבר עם Google כדי להמשיך.</p>
+    <button class="google-btn" id="googleBtn">G&nbsp;&nbsp; כניסה עם Google</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="deniedOverlay">
+  <div class="sheet login">
+    <div class="handle"></div>
+    <p class="denied-icon">🔒</p>
+    <h2>אין הרשאה</h2>
+    <p>החשבון המחובר לא מורשה לצפות בדשבורד הזה.</p>
+    <p class="denied-email" id="deniedEmailText"></p>
+    <button class="secondary-btn" id="switchAccountBtn">התנתקות / החלפת חשבון</button>
+  </div>
+</div>
+
+<div class="hidden" id="appContainer">
+  <div class="dash-shell">
+    <header class="dash-head">
+      <h1>📊 דשבורד אנליטיקס</h1>
+      <button class="icon-btn" id="refreshBtn" aria-label="רענון נתונים" title="רענון נתונים">🔄</button>
+      <button class="icon-btn" id="themeBtn" aria-label="החלפת מצב תצוגה" title="החלפת מצב תצוגה">🌙</button>
+      <button class="icon-btn" id="signOutBtn" aria-label="התנתקות" title="התנתקות">🚪</button>
+    </header>
+
+    <main id="dashMain">
+      <section class="metric-card">
+        <h2>סה"כ טיולים</h2>
+        <p class="metric-big" id="totalTripsValue">--</p>
+      </section>
+
+      <section class="metric-card">
+        <h2>טיולים לאורך זמן (לפי חודש יצירה)</h2>
+        <div id="timelineTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>התפלגות סוג טיול</h2>
+        <div id="typeTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>התפלגות אופי טיול</h2>
+        <div id="characterTable"></div>
+        <p class="metric-note" id="characterNote"></p>
+      </section>
+
+      <section class="metric-card">
+        <h2>שפת הטיול</h2>
+        <div id="languageTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>גודל קבוצה ממוצע</h2>
+        <p class="metric-big" id="groupSizeValue">--</p>
+        <p class="metric-note" id="groupSizeNote"></p>
+      </section>
+
+      <section class="metric-card">
+        <h2>הפיצ'רים הפופולריים ביותר</h2>
+        <div id="featuresTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>יעדים / מדינות פופולריים</h2>
+        <div id="countriesTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>טיול יעד-בודד מול רב-יעד</h2>
+        <div id="destTypeTable"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getRedirectResult, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// Same public project config as every other page - not a secret, see the
+// file header on why a hardcoded UID below isn't one either.
+const config = {
+  apiKey: "AIzaSyDhTtqVrBiKfKLxdOVmd_XwBEJm5oh_vMg",
+  authDomain: "gittrip.app",
+  databaseURL: "https://mykonos-list-default-rtdb.firebaseio.com",
+  projectId: "mykonos-list",
+  storageBucket: "mykonos-list.firebasestorage.app",
+  messagingSenderId: "471388041921",
+  appId: "1:471388041921:web:c0100252c6397f67dc1a40",
+  measurementId: "G-0VXCEZ117S"
+};
+const app = initializeApp(config), auth = getAuth(app), provider = new GoogleAuthProvider(), db = getDatabase(app);
+
+// THE actual access boundary for this page (see file header - "not linked"
+// is not security). Exactly one UID, not "any signed-in user" like every
+// other page in this app.
+const ALLOWED_UID = "ne56ZOFgDMRfaH03WAvO7jbinty2";
+
+const $ = id => document.getElementById(id);
+
+// --- Theme toggle (own key - no single trip in scope for theming, same
+// reasoning as achievements.html/index.html's own non-trip-scoped keys). ---
+function applyTheme() {
+  const stored = localStorage.getItem('dashboardDarkMode');
+  const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const shouldBeDark = stored === 'dark' ? true : stored === 'light' ? false : systemDark;
+
+  if (shouldBeDark) document.documentElement.dataset.theme = 'dark';
+  else delete document.documentElement.dataset.theme;
+
+  $('themeBtn').textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
+}
+$('themeBtn').onclick = () => {
+  localStorage.setItem('dashboardDarkMode', document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  applyTheme();
+};
+applyTheme();
+
+// --- Auth - identical mechanics to every other page's gate (doGoogleSignIn,
+// popup->redirect fallback, getRedirectResult, armAuthGate watchdog). The
+// one thing that's different from every other page is what happens AFTER a
+// user resolves - see handleAuthStateChanged below. ---
+function doGoogleSignIn() {
+  signInWithPopup(auth, provider).catch(error => {
+    const fallbackCodes = [
+      "auth/popup-blocked", "auth/popup-closed-by-user",
+      "auth/cancelled-popup-request", "auth/web-storage-unsupported",
+      "auth/operation-not-supported-in-this-environment"
+    ];
+    if (fallbackCodes.includes(error?.code) || /missing initial state/i.test(error?.message || "")) {
+      signInWithRedirect(auth, provider);
+    } else if (window.toast) {
+      window.toast(error.message, "error");
+    }
+  });
+}
+getRedirectResult(auth).catch(error => {
+  if (window.toast) window.toast(error.message, "error");
+});
+$('googleBtn').onclick = doGoogleSignIn;
+$('switchAccountBtn').onclick = () => signOut(auth);
+$('signOutBtn').onclick = () => signOut(auth);
+
+let dataLoaded = false;
+
+function handleAuthStateChanged(user) {
+  $('authLoading').classList.add('hidden');
+
+  if (!user) {
+    $('loginOverlay').classList.remove('hidden');
+    $('deniedOverlay').classList.add('hidden');
+    $('appContainer').classList.add('hidden');
+    dataLoaded = false;
+    return;
+  }
+
+  if (user.uid !== ALLOWED_UID) {
+    // Wrong account, but a real signed-in one - explicit denial, and
+    // critically: no trips/ read happens anywhere below this branch, not
+    // even once. console.warn per this app's own "no silent failure"
+    // convention (CLAUDE.md) - this isn't a failure exactly, but it's a
+    // security-relevant event worth a trace either way.
+    console.warn("[dashboard] access denied for uid", user.uid, user.email || "");
+    $('loginOverlay').classList.add('hidden');
+    $('deniedOverlay').classList.remove('hidden');
+    $('deniedEmailText').textContent = user.email ? `מחובר כרגע: ${user.email}` : "";
+    $('appContainer').classList.add('hidden');
+    dataLoaded = false;
+    return;
+  }
+
+  $('loginOverlay').classList.add('hidden');
+  $('deniedOverlay').classList.add('hidden');
+  $('appContainer').classList.remove('hidden');
+
+  if (!dataLoaded) {
+    dataLoaded = true;
+    loadAndRender();
+  }
+}
+onAuthStateChanged(auth, handleAuthStateChanged);
+if (window.armAuthGate) {
+  window.armAuthGate(() => { if (auth.currentUser) handleAuthStateChanged(auth.currentUser); });
+}
+
+$('refreshBtn').onclick = () => loadAndRender();
+
+function escapeHtml(value) {
+  return String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+// --- Display-name tables for fixed enum values - copied verbatim from
+// wizard.html's own <select> options (the source of truth for what these
+// codes mean), not guessed. ---
+const TRIP_TYPE_LABELS = {
+  abroad: 'טיסה לחו"ל',
+  local: "טיול בארץ",
+  camping: "קמפינג / טבע",
+  reserve: "מילואים / גיבוש"
+};
+const TRIP_CHARACTER_LABELS = {
+  family: "משפחה",
+  friends: "חברים",
+  couple: "זוגי",
+  ski: "סקי",
+  pride: "גאווה",
+  bachelor: "חתונה / רווקים",
+  festival: "פסטיבל"
+};
+const LANGUAGE_LABELS = { he: "עברית", en: "אנגלית" };
+const FEATURE_LABELS = {
+  packing: "ציוד",
+  shopping: "קניות",
+  places: "זיכרונות / מקומות",
+  itinerary: "תוכנית יומית",
+  expenses: "הוצאות"
+};
+
+let countryDisplayNames = null;
+function countryLabel(code) {
+  if (!code) return code;
+  if (!countryDisplayNames) {
+    try {
+      countryDisplayNames = new Intl.DisplayNames(["he"], { type: "region" });
+    } catch (error) {
+      console.warn("[dashboard] Intl.DisplayNames unavailable - showing raw country codes", error);
+      countryDisplayNames = false;
+    }
+  }
+  if (!countryDisplayNames) return code;
+  return countryDisplayNames.of(code) || code;
+}
+
+// docs/schema-legs.md's own fallback, duplicated here in plain read-only
+// form (same reasoning as scripts/backfill-visits.js's own getLegsFor() -
+// this is a cross-trip page with no single trip's legs.js loaded, exactly
+// like achievements.html omits legs.js for the same reason - see its own
+// file header). A trip with a real legs[] array uses it verbatim;
+// otherwise synthesize the one implied leg from the trip's own top-level
+// fields.
+function getLegsForTrip(trip) {
+  if (Array.isArray(trip.legs) && trip.legs.length) return trip.legs;
+  return [{ countryCode: trip.countryCode || null }];
+}
+
+function computeMetrics(tripsObj) {
+  const trips = Object.values(tripsObj || {}).filter(Boolean);
+  const total = trips.length;
+
+  // 1. Trips over time - trip.createdAt (epoch ms, always written - see
+  // wizard.html's tripData object).
+  const byMonth = {};
+  trips.forEach(t => {
+    if (!t.createdAt) return;
+    const d = new Date(t.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    byMonth[key] = (byMonth[key] || 0) + 1;
+  });
+
+  // 2. trip.tripType - required field, always present.
+  const byType = {};
+  trips.forEach(t => {
+    const key = t.tripType || "לא ידוע";
+    byType[key] = (byType[key] || 0) + 1;
+  });
+
+  // 3. trip.tripCharacter - optional, OMITTED (not empty string) when not
+  // chosen (wizard.html's own comment: "no character" and "character not
+  // yet asked about" are deliberately indistinguishable) - tracked
+  // separately from the distribution itself, not as a fake category.
+  const byCharacter = {};
+  let noCharacterCount = 0;
+  trips.forEach(t => {
+    if (t.tripCharacter) byCharacter[t.tripCharacter] = (byCharacter[t.tripCharacter] || 0) + 1;
+    else noCharacterCount++;
+  });
+
+  // 4. trip.language - "he" | "en", always present.
+  const byLanguage = {};
+  trips.forEach(t => {
+    const key = t.language || "לא ידוע";
+    byLanguage[key] = (byLanguage[key] || 0) + 1;
+  });
+
+  // 5. trip.participants - array of typed-in NAME STRINGS from the wizard
+  // (not uids, not memberProfiles - the group size as declared at planning
+  // time). Old pre-field trips simply don't count toward the average.
+  const groupSizes = trips
+    .filter(t => Array.isArray(t.participants))
+    .map(t => t.participants.length);
+  const avgGroupSize = groupSizes.length
+    ? groupSizes.reduce((a, b) => a + b, 0) / groupSizes.length
+    : 0;
+
+  // 6. trip.features - an OBJECT of booleans ({packing:true,...}), NOT an
+  // array (verified directly against wizard.html's selectedFeatures()) -
+  // tally every key that's true.
+  const featureCounts = {};
+  trips.forEach(t => {
+    if (t.features && typeof t.features === "object") {
+      Object.entries(t.features).forEach(([name, enabled]) => {
+        if (enabled) featureCounts[name] = (featureCounts[name] || 0) + 1;
+      });
+    }
+  });
+
+  // 7. Country popularity - per LEG, not per trip (a 3-destination trip
+  // contributes 3 tallies) - getLegsForTrip's fallback means every trip
+  // contributes at least one leg, geocoded or not.
+  const countryCounts = {};
+  let unknownCountryLegs = 0;
+  trips.forEach(t => {
+    getLegsForTrip(t).forEach(leg => {
+      const cc = leg.countryCode ? String(leg.countryCode).toUpperCase() : null;
+      if (!cc) { unknownCountryLegs++; return; }
+      countryCounts[cc] = (countryCounts[cc] || 0) + 1;
+    });
+  });
+
+  // 8. Single-destination vs multi-destination - same getLegsForTrip
+  // fallback, length > 1 is the only thing that matters.
+  let singleDest = 0, multiDest = 0;
+  trips.forEach(t => {
+    if (getLegsForTrip(t).length > 1) multiDest++;
+    else singleDest++;
+  });
+
+  return {
+    total, byMonth, byType, byCharacter, noCharacterCount, byLanguage,
+    avgGroupSize, groupSizeCount: groupSizes.length, featureCounts,
+    countryCounts, unknownCountryLegs, singleDest, multiDest
+  };
+}
+
+// --- Rendering - plain rows, no Chart.js yet (a later stage adds it once
+// there's real data worth graphing - see file header). ---
+function renderRows(containerId, rows, totalForPercent) {
+  const container = $(containerId);
+  if (!rows.length) {
+    container.innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    return;
+  }
+  container.innerHTML = rows.map(([label, count]) => {
+    const pct = totalForPercent ? Math.round((count / totalForPercent) * 100) : 0;
+    return `<div class="metric-row">
+      <span class="metric-row-label">${escapeHtml(label)}</span>
+      <span class="metric-row-count">${count}</span>
+      <span class="metric-row-percent">${pct}%</span>
+    </div>`;
+  }).join("");
+}
+
+function sortedEntries(obj) {
+  return Object.entries(obj).sort((a, b) => b[1] - a[1]);
+}
+
+function renderAll(m) {
+  $("totalTripsValue").textContent = m.total;
+
+  // Timeline: chronological (oldest first) - this is a growth-over-time
+  // table, reads naturally top-to-bottom, with a running total.
+  const monthKeys = Object.keys(m.byMonth).sort();
+  let cumulative = 0;
+  $("timelineTable").innerHTML = monthKeys.length
+    ? monthKeys.map(key => {
+        cumulative += m.byMonth[key];
+        return `<div class="metric-row">
+          <span class="metric-row-label">${escapeHtml(key)}</span>
+          <span class="metric-row-count">${m.byMonth[key]}</span>
+          <span class="metric-row-percent">סה"כ ${cumulative}</span>
+        </div>`;
+      }).join("")
+    : `<p class="metric-empty">אין נתונים עדיין</p>`;
+
+  renderRows(
+    "typeTable",
+    sortedEntries(m.byType).map(([k, v]) => [TRIP_TYPE_LABELS[k] || k, v]),
+    m.total
+  );
+
+  renderRows(
+    "characterTable",
+    sortedEntries(m.byCharacter).map(([k, v]) => [TRIP_CHARACTER_LABELS[k] || k, v]),
+    m.total
+  );
+  $("characterNote").textContent = m.total
+    ? `${m.noCharacterCount} מתוך ${m.total} טיולים (${Math.round((m.noCharacterCount / m.total) * 100)}%) בלי אופי טיול מוגדר`
+    : "";
+
+  renderRows(
+    "languageTable",
+    sortedEntries(m.byLanguage).map(([k, v]) => [LANGUAGE_LABELS[k] || k, v]),
+    m.total
+  );
+
+  $("groupSizeValue").textContent = m.groupSizeCount ? m.avgGroupSize.toFixed(1) : "--";
+  $("groupSizeNote").textContent = m.groupSizeCount
+    ? `מבוסס על ${m.groupSizeCount} מתוך ${m.total} טיולים עם רשימת משתתפים`
+    : "אין נתוני משתתפים עדיין";
+
+  renderRows(
+    "featuresTable",
+    sortedEntries(m.featureCounts).map(([k, v]) => [FEATURE_LABELS[k] || k, v]),
+    m.total
+  );
+
+  const countryRows = sortedEntries(m.countryCounts).map(([k, v]) => [countryLabel(k), v]);
+  const totalLegs = Object.values(m.countryCounts).reduce((a, b) => a + b, 0) + m.unknownCountryLegs;
+  if (m.unknownCountryLegs) countryRows.push(["לא ידוע (geocoding נכשל)", m.unknownCountryLegs]);
+  renderRows("countriesTable", countryRows, totalLegs);
+
+  renderRows(
+    "destTypeTable",
+    [["יעד בודד", m.singleDest], ["רב-יעד", m.multiDest]],
+    m.total
+  );
+}
+
+async function loadAndRender() {
+  try {
+    const snapshot = await get(ref(db, "trips"));
+    renderAll(computeMetrics(snapshot.val()));
+  } catch (error) {
+    console.warn("[dashboard] failed to load trips/", error);
+    if (window.toast) window.toast("טעינת הנתונים נכשלה", "error");
+  }
+}
+</script>
+
+</body>
+</html>
