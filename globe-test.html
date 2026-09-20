@@ -238,17 +238,6 @@
     return { url: TEXTURE_BASE + ".jpg", format: "JPEG (fallback - no AVIF/WebP decode support detected)" };
   }
 
-  // Preloads via a plain Image() + decode() BEFORE handing the URL to
-  // globe.gl - this is what makes the swap a clean single moment instead
-  // of the texture popping in progressively mid-download the way a bare
-  // globeImageUrl(fullResUrl) would (Three.js would still show SOMETHING
-  // as soon as enough bytes arrive, not necessarily complete/correct).
-  function preloadImage(url) {
-    const img = new Image();
-    img.src = url;
-    return img.decode().then(() => url);
-  }
-
   try {
     log("Step 1/4: dynamic import() of globe.gl…");
     const t0 = performance.now();
@@ -332,46 +321,51 @@
 
     log("Globe built (placeholder texture). Rotate with a finger/mouse and watch the FPS counter (top-left).", "ok");
 
-    // --- Progressive swap: pick the best format, preload it fully, then
-    // hand it to globe.gl - wrapped in a brief dim/undim on the container
-    // itself so the swap reads as a deliberate handoff, not a content pop.
-    // This is a real limitation to flag, not silently glossed over: this
-    // is NOT a true cross-fade between the two textures (that would need
-    // custom shader/material blending in Three.js, real extra complexity
-    // for a throwaway prototype) - it's a fast opacity dip timed around
-    // the swap, which reads as "smooth" but is a simpler effect than an
-    // actual blend. Good enough for this test; a real implementation
-    // might want the genuine shader cross-fade if the pop still bothers
-    // anyone once seen on a real device. ---
+    // --- Progressive swap: pick the best format, hand its URL to globe.gl
+    // directly - ONE fetch total (globe.gl/Three.js's own TextureLoader),
+    // not two. An earlier version of this also pre-fetched the image
+    // itself via a separate Image()+decode() before calling
+    // globeImageUrl(), specifically to make the swap a single clean
+    // moment - but verified directly against the live production deploy
+    // (Resource Timing showed "2 requests" for the exact same URL, real
+    // network cost both times, not a cache hit the second time) that this
+    // doubled the texture's real download cost on a cold cache. That
+    // cost was never worth the cosmetic benefit, especially since AVIF/
+    // WebP don't progressively render the way old progressive JPEG did -
+    // removed rather than kept as a known tradeoff.
+    //
+    // The dim/undim on the container is still here, timed around the
+    // format DECISION instead of around a preload completion - still not
+    // a true cross-fade (that would need real Three.js material
+    // blending), just a fast opacity dip so the swap reads as deliberate
+    // rather than an abrupt pop. ---
     let chosenFormat = null;
     pickBestTextureFormat()
       .then(choice => {
         chosenFormat = choice.format;
-        log(`Best supported texture format detected: ${choice.format}. Preloading full-resolution texture in the background…`);
-        return preloadImage(choice.url);
-      })
-      .then(fullUrl => {
+        log(`Best supported texture format detected: ${choice.format}. Loading full-resolution texture…`);
+
         const container = document.getElementById("globeContainer");
         container.style.transition = "opacity 150ms ease";
         container.style.opacity = "0.55";
 
         setTimeout(() => {
-          world.globeImageUrl(fullUrl);
+          world.globeImageUrl(choice.url);
           setTimeout(() => {
             container.style.opacity = "1";
           }, 60);
         }, 150);
 
-        log(`Full-resolution texture (${chosenFormat}) swapped in.`, "ok");
+        log(`Full-resolution texture (${chosenFormat}) requested.`, "ok");
       })
       .catch(err => {
         log(`Texture upgrade failed, staying on placeholder: ${err.message}`, "warn");
       });
 
-    // 2500ms, not 1500 - now has to cover format-detection (2 tiny decodes)
-    // AND the full-resolution preload finishing, not just static file
-    // fetches. Still just a "probably done by now" wait, not a real
-    // completion signal - see the note printed alongside the numbers.
+    // 2500ms - covers format-detection (2 tiny decodes) plus the
+    // full-resolution fetch itself. Still just a "probably done by now"
+    // wait, not a real completion signal - see the note printed alongside
+    // the numbers.
     setTimeout(() => {
       log("");
       log("--- Bundle size report (measured, not estimated) ---");
