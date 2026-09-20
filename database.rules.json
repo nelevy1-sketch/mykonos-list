@@ -62,7 +62,7 @@
         "places": {
           "items": {
             "$placeId": {
-              ".write": "auth != null"
+              ".write": "auth != null && (!data.exists() || data.child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('ownerId').val() === auth.uid)"
             }
           }
         },
@@ -72,7 +72,19 @@
             "$dayKey": {
               "activities": {
                 "$activityId": {
-                  ".write": "auth != null"
+                  ".write": "auth != null && (!data.exists() || data.child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('ownerId').val() === auth.uid)",
+
+                  "joiners": {
+                    "$uid": {
+                      ".write": "auth != null && auth.uid === $uid"
+                    }
+                  },
+
+                  "joinerNames": {
+                    "$uid": {
+                      ".write": "auth != null && auth.uid === $uid"
+                    }
+                  }
                 }
               }
             }
@@ -82,7 +94,31 @@
         "photos": {
           "items": {
             "$photoId": {
-              ".write": "auth != null"
+              ".write": "auth != null && (!data.exists() || data.child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('ownerId').val() === auth.uid)",
+
+              "reactions": {
+                "$uid": {
+                  ".write": "auth != null && auth.uid === $uid"
+                }
+              },
+
+              "comments": {
+                "$commentId": {
+                  ".write": "auth != null && (!data.exists() || data.child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('ownerId').val() === auth.uid || root.child('trips').child($tripId).child('photos').child('items').child($photoId).child('createdByUid').val() === auth.uid)",
+
+                  "likes": {
+                    "$uid": {
+                      ".write": "auth != null && auth.uid === $uid"
+                    }
+                  },
+
+                  "replies": {
+                    "$replyId": {
+                      ".write": "auth != null && (!data.exists() || data.child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('ownerId').val() === auth.uid || root.child('trips').child($tripId).child('photos').child('items').child($photoId).child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('photos').child('items').child($photoId).child('comments').child($commentId).child('createdByUid').val() === auth.uid)"
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -90,7 +126,7 @@
         "music": {
           "items": {
             "$musicId": {
-              ".write": "auth != null"
+              ".write": "auth != null && (!data.exists() || data.child('createdByUid').val() === auth.uid || root.child('trips').child($tripId).child('ownerId').val() === auth.uid)"
             }
           }
         }
