@@ -3801,6 +3801,17 @@
 
     if (auth) {
       function handleAuthStateChanged(user) {
+        // TEMPORARY diagnostic - "back to menu" bug investigation
+        // (docs/roadmap.md-adjacent, not yet filed). Remove before the next
+        // real commit once the real cause is confirmed from this output.
+        console.log("[DIAG openMenu]", {
+          hasUser: !!user,
+          uid: user ? user.uid : null,
+          openMenuOnLoad,
+          hasAutoOpenedMenu,
+          urlNow: location.href
+        });
+
         currentUser = user;
 
         document.getElementById("authLoading").classList.add("hidden");
