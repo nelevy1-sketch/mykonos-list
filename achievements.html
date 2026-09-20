@@ -71,6 +71,41 @@
      2's rule, never persisted). Geocoding only ever runs after the user
      actually opens the city view - never speculatively.
 
+     Stats block (stage 5, on top of the completed 4-stage feature above):
+     a small text summary above the view toggle - "visited X of Y countries
+     worldwide (Z%)", one line per continent the user has actually visited
+     (continents with zero visits are omitted - inferred-zero noise, not
+     information, matching this page's own density rule elsewhere), and a
+     "visited X of Y capitals" line. Recomputed on every users/{uid}/visits
+     snapshot exactly like country/continent/city info already is - no new
+     write, no caching of the derived numbers, same rule as everywhere else
+     on this page. Has no relationship to the globe/WebGL render loop at
+     all - plain DOM text, updates independently of whether the globe has
+     even finished loading.
+
+     capitalCities.js (new file, loaded below) supplies alpha-2 -> capital
+     name(s) in English AND Hebrew - see its own header for sourcing
+     (Wikidata, not REST Countries - that API now requires an account/key
+     this project's safety rules won't let anything here create) and for
+     the 10 codes (out of the 248 in window.COUNTRY_CONTINENT) that have no
+     entry because Wikidata itself has no capital statement for them
+     (Antarctica, uninhabited islands, Hong Kong/Macao's "SAR, not capital"
+     status). The "capitals visited" stat can only ever check a visited
+     country if it has an entry there - a visited country with none simply
+     can't contribute to the numerator, but still counts in the
+     denominator ("Y countries you've visited"), per the stat's own
+     literal wording.
+
+     Matching a visit's cityName against a capital name is fuzzy ON
+     PURPOSE and DELIBERATELY NOT SOLVED PERFECTLY - same spirit as city
+     view's own documented duplicate-point limitation (stage 3): strip
+     case and diacritics/Hebrew niqqud, then check partial containment
+     either direction, against both the English and Hebrew capital name.
+     A real capital visit typed in a spelling/transliteration this simple
+     check doesn't line up with (rare, but possible) won't be detected -
+     accepted, not fixed, exactly per the task's own instruction not to
+     chase perfect fuzzy matching here.
+
      Cross-trip page, deliberately NOT structured like the 5 trip-scoped
      module pages (itinerary/packing/shopping/places) despite sharing most
      of their conventions - there is no single tripId here ("my
@@ -147,6 +182,11 @@
        write wrapper every other page already uses (CLAUDE.md, "safeWrite"),
        reused as-is, not reimplemented. -->
   <script src="safeWrite.js"></script>
+  <!-- Stats block (stage 5) dependency: alpha-2 -> capital name(s) in
+       English+Hebrew, new file - see its own header for sourcing/coverage
+       and the file header above for why the "capitals visited" stat is
+       fuzzy on purpose. -->
+  <script src="capitalCities.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -281,6 +321,25 @@
       font-size: .85rem;
     }
 
+    /* Stats block (stage 5) - plain text, no card/background of its own on
+       purpose (this page is already visually busy with the header+tabs+
+       globe; a boxed panel here would compete with them). One line each,
+       small font - "smallest still legible" per this page's own density
+       rule, since a fully-visited user could otherwise see up to ~8 lines
+       (world + up to 6 continents + capitals). */
+    .stats-block {
+      flex: 0 0 auto;
+      margin: 0 16px 8px;
+      font-size: .78rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .stats-block .stat-main {
+      font-size: .92rem;
+      font-weight: 750;
+      color: var(--primary-dark);
+    }
+
     /* Full-screen globe, not a bottom-sheet - this is the whole point of
        stage 1: confirm the choropleth+atmosphere layer renders correctly
        at real page size/position, not the artificial sandbox layout
@@ -325,6 +384,8 @@
     <h1>🏆 ההישגים שלי</h1>
     <button class="icon-btn" id="themeBtn" aria-label="החלפת מצב תצוגה" title="החלפת מצב תצוגה">🌙</button>
   </header>
+
+  <div class="stats-block" id="statsBlock"></div>
 
   <div class="tabs" id="viewTabs">
     <button class="tab active" data-view="country" id="countryViewTab">מדינה</button>
@@ -812,11 +873,105 @@ $("addVisitOverlay").onclick = event => {
   if (event.target.id === "addVisitOverlay") $("cancelAddVisit").click();
 };
 
+// --- Stats block (stage 5) - plain text, no relationship to the globe/
+// WebGL render loop at all. Recomputed fresh from countryVisitInfo/
+// latestVisits on every visits snapshot, exactly like every other derived
+// value on this page - nothing here is cached/stored. ---
+const CONTINENT_LABELS_HE = {
+  Africa: "אפריקה",
+  Americas: "אמריקה",
+  Asia: "אסיה",
+  Europe: "אירופה",
+  Oceania: "אוקיאניה",
+  Antarctica: "אנטארקטיקה"
+};
+
+// Strips case and diacritics/Hebrew niqqud (both are Unicode combining
+// marks once run through NFD normalization, just in different code-point
+// ranges) - not a full fuzzy-matching solution, see the file header on why
+// that's intentional here.
+function normalizeForMatch(str) {
+  return String(str || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0591-\u05C7\u0300-\u036f]/g, "");
+}
+
+function cityMatchesCapital(cityName, capitalEntries) {
+  const normCity = normalizeForMatch(cityName);
+  if (!normCity) return false;
+  return capitalEntries.some(entry =>
+    [entry.en, entry.he].some(name => {
+      if (!name) return false;
+      const normCapital = normalizeForMatch(name);
+      return normCity.includes(normCapital) || normCapital.includes(normCity);
+    })
+  );
+}
+
+function computeStats(visits) {
+  const worldTotal = Object.keys(window.COUNTRY_CONTINENT || {}).length;
+  const visitedCodes = Object.keys(countryVisitInfo);
+
+  const continentTotals = {};
+  Object.values(window.COUNTRY_CONTINENT || {}).forEach(cont => {
+    continentTotals[cont] = (continentTotals[cont] || 0) + 1;
+  });
+  const continentVisited = {};
+  visitedCodes.forEach(code => {
+    const cont = window.COUNTRY_CONTINENT && window.COUNTRY_CONTINENT[code];
+    if (!cont) return;
+    continentVisited[cont] = (continentVisited[cont] || 0) + 1;
+  });
+
+  let capitalsVisited = 0;
+  visitedCodes.forEach(code => {
+    const capitalEntries = window.CAPITAL_CITIES && window.CAPITAL_CITIES[code];
+    if (!capitalEntries) return; // no capital data for this country - can't check it, but it still counts toward the denominator below
+    const cityNames = Object.values(visits || {})
+      .filter(v => v && v.cityName && v.countryCode && String(v.countryCode).toUpperCase() === code)
+      .map(v => v.cityName);
+    if (cityNames.some(name => cityMatchesCapital(name, capitalEntries))) capitalsVisited++;
+  });
+
+  return { worldTotal, visitedCount: visitedCodes.length, continentTotals, continentVisited, capitalsVisited };
+}
+
+function renderStats() {
+  const stats = computeStats(latestVisits);
+  if (!stats.visitedCount) {
+    // Nothing visited yet - a "0 out of 0" capitals line would be
+    // nonsensical, and every continent line would read "0 out of Y" with
+    // nothing to say. Just the one honest fact stands on its own.
+    $("statsBlock").innerHTML = `<div class="stat-main">ביקרת ב-0 מדינות מתוך ${stats.worldTotal} בעולם (0%)</div>`;
+    return;
+  }
+
+  const worldPct = Math.round((stats.visitedCount / stats.worldTotal) * 100);
+  const lines = [`<div class="stat-main">ביקרת ב-${stats.visitedCount} מדינות מתוך ${stats.worldTotal} בעולם (${worldPct}%)</div>`];
+
+  Object.keys(stats.continentVisited)
+    .sort((a, b) => stats.continentVisited[b] - stats.continentVisited[a])
+    .forEach(cont => {
+      const visited = stats.continentVisited[cont];
+      const total = stats.continentTotals[cont] || 0;
+      const pct = total ? Math.round((visited / total) * 100) : 0;
+      const label = CONTINENT_LABELS_HE[cont] || cont;
+      lines.push(`<div>${escapeHtml(label)}: ${visited} מתוך ${total} מדינות (${pct}%)</div>`);
+    });
+
+  lines.push(`<div>ביקרת ב-${stats.capitalsVisited} בירות מתוך ${stats.visitedCount} מדינות שביקרת בהן</div>`);
+
+  $("statsBlock").innerHTML = lines.join("");
+}
+
 function startVisitsListener(uid) {
   onValue(ref(db, `users/${uid}/visits`), snapshot => {
     latestVisits = snapshot.val();
     countryVisitInfo = computeCountryVisitInfo(latestVisits);
     continentVisitInfo = computeContinentVisitInfo(countryVisitInfo);
+    renderStats();
     // Re-applying the same accessor forces globe.gl to re-evaluate every
     // polygon's cap color against the just-updated info - needed because
     // nothing else about the polygons layer changed, so nothing would
