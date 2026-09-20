@@ -1,5 +1,21 @@
 # GitTrip — CHANGELOG
 
+## v4.72.25 — index.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 5/6)
+
+### 🎯 מה השתנה
+16 תוויות (הכי הרבה מבין 6 העמודים) - פרופיל אישי, הכספת האישית (locker), ולוח הניהול (admin) - היו `<label>` בלי `for`. נוסף `for="<id הקיים>"` לכל ה-16: `profileNameLabel`, `profilePhoneLabel`, `lockerNameLabel`, `lockerFlightNumberLabel`, `lockerFlightTimeLabel`, `lockerSeatLabel`, `lockerLinkLabel`, `adminTripTitleLabel`, `adminTripTypeLabel`, `adminDestLabel`, `adminStartLabel`, `adminEndLabel`, `adminWhatsappGroupLabel`, `adminAirlineLabel`, `adminCheckinLabel`, `adminReturnSeatLayoutLabel`.
+
+**6 תוויות-עטיפה של checkbox (`admin-checkbox-row`) - לא נגעתי בהן כלל**, כפי שסומן מראש - הן כבר תקינות (עוטפות את ה-`<input type="checkbox">` שלהן ישירות, אין להן ולא צריך `for`).
+
+הקובץ הזה מכיל גם את פיצ'ר הברקוד הממתין (uncommitted) - כמו בכל commit קודם על הקובץ הזה, ה-commit בפועל ישתמש בטכניקת בידוד ה-git blob כדי לכלול רק את 16 השורות האלה.
+
+### 🔍 מה שנבדק בפועל
+כל 16 ה-id-ים אומתו כ-unique. נבדק בדפדפן בשלושת המודלים בנפרד (`profileModal`/`lockerModal`/`adminModal`) - כל 16 הזוגות מחזירים את התווית הנכונה (`querySelector('label[for="X"]')`), צילומי מסך בכל שלושת המודלים מאשרים אין רגרסיה חזותית. אומת גם במפורש ש-6 תוויות ה-checkbox נשארו עוטפות את השדה שלהן (`closest('label')` מחזיר true לכל השישה) - לא נפגעו.
+
+`node scripts/i18n-audit.js` - אין ממצאים חדשים.
+
+v4.72.24 -> v4.72.25 (patch - תיקון נגישות, אין שינוי סכימה).
+
 ## v4.72.24 — places.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 4/6)
 
 ### 🎯 מה השתנה

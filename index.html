@@ -2504,12 +2504,12 @@
       </div>
 
       <div class="admin-field">
-        <label id="profileNameLabel">שם תצוגה:</label>
+        <label id="profileNameLabel" for="profileNameInput">שם תצוגה:</label>
         <input type="text" id="profileNameInput" class="admin-input" maxlength="40">
       </div>
 
       <div class="admin-field">
-        <label id="profilePhoneLabel">מספר טלפון (אופציונלי):</label>
+        <label id="profilePhoneLabel" for="profilePhoneInput">מספר טלפון (אופציונלי):</label>
         <input
           type="tel"
           id="profilePhoneInput"
@@ -2577,12 +2577,12 @@
       </div>
 
       <div class="admin-field">
-        <label id="lockerNameLabel">בחר את השם שלך:</label>
+        <label id="lockerNameLabel" for="lockerMemberName">בחר את השם שלך:</label>
         <select id="lockerMemberName" class="admin-input"></select>
       </div>
 
       <div class="admin-field">
-        <label id="lockerFlightNumberLabel">
+        <label id="lockerFlightNumberLabel" for="lockerFlightNumber">
           מספר טיסה (אופציונלי):
         </label>
 
@@ -2595,7 +2595,7 @@
       </div>
 
       <div class="admin-field">
-        <label id="lockerFlightTimeLabel">
+        <label id="lockerFlightTimeLabel" for="lockerFlightTime">
           שעת המראה (אופציונלי):
         </label>
 
@@ -2608,7 +2608,7 @@
       </div>
 
       <div class="admin-field">
-        <label id="lockerSeatLabel">
+        <label id="lockerSeatLabel" for="lockerSeat">
           מספר מושב במטוס (למשל 20A):
         </label>
 
@@ -2623,7 +2623,7 @@
       </div>
 
       <div class="admin-field">
-        <label id="lockerLinkLabel">
+        <label id="lockerLinkLabel" for="lockerLink">
           קישור לכרטיס דיגיטלי / ברקוד (URL):
         </label>
 
@@ -2714,7 +2714,7 @@
         </div>
 
         <div class="admin-field">
-          <label id="adminTripTitleLabel">שם הטיול (אופציונלי):</label>
+          <label id="adminTripTitleLabel" for="adminTripTitleInput">שם הטיול (אופציונלי):</label>
           <input
             type="text"
             id="adminTripTitleInput"
@@ -2723,7 +2723,7 @@
         </div>
 
         <div class="admin-field">
-          <label id="adminTripTypeLabel">סוג הטיול:</label>
+          <label id="adminTripTypeLabel" for="adminTripType">סוג הטיול:</label>
 
           <select id="adminTripType" class="admin-input">
             <option value="abroad" id="adminTypeAbroad">
@@ -2738,7 +2738,7 @@
         </div>
 
         <div class="admin-field">
-          <label id="adminDestLabel">שם היעד:</label>
+          <label id="adminDestLabel" for="adminDestInput">שם היעד:</label>
           <input
             type="text"
             id="adminDestInput"
@@ -2751,7 +2751,7 @@
         </div>
 
         <div class="admin-field">
-          <label id="adminStartLabel">מועד התחלת הטיול:</label>
+          <label id="adminStartLabel" for="adminFlightInput">מועד התחלת הטיול:</label>
           <input
             type="datetime-local"
             id="adminFlightInput"
@@ -2760,7 +2760,7 @@
         </div>
 
         <div class="admin-field">
-          <label id="adminEndLabel">מועד סיום / חזרה:</label>
+          <label id="adminEndLabel" for="adminEndInput">מועד סיום / חזרה:</label>
           <input
             type="datetime-local"
             id="adminEndInput"
@@ -2773,7 +2773,7 @@
         </p>
 
         <div class="admin-field">
-          <label id="adminWhatsappGroupLabel">קישור לקבוצת וואטסאפ (אופציונלי):</label>
+          <label id="adminWhatsappGroupLabel" for="adminWhatsappGroupUrl">קישור לקבוצת וואטסאפ (אופציונלי):</label>
           <input
             type="text"
             id="adminWhatsappGroupUrl"
@@ -2825,7 +2825,7 @@
         <div class="admin-legs-seats-list" id="adminLegsSeatsList"></div>
 
         <div class="admin-field" id="airlineField">
-          <label id="adminAirlineLabel">חברת תעופה (אופציונלי):</label>
+          <label id="adminAirlineLabel" for="adminAirline">חברת תעופה (אופציונלי):</label>
           <select id="adminAirline" class="admin-input">
             <option value="" id="adminAirlineOther">אחר</option>
             <option value="elal" id="adminAirlineElal">אל על</option>
@@ -2844,7 +2844,7 @@
         </div>
 
         <div class="admin-field" id="checkinField">
-          <label id="adminCheckinLabel">קישור לצ'ק-אין (URL):</label>
+          <label id="adminCheckinLabel" for="adminCheckinUrl">קישור לצ'ק-אין (URL):</label>
           <input
             type="text"
             id="adminCheckinUrl"
@@ -2854,7 +2854,7 @@
         </div>
 
         <div class="admin-field" id="returnSeatLayoutField">
-          <label id="adminReturnSeatLayoutLabel">תצורת מושבים לטיסת החזרה:</label>
+          <label id="adminReturnSeatLayoutLabel" for="adminReturnSeatLayout">תצורת מושבים לטיסת החזרה:</label>
           <select id="adminReturnSeatLayout" class="admin-input" style="direction:ltr;">
             <option value="2-2">2-2</option>
             <option value="3-3">3-3</option>
