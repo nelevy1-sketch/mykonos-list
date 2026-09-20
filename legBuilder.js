@@ -153,6 +153,14 @@
             // the time an admin-panel save reuses an unchanged leg without
             // re-geocoding it (docs/schema-legs.md §2.2).
             countryCode: legLocations[i].countryCode || null,
+            // Forward-only (gamification achievement-map work, legGeocode.js
+            // commit) - a leg built before this existed has neither field,
+            // same absent-not-null gap as countryCode had for legs predating
+            // v4.23.0. Never read as a replacement for `name` above (still
+            // the raw user-typed destination) - a separate, additional,
+            // machine-clean pair.
+            cityName: legLocations[i].cityName || null,
+            region: legLocations[i].region || null,
             seatLayout: (legSeatLayouts && legSeatLayouts[i]) || null,
             startAt: boundaries[i].toISOString(),
             endAt: boundaries[i + 1].toISOString(),

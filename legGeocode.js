@@ -98,7 +98,16 @@ async function geocodeViaOpenMeteo(name, language) {
           lat: match.latitude,
           lon: match.longitude,
           timezone: match.timezone || null,
-          countryCode: match.country_code || null
+          countryCode: match.country_code || null,
+          // Forward-only additions (gamification achievement-map work) -
+          // Open-Meteo already returns its own resolved city name and
+          // region/state in every match; this was being silently discarded
+          // before. A leg's own `name` stays the raw free-text the user
+          // typed (never overwritten by this) - these are a separate,
+          // additional, machine-clean pair for grouping/display, not a
+          // replacement for it.
+          cityName: match.name || null,
+          region: match.admin1 || null
         }
       : null;
   } catch {
@@ -128,7 +137,12 @@ async function geocodeViaNominatim(name, language) {
         // Nominatim never returns a timezone, in any configuration - see
         // the file header. Left null on purpose, not derived here.
         timezone: null,
-        countryCode
+        countryCode,
+        // Same forward-only pair as the Open-Meteo path above. Nominatim's
+        // settlement-type key varies by place (city/town/village/hamlet),
+        // hence the fallback chain rather than a single fixed key.
+        cityName: match.address?.city || match.address?.town || match.address?.village || null,
+        region: match.address?.state || null
       };
     } catch {
       return null;
@@ -140,12 +154,18 @@ async function geocodeViaNominatim(name, language) {
 // language: "he" | "en" - passed through to both services; only affects the
 //   display language of an already-found match in either one, never what
 //   gets matched (confirmed for both - see file header).
-// Returns {lat, lon, timezone, countryCode} - each individually null when
-// unknown, never a placeholder like 0. Never throws.
+// Returns {lat, lon, timezone, countryCode, cityName, region} - each
+// individually null when unknown, never a placeholder like 0. Never throws.
+// cityName/region are forward-only (added after both services were already
+// wired up) - a leg saved before this existed simply has no value for
+// either, same fallback-shaped gap as countryCode had for legs predating
+// v4.23.0 (docs/schema-legs.md §2.2). Never a substitute for the leg's own
+// `name` (still the raw, user-typed destination) - this is a separate,
+// additional, machine-clean pair for grouping/display.
 window.geocodeLegDestination = async function geocodeLegDestination(name, language) {
   const openMeteoResult = await geocodeViaOpenMeteo(name, language);
   if (openMeteoResult) return openMeteoResult;
 
   const nominatimResult = await geocodeViaNominatim(name, language);
-  return nominatimResult || { lat: null, lon: null, timezone: null, countryCode: null };
+  return nominatimResult || { lat: null, lon: null, timezone: null, countryCode: null, cityName: null, region: null };
 };

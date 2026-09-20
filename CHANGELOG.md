@@ -1,5 +1,24 @@
 # GitTrip — CHANGELOG
 
+## v4.75.0 — legGeocode.js: שמירת cityName/region (הכנה לאשכול הגיימיפיקציה)
+
+### 🎯 מה השתנה
+חקירה לקראת מפת-הישגים (choropleth) מצאה ש-`legGeocode.js` (מ-v4.74.1) משליך שם-עיר נקי ואזור/מחוז שגם Open-Meteo וגם Nominatim כבר מחזירים בתגובה - נשמרים היום רק `lat`/`lon`/`timezone`/`countryCode`. **commit קטן ועצמאי**, לא תלוי באשכול הגיימיפיקציה עצמו ולא חוסם אותו - רק מפסיק לזרוק מידע שכבר יש בהישג-יד.
+
+**נוסף**: `cityName`/`region` לאובייקט שמוחזר מ-`window.geocodeLegDestination()` - מ-Open-Meteo: `match.name`/`match.admin1`; מ-Nominatim (נתיב הגיבוי): `address.city||address.town||address.village`/`address.state` (המפתח בכתובת של Nominatim משתנה לפי סוג היישוב, ולכן שרשרת ה-fallback). `legBuilder.js`'s `buildLegs()` עודכן בהתאם להעתיק את שני השדות אל אובייקט הרגל עצמו - **בלי זה השדות החדשים היו מחושבים ומיד נזרקים**, לא ממש נשמרים ל-RTDB. **קדימה-בלבד**: רגל שנוצרה לפני ה-commit הזה פשוט לא נושאת את השדה, אותו דפוס-נפילה בדיוק כמו `countryCode` לרגליים שקדמו ל-v4.23.0.
+
+**במפורש לא נעשה**: אין מירור ברמת-טיול (כמו ש-`destination`/`lat`/`lon`/`countryCode` ממוררים מ-`legs[0]` היום) - המירור הקיים קיים כדי לא לשבור קוד ישן שקורא משתני-trip ישירות; `cityName`/`region` הם שדות חדשים לגמרי בלי צרכן קיים כזה, אז אין סיבה אמיתית למרר אותם. `legs[n].name` (הטקסט החופשי שהמשתמש הקליד) **לא נגע** - השדות החדשים הם תוספת, לא תחליף.
+
+### 🔍 מה שנבדק בפועל
+מול ה-API-ים החיים, דרך `window.geocodeLegDestination` בדפדפן:
+1. "Rome" (התאמה ישירה ב-Open-Meteo) - `cityName:"Rome"`, `region:"Lazio"`.
+2. "שטוקהולם" (עברית, נופל ל-Nominatim) - `cityName:"סטוקהולם"`, `region:null` (Nominatim לא תייג state לתוצאה הזו - לא באג).
+3. "גוטנבורג" (איות לא-סטנדרטי, נכשל בשני השירותים) - `cityName:null`, `region:null` - נופל בשקט, לא שובר.
+
+`node --check` על `legGeocode.js`+`legBuilder.js`. אין consumer קיים שנשבר - שני קוראי `geocodeLegDestination` (wizard.html, index.html) מחלצים שדות ספציפיים בשם, לא סופרים/מבצעים iterate על מפתחות.
+
+**שינוי סכמה (שדות חדשים) → minor bump.**
+
 ## v4.74.2 — authDomain: מעבר ל-gittrip.app (6 עמודים)
 
 ### 🎯 מה השתנה
