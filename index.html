@@ -2788,10 +2788,6 @@
             style="direction:ltr;">
         </div>
 
-        <p class="admin-hint hidden" id="adminMultiLegHint">
-          עריכת יעדים ותאריכים בטיול מרובה יעדים תתאפשר בקרוב
-        </p>
-
         <div class="admin-field">
           <label id="adminWhatsappGroupLabel" for="adminWhatsappGroupUrl">קישור לקבוצת וואטסאפ (אופציונלי):</label>
           <input
@@ -3239,7 +3235,6 @@
         adminFeatItineraryLabel: "🗓️ תוכנית יומית",
         adminFeatExpensesLabel: "💸 הוצאות",
         adminAddLegBtn: "+ הוספת יעד",
-        adminMultiLegHint: "עריכת מועד ההתחלה/סיום הכולל בטיול מרובה יעדים תתאפשר בקרוב - את היעדים כבר אפשר לערוך למעלה",
         adminModulesHint: "כיבוי מודול מסתיר אותו מהתפריט ומדף הבית - המידע שכבר נשמר בו לא נמחק, ואפשר להפעיל אותו שוב בכל שלב.",
         saveModulesBtn: "שמור מודולים",
         adminShareTitle: "שיתוף הטיול",
@@ -3337,7 +3332,6 @@
         adminFeatItineraryLabel: "🗓️ Daily itinerary",
         adminFeatExpensesLabel: "💸 Expenses",
         adminAddLegBtn: "+ Add destination",
-        adminMultiLegHint: "Editing the overall start/end date of a multi-destination trip will be available soon - you can already edit destinations above",
         adminModulesHint: "Turning off a module hides it from the menu and home screen - any data already saved there is not deleted, and you can turn it back on anytime.",
         saveModulesBtn: "Save modules",
         adminShareTitle: "Share the trip",
@@ -7211,18 +7205,15 @@
       // Step 11ব (docs/schema-legs.md §5.7): destination editing is now the
       // leg list below (seedAdminLegsEditor, called after the date fields
       // are populated) - adminDestInput is row 0 of that list, not set
-      // directly here anymore. The overall start/end date fields are still
-      // derived from legs[0]/legs[last] (§4) and stay blocked for a
-      // multi-leg trip until per-leg date editing exists (11ব.2+) - editing
-      // them without going through buildLegs/deriveTripFields would desync
-      // legs again, the exact bug step 11א fixed.
-      const multiLeg = currentLegs.length > 1;
-
-      ["adminFlightInput", "adminEndInput"].forEach(id => {
-        document.getElementById(id).disabled = multiLeg;
-      });
-
-      document.getElementById("adminMultiLegHint").classList.toggle("hidden", !multiLeg);
+      // directly here anymore. The overall start/end date fields used to
+      // stay disabled for a multi-leg trip (step 11ব, until per-leg date
+      // editing existed) - that editing now exists (buildLegs/
+      // deriveTripFields, step 11ব.2) and already validates every leg's
+      // own startAt<endAt (saveFlightBtn's handler below), so these two
+      // fields - legs[0]'s start and legs[last]'s end - flow through the
+      // exact same save path as every interior transition date. Never
+      // write startAt/endAt directly outside that path - that's the exact
+      // bug step 11א fixed (commit 3edb459).
 
       document.getElementById(
         "adminCheckinUrl"
@@ -7705,6 +7696,49 @@
           tripFields.countryCode = tripFields.countryCode || countryCode;
 
           multiLegWriteFields = { legs, tripFields };
+        }
+
+        // Neither branch above migrates already-saved itinerary activities
+        // to a new dayKey when the overall span shifts (out of scope - see
+        // docs/schema-legs.md's own "zero migration" precedent). This is
+        // the light-weight guard instead: warn before the fact rather than
+        // let activities silently vanish from view with no explanation.
+        // Simple existence check only (any itinerary/days node at all),
+        // not a precise "does this specific activity get orphaned" check -
+        // that would need the same dayKey math tripDayDates() already does
+        // per-leg, which is a bigger, separate piece of work.
+        const newOverallStart = multiLeg
+          ? new Date(multiLegWriteFields.legs[0].startAt)
+          : flightOut;
+
+        const newOverallEnd = multiLeg
+          ? new Date(multiLegWriteFields.legs[multiLegWriteFields.legs.length - 1].endAt)
+          : tripEnd;
+
+        const currentOverallStart = currentLegs[0]?.startAt
+          ? new Date(currentLegs[0].startAt)
+          : null;
+
+        const currentOverallEnd = currentLegs[currentLegs.length - 1]?.endAt
+          ? new Date(currentLegs[currentLegs.length - 1].endAt)
+          : null;
+
+        const overallDatesChanged =
+          (currentOverallStart && newOverallStart.getTime() !== currentOverallStart.getTime()) ||
+          (currentOverallEnd && newOverallEnd.getTime() !== currentOverallEnd.getTime());
+
+        if (overallDatesChanged && Object.keys(currentItineraryDays).length > 0) {
+          const confirmed = await customConfirm(
+            tr(
+              "שינוי התאריכים עלול לגרום לפעילויות מתוכננות-כבר להיעלם מהתצוגה (הן נשארות בבסיס הנתונים, רק לא משויכות ליום הנכון יותר). להמשיך בכל זאת?",
+              "Changing the dates may cause already-planned activities to disappear from view (they stay in the database, just no longer matched to the right day). Continue anyway?"
+            ),
+            { danger: true }
+          );
+
+          if (!confirmed) {
+            return;
+          }
         }
 
         if (db && tripRoot) {
