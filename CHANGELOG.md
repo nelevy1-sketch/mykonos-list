@@ -1,5 +1,19 @@
 # GitTrip — CHANGELOG
 
+## v4.72.23 — itinerary.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 3/6)
+
+### 🎯 מה השתנה
+8 תוויות (מודל "הוספת פעילות" + מודל "הוספת מקום") היו `<label>` בלי `for`. כולן שדה-בודד קלאסי, בלי מקרה חריג הפעם (בניגוד ל-packing/shopping) - נוסף `for="<id הקיים>"` לכל השמונה: `timeLabel`→`activityTime`, `activityTitleLabel`→`activityTitle`, `activityNoteLabel`→`activityNote`, `placeNameLabel`→`placeName`, `categoryLabel`→`placeCategory`, `placeLegLabel`→`placeLeg`, `mapLabel`→`placeMap`, `noteLabel`→`placeNote`.
+
+נבדק (ונשלל): אין כלל CSS מסוג `.field label{...}` בקובץ הזה, כך שאין סיכון לרגרסיה חזותית מהשינוי (בניגוד ל-shopping.html).
+
+### 🔍 מה שנבדק בפועל
+כל 8 ה-id-ים אומתו כ-unique. נבדק בדפדפן בשני המודלים בנפרד (activityOverlay/placeOverlay) - כל 8 הזוגות מחזירים את התווית הנכונה (`querySelector('label[for="X"]')`), צילומי מסך בהקשר העמוד המלא מאשרים אין רגרסיה חזותית בשני המודלים.
+
+`node --check`+`i18n-audit` נקיים.
+
+v4.72.22 -> v4.72.23 (patch - תיקון נגישות, אין שינוי סכימה).
+
 ## v4.72.22 — shopping.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 2/6)
 
 ### 🎯 מה השתנה
