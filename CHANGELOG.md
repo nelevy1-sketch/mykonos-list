@@ -1,5 +1,29 @@
 # GitTrip — CHANGELOG
 
+## v4.81.1 — תיקון: זום אוטומטי ב-iOS Safari בפוקוס על שדות הטופס
+
+### 🐛 הבאג
+הקלדה בשדות הטופס להוספת ביקור ידני (`achievements.html` - שדה חיפוש מדינה, שדה עיר, שדה תאריך) גרמה לדף כולו לזום-אין ולצאת מהמסגרת ב-iOS Safari. **שורש הבעיה**: ל-`<input>`/`<select>`/`<textarea>` בעמוד הזה לא היה font-size מפורש בכלל - הם נפלו ל-font-size ברירת המחדל הקטן של הדפדפן (מתחת ל-16px), וזה בדיוק הסף הידוע שמפעיל את הזום האוטומטי-בפוקוס של iOS Safari (לא Chrome, לא Android - ספציפי ל-WebKit/Safari).
+
+`itinerary.html`/`places.html` כבר פתרו את זה מזמן עם `button,input,select,textarea{font:inherit}` - ב-`achievements.html` הכלל המקביל (נוסף בשלב 4) כלל בטעות רק `button{font:inherit;cursor:pointer}`, בלי `input,select,textarea`. לא באג חדש - פער שהיה שם מאז שלב 4, שהתגלה רק עכשיו.
+
+### ✅ התיקון
+`button{font:inherit;cursor:pointer}` → `button,input,select,textarea{font:inherit}` + `button{cursor:pointer}` (שתי הצהרות נפרדות - בדיוק כמו ב-itinerary.html/places.html, לא ממציא תבנית חדשה). `cursor:pointer` נשאר רק על `button` בכוונה - סמן טקסט על שדה קלט, לא סמן-אצבע.
+
+**לא נגעתי ב-`.field input,.field select,.field textarea`** (min-height/border/padding/border-radius) - התיקון הוא רק `font-size` (דרך `font:inherit`), לא הצריך `!important` כי אין כלל מתחרה שדורס אותו.
+
+### 🔍 מה שנבדק בפועל
+- `getComputedStyle` על שלושת השדות (מדינה/עיר/תאריך) - כולם `16px` בדיוק, תואם ל-`body` (שגם הוא 16px, ברירת מחדל של הדפדפן - אין `font-size` מפורש בעמוד).
+- `meta[name=viewport]` - זהה בדיוק ל-itinerary.html/places.html/packing.html (`width=device-width,initial-scale=1,viewport-fit=cover`), לא היה צריך שינוי.
+- עיצוב לא נשבר - גובה/ריווח/מסגרת השדות זהים לפני/אחרי (רק גודל הטקסט השתנה), מצב כהה ובהיר נבדקו ויזואלית.
+- הקלדה בפועל בכל שלושת השדות (כולל סינון ה-combobox) - עדיין עובד תקין.
+
+**מגבלת בדיקה אמיתית, לא מוסתרת**: לא ניתן לשחזר/לאמת כאן את התנהגות הזום-בפוקוס הספציפית של iOS Safari עצמה - סביבת הבדיקה שלי (Chromium) לא מיישמת את ה-quirk הזה בכלל, בכל רזולוציה או user-agent שאדמה. 16px הוא הסף המתועד הרשמי שמונע את הזום (לא ניחוש - זו ההתנהגות הידועה של WebKit), ו-`itinerary.html`/`places.html` כבר מוכיחות בפרודקשן שהתבנית הזו עובדת. **אימות סופי בפועל על מכשיר iOS אמיתי (או Safari Simulator) נדרש מהמשתמש עצמו** - אותה מגבלה מבנית שכבר תועדה כמה פעמים בפרויקט הזה (OAuth אמיתי, כתיבות RTDB אמיתיות).
+
+`node --check` נקי. `scripts/i18n-audit.js` - 0 ממצאים חדשים (אין טקסט חדש למשתמש).
+
+**תיקון באג → patch bump.**
+
 ## v4.81.0 — "ההישגים שלי" - בלוק סטטיסטיקה (מדינות/יבשות/בירות)
 
 ### 🎯 מה השתנה
