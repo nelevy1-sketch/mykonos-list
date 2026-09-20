@@ -1023,8 +1023,6 @@
     <script>showTripName("destination")</script>
 
     <div class="identity-row">
-      <span class="user-chip" id="myName"></span>
-
       <span class="user-chip" id="userChip"></span>
     </div>
 
@@ -2861,28 +2859,20 @@
       );
     }
 
-    // #myName used to be a <select> populated from trip.participants (the
-    // organizer's fixed roster from wizard.html) - a leftover of the
-    // closed-roster flow the auto-registration work (docs/roadmap.md part
-    // 3 item 0, commit ব) removed everywhere else. It looked unrelated to
-    // that gate (always visible, not a blocking overlay) and was kept on
-    // purpose at the time (v4.30.1) without checking whether it shared the
-    // gate's actual bug. It did: the same one found and fixed in
-    // shopping.html's #myName (v4.30.2) - profile.name (from
-    // memberProfiles, via auto-register) almost never matches an entry in
-    // trip.participants, and setting .value on a <select> with no matching
-    // <option> is a silent no-op. The select stayed stuck on its
-    // placeholder, disabled, looking exactly like "no identity" even
-    // though profile was already set correctly and everything else on the
-    // page worked. Same fix as shopping.html: a read-only span, driven
-    // directly by profile.name. participantOptions()/saveProfile() (the
-    // functions that built and wrote through the old select) are removed,
-    // not frozen - nothing else in this file called them.
+    // #userChip shows profile.name - the name actually saved for this trip,
+    // the only one relevant to another member looking at this page - not
+    // the raw Google displayName/email. Those are only a fallback for the
+    // narrow window before profile has loaded at all (see requireProfile()
+    // below). A separate #myName span used to sit next to this one showing
+    // profile.name on its own (itself a v4.30.1 fix for a dead <select>
+    // that used to live here, populated from trip.participants - silently
+    // stuck on its placeholder since profile.name almost never matched an
+    // entry there) - removed as a leftover duplicate once userChip switched
+    // to profile.name too: showing the same identity twice, side by side,
+    // wasn't wrong so much as pointless.
     function syncIdentity() {
       $("userChip").textContent =
-        user?.displayName || user?.email || "";
-
-      $("myName").textContent = profile?.name || "";
+        profile?.name || user?.displayName || user?.email || "";
     }
 
     // Same race-guard pattern as shopping.html's requireUserName(): profile

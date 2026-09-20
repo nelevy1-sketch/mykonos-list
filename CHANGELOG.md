@@ -1,5 +1,23 @@
 # GitTrip — CHANGELOG
 
+## v4.73.2 — packing.html: הסרת כפילות שם בתצוגה (userChip)
+
+### 🎯 מה השתנה
+מנגנון שונה לגמרי מ-itinerary/places, אותה תוצאה בפועל: שני `<span class="user-chip">` נפרדים, זה-לצד-זה ב-`.identity-row` - `#myName` (מציג `profile.name`) ו-`#userChip` (מציג `user.displayName||user.email`) - שניהם מתמלאים תמיד, בלי תנאי-השוואה, כלומר שני pills עם שם (זהה או שונה) גם יחד.
+
+**תגלית מהתחקור**: הערת-קוד קיימת (v4.30.1) מסבירה ש-`#myName` הוא בעצם ה"תיקון הנכון" - ירש את מקומו של `<select>` שבור, והוחלף ב-span שמציג `profile.name` ישירות. `#userChip` הישן (התצוגה הגולמית של Google) נשאר בטעות ולא הוסר כשהתיקון הזה נכנס - לא כפילות מכוונת.
+
+**התיקון**: הוסר `#myName` (span + populate line + ה-`<span>` ב-HTML), ו-`#userChip` היחיד שנשאר משתמש עכשיו ב-`profile?.name || user?.displayName || user?.email || ""` - עדיפות ל-profile.name (השם שנשמר בפועל), עם נפילה ל-Google רק בחלון הצר לפני שה-profile נטען בכלל.
+
+### 🔍 מה שנבדק בפועל
+נבדק בדפדפן עם hook זמני (הוסר ואומת שהוסר): (1) `profile.name===displayName` - pill יחיד. (2) שם מותאם אישית - pill יחיד, עם השם הנכון. (3) אומת ש-`#myName` הוסר לחלוטין מה-DOM (`document.getElementById('myName')` מחזיר `null`). צילום מסך בהקשר העמוד המלא מאשר - pill יחיד, ללא רווח ריק במקום השני שהוסר.
+
+`node --check`+`i18n-audit` נקיים.
+
+v4.73.1 -> v4.73.2 (patch - תיקון באג, אין שינוי סכימה).
+
+**זהו commit אחרון לממצא הכפילות - כל 3 העמודים (itinerary/places/packing) מתנהגים אחיד עכשיו: pill יחיד, `profile.name` בלבד.**
+
 ## v4.73.1 — itinerary.html/places.html: הסרת כפילות שם בתצוגה (userChip)
 
 ### 🎯 מה השתנה
