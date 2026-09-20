@@ -5736,7 +5736,16 @@
 
             let action = "";
 
-            if (profile.phone && uid !== myUid) {
+            // Phone numbers are the one PII field here - only the organizer
+            // sees other members' wa.me links, matching requireOrganizerAccess()
+            // elsewhere in this file. This closes the exposure through THIS
+            // screen only - it does not add a membership check to the RTDB
+            // read rule itself (trips/$tripId is still "auth != null", no
+            // per-trip membership check), so any authenticated user who reads
+            // the trip node directly (SDK/console, no UI involved) still gets
+            // every phone number over the wire. That's a separate, bigger
+            // fix (see roadmap) - this is UI-layer only.
+            if (profile.phone && uid !== myUid && isOrganizer()) {
               action = `
                 <a class="btn-sm-action" href="https://wa.me/${escapeHtml(profile.phone)}" target="_blank" rel="noopener">
                   💬 ${tr("שיחה", "Chat")}
