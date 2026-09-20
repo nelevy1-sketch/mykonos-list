@@ -21,31 +21,66 @@
     "headers": [
       {
         "source": "/",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       },
       {
         "source": "/index.html",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       },
       {
         "source": "/wizard.html",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       },
       {
         "source": "/packing.html",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       },
       {
         "source": "/shopping.html",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       },
       {
         "source": "/places.html",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       },
       {
         "source": "/itinerary.html",
-        "headers": [{ "key": "Cache-Control", "value": "max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
       }
     ]
   },
