@@ -1005,6 +1005,11 @@
     font-size:20px;
     cursor:pointer;
     color:var(--name-tag);
+    min-width:44px;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
 
   .form-group {
@@ -1520,7 +1525,7 @@ body.modal-open .modal-card {
   <div class="modal-card">
     <div class="modal-header">
       <h3 id="addModalTitle">הוספת פריט חדש</h3>
-      <button class="close-modal" id="closeModalBtn">✕</button>
+      <button class="close-modal" id="closeModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <form id="addModalForm">
@@ -1594,7 +1599,7 @@ body.modal-open .modal-card {
   <div class="modal-card">
     <div class="modal-header">
       <h3 id="statusModalTitle">📌 עדכון סטטוס רשימה</h3>
-      <button class="close-modal" id="closeStatusModalBtn">✕</button>
+      <button class="close-modal" id="closeStatusModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
@@ -1621,7 +1626,7 @@ body.modal-open .modal-card {
   <div class="modal-card">
     <div class="modal-header">
       <h3 id="moreModalTitle">⚙️ אפשרויות נוספות</h3>
-      <button class="close-modal" id="closeMoreMenuModalBtn">✕</button>
+      <button class="close-modal" id="closeMoreMenuModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
@@ -1662,7 +1667,7 @@ body.modal-open .modal-card {
   <div class="modal-card">
     <div class="modal-header">
       <h3 id="duplicatesTitle">⚠️ זוהו מוצרים שכבר קיימים</h3>
-      <button class="close-modal" id="closeDupTransferModalBtn">✕</button>
+      <button class="close-modal" id="closeDupTransferModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div
@@ -1705,7 +1710,7 @@ body.modal-open .modal-card {
         🌐 בחר שפה לייצוא
       </h3>
 
-      <button class="close-modal" id="closeLangModalBtn">✕</button>
+      <button class="close-modal" id="closeLangModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
@@ -1735,7 +1740,7 @@ body.modal-open .modal-card {
         📋 תצוגה מקדימה לסופר
       </h3>
 
-      <button class="close-modal" id="closeExportPreviewModalBtn">
+      <button class="close-modal" id="closeExportPreviewModalBtn" aria-label="סגירה">
         ✕
       </button>
     </div>
@@ -1765,7 +1770,7 @@ body.modal-open .modal-card {
   <div class="modal-card">
     <div class="modal-header">
       <h3 id="personalModalTitle">🙋‍♂️ כמות אישית שלי</h3>
-      <button class="close-modal" id="closePersonalModalBtn">✕</button>
+      <button class="close-modal" id="closePersonalModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div
@@ -1810,7 +1815,7 @@ body.modal-open .modal-card {
   <div class="modal-card">
     <div class="modal-header">
       <h3 id="missingTitle">📋 סיכום חוסרים מהבדיקה</h3>
-      <button class="close-modal" id="closeMissingModalBtn">✕</button>
+      <button class="close-modal" id="closeMissingModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div
@@ -1837,7 +1842,7 @@ body.modal-open .modal-card {
         ⚙️ תפריט ניהול
       </h3>
 
-      <button class="close-modal" id="closeSettingsModalBtn">✕</button>
+      <button class="close-modal" id="closeSettingsModalBtn" aria-label="סגירה">✕</button>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">

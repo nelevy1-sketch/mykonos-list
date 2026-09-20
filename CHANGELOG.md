@@ -1,5 +1,21 @@
 # GitTrip — CHANGELOG
 
+## v4.72.27 — shopping.html: אזור מגע וaria-label לכפתורי סגירה (אשכול 5, ממצא 2)
+
+### 🎯 מה השתנה
+9 כפתורי `.close-modal` (✕) - לא 8 כפי שהדוח ציין, נמצא תשיעי (`closeExportPreviewModalBtn`) - היו ללא `width`/`height`/`padding` בכלל (אזור מגע בפועל ~20-32px, מתחת לרף המומלץ 44px), וללא `aria-label` ב-markup הסטטי.
+
+**`aria-label` - הבהרה מהחקירה**: כבר קיים JS שמוסיף `aria-label` לכל `.close-modal` בזמן ריצה (2 מקומות בקוד) - כך שמשתמשי קורא-מסך בפועל כבר קיבלו תווית. התוספת כאן היא static fallback בלבד, הגנה-בעומק למקרה שה-JS לא ירוץ (או לכלי סריקה שלא מריצים JS).
+
+**אזור המגע**: נבחר `min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center` (לא רק padding) - נותן מובטח מדויק בלי תלות במטריקות הפונט, וממרכז את ה-✕ בבטחה.
+
+### 🔍 מה שנבדק בפועל
+נמדד בפועל (`getBoundingClientRect`) על `closeModalBtn` - 44x44px מדויק. **תשומת הלב המיוחדת שסומנה מראש**: 3 הכפתורים ב-header תלת-פריטי (`closeLangModalBtn`/`closeExportPreviewModalBtn`/`closeSettingsModalBtn`) נבדקו בנפרד ב-375px - לא הונח שמה שעבד ל-6 האחרים עובד גם שם. בשלושתם: מדידת קואורדינטות (`getBoundingClientRect`) אישרה רווח נקי בין כפתור-הסגירה, הכותרת, וכפתור-החזרה - ללא חפיפה, גם במקרה הצפוף ביותר (`closeExportPreviewModalBtn`, עם "חזור לשפות" - הטקסט הארוך ביותר מבין השלושה). צילומי מסך ב-375px מאשרים ויזואלית.
+
+`node --check`+`i18n-audit` נקיים.
+
+v4.72.26 -> v4.72.27 (patch - תיקון נגישות, אין שינוי סכימה).
+
 ## v4.72.26 — wizard.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 6/6 - סגירה)
 
 ### 🎯 מה השתנה
