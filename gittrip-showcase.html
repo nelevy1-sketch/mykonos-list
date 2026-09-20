@@ -1120,6 +1120,13 @@
   // this flag lets updateCtaButton() drop the redundant "trip to".
   var ctaDestinationIsTitle = false;
   var ctaBackUrl = null;
+  // Set only when reached from index.html's hamburger menu (?from=menu),
+  // not the tripId flow above - a deliberately separate signal, not a
+  // second meaning bolted onto tripId. That would collide: tripId means
+  // "came from authGate, show back-to-THIS-trip"; this means "came from
+  // the hamburger menu, show back-to-the-menu" - the two can't share one
+  // param without one clobbering the other's meaning.
+  var ctaFromMenu = false;
 
   // d/h are link input, not trusted - same as index.html's authGate. .textContent
   // below (in updateCtaButton) is mandatory, not a style choice: a crafted ?d=<script>
@@ -1135,6 +1142,28 @@
 
   (function initCtaFromUrl() {
     var params = new URLSearchParams(window.location.search);
+
+    // Checked first and separately from tripId below - the two are mutually
+    // exclusive entry points (hamburger menu vs. authGate), never combined
+    // in one real URL, but kept as independent checks rather than an
+    // if/else so a future third entry point doesn't have to thread itself
+    // through either branch's assumptions.
+    if (params.get("from") === "menu") {
+      ctaFromMenu = true;
+
+      var menuBackUrl = new URL("index.html", window.location.href);
+      menuBackUrl.searchParams.set("openMenu", "1");
+
+      var menuBtnEl = document.getElementById("ctaBtn");
+      // Same tab, not a new one - unlike the tripId flow below, there's no
+      // invitation tab to preserve here: the hamburger menu is only
+      // reachable from inside the app, already in the user's own tab.
+      menuBtnEl.removeAttribute("target");
+      menuBtnEl.removeAttribute("rel");
+      menuBtnEl.href = menuBackUrl.href;
+      return;
+    }
+
     ctaTripId = params.get("tripId");
     if (!ctaTripId) {
       return;
@@ -1175,6 +1204,12 @@
   })();
 
   function updateCtaButton() {
+    if (ctaFromMenu) {
+      document.getElementById("ctaBtn").textContent =
+        currentLang === "en" ? "⬅️ Back to menu" : "⬅️ חזרה לתפריט";
+      return;
+    }
+
     if (!ctaTripId) {
       return;
     }

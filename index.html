@@ -2493,6 +2493,19 @@
           <span id="hamburgerShareText">שיתוף ההזמנה</span>
         </a>
 
+        <!-- Not gated on !user like tripsLink/newTripLink/hamburgerShareBtn
+             above - this needs no signed-in user's data, same reasoning as
+             darkModeToggle staying unconditionally visible. Same tab (no
+             target="_blank") on purpose: unlike authGateShowcaseLink
+             (index.html's authGate, keeps target="_blank" to preserve an
+             invitation tab behind it), there's no separate tab to preserve
+             here - the flow is navigate away and back in this same tab,
+             menu reopened via ?openMenu=1 (see the load-time check below). -->
+        <a id="showcaseLink" class="menu-item" href="gittrip-showcase.html?from=menu" aria-label="מה זה GitTrip?" title="מה זה GitTrip?">
+          <span class="menu-item-icon">ℹ️</span>
+          <span id="showcaseLinkText">מה זה GitTrip?</span>
+        </a>
+
         <button id="logoutLink" class="menu-item hidden">
           <span class="menu-item-icon">🚪</span>
           <span id="logoutLinkText">יציאה</span>
@@ -3127,6 +3140,17 @@
     // into lastTripId (see its own comment) and the picker would never show.
     const forceTripPicker = invitationParams.get("trips") === "1";
 
+    // Set only by gittrip-showcase.html's "back to menu" button
+    // (?from=menu there -> ?openMenu=1 here) - reopens the hamburger menu
+    // once, right after auth resolves, so "back to menu" actually means
+    // that and not a bare landing on whatever screen happened to render.
+    // hasAutoOpenedMenu guards against handleAuthStateChanged firing more
+    // than once in a session (it can, on a real sign-in/out transition) -
+    // without it, a later re-fire would pop the menu open again
+    // unexpectedly, well after the user already closed it.
+    const openMenuOnLoad = invitationParams.get("openMenu") === "1";
+    let hasAutoOpenedMenu = false;
+
     // Carries the trip the user was just on, so the picker can offer a way
     // back - set only by tripsLink's own href below, never by a bare
     // ?trips=1 (first-run / no-trip-yet) or by the "trip not found" fallback
@@ -3182,6 +3206,7 @@
         tripsLinkText: "הטיולים שלי",
         newTripLinkText: "יצירת טיול חדש",
         hamburgerShareText: "שיתוף ההזמנה",
+        showcaseLinkText: "מה זה GitTrip?",
         membersModalTitle: "👥 מי בטיול",
         profileModalTitle: "הפרטים שלי",
         profileNameLabel: "שם תצוגה:",
@@ -3279,6 +3304,7 @@
         tripsLinkText: "My trips",
         newTripLinkText: "Create a new trip",
         hamburgerShareText: "Share invite",
+        showcaseLinkText: "What is GitTrip?",
         membersModalTitle: "👥 Who's on the trip",
         profileModalTitle: "My details",
         profileNameLabel: "Display name:",
@@ -3631,6 +3657,15 @@
 
       document.getElementById("hamburgerShareBtn").title = text.hamburgerShareText;
 
+      // Same structural pattern as hamburgerShareBtn above - built correctly
+      // from the start since this element is new.
+      document.getElementById("showcaseLink").setAttribute(
+        "aria-label",
+        text.showcaseLinkText
+      );
+
+      document.getElementById("showcaseLink").title = text.showcaseLinkText;
+
       const membersLinkLabel =
         lang === "en" ? "Who's on the trip" : "מי בטיול";
 
@@ -3850,6 +3885,11 @@
             skipLastTripId: forceTripPicker,
             forceTripPicker
           });
+        }
+
+        if (user && openMenuOnLoad && !hasAutoOpenedMenu) {
+          hasAutoOpenedMenu = true;
+          openHamburgerMenu();
         }
 
         renderLinkedMembers();

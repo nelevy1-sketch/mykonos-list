@@ -1,5 +1,26 @@
 # GitTrip — CHANGELOG
 
+## v4.76.0 — "מה זה GitTrip?" בתפריט ההמבורגר, עם "חזרה לתפריט"
+
+### 🎯 מה השתנה
+פריט חדש בתפריט ההמבורגר (`index.html`), `#showcaseLink`, בין `hamburgerShareBtn` ל-`logoutLink` - מוביל ל-`gittrip-showcase.html?from=menu`. בניגוד ל-3 הפריטים שלידו (`tripsLink`/`newTripLink`/`hamburgerShareBtn`), **לא** מוסתר כש-`!user` - אין לו תלות בנתוני משתמש, אותו נימוק כמו `darkModeToggle` שגם הוא תמיד גלוי. **אותו טאב, לא `target="_blank"`** - בניגוד ל-`authGateShowcaseLink` הקיים (ששומר על טאב-ההזמנה פתוח מאחור בכוונה) - כאן אין טאב-הזמנה לשמר, הזרימה היא ניווט והלוך-חזור באותו טאב.
+
+**קישור חדש, לא שכפול של מנגנון קיים.** `gittrip-showcase.html` כבר תמך במקרה דומה - קישור "מה זה GitTrip?" קיים מה-`authGate` (לפני התחברות), שכבר מחליף את כפתור ה-CTA ל"חזרה לטיול" לפי פרמטר `tripId`. **בכוונה לא עורבב עם אותו פרמטר** - `tripId` כבר אומר "הגעתי מ-authGate, הראה חזרה-לטיול-הזה"; overload שלו למשמעות שנייה ("הגעתי מהתפריט, הראה חזרה-לתפריט") היה סותר. נוסף ענף עצמאי חדש בתוך אותו IIFE (`initCtaFromUrl`), על `?from=menu` - דגל `ctaFromMenu` נפרד, נבדק *לפני* בדיקת ה-`tripId` הקיימת (לא בתוכה). `updateCtaButton()` מקבל בדיקה מוקדמת נוספת לאותו דגל, לפני הבדיקה הקיימת - כך גם ה-re-render בהחלפת שפה (`applyLanguage`→`updateCtaButton`) עובד נכון למצב החדש בלי שכפול.
+
+**מנגנון "חזרה לתפריט" הוא באמת פתיחה-מחדש של התפריט, לא סתם ניווט-אחורה.** אין תקדים קיים בריפו לפתיחת מודל/תפריט אוטומטית לפי URL param בטעינת עמוד (רק תקדים ל"מסך שונה" - `forceTripPicker`) - זה קוד חדש, לא שימוש-חוזר. `index.html` מקבל `openMenuOnLoad = params.get("openMenu")==="1"`, אותו דפוס בדיוק כמו `forceTripPicker` הקיים לידו, ונקרא בפועל בתוך `handleAuthStateChanged` (פעם אחת בלבד, מגן על ידי `hasAutoOpenedMenu`) - ברגע שיש `user` מאומת, קורא ל-`openHamburgerMenu()` הקיים (לא שכפול). ה-guard חיוני: `handleAuthStateChanged` יכול לירות יותר מפעם אחת בסשן אמיתי (מעבר התחברות/יציאה), ובלעדיו קריאה חוזרת הייתה פותחת את התפריט שוב בכוח אחרי שהמשתמש כבר סגר אותו.
+
+### 🔍 מה שנבדק בפועל
+בדפדפן, ללא צורך בהתחברות Google אמיתית (הפרמטר עצמו לא דורש רשת/Firebase):
+1. פתיחת התפריט בפועל - `#showcaseLink` מוצג נכון, `href="gittrip-showcase.html?from=menu"`, בלי `target`.
+2. `gittrip-showcase.html?from=menu` - כפתור "⬅️ חזרה לתפריט", `href="index.html?openMenu=1"`, בלי `target`/`rel`. גם ב-עברית וגם באנגלית (`setLang('en')` בפועל, לא רק קריאת קוד).
+3. `gittrip-showcase.html?tripId=...&d=Rome` (המסלול הישן, מ-authGate) - **לא נשבר**, עדיין "✈️ חזרה לטיול לRome" בדיוק כמו לפני.
+4. `gittrip-showcase.html` בלי שום param - **לא נשבר**, עדיין "✈️ לפתיחת GitTrip" ברירת המחדל, `target="_blank"`.
+5. מנגנון הפתיחה-מחדש - הודגם ישירות: `window.handleAuthStateChanged({uid:...})` מדומה (בלי Firebase אמיתי) עם `?openMenu=1` בכתובת - התפריט (שהיה סגור) נפתח בפועל, `openHamburgerMenu()` נקרא. קריאה שנייה לאחר סגירה ידנית - **לא** נפתח שוב (ה-guard עובד).
+
+`node --check` על הסקריפט הקלאסי של `index.html` ושני בלוקי ה-script המוטבעים ב-`gittrip-showcase.html`. `scripts/i18n-audit.js` - 0 ממצאים חדשים.
+
+**תכונה חדשה → minor bump.**
+
 ## v4.75.1 — legs.js: isRealVisit() + countryContinent.js (הכנה לאשכול הגיימיזה, המשך)
 
 ### 🎯 מה השתנה
