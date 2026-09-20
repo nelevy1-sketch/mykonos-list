@@ -197,7 +197,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
+        label, .field-label-text { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.95rem; }
 
         /* Multi-destination legs list (docs/schema-legs.md §5.6, §10) */
         .legs-list { display: flex; flex-direction: column; gap: 8px; }
@@ -451,7 +451,7 @@
                 <input type="text" id="tripTitle" placeholder="לדוגמה: יורוטריפ של הבנות 2026" autocomplete="off">
             </div>
             <div class="form-group">
-                <label id="lblDestination">יעד 🌍</label>
+                <label id="lblDestination" for="tripDestination">יעד 🌍</label>
                 <input type="text" id="tripDestination" placeholder="מקום אמיתי - למשל: ברלין, תאילנד, הגליל" autocomplete="off" required>
                 <div class="legs-list" id="legsList"></div>
                 <div class="error-text" id="destinationError" aria-live="polite"></div>
@@ -461,7 +461,7 @@
                 <button type="button" class="btn-add-leg hidden" id="addLegBtn">+ הוספת יעד</button>
             </div>
             <div class="form-group">
-                <label id="lblTripType">סוג הטיול (משפיע על קטגוריות ומבנה)</label>
+                <label id="lblTripType" for="tripType">סוג הטיול (משפיע על קטגוריות ומבנה)</label>
                 <select id="tripType">
                     <option value="abroad" id="optAbroad">טיסה לחו"ל ✈️</option>
                     <option value="local" id="optLocal">טיול בארץ 🧭</option>
@@ -471,7 +471,7 @@
                 <small class="field-hint" id="tripTypeHint">הבחירה משנה את הצבעים, הפעולות והמודולים בדף הנחיתה.</small>
             </div>
             <div class="form-group">
-                <label id="lblTripCharacter">אופי הטיול (אופציונלי)</label>
+                <label id="lblTripCharacter" for="tripCharacter">אופי הטיול (אופציונלי)</label>
                 <select id="tripCharacter">
                     <option value="" id="optCharacterNone">לא צוין</option>
                     <option value="family" id="optCharacterFamily">משפחה</option>
@@ -484,8 +484,8 @@
                 </select>
             </div>
             <div class="form-group" id="vibeGroup">
-                <label id="lblVibe">מה האופי של הטיול? (מותאם קטגוריות ורשימות)</label>
-                <div class="vibe-grid" id="vibeGrid">
+                <span id="lblVibe" class="field-label-text">מה האופי של הטיול? (מותאם קטגוריות ורשימות)</span>
+                <div class="vibe-grid" id="vibeGrid" role="group" aria-labelledby="lblVibe">
                     <button type="button" class="vibe-chip" data-vibe="urban" id="vibeUrban">🏙️ עירוני</button>
                     <button type="button" class="vibe-chip" data-vibe="beach" id="vibeBeach">🏖️ חוף ומים</button>
                     <button type="button" class="vibe-chip" data-vibe="nature" id="vibeNature">🥾 טבע והרפתקה</button>
@@ -533,7 +533,7 @@
         <!-- STEP 2: Participants (Names for Split & Lists) -->
         <div class="form-step" data-step="2">
             <div class="form-group">
-                <label id="lblParticipants">שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥</label>
+                <label id="lblParticipants" for="participantName">שמות חברי הקבוצה (להתחשבנות Split ולרשימות) 👥</label>
                 <div class="participant-input-row">
                     <input type="text" id="participantName" placeholder="שם חבר (למשל: נירה, ברגה...)" autocapitalize="words">
                     <button type="button" class="btn" id="addParticipantBtn" style="background: var(--btn-secondary-bg); color: var(--text); padding: 0 15px;">הוסף</button>
@@ -546,8 +546,8 @@
         </div>
 
         <!-- STEP 3: Modular Features with Preview -->
-        <div class="form-step" data-step="3">
-            <label id="lblModules">בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️</label>
+        <div class="form-step" data-step="3" role="group" aria-labelledby="lblModules">
+            <span id="lblModules" class="field-label-text">בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️</span>
             
             <div class="feature-card">
                 <div class="feature-info">
