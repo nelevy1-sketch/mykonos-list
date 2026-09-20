@@ -292,21 +292,27 @@
        dark mode then follow this page's own CSS exactly, instead of an
        OS-rendered popup that may not (datalist's real-world filtering
        behavior is also inconsistent across browsers/iOS Safari support is
-       weak - not reliable enough for "must match a known code" validation). */
-    .combo {
-      position: relative;
-    }
+       weak - not reliable enough for "must match a known code" validation).
+
+       .combo-list is a normal in-flow block, NOT position:absolute - found
+       and fixed as a real bug, not just in theory: an absolutely-positioned
+       list floats OVER the עיר field below it without moving it out of the
+       way, so a click meant for עיר while the list is still open lands on
+       the floating list instead (confirmed by reproducing it: the click's
+       mousedown is consumed by the list itself, not forwarded to the field
+       underneath - a second, separate click was needed). Keeping the list
+       in normal flow means it physically pushes עיר/תאריך/the buttons down
+       while open - there is no overlap to mis-click on. .sheet (shared.css)
+       is already `overflow:auto` up to 88dvh, so a long open list just
+       grows the sheet's own scroll area - nothing is clipped or broken. */
     .combo-list {
-      position: absolute;
-      top: calc(100% + 4px);
-      inset-inline: 0;
+      margin-top: 4px;
       max-height: 220px;
       overflow-y: auto;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: 12px;
       box-shadow: var(--shadow);
-      z-index: 20;
     }
     .combo-option {
       padding: 10px 14px;
