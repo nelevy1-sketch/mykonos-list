@@ -16,6 +16,27 @@
   below, so this page's own Network tab shows whether "only loaded on this
   page" code-splitting actually behaves the way it should - not just in
   theory.
+
+  Texture: self-hosted (globe-test-assets/, this repo), not the original
+  unpkg URL - that redirect chain sent no Timing-Allow-Origin at all,
+  which is why the first version of this page could never measure its
+  real size in-page. Served as AVIF/WebP/JPEG (same 4096x2048 resolution
+  throughout, no downscaling) with real in-JS format detection (globe.gl's
+  texture goes through Three.js's TextureLoader, not an <img>, so there's
+  no <picture> element to delegate this to). Loads a tiny blurred
+  placeholder first, swaps to the full-resolution best-supported format
+  once it's finished downloading in the background.
+
+  Cache-control for globe-test-assets/**, in firebase.json: 1 year +
+  immutable (JSON has no comments, so the reasoning lives here instead) -
+  deliberately much longer than the 5-minute Cache-Control the 6 real app
+  pages got earlier, because these specific files only change if someone
+  physically replaces them, unlike a page's HTML. The real tradeoff: if
+  any of these exact filenames ARE ever overwritten with different bytes
+  in the future, browsers/CDN edges that already cached the old version
+  won't see the new one for up to a year. Safe for a static, unchanging
+  texture; the fix if it's ever swapped is to rename the file (e.g.
+  earth-blue-marble-v2.avif), not overwrite the same name.
 -->
 <html lang="he" dir="rtl">
 <head>
@@ -170,6 +191,64 @@
   let topoLibBytes = 0;
   let countriesDataBytes = 0;
 
+  // --- Format negotiation for the texture (globe.gl's texture goes through
+  // Three.js's own TextureLoader, not an <img>/<picture> element - a
+  // <picture> element's browser-side format negotiation has no direct
+  // equivalent here, so this reimplements the same idea in JS: feature-
+  // detect AVIF/WebP by actually trying to decode a known-valid tiny test
+  // image of each format (the standard, reliable technique - checking
+  // canvas.toDataURL() encode support is NOT reliable for this, notably
+  // Safari can decode/display AVIF for years before it could encode one
+  // via canvas, which would make an encode-based test wrongly say "no"
+  // on a browser that can actually show AVIF fine). Test images below
+  // were generated and round-trip-verified locally (encoded then
+  // re-decoded with sharp to confirm they're genuinely valid), not typed
+  // from memory. ---
+  const AVIF_TEST = "data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAG1pZjFhdmlmbWlhZgAAANZtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAACJpbG9jAAAAAERAAAEAAQAAAAAA+gABAAAAAAAAACQAAAAjaWluZgAAAAAAAQAAABVpbmZlAgAAAAABAABhdjAxAAAAAA5waXRtAAAAAAABAAAAVmlwcnAAAAA4aXBjbwAAAAxhdjFDgSACAAAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAABZpcG1hAAAAAAAAAAEAAQOBAgMAAAAsbWRhdBIACgc4AAaQENBpMhcZQmMEwAA0AACQQMkcYUuNGtYQVLH7IA==";
+  const WEBP_TEST = "data:image/webp;base64,UklGRjgAAABXRUJQVlA4ICwAAACQAQCdASoBAAEAAsBMJaACdLoAA5gA/u5DH+5sc4twV/9tD/9aH/60P+lAAA==";
+
+  function canDecodeFormat(dataUri) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(img.naturalWidth > 0);
+      img.onerror = () => resolve(false);
+      img.src = dataUri;
+    });
+  }
+
+  // Self-hosted now (globe-test-assets/, served by Firebase Hosting with a
+  // long immutable cache - firebase.json) - not unpkg. unpkg's redirect
+  // chain to the real image sent no Timing-Allow-Origin at all, which is
+  // exactly why the ORIGINAL version of this page could never measure the
+  // texture's real size in-page (silently read as 0 bytes). Same-origin
+  // resources have no such restriction - transferSize should read
+  // correctly below without the encodedBodySize fallback this page
+  // needed for every cross-origin CDN resource.
+  const TEXTURE_BASE = "globe-test-assets/earth-blue-marble";
+  const PLACEHOLDER_URL = TEXTURE_BASE + "-placeholder.jpg";
+
+  async function pickBestTextureFormat() {
+    const [avifOk, webpOk] = await Promise.all([
+      canDecodeFormat(AVIF_TEST),
+      canDecodeFormat(WEBP_TEST)
+    ]);
+
+    if (avifOk) return { url: TEXTURE_BASE + ".avif", format: "AVIF" };
+    if (webpOk) return { url: TEXTURE_BASE + ".webp", format: "WebP" };
+    return { url: TEXTURE_BASE + ".jpg", format: "JPEG (fallback - no AVIF/WebP decode support detected)" };
+  }
+
+  // Preloads via a plain Image() + decode() BEFORE handing the URL to
+  // globe.gl - this is what makes the swap a clean single moment instead
+  // of the texture popping in progressively mid-download the way a bare
+  // globeImageUrl(fullResUrl) would (Three.js would still show SOMETHING
+  // as soon as enough bytes arrive, not necessarily complete/correct).
+  function preloadImage(url) {
+    const img = new Image();
+    img.src = url;
+    return img.decode().then(() => url);
+  }
+
   try {
     log("Step 1/4: dynamic import() of globe.gl…");
     const t0 = performance.now();
@@ -219,8 +298,13 @@
 
     log("Step 4/4: building the globe (choropleth polygons + atmosphere)…");
 
+    // Placeholder first (542 bytes, self-hosted) - the globe renders
+    // immediately with a recognizable-but-blurry earth instead of a blank
+    // grey sphere while the real texture downloads in the background.
+    // Quality of the FINAL texture is unaffected either way - this only
+    // changes what's visible during the brief window before it's ready.
     const world = Globe()(document.getElementById("globeContainer"))
-      .globeImageUrl("//unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
+      .globeImageUrl(PLACEHOLDER_URL)
       .backgroundColor("#000")
       // Choropleth layer - uniform color for every country, no real visit
       // data needed for a performance test. altitude/transition kept
@@ -246,25 +330,72 @@
       world.width(window.innerWidth).height(window.innerHeight);
     });
 
-    log("Globe built. Rotate with a finger/mouse and watch the FPS counter (top-left).", "ok");
+    log("Globe built (placeholder texture). Rotate with a finger/mouse and watch the FPS counter (top-left).", "ok");
 
-    // Give the browser a moment to finish the actual network transfers
-    // before reading Resource Timing - the entries exist as soon as each
-    // request completes, but batching this after everything above ensures
-    // the globe texture image (a real, separate load) is counted too.
+    // --- Progressive swap: pick the best format, preload it fully, then
+    // hand it to globe.gl - wrapped in a brief dim/undim on the container
+    // itself so the swap reads as a deliberate handoff, not a content pop.
+    // This is a real limitation to flag, not silently glossed over: this
+    // is NOT a true cross-fade between the two textures (that would need
+    // custom shader/material blending in Three.js, real extra complexity
+    // for a throwaway prototype) - it's a fast opacity dip timed around
+    // the swap, which reads as "smooth" but is a simpler effect than an
+    // actual blend. Good enough for this test; a real implementation
+    // might want the genuine shader cross-fade if the pop still bothers
+    // anyone once seen on a real device. ---
+    let chosenFormat = null;
+    pickBestTextureFormat()
+      .then(choice => {
+        chosenFormat = choice.format;
+        log(`Best supported texture format detected: ${choice.format}. Preloading full-resolution texture in the background…`);
+        return preloadImage(choice.url);
+      })
+      .then(fullUrl => {
+        const container = document.getElementById("globeContainer");
+        container.style.transition = "opacity 150ms ease";
+        container.style.opacity = "0.55";
+
+        setTimeout(() => {
+          world.globeImageUrl(fullUrl);
+          setTimeout(() => {
+            container.style.opacity = "1";
+          }, 60);
+        }, 150);
+
+        log(`Full-resolution texture (${chosenFormat}) swapped in.`, "ok");
+      })
+      .catch(err => {
+        log(`Texture upgrade failed, staying on placeholder: ${err.message}`, "warn");
+      });
+
+    // 2500ms, not 1500 - now has to cover format-detection (2 tiny decodes)
+    // AND the full-resolution preload finishing, not just static file
+    // fetches. Still just a "probably done by now" wait, not a real
+    // completion signal - see the note printed alongside the numbers.
     setTimeout(() => {
       log("");
       log("--- Bundle size report (measured, not estimated) ---");
       globeLibBytes = reportTransferSize("globe.gl (dynamic import)", "globe.gl");
       topoLibBytes = reportTransferSize("topojson-client (dynamic import)", "topojson-client");
       countriesDataBytes = reportTransferSize("countries-110m.json", "countries-110m.json");
-      const textureBytes = reportTransferSize("earth texture image", "earth-blue-marble");
+      reportTransferSize("placeholder texture (LQIP, self-hosted)", "earth-blue-marble-placeholder");
+      const textureBytes = reportTransferSize(
+        `full-res texture actually loaded (${chosenFormat || "not yet swapped in - reload and wait a bit longer"}, self-hosted)`,
+        chosenFormat === "AVIF" ? "earth-blue-marble.avif"
+          : chosenFormat === "WebP" ? "earth-blue-marble.webp"
+          : "earth-blue-marble.jpg"
+      );
 
       const totalKb = ((globeLibBytes + topoLibBytes + countriesDataBytes + textureBytes) / 1024).toFixed(1);
-      log(`  TOTAL (these 4 resources): ${totalKb} KB`, "ok");
+      log(`  TOTAL (these 4 resources, this browser's actual download): ${totalKb} KB`, "ok");
+      log("");
+      log("Reference sizes for the OTHER texture formats this browser did NOT load (measured separately at conversion time, same 4096x2048 resolution, not re-verified over the wire here):");
+      log("  JPEG (original):  1427.6 KB");
+      log("  WebP (q82):        647.6 KB");
+      log("  AVIF (q65):        644.8 KB");
       log("");
       log("Cross-check this against your browser's own Network tab (filter by this page's load) - the numbers above come from the Resource Timing API, same underlying data Chrome DevTools reads from, but verify independently before trusting it for a real capacity decision.", "warn");
-    }, 1500);
+    }, 2500);
 
   } catch (err) {
     log(`ERROR: ${err.message}`, "err");
