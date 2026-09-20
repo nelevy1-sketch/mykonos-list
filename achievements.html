@@ -1,11 +1,8 @@
 <!doctype html>
 <!-- GitTrip - version tracked in version.js
-     Stage 2/4 of the gamification achievement-map feature: real
-     users/{uid}/visits data, country-level coloring only. Still NO
-     country/city/continent toggle (stage 3) and NO manual-entry UI
-     (stage 4). countryContinent.js is loaded (script tag only, its
-     internal logic untouched) so it's ready for stage 3 - not read from
-     anywhere yet, country-level coloring has no use for it.
+     Stage 3/4 of the gamification achievement-map feature: a
+     country/city/continent view toggle. Still NO manual-entry UI (stage
+     4). Country-level view (stage 2) is unchanged.
 
      Country identification: world-atlas's countries-110m.json keys each
      polygon feature by its ISO 3166-1 NUMERIC code (feature.id, e.g. "380"
@@ -20,6 +17,31 @@
      Andorra has none) - a real, known gap in world-atlas's 110m dataset,
      not a bug in this mapping; those countries can never be colored on
      this globe regardless of how correct their visit data is.
+
+     Continent view: countryContinent.js's window.COUNTRY_CONTINENT (alpha-2
+     -> English continent name) is finally read here (loaded since stage 2,
+     unused until now). A continent is colored "app" the moment ANY of its
+     countries has an app-sourced visit, same priority rule as the country
+     view, just aggregated one level up - not a separate decision.
+
+     City view is fundamentally different from the other two: it's not a
+     choropleth at all, it's point markers (globe.gl pointsData), because
+     visits records carry a raw cityName string, not coordinates. Points are
+     placed by geocoding that raw string through legGeocode.js's existing
+     window.geocodeLegDestination() (already loaded by index.html/wizard.html
+     for the exact same Open-Meteo->Nominatim-fallback lookup - reused here,
+     not reimplemented). Deliberate, DOCUMENTED consequence: grouping is by
+     EXACT raw string, not by real-world place, so "Rome"/"רומא"/"Roma,
+     Italia" saved on different visits for the same real city produce three
+     separate points, not one - a known, accepted limitation of the
+     underlying data (cityName was never meant to be a canonical join key),
+     not a bug to fix in this stage. Geocode results are cached per exact
+     string for the page's lifetime - that's memoizing an idempotent
+     external lookup (a fixed string always geocodes the same way), NOT the
+     same thing as caching the visits-derived color/count decision itself
+     (still recomputed fresh from raw records on every change, per stage
+     2's rule, never persisted). Geocoding only ever runs after the user
+     actually opens the city view - never speculatively.
 
      Cross-trip page, deliberately NOT structured like the 5 trip-scoped
      module pages (itinerary/packing/shopping/places) despite sharing most
@@ -82,10 +104,17 @@
   <script src="version.js"></script>
   <script src="toast.js"></script>
   <script src="auth-gate.js"></script>
-  <!-- Stage 3 (continent toggle) dependency - loaded now, not read from
-       anywhere yet. Its own internal logic is untouched - see CLAUDE.md
-       on countryContinent.js for the source/verification behind it. -->
+  <!-- Continent view (stage 3) dependency, loaded since stage 2 - now
+       actually read (window.COUNTRY_CONTINENT). Its own internal logic is
+       untouched - see CLAUDE.md on countryContinent.js for the source/
+       verification behind it. -->
   <script src="countryContinent.js"></script>
+  <!-- City view (stage 3) dependency: same Open-Meteo->Nominatim-fallback
+       geocoder wizard.html/index.html already use for a leg's own
+       destination (window.geocodeLegDestination) - reused as-is here to
+       turn a visit's raw cityName string into globe coordinates, not
+       reimplemented. Untouched - see the file header comment above. -->
+  <script src="legGeocode.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -127,6 +156,34 @@
       place-items: center;
       text-decoration: none;
       flex: 0 0 auto;
+    }
+
+    /* View toggle (stage 3) - same .tabs/.tab pattern as itinerary.html/
+       places.html (CLAUDE.md's own precedent: page-local copy, not shared
+       CSS - see the .empty/.tab-btn note there on why these aren't
+       unified). 3 columns instead of their 2. */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: var(--surface-2);
+      padding: 4px;
+      border-radius: 16px;
+      gap: 4px;
+      margin: 0 16px 10px;
+      flex: 0 0 auto;
+    }
+    .tab {
+      min-height: 40px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 780;
+    }
+    .tab.active {
+      background: var(--surface);
+      color: var(--primary-dark);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
     /* Full-screen globe, not a bottom-sheet - this is the whole point of
@@ -173,6 +230,12 @@
     <h1>🏆 ההישגים שלי</h1>
     <button class="icon-btn" id="themeBtn" aria-label="החלפת מצב תצוגה" title="החלפת מצב תצוגה">🌙</button>
   </header>
+
+  <div class="tabs" id="viewTabs">
+    <button class="tab active" data-view="country" id="countryViewTab">מדינה</button>
+    <button class="tab" data-view="city" id="cityViewTab">עיר</button>
+    <button class="tab" data-view="continent" id="continentViewTab">יבשת</button>
+  </div>
 
   <div id="globeContainer"></div>
 </div>
@@ -362,17 +425,164 @@ function capColorForFeature(feature) {
   return info.hasApp ? COLOR_APP : COLOR_MANUAL;
 }
 
+// --- Continent view (stage 3) - same app-wins-over-manual priority, just
+// aggregated one level up via countryContinent.js's window.COUNTRY_CONTINENT
+// (alpha-2 -> English continent name, loaded since stage 2). Derived from
+// countryVisitInfo (already computed fresh above), not from raw visits
+// directly - no new source of truth, just a re-grouping of the same one. ---
+let continentVisitInfo = {}; // English continent name -> { hasApp, hasManual }
+
+function computeContinentVisitInfo(countryInfo) {
+  const info = {};
+  Object.entries(countryInfo).forEach(([cc, stat]) => {
+    const continent = window.COUNTRY_CONTINENT && window.COUNTRY_CONTINENT[cc];
+    if (!continent) return; // unmapped code - skip silently, don't crash the whole view
+    if (!info[continent]) info[continent] = { hasApp: false, hasManual: false };
+    if (stat.hasApp) info[continent].hasApp = true;
+    if (stat.hasManual) info[continent].hasManual = true;
+  });
+  return info;
+}
+
+function capColorForFeatureContinent(feature) {
+  const alpha2 = ISO_NUMERIC_TO_ALPHA2[feature.id];
+  const continent = alpha2 && window.COUNTRY_CONTINENT && window.COUNTRY_CONTINENT[alpha2];
+  const info = continent && continentVisitInfo[continent];
+  if (!info) return COLOR_NONE;
+  return info.hasApp ? COLOR_APP : COLOR_MANUAL;
+}
+
+// --- City view (stage 3) - point markers, not a choropleth (see file header
+// for why). Grouped by the EXACT raw cityName string - the known/accepted
+// duplicate-point limitation for non-canonical old names is a direct,
+// intentional consequence of that, not something worked around here. ---
+let latestVisits = {}; // raw users/{uid}/visits snapshot - country/continent views only need the aggregated countryVisitInfo, but city view needs the raw cityName strings too
+const cityGeocodeCache = {}; // raw cityName string -> {lat, lon} | null (null = attempted, failed/unavailable - never retried)
+let cityPoints = []; // built list actually handed to globe.gl's pointsData
+
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+function computeCityVisitInfo(visits) {
+  const info = {};
+  Object.values(visits || {}).forEach(v => {
+    if (!v || !v.cityName) return;
+    const key = String(v.cityName);
+    if (!info[key]) info[key] = { hasApp: false, hasManual: false, count: 0 };
+    info[key].count++;
+    if (v.source === "app") info[key].hasApp = true;
+    else if (v.source === "manual") info[key].hasManual = true;
+  });
+  return info;
+}
+
+function rebuildCityPoints() {
+  const cityInfo = computeCityVisitInfo(latestVisits);
+  cityPoints = Object.entries(cityInfo)
+    .map(([cityName, stat]) => {
+      const coords = cityGeocodeCache[cityName];
+      if (!coords) return null; // not geocoded yet, or geocoding failed - just omit the point
+      return {
+        cityName,
+        lat: coords.lat,
+        lng: coords.lon,
+        count: stat.count,
+        color: stat.hasApp ? COLOR_APP : COLOR_MANUAL
+      };
+    })
+    .filter(Boolean);
+  if (world && currentView === "city") world.pointsData(cityPoints);
+}
+
+// Geocodes every not-yet-attempted cityName found in the latest visits
+// snapshot, one at a time via legGeocode.js's existing throttled queue (see
+// its own file header - critical for the Nominatim-fallback path), then
+// repaints progressively as each result arrives. Only ever called while (or
+// just before) the city view is actually visible - never speculatively. ---
+function refreshCityPoints() {
+  rebuildCityPoints(); // paint whatever's already cached immediately
+  const cityInfo = computeCityVisitInfo(latestVisits);
+  const pending = Object.keys(cityInfo).filter(name => !(name in cityGeocodeCache));
+  if (!pending.length) return;
+  if (!window.geocodeLegDestination) {
+    console.warn("[achievements] geocodeLegDestination missing - legGeocode.js failed to load, city view cannot place any points");
+    return;
+  }
+  pending.forEach(name => {
+    // Mark in-flight immediately (synchronously, before the request even
+    // starts) - closes a real race: refreshCityPoints() can run again
+    // (new visits data arriving) while this same name's lookup is still
+    // in flight, and without this, the second run would see the name as
+    // still un-cached and fire a redundant concurrent request for it.
+    // rebuildCityPoints() treats this null placeholder exactly like a
+    // failed lookup - no point yet - which is correct while pending.
+    cityGeocodeCache[name] = null;
+    window.geocodeLegDestination(name)
+      .then(result => {
+        cityGeocodeCache[name] = (result && result.lat != null && result.lon != null)
+          ? { lat: result.lat, lon: result.lon }
+          : null;
+        if (!cityGeocodeCache[name]) {
+          console.warn(`[achievements] city view: could not geocode "${name}" - its point is omitted (known limitation - see file header on non-canonical cityName strings)`);
+        }
+        rebuildCityPoints();
+      })
+      .catch(error => {
+        cityGeocodeCache[name] = null;
+        console.warn(`[achievements] city view: geocoding "${name}" threw`, error);
+        rebuildCityPoints();
+      });
+  });
+}
+
+// --- View toggle - wired early like themeBtn (no auth dependency), but
+// applyView() itself no-ops until the globe exists (world is still null). ---
+let currentView = "country"; // "country" | "city" | "continent"
+
+function applyView() {
+  if (!world) return;
+  if (currentView === "country") {
+    world.polygonCapColor(capColorForFeature).pointsData([]);
+  } else if (currentView === "continent") {
+    world.polygonCapColor(capColorForFeatureContinent).pointsData([]);
+  } else {
+    world.polygonCapColor(() => COLOR_NONE);
+    refreshCityPoints(); // assigns pointsData itself, possibly progressively
+  }
+}
+
+function setView(view) {
+  if (view === currentView) return;
+  currentView = view;
+  document.querySelectorAll("#viewTabs .tab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.view === view);
+  });
+  applyView();
+}
+document.querySelectorAll("#viewTabs .tab").forEach(btn => {
+  btn.onclick = () => setView(btn.dataset.view);
+});
+
 function startVisitsListener(uid) {
   onValue(ref(db, `users/${uid}/visits`), snapshot => {
-    countryVisitInfo = computeCountryVisitInfo(snapshot.val());
+    latestVisits = snapshot.val();
+    countryVisitInfo = computeCountryVisitInfo(latestVisits);
+    continentVisitInfo = computeContinentVisitInfo(countryVisitInfo);
     // Re-applying the same accessor forces globe.gl to re-evaluate every
-    // polygon's cap color against the just-updated countryVisitInfo -
-    // needed because nothing else about the polygons layer changed, so
-    // nothing would otherwise trigger a repaint. Harmless/no-op before the
-    // globe exists yet (world is null until startGlobe()'s own promise
-    // resolves) - capColorForFeature reads countryVisitInfo fresh on
-    // every real invocation regardless of which finished first.
-    if (world) world.polygonCapColor(capColorForFeature);
+    // polygon's cap color against the just-updated info - needed because
+    // nothing else about the polygons layer changed, so nothing would
+    // otherwise trigger a repaint. Harmless/no-op before the globe exists
+    // yet (world is null until startGlobe()'s own promise resolves) - each
+    // color function reads its info fresh on every real invocation
+    // regardless of which finished first.
+    if (world) {
+      if (currentView === "country") world.polygonCapColor(capColorForFeature);
+      else if (currentView === "continent") world.polygonCapColor(capColorForFeatureContinent);
+      else refreshCityPoints(); // city view: polygon color doesn't depend on visits, but points do
+    }
   }, error => {
     console.warn("[achievements] users/{uid}/visits read failed", error);
     if (window.toast) window.toast(error.message, "error");
@@ -437,20 +647,32 @@ async function startGlobe() {
     .height($('globeContainer').clientHeight)
     .globeImageUrl(PLACEHOLDER_URL)
     .backgroundColor("rgba(0,0,0,0)")
-    // Real per-country color (stage 2) - capColorForFeature reads
-    // countryVisitInfo fresh every time it's invoked, so this already
-    // reflects whatever users/{uid}/visits data has arrived by the time
-    // globe.gl first renders, with no separate "wire up colors" step
-    // needed here.
     .polygonsData(countries.features)
-    .polygonCapColor(capColorForFeature)
     .polygonSideColor(() => "rgba(0, 0, 0, 0.15)")
     .polygonStrokeColor(() => "#111")
     .polygonAltitude(0.01)
     .polygonsTransitionDuration(0)
+    // City view (stage 3) point markers - accessors set up now, but
+    // pointsData stays empty until applyView() below decides the city view
+    // is actually the active one.
+    .pointsData([])
+    .pointLat("lat")
+    .pointLng("lng")
+    .pointColor("color")
+    .pointAltitude(0.015)
+    .pointRadius(0.4)
+    .pointLabel(d => escapeHtml(d.cityName) + (d.count > 1 ? ` ×${d.count}` : ""))
     .showAtmosphere(true)
     .atmosphereColor("#3a9bdc")
     .atmosphereAltitude(0.15);
+
+  // Sync the globe to whatever view is currently selected - almost always
+  // still the "country" default at this point, but robust against the rare
+  // case where the user already tapped a different tab while the globe was
+  // still loading (applyView() no-ops safely when called before this, via
+  // its own `if (!world) return` guard - this is the first call where world
+  // actually exists).
+  applyView();
 
   window.addEventListener("resize", () => {
     world.width($('globeContainer').clientWidth).height($('globeContainer').clientHeight);
