@@ -1,5 +1,19 @@
 # GitTrip — CHANGELOG
 
+## v4.72.21 — packing.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 1/6)
+
+### 🎯 מה השתנה
+9 תוויות ב-packing.html היו `<label>` בלי `for` בכלל - לא מקושרות ל-id של השדה שלהן (קורא-מסך לא מכריז את הטקסט כשה-focus עובר לשדה). נוסף `for="<id הקיים>"` תואם ל-8 מהן (`addItemCategorySelect`, `newListName`, `renameListName`, `editName`, `editVisibility`, `editListSelect`, `bulkMoveTarget`, `importCategorySelect`).
+
+**מקרה חריג אחד** (`listVisibilityLabel`) - לא תויית-לשדה-בודד, אלא כותרת מעל **זוג כפתורים** ("הפוך הכל לפרטי"/"הפוך הכל לגלוי"). `for` לא מתאים כאן (אין שדה יחיד). הוחלף ל-`<span>` (הסרת סמנטיקת `<label>` שלא רלוונטית) + `role="group" aria-labelledby="listVisibilityLabel"` על ה-`<div>` שעוטף את שני הכפתורים - תבנית תקנית לתיוג קבוצת-כפתורים.
+
+### 🔍 מה שנבדק בפועל
+כל 8 הזוגות אומתו כ-unique (`grep -c 'id="X"'` = 1 לכל שדה, אין התנגשויות) ואומתו בדפדפן **דטרמיניסטית** (`document.querySelector('label[for="X"]')` מחזיר את התווית הנכונה לכל שדה, לא רק ויזואלית) - לא הסתפקתי בבדיקה ויזואלית של עץ הנגישות (שגילה חוסר-עקביות בתצוגת "השם הנגיש" של textbox ריק מול placeholder, כנראה מגבלת כלי התצוגה, לא באג אמיתי). קליק בפועל על תווית "שם הרשימה" הזיז focus ל-`newListName` - מוכיח את הקישור בפעולה, לא רק ב-markup. הקבוצה (`role="group"`) אומתה: `aria-labelledby` פותר נכון ל-`listVisibilityLabel`.
+
+`node --check` על התוכן המדויק - תקין. `node scripts/i18n-audit.js` - אין ממצאים חדשים.
+
+v4.72.20 -> v4.72.21 (patch - תיקון נגישות, אין שינוי סכימה).
+
 ## v4.72.20 — הגבלת מספרי טלפון חברים למארגן בלבד (אשכול 4, ממצא 1, commit 1)
 
 ### 🎯 מה השתנה

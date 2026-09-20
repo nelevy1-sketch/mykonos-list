@@ -1130,7 +1130,7 @@
       <h2 id="addItemTitle">הוספת פריט</h2>
 
       <div class="field hidden" id="addItemCategoryField">
-        <label id="addItemCategoryLabel">קטגוריה</label>
+        <label id="addItemCategoryLabel" for="addItemCategorySelect">קטגוריה</label>
         <select id="addItemCategorySelect"></select>
       </div>
 
@@ -1164,7 +1164,7 @@
       <h2 id="newListTitle">רשימה חדשה</h2>
 
       <div class="field">
-        <label id="newListNameLabel">שם הרשימה</label>
+        <label id="newListNameLabel" for="newListName">שם הרשימה</label>
         <input id="newListName" maxlength="60" placeholder="למשל: מסמכים">
       </div>
 
@@ -1181,7 +1181,7 @@
       <h2 id="manageListTitle">ניהול רשימה</h2>
 
       <div class="field">
-        <label id="renameListLabel">שם הרשימה</label>
+        <label id="renameListLabel" for="renameListName">שם הרשימה</label>
         <input id="renameListName" maxlength="60">
       </div>
 
@@ -1191,8 +1191,8 @@
       </div>
 
       <div class="field">
-        <label id="listVisibilityLabel">שיתוף כל הרשימה</label>
-        <div class="sheet-actions">
+        <span id="listVisibilityLabel">שיתוף כל הרשימה</span>
+        <div class="sheet-actions" role="group" aria-labelledby="listVisibilityLabel">
           <button class="secondary-btn" style="flex:1" id="makeListPrivateBtn">🔒 הפוך הכל לפרטי</button>
           <button class="secondary-btn" style="flex:1" id="makeListPublicBtn">🌐 הפוך הכל לגלוי</button>
         </div>
@@ -1209,12 +1209,12 @@
       <h2 id="editTitle">עריכת פריט</h2>
 
       <div class="field">
-        <label id="editNameLabel">שם הפריט</label>
+        <label id="editNameLabel" for="editName">שם הפריט</label>
         <input id="editName" maxlength="100">
       </div>
 
       <div class="field">
-        <label id="visibilityLabel">שיתוף עם הקבוצה</label>
+        <label id="visibilityLabel" for="editVisibility">שיתוף עם הקבוצה</label>
 
         <select id="editVisibility">
           <option value="private">🔒 פרטי</option>
@@ -1223,7 +1223,7 @@
       </div>
 
       <div class="field">
-        <label id="editListLabel">רשימה</label>
+        <label id="editListLabel" for="editListSelect">רשימה</label>
         <select id="editListSelect"></select>
       </div>
 
@@ -1247,7 +1247,7 @@
       <h2 id="bulkMoveTitle">העברה לרשימה</h2>
 
       <div class="field">
-        <label id="bulkMoveLabel">רשימת יעד</label>
+        <label id="bulkMoveLabel" for="bulkMoveTarget">רשימת יעד</label>
         <select id="bulkMoveTarget"></select>
       </div>
 
@@ -1265,7 +1265,7 @@
       <p id="importCategoryText"></p>
 
       <div class="field">
-        <label id="importCategorySelectLabel">קטגוריה</label>
+        <label id="importCategorySelectLabel" for="importCategorySelect">קטגוריה</label>
         <select id="importCategorySelect"></select>
       </div>
 
