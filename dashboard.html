@@ -44,23 +44,12 @@
      trip-creation code (the source of truth, not assumed) - see inline
      comments at each metric for exactly which trip field/shape backs it.
 -->
-<html lang="he" dir="rtl" data-tokens="core">
+<!-- Dark mode only, permanently - no toggle, no prefers-color-scheme check,
+     no localStorage. data-theme="dark" is a static attribute, not JS-set,
+     so shared.css's existing [data-theme="dark"] core tokens apply from
+     first paint with zero flash-of-light-mode possible. -->
+<html lang="he" dir="rtl" data-tokens="core" data-theme="dark">
 <head>
-<script>
-(function () {
-  var savedTheme = localStorage.getItem('dashboardDarkMode');
-  var shouldStartDark =
-    savedTheme === 'dark'
-      ? true
-      : savedTheme === 'light'
-        ? false
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  if (shouldStartDark) {
-    document.documentElement.dataset.theme = 'dark';
-  }
-})();
-</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
@@ -73,6 +62,13 @@
   <script src="auth-gate.js"></script>
   <script src="countryContinent.js"></script>
   <script src="capitalCities.js"></script>
+  <!-- Redesign stage 1/5: loaded now, not used yet - later stages replace
+       the plain tables below with real charts. Pinned version (same
+       convention as this project's own Firebase pin) - v4 UMD, minified,
+       ~69KB gzip (already measured during the original investigation
+       report this dashboard was built from). Classic script like every
+       other tag here - attaches window.Chart, no type="module". -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -100,6 +96,18 @@
       gap: 10px;
       margin-bottom: 16px;
     }
+    .dash-logo {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border-radius: 9px;
+      /* Belt-and-suspenders: gittrip-icon.svg already bakes its own dark
+         rounded-square background into the artwork (verified visually -
+         it is not a transparent glyph that would need a background here
+         to avoid "white on white"), but a page-matching background-color
+         still avoids any edge-antialiasing seam against .dash-head. */
+      background: var(--bg);
+    }
     .dash-head h1 {
       flex: 1;
       min-width: 0;
@@ -117,6 +125,61 @@
       display: grid;
       place-items: center;
       flex: 0 0 auto;
+    }
+
+    /* Redesign stage 1/5 - KPI card row. Deliberately more "card-like" than
+       .metric-card below (added box-shadow, no .metric-card has one) so
+       the new top row visually reads as a distinct, higher-priority layer
+       above the existing detail tables, not just more of the same rows. */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    /* True mobile widths stack one-per-row (explicit requirement) rather
+       than auto-fit's own 2-per-row at ~375px - a phone screen reads
+       better as a single clear column here than two narrow ones. */
+    @media (max-width: 480px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
+      min-width: 0;
+    }
+    .kpi-value {
+      margin: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      min-width: 0;
+    }
+    .kpi-value-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kpi-trend {
+      font-size: 0.85rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .kpi-trend.good { color: var(--success); }
+    .kpi-trend.bad { color: var(--danger); }
+    .kpi-label {
+      margin: 4px 0 0;
+      font-size: 0.72rem;
+      font-weight: 650;
+      color: var(--muted);
     }
 
     .metric-card {
@@ -227,11 +290,35 @@
 <div class="hidden" id="appContainer">
   <div class="dash-shell">
     <header class="dash-head">
-      <h1>📊 דשבורד אנליטיקס</h1>
+      <img class="dash-logo" src="gittrip-icon.svg" alt="GitTrip" width="34" height="34">
+      <h1>דשבורד אנליטיקס</h1>
       <button class="icon-btn" id="refreshBtn" aria-label="רענון נתונים" title="רענון נתונים">🔄</button>
-      <button class="icon-btn" id="themeBtn" aria-label="החלפת מצב תצוגה" title="החלפת מצב תצוגה">🌙</button>
       <button class="icon-btn" id="signOutBtn" aria-label="התנתקות" title="התנתקות">🚪</button>
     </header>
+
+    <!-- Redesign stage 1/5: KPI row, at-a-glance summary above everything
+         else. Each existing detail card below stays exactly as-is (still
+         the source of the full breakdown) - these 4 numbers are a subset,
+         not a replacement, matching the task's own "existing tables stay
+         as fallback" instruction. -->
+    <section class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card" id="kpiTotalTrips">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">סה"כ טיולים</p>
+      </div>
+      <div class="kpi-card" id="kpiWriteSuccess">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">הצלחת כתיבות</p>
+      </div>
+      <div class="kpi-card" id="kpiServerSuccess">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">הצלחת קריאות שרת</p>
+      </div>
+      <div class="kpi-card" id="kpiCountriesVisited">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">מדינות שביקרו בהן</p>
+      </div>
+    </section>
 
     <main id="dashMain">
       <section class="metric-card">
@@ -362,24 +449,6 @@ const ALLOWED_UID = "ne56ZOFgDMRfaH03WAvO7jbinty2";
 
 const $ = id => document.getElementById(id);
 
-// --- Theme toggle (own key - no single trip in scope for theming, same
-// reasoning as achievements.html/index.html's own non-trip-scoped keys). ---
-function applyTheme() {
-  const stored = localStorage.getItem('dashboardDarkMode');
-  const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const shouldBeDark = stored === 'dark' ? true : stored === 'light' ? false : systemDark;
-
-  if (shouldBeDark) document.documentElement.dataset.theme = 'dark';
-  else delete document.documentElement.dataset.theme;
-
-  $('themeBtn').textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
-}
-$('themeBtn').onclick = () => {
-  localStorage.setItem('dashboardDarkMode', document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-  applyTheme();
-};
-applyTheme();
-
 // --- Auth - identical mechanics to every other page's gate (doGoogleSignIn,
 // popup->redirect fallback, getRedirectResult, armAuthGate watchdog). The
 // one thing that's different from every other page is what happens AFTER a
@@ -453,6 +522,27 @@ function escapeHtml(value) {
   return String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[ch]));
+}
+
+// --- Redesign stage 1/5 - KPI card row. `trend` is 'good'/'bad'/null:
+// null means "plain count, no inherent good/bad direction" (total trips,
+// countries visited) - only the two success-RATE cards ever get a trend.
+// 90% threshold matches renderBreakdownRows' own existing .warn cutoff
+// below, not a new number invented for this row. ---
+function updateKPI(cardId, valueText, trend) {
+  const card = $(cardId);
+  card.querySelector(".kpi-value-num").textContent = valueText;
+  const trendEl = card.querySelector(".kpi-trend");
+  if (trend === "good") {
+    trendEl.textContent = "▲";
+    trendEl.className = "kpi-trend good";
+  } else if (trend === "bad") {
+    trendEl.textContent = "▼";
+    trendEl.className = "kpi-trend bad";
+  } else {
+    trendEl.textContent = "";
+    trendEl.className = "kpi-trend";
+  }
 }
 
 // --- Display-name tables for fixed enum values - copied verbatim from
@@ -983,8 +1073,9 @@ function renderVisitorStats(result) {
 
 async function loadAndRender() {
   try {
-    const snapshot = await get(ref(db, "trips"));
-    renderAll(computeMetrics(snapshot.val()));
+    const m = computeMetrics((await get(ref(db, "trips"))).val());
+    renderAll(m);
+    updateKPI("kpiTotalTrips", m.total, null);
   } catch (error) {
     console.warn("[dashboard] failed to load trips/", error);
     if (window.toast) window.toast("טעינת הנתונים נכשלה", "error");
@@ -995,7 +1086,12 @@ async function loadAndRender() {
   // vice versa - the two are unrelated at read time.
   try {
     const writesSnapshot = await get(ref(db, "_analytics/writes"));
-    renderWriteStats(computeWriteStats(writesSnapshot.val()));
+    const writeStats = computeWriteStats(writesSnapshot.val());
+    renderWriteStats(writeStats);
+    if (writeStats.total) {
+      const pct = Math.round((writeStats.successCount / writeStats.total) * 100);
+      updateKPI("kpiWriteSuccess", `${pct}%`, pct >= 90 ? "good" : "bad");
+    }
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/writes", error);
     if (window.toast) window.toast("טעינת נתוני הכתיבות נכשלה", "error");
@@ -1006,7 +1102,12 @@ async function loadAndRender() {
   // from rendering, and vice versa.
   try {
     const serverCallsSnapshot = await get(ref(db, "_analytics/serverCalls"));
-    renderServerCallStats(computeServerCallStats(serverCallsSnapshot.val()));
+    const serverCallStats = computeServerCallStats(serverCallsSnapshot.val());
+    renderServerCallStats(serverCallStats);
+    if (serverCallStats.total) {
+      const pct = Math.round((serverCallStats.successCount / serverCallStats.total) * 100);
+      updateKPI("kpiServerSuccess", `${pct}%`, pct >= 90 ? "good" : "bad");
+    }
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/serverCalls", error);
     if (window.toast) window.toast("טעינת נתוני קריאות השרת נכשלה", "error");
@@ -1016,7 +1117,11 @@ async function loadAndRender() {
   // _analytics/visitorStats must not block anything else on this page.
   try {
     const visitorStatsSnapshot = await get(ref(db, "_analytics/visitorStats"));
-    renderVisitorStats(computeAggregateVisitorStats(visitorStatsSnapshot.val()));
+    const visitorResult = computeAggregateVisitorStats(visitorStatsSnapshot.val());
+    renderVisitorStats(visitorResult);
+    if (visitorResult.stats.visitedCount) {
+      updateKPI("kpiCountriesVisited", visitorResult.stats.visitedCount, null);
+    }
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/visitorStats", error);
     if (window.toast) window.toast("טעינת נתוני הביקורים נכשלה", "error");
