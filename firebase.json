@@ -92,6 +92,15 @@
         ]
       },
       {
+        "source": "/achievements.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
+      },
+      {
         "source": "/globe-test-assets/**",
         "headers": [
           {
