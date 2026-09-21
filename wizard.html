@@ -569,7 +569,7 @@
             <div class="feature-card">
                 <div class="feature-info">
                     <input type="checkbox" id="featPlaces" checked>
-                    <label for="featPlaces" id="lblFeatPlaces" style="margin:0; cursor:pointer;">מקומות, תמונות ומוזיקה 📸</label>
+                    <label for="featPlaces" id="lblFeatPlaces" style="margin:0; cursor:pointer;">תמונות ומוזיקה 📸</label>
                 </div>
                 <button type="button" class="preview-btn" id="previewBtnPlaces" onclick="openPreview('places')">צפה בדוגמה</button>
             </div>
@@ -823,7 +823,7 @@
             modLabel: "בחירת מודולים דינמיים (אילו טאבים יופיעו בטיול?) 🛠️",
             packLabel: "רשימת ציוד ומה לארוז 🎒",
             shopLabel: "רשימת קניות קבוצתית 🛒",
-            placesLabel: "מקומות, תמונות ומוזיקה 📸",
+            placesLabel: "תמונות ומוזיקה 📸",
             itineraryLabel: "תוכנית יומית 🗓️",
             expensesLabel: "התחשבנות והוצאות קבוצתיות 💸",
             previewBtn: "צפה בדוגמה",
@@ -914,7 +914,7 @@
             modLabel: "Modular Features (Which tabs will appear?) 🛠️",
             packLabel: "Packing List & Essentials 🎒",
             shopLabel: "Group Shopping List 🛒",
-            placesLabel: "Places, Photos & Music 📸",
+            placesLabel: "Photos & Music 📸",
             itineraryLabel: "Daily Itinerary 🗓️",
             expensesLabel: "Group Expenses & Split 💸",
             previewBtn: "Preview",
@@ -953,14 +953,14 @@
         he: {
             packing: { title: 'רשימת ציוד ומה לארוז 🎒', desc: 'מאפשר לכל משתמש לנהל רשימת פריטים אישית או ציבורית, לסמן מה נארז ולבקש פריטים מחברים בקבוצה.' },
             shopping: { title: 'רשימת קניות קבוצתית 🛒', desc: 'מרכז את כל מה שצריך לקנות בסופר או להביא מהארץ, כולל מנגנון כמויות אישיות ומצב בדיקה לסופר.' },
-            places: { title: 'מקומות, תמונות ומוזיקה 📸', desc: 'מרכז את המקומות ששמרתם, קישורי ניווט, תמונות מהטיול ופסקול משותף במקום אחד.' },
+            places: { title: 'תמונות ומוזיקה 📸', desc: 'מרכז את תמונות הטיול ופסקול משותף במקום אחד.' },
             itinerary: { title: 'תוכנית יומית 🗓️', desc: 'תכנון פעילויות לכל יום בטיול, עם אפשרות לכל משתתף לסמן "אני בא/ה" ולראות מי עוד מגיע לאותה פעילות.' },
             expenses: { title: 'התחשבנות והוצאות 💸', desc: 'מעקב אחר הוצאות הקבוצה וחלוקה ברורה בין המשתתפים לאורך הטיול.' }
         },
         en: {
             packing: { title: 'Packing List & Essentials 🎒', desc: 'Allows each user to manage personal or public items, check off what is packed, and request items from friends.' },
             shopping: { title: 'Group Shopping List 🛒', desc: 'Centralizes everything needed for the supermarket or from home, including personal quantities and audit mode.' },
-            places: { title: 'Places, Photos & Music 📸', desc: 'Saved places, navigation, trip photos and a shared soundtrack in one place.' },
+            places: { title: 'Photos & Music 📸', desc: 'Trip photos and a shared soundtrack in one place.' },
             itinerary: { title: 'Daily Itinerary 🗓️', desc: 'Plan activities for each day of the trip, with each member able to mark themselves as joining and see who else is coming.' },
             expenses: { title: 'Group Expenses 💸', desc: 'Track group expenses and keep the split clear throughout the trip.' }
         }
@@ -1692,8 +1692,8 @@
         const typeSelect = document.getElementById('tripType');
         const modules = Object.entries(selectedFeatures()).filter(([, enabled]) => enabled).map(([name]) => name);
         const labels = currentLanguage === 'he'
-            ? { packing:'ציוד', shopping:'קניות', places:'מקומות', expenses:'הוצאות' }
-            : { packing:'Packing', shopping:'Shopping', places:'Places', expenses:'Expenses' };
+            ? { packing:'ציוד', shopping:'קניות', places:'זיכרונות', expenses:'הוצאות' }
+            : { packing:'Packing', shopping:'Shopping', places:'Memories', expenses:'Expenses' };
         const destinationLabel = currentLanguage === 'he'
             ? (legRowCount > 1 ? 'יעדים' : 'יעד')
             : (legRowCount > 1 ? 'Destinations' : 'Destination');
