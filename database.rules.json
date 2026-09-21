@@ -11,6 +11,9 @@
     },
 
     "trips": {
+
+      ".read": "auth != null && auth.uid === 'ne56ZOFgDMRfaH03WAvO7jbinty2'",
+
       "$tripId": {
 
         ".read": "auth != null",
