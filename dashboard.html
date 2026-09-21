@@ -313,6 +313,22 @@
       font-weight: 800;
       color: var(--dash-text);
     }
+    /* Audit follow-up - writesTotalValue/serverCallsTotalValue are the
+       exact same success-rate metrics as kpiWriteSuccess/kpiServerSuccess
+       above (already colored via .kpi-trend.good/.bad) and the two bar
+       charts (CHART_GOOD/CHART_BAD) - this was the one real gap the audit
+       found: same metric, same 90% threshold everywhere else on the
+       page, just not here. ▲/▼ prefix (not "⚠") matches the KPI row's
+       own glyph for this identical metric - "⚠" is reserved for a
+       different kind of signal (an anomaly/failure existing, like the
+       geocoding row), not a rate currently sitting above/below a
+       threshold. Empty state (no data yet, shows "--") gets neither
+       class - same neutral-until-real-data behavior as
+       updateKPI()'s own null-trend case. */
+    .metric-big.good { color: var(--dash-good); }
+    .metric-big.bad { color: var(--dash-bad); }
+    .metric-big.good::before { content: "▲ "; }
+    .metric-big.bad::before { content: "▼ "; }
     .metric-note {
       margin: 8px 0 0;
       font-size: .74rem;
@@ -2431,6 +2447,7 @@ function renderBreakdownRows(containerId, breakdown) {
 function renderWriteStats(stats) {
   if (!stats.total) {
     $("writesTotalValue").textContent = "--";
+    $("writesTotalValue").classList.remove("good", "bad");
     $("writesTotalNote").textContent = "אין נתוני כתיבה עדיין";
     $("writesByFileTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
     // Redesign stage 5/5 - empty breakdown still goes through the chart's
@@ -2442,6 +2459,8 @@ function renderWriteStats(stats) {
   }
   const pct = Math.round((stats.successCount / stats.total) * 100);
   $("writesTotalValue").textContent = `${pct}%`;
+  $("writesTotalValue").classList.toggle("good", pct >= 90);
+  $("writesTotalValue").classList.toggle("bad", pct < 90);
   $("writesTotalNote").textContent = `${stats.successCount} מתוך ${stats.total} כתיבות הצליחו`;
 
   renderSuccessRateBarChart("writesByContextChart", "writesByContextChartWrap", stats.byContext);
@@ -2487,6 +2506,7 @@ function computeServerCallStats(callsObj) {
 function renderServerCallStats(stats) {
   if (!stats.total) {
     $("serverCallsTotalValue").textContent = "--";
+    $("serverCallsTotalValue").classList.remove("good", "bad");
     $("serverCallsTotalNote").textContent = "אין נתוני קריאות שרת עדיין";
     renderSuccessRateBarChart("serverCallsByFunctionChart", "serverCallsByFunctionChartWrap", {});
     renderTokenBarChart("serverCallsTokensChart", "serverCallsTokensChartWrap", {});
@@ -2494,6 +2514,8 @@ function renderServerCallStats(stats) {
   }
   const pct = Math.round((stats.successCount / stats.total) * 100);
   $("serverCallsTotalValue").textContent = `${pct}%`;
+  $("serverCallsTotalValue").classList.toggle("good", pct >= 90);
+  $("serverCallsTotalValue").classList.toggle("bad", pct < 90);
   $("serverCallsTotalNote").textContent = `${stats.successCount} מתוך ${stats.total} קריאות הצליחו`;
 
   renderSuccessRateBarChart("serverCallsByFunctionChart", "serverCallsByFunctionChartWrap", stats.byFunction);
