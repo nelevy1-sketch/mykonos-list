@@ -380,6 +380,25 @@
       height: 250px;
     }
 
+    /* Redesign stage 3/5 - write/server-call success-rate + token bar
+       charts. Same single-column stacked section as #tripsChartsSection
+       (a horizontal bar chart wants width, not a cramped multi-column
+       cell - unlike the donuts above, these are NOT put 3-in-a-row). */
+    #writesChartsSection {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    /* .bar-wrap's real height is set inline by JS per chart (category
+       count varies a lot between e.g. writesByContext - a dozen-plus
+       distinct contexts across the whole app - and serverCalls, which
+       only ever has 2 functions) - this is just a sane pre-data-load
+       default, same role .chart-wrap's own fixed height already plays
+       for the trips/ charts above. */
+    .bar-wrap {
+      height: 200px;
+    }
+
     /* Access-denied / login screens are NOT part of this redesign - they
        still render entirely from shared.css's own .overlay/.sheet/
        .google-btn/.secondary-btn chrome (data-tokens="core" data-theme=
@@ -498,6 +517,39 @@
       </div>
     </section>
 
+    <!-- Redesign stage 3/5 - write/server-call success-rate charts.
+         Replaces 3 old plain-table cards outright (writesByContextTable,
+         serverCallsByFunctionTable, serverCallsTokensTable) - same
+         reasoning as stage 2's trips/ charts: each bar's own value label
+         reproduces the exact "X/Y (Z%)" (or token sum+average) the old
+         tables showed, worst-first sort unchanged, nothing lost. Kept
+         untouched: writesByFileTable (a DIFFERENT breakdown dimension -
+         by file, not by context - no parallel chart built this stage),
+         and the writesTotalValue/serverCallsTotalValue single-number
+         cards (already covered by the KPI row, out of scope here). -->
+    <section id="writesChartsSection">
+      <div class="metric-card chart-card">
+        <h2>הצלחת כתיבות לפי פעולה (context)</h2>
+        <div class="chart-wrap bar-wrap" id="writesByContextChartWrap">
+          <canvas id="writesByContextChart"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card chart-card">
+        <h2>הצלחת קריאות שרת לפי פונקציה</h2>
+        <div class="chart-wrap bar-wrap" id="serverCallsByFunctionChartWrap">
+          <canvas id="serverCallsByFunctionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card chart-card">
+        <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
+        <div class="chart-wrap bar-wrap" id="serverCallsTokensChartWrap">
+          <canvas id="serverCallsTokensChart"></canvas>
+        </div>
+      </div>
+    </section>
+
     <main id="dashMain">
       <section class="metric-card">
         <h2>סה"כ טיולים</h2>
@@ -532,11 +584,6 @@
       </section>
 
       <section class="metric-card">
-        <h2>הצלחת כתיבות לפי פעולה (context)</h2>
-        <div id="writesByContextTable"></div>
-      </section>
-
-      <section class="metric-card">
         <h2>הצלחת כתיבות לפי עמוד (file)</h2>
         <div id="writesByFileTable"></div>
       </section>
@@ -545,16 +592,6 @@
         <h2>קריאות שרת (Cloud Functions AI)</h2>
         <p class="metric-big" id="serverCallsTotalValue">--</p>
         <p class="metric-note" id="serverCallsTotalNote"></p>
-      </section>
-
-      <section class="metric-card">
-        <h2>הצלחת קריאות שרת לפי פונקציה</h2>
-        <div id="serverCallsByFunctionTable"></div>
-      </section>
-
-      <section class="metric-card">
-        <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
-        <div id="serverCallsTokensTable"></div>
       </section>
 
       <section class="metric-card">
@@ -970,6 +1007,35 @@ const CHART_TEXT = "#E7EDF0";
 const CHART_MUTED = "#93A2AC";
 const CHART_GRID = "rgba(255, 255, 255, 0.16)";
 const CHART_TOOLTIP_BG = "#1A232C";
+// Redesign stage 3/5 - same values as --dash-good/--dash-bad, fixed for
+// the same canvas reason as every other CHART_* constant above.
+const CHART_GOOD = "#2DD4C8";
+const CHART_BAD = "#F87171";
+// Explicit font family for every axis/tick label below - found and fixed
+// a real bug leaving this unset on the bar charts' y-axis: Chart.js then
+// falls back to ITS OWN default font (not this page's own 'Assistant'),
+// which measures wider for the same string - at narrow (mobile) widths
+// this under-allocated the y-axis label column just enough to clip the
+// longest category name from its start (e.g. "suggestPackingList"
+// rendered as "gestPackingList"). Naming this font explicitly everywhere
+// keeps Chart.js's own internal width measurement consistent with what
+// it actually draws.
+const CHART_FONT_FAMILY = "'Assistant', system-ui, -apple-system, sans-serif";
+
+// The font-family fix above wasn't enough on its own: at a tight mobile
+// width, Chart.js's own y-axis fit algorithm can still squeeze the axis
+// below what the label actually needs to render without clipping (found
+// on serverCallsTokensChart at 375px - its y.width came out as exactly
+// the raw measured text width, with none of the ~14px buffer a
+// less-constrained chart on the same page gets for the identical
+// string). This measures the widest label with the exact font Chart.js
+// is told to use, so afterFit below can enforce a real minimum instead
+// of trusting Chart.js not to shrink it away.
+function measureMaxLabelWidth(labels, font) {
+  const ctx = document.createElement("canvas").getContext("2d");
+  ctx.font = font;
+  return labels.reduce((max, l) => Math.max(max, ctx.measureText(String(l)).width), 0);
+}
 
 function renderTripsTimelineChart(timeline) {
   destroyChart("tripsTimelineChart");
@@ -1012,8 +1078,8 @@ function renderTripsTimelineChart(timeline) {
         }
       },
       scales: {
-        x: { ticks: { color: CHART_MUTED, maxRotation: 45, minRotation: 0 }, grid: { color: CHART_GRID } },
-        y: { ticks: { color: CHART_MUTED, precision: 0 }, grid: { color: CHART_GRID }, beginAtZero: true }
+        x: { ticks: { color: CHART_MUTED, maxRotation: 45, minRotation: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID } },
+        y: { ticks: { color: CHART_MUTED, precision: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID }, beginAtZero: true }
       }
     }
   });
@@ -1084,6 +1150,167 @@ function renderDonutChart(canvasId, entries, labelMap) {
           bodyColor: CHART_TEXT,
           borderColor: CHART_GRID,
           borderWidth: 1
+        }
+      }
+    }
+  });
+}
+
+// --- Redesign stage 3/5 - write/server-call success-rate + token bar
+// charts. Chart.js has no built-in "always-visible value label on a bar"
+// (only hover tooltips) - chartjs-plugin-datalabels would need a second
+// CDN script for exactly this one feature, so this ~15-line custom
+// plugin draws the label directly instead. Registered PER CHART (passed
+// in that chart's own `plugins: [...]` array below, never globally), so
+// it never touches the trips/ line/donut charts from stage 2. Reads
+// `dataset.valueLabels[i]` - a plain string array stashed on the dataset
+// by each render function below, not a Chart.js-native concept. ---
+const barValueLabelPlugin = {
+  id: "barValueLabel",
+  afterDatasetsDraw(chart) {
+    const meta = chart.getDatasetMeta(0);
+    const valueLabels = chart.data.datasets[0].valueLabels || [];
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.font = "600 11px Assistant, system-ui, sans-serif";
+    ctx.fillStyle = CHART_TEXT;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    meta.data.forEach((bar, i) => {
+      if (valueLabels[i]) ctx.fillText(valueLabels[i], bar.x + 6, bar.y);
+    });
+    ctx.restore();
+  }
+};
+
+// A dozen-plus distinct write contexts across the whole app vs. exactly
+// 2 server-call functions - one fixed height would either crush the
+// first or waste most of its space on the second, so every bar chart's
+// wrapper height is set here, right before creation, from its own actual
+// category count.
+function setDynamicBarHeight(wrapId, categoryCount) {
+  $(wrapId).style.height = `${Math.max(160, categoryCount * 30 + 40)}px`;
+}
+
+// Shared by writes-by-context and serverCalls-by-function - both are
+// {key: {total, success, ...}} (serverCalls' own byFunction has extra
+// tokenSum/tokenSamples fields, simply ignored here exactly like
+// renderBreakdownRows - the function this replaces - already ignored
+// them). Worst-first sort and the 90% color threshold are both copied
+// unchanged from the removed renderBreakdownRows/.warn logic, not
+// reinvented.
+function renderSuccessRateBarChart(canvasId, wrapId, breakdown) {
+  destroyChart(canvasId);
+  const canvas = $(canvasId);
+  const entries = Object.entries(breakdown).sort((a, b) => (a[1].success / a[1].total) - (b[1].success / b[1].total));
+
+  if (!entries.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  setDynamicBarHeight(wrapId, entries.length);
+
+  const labels = entries.map(([key]) => key);
+  const percentages = entries.map(([, s]) => Math.round((s.success / s.total) * 100));
+  const colors = percentages.map(pct => (pct >= 90 ? CHART_GOOD : CHART_BAD));
+  const valueLabels = entries.map(([, s], i) => `${s.success}/${s.total} (${percentages[i]}%)`);
+
+  chartInstances[canvasId] = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{ data: percentages, backgroundColor: colors, valueLabels, barPercentage: 0.7, categoryPercentage: 0.8 }]
+    },
+    plugins: [barValueLabelPlugin],
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 70 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1,
+          callbacks: { label: ctx => valueLabels[ctx.dataIndex] }
+        }
+      },
+      scales: {
+        x: { min: 0, max: 100, ticks: { color: CHART_MUTED, callback: v => `${v}%`, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID } },
+        y: {
+          ticks: { color: CHART_TEXT, font: { size: 11, family: CHART_FONT_FAMILY } },
+          grid: { display: false },
+          afterFit: scale => {
+            const needed = measureMaxLabelWidth(labels, `11px ${CHART_FONT_FAMILY}`) + 16;
+            if (scale.width < needed) scale.width = needed;
+          }
+        }
+      }
+    }
+  });
+}
+
+// Token consumption per function - a cost proxy, not a success/failure
+// metric, so no 90%-threshold coloring here (CATEGORICAL_PALETTE cycles
+// per bar instead, same as the donuts) and sorted by total tokens
+// DESCENDING (highest cost first) rather than worst-first - copied
+// unchanged from the removed renderTokenRows' own sort.
+function renderTokenBarChart(canvasId, wrapId, byFunction) {
+  destroyChart(canvasId);
+  const canvas = $(canvasId);
+  const entries = Object.entries(byFunction).sort((a, b) => b[1].tokenSum - a[1].tokenSum);
+
+  if (!entries.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  setDynamicBarHeight(wrapId, entries.length);
+
+  const labels = entries.map(([key]) => key);
+  const sums = entries.map(([, s]) => s.tokenSum);
+  const colors = entries.map((_, i) => CATEGORICAL_PALETTE[i % CATEGORICAL_PALETTE.length]);
+  const valueLabels = entries.map(([, s]) => {
+    const avg = s.tokenSamples ? Math.round(s.tokenSum / s.tokenSamples) : null;
+    return `${s.tokenSum.toLocaleString("he-IL")}${avg != null ? ` (ממוצע ${avg.toLocaleString("he-IL")})` : ""}`;
+  });
+
+  chartInstances[canvasId] = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{ data: sums, backgroundColor: colors, valueLabels, barPercentage: 0.7, categoryPercentage: 0.8 }]
+    },
+    plugins: [barValueLabelPlugin],
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 130 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1,
+          callbacks: { label: ctx => valueLabels[ctx.dataIndex] }
+        }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: CHART_MUTED, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID } },
+        y: {
+          ticks: { color: CHART_TEXT, font: { size: 11, family: CHART_FONT_FAMILY } },
+          grid: { display: false },
+          afterFit: scale => {
+            const needed = measureMaxLabelWidth(labels, `11px ${CHART_FONT_FAMILY}`) + 16;
+            if (scale.width < needed) scale.width = needed;
+          }
         }
       }
     }
@@ -1185,7 +1412,6 @@ function renderWriteStats(stats) {
   if (!stats.total) {
     $("writesTotalValue").textContent = "--";
     $("writesTotalNote").textContent = "אין נתוני כתיבה עדיין";
-    $("writesByContextTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
     $("writesByFileTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
     return;
   }
@@ -1193,7 +1419,7 @@ function renderWriteStats(stats) {
   $("writesTotalValue").textContent = `${pct}%`;
   $("writesTotalNote").textContent = `${stats.successCount} מתוך ${stats.total} כתיבות הצליחו`;
 
-  renderBreakdownRows("writesByContextTable", stats.byContext);
+  renderSuccessRateBarChart("writesByContextChart", "writesByContextChartWrap", stats.byContext);
   renderBreakdownRows("writesByFileTable", stats.byFile);
 }
 
@@ -1233,44 +1459,18 @@ function computeServerCallStats(callsObj) {
   return { total, successCount, byFunction };
 }
 
-// Sorted by total tokens descending (highest cost first) - unlike the
-// success-rate tables above, cost is naturally "biggest first", there's
-// no "recurring failure point" framing here.
-function renderTokenRows(containerId, byFunction) {
-  const container = $(containerId);
-  const entries = Object.entries(byFunction).sort((a, b) => b[1].tokenSum - a[1].tokenSum);
-  if (!entries.length) {
-    container.innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
-    return;
-  }
-  container.innerHTML = entries.map(([key, stat]) => {
-    const avg = stat.tokenSamples ? Math.round(stat.tokenSum / stat.tokenSamples) : null;
-    return `<div class="metric-row">
-      <span class="metric-row-label">${escapeHtml(key)}</span>
-      <span class="metric-row-count">${stat.tokenSum.toLocaleString('he-IL')} טוקנים</span>
-      <span class="metric-row-percent">${avg != null ? `ממוצע ${avg.toLocaleString('he-IL')}` : '--'}</span>
-    </div>`;
-  }).join("");
-}
-
 function renderServerCallStats(stats) {
   if (!stats.total) {
     $("serverCallsTotalValue").textContent = "--";
     $("serverCallsTotalNote").textContent = "אין נתוני קריאות שרת עדיין";
-    $("serverCallsByFunctionTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
-    $("serverCallsTokensTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
     return;
   }
   const pct = Math.round((stats.successCount / stats.total) * 100);
   $("serverCallsTotalValue").textContent = `${pct}%`;
   $("serverCallsTotalNote").textContent = `${stats.successCount} מתוך ${stats.total} קריאות הצליחו`;
 
-  // Same renderBreakdownRows as the client-side writes tables above -
-  // {total,success} is exactly the shape it expects, byFunction's extra
-  // tokenSum/tokenSamples fields are simply ignored here (renderTokenRows
-  // reads them instead).
-  renderBreakdownRows("serverCallsByFunctionTable", stats.byFunction);
-  renderTokenRows("serverCallsTokensTable", stats.byFunction);
+  renderSuccessRateBarChart("serverCallsByFunctionChart", "serverCallsByFunctionChartWrap", stats.byFunction);
+  renderTokenBarChart("serverCallsTokensChart", "serverCallsTokensChartWrap", stats.byFunction);
 }
 
 // --- Cross-user visitor stats (country/continent/capital) - reads
