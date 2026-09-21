@@ -850,12 +850,38 @@ function getCountryOptions() {
   return countryOptions;
 }
 
+// Bug fix (dashboard.html stage 8 part 1 investigation) - an EXACT
+// full-name match (he or en, case-insensitive) now always sorts first,
+// regardless of the underlying alphabetical order. Found in production:
+// typing "ארצות הברית" (United States) and pressing Enter silently
+// selected "איי הבתולה של ארצות הברית" (US Virgin Islands) instead - a
+// pure substring match that happened to sort before the exact one
+// alphabetically, with the Enter-key handler always picking whichever
+// option is first in the (unfiltered-by-quality) list. Confirmed same
+// mechanism for צרפת/GF, הולנד/BQ, סודן/SS. This is a stable PARTITION,
+// not a full re-sort: only exact matches move to the front; every other
+// (partial-match-only) result keeps its existing relative order -
+// Array.prototype.sort is spec-guaranteed stable (ECMA-262 since ES2019,
+// already the de facto behavior in every evergreen engine before that),
+// so a comparator returning 0 for two non-exact items never reorders
+// them against each other. A query that isn't a complete country name
+// (the normal case while still typing) has zero exact matches, so this
+// comparator is a no-op there - ordering during normal typing is
+// unchanged, only the FINAL "I typed the whole name" moment is affected.
 function renderCountryList(query) {
   const list = $("visitCountryList");
   const q = query.trim().toLowerCase();
-  const matches = q
+  let matches = q
     ? getCountryOptions().filter(o => o.nameHe.toLowerCase().includes(q) || o.nameEn.toLowerCase().includes(q))
     : getCountryOptions();
+  if (q) {
+    matches = matches.slice().sort((a, b) => {
+      const aExact = a.nameHe.toLowerCase() === q || a.nameEn.toLowerCase() === q;
+      const bExact = b.nameHe.toLowerCase() === q || b.nameEn.toLowerCase() === q;
+      if (aExact === bExact) return 0;
+      return aExact ? -1 : 1;
+    });
+  }
   list.innerHTML = matches.length
     ? matches.map(o => `<div class="combo-option" data-code="${o.code}">${escapeHtml(o.nameHe)}</div>`).join("")
     : `<div class="combo-empty">לא נמצאה מדינה תואמת</div>`;
@@ -884,7 +910,19 @@ $("visitCountry").addEventListener("keydown", event => {
   if (event.key !== "Enter") return;
   event.preventDefault();
   const firstMatch = $("visitCountryList").querySelector(".combo-option");
-  if (firstMatch) firstMatch.dispatchEvent(new MouseEvent("mousedown"));
+  // Second, separate bug found while verifying the sort-order fix above:
+  // a plain `new MouseEvent("mousedown")` defaults to bubbles:false, but
+  // the actual selection logic lives in a listener on the LIST container
+  // (visitCountryList's own "mousedown" handler above), not on each
+  // option - a non-bubbling event dispatched on a child can never reach
+  // it. Confirmed directly (a capture-phase probe on the list container
+  // fires either way - capture always walks down to the target
+  // regardless of bubbles - but the app's own bubble-phase listener does
+  // not, and selectedCountryCode stays empty). This means Enter has never
+  // selected anything in any browser, for any input, independent of the
+  // sort-order bug - not something introduced by this fix, but it must
+  // be fixed too for "type the name + Enter" to actually work at all.
+  if (firstMatch) firstMatch.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
 });
 
 function openAddVisitForm() {
