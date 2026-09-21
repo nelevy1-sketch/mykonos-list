@@ -729,19 +729,25 @@ const FEATURE_LABELS = {
   expenses: "הוצאות"
 };
 
-// --- Chart colors - read from this page's own --dash-chart-1..7 custom
-// properties (defined in the <style> block above), not hardcoded here a
-// second time and not borrowed from shared.css's per-trip-type theme
-// colors (an earlier version of this stage did that - moved away from
-// deliberately, this page's design language no longer references
-// shared.css at all). One shared categorical palette for every donut,
-// teal (the brand accent) always first - see the CSS variable block's
-// own comment for why a single generated-feeling scale replaces the old
-// per-category semantic color assignment.
-function chartColorVar(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-const CATEGORICAL_PALETTE = [1, 2, 3, 4, 5, 6, 7].map(i => chartColorVar(`--dash-chart-${i}`));
+// --- Chart colors - fixed hex constants, deliberately NOT read from this
+// page's own --dash-* custom properties via getComputedStyle at runtime
+// (an earlier version of this stage did that). Found and fixed a real bug
+// reported live: Chart.js draws its legend/ticks/tooltip text to
+// <canvas>, which never inherits page CSS regardless - that was already
+// accounted for (colors were passed explicitly into Chart.js's own
+// options, not left to inheritance) - but if getPropertyValue ever
+// returns an empty string for any reason (stale cache, a browser/OS
+// forced-dark-mode color-inversion feature that mishandles canvas
+// content, or any other CSS-resolution hiccup), Chart.js hands that
+// empty string to canvas as fillStyle - which the Canvas spec defines as
+// a silent no-op, leaving fillStyle at its default of black. Black text
+// on this page's dark background is invisible - exactly the symptom
+// reported. These values are the same as --dash-text/--dash-chart-1..7/
+// etc. in the <style> block above (kept in sync manually, a small
+// duplication traded for removing this entire failure class from the one
+// consumer - canvas - that never benefited from reading them at runtime
+// in the first place).
+const CATEGORICAL_PALETTE = ["#2DD4C8", "#38BDF8", "#818CF8", "#C084FC", "#FB923C", "#F472B6", "#A3E635"];
 const CHART_ACCENT = CATEGORICAL_PALETTE[0];
 
 let countryDisplayNames = null;
@@ -956,15 +962,14 @@ function destroyChart(canvasId) {
   }
 }
 
-// Colors read from the SAME CSS custom properties every other element on
-// this page already uses (getComputedStyle, not hardcoded duplicates) -
-// see shared.css's dark-mode core-token block for their values. If that
-// block ever changes, these follow automatically instead of silently
-// drifting out of sync.
-const CHART_TEXT = chartColorVar("--dash-text");
-const CHART_MUTED = chartColorVar("--dash-text-muted");
-const CHART_GRID = chartColorVar("--dash-border-strong");
-const CHART_TOOLTIP_BG = chartColorVar("--dash-surface-2");
+// Fixed hex/rgba constants - see CATEGORICAL_PALETTE's own comment above
+// for why these are no longer read from --dash-text/--dash-text-muted/
+// --dash-border-strong/--dash-surface-2 via getComputedStyle. Same values
+// as those custom properties, kept in sync manually.
+const CHART_TEXT = "#E7EDF0";
+const CHART_MUTED = "#93A2AC";
+const CHART_GRID = "rgba(255, 255, 255, 0.16)";
+const CHART_TOOLTIP_BG = "#1A232C";
 
 function renderTripsTimelineChart(timeline) {
   destroyChart("tripsTimelineChart");
