@@ -247,6 +247,7 @@
       .kpi-grid { grid-template-columns: 1fr; }
     }
     .kpi-card {
+      position: relative;
       background: var(--dash-surface-1);
       border: 1px solid var(--dash-border);
       border-radius: var(--dash-radius-lg);
@@ -292,6 +293,7 @@
        are small/uppercase/secondary (not the loudest thing on the card),
        the actual number is the loudest thing on it. */
     .metric-card {
+      position: relative;
       background: var(--dash-surface-1);
       border: 1px solid var(--dash-border);
       border-radius: var(--dash-radius-lg);
@@ -336,6 +338,16 @@
       flex: 1;
       min-width: 0;
       color: var(--dash-text-secondary);
+    }
+    /* Stage 8 (part 2) - a known-problem row (currently: countriesTable's
+       "geocoding נכשל" bucket) needs its LABEL flagged too, not just its
+       percent - unlike a below-threshold success-rate row (where the
+       category name itself is perfectly normal and only the percentage
+       is the bad part), here the category itself IS the problem
+       regardless of what percentage it happens to be. */
+    .metric-row-label.warn {
+      color: var(--dash-bad);
+      font-weight: 700;
     }
     .metric-row-count {
       font-weight: 700;
@@ -395,6 +407,15 @@
       height: 230px;
     }
     .donut-row {
+      /* Stage 7 - needed because #tripsDonutRow is one of
+         LAYOUT_CARD_GROUPS' own reorderable "cards" (the whole 3-donut
+         row as one block) and therefore carries a .layout-card-handle
+         (position:absolute) - without this, that handle had no
+         positioned ancestor of its own to anchor to and escaped all the
+         way up to the page's initial containing block, rendering as a
+         stray floating square near the top of the page instead of inside
+         this row (found in mobile testing, not just theorized). */
+      position: relative;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
@@ -539,6 +560,95 @@
       }
     }
 
+    /* Stage 7 - drag & drop layout reordering. Decided (asked, not
+       guessed - the task's own density mandate made this ambiguous
+       enough to check): handles/section-bars are NOT permanently visible
+       on every card - they only render (and become draggable) while
+       #appContainer carries .layout-edit-mode, toggled by layoutEditBtn.
+       Zero footprint the rest of the time, matching "עדין ולא לתפוס
+       מקום" - the handle still does its job of "not conflicting with a
+       normal click" perfectly well this way, since it doesn't coexist
+       with normal browsing at all. */
+    #layoutResetBtn { display: none; }
+    #appContainer.layout-edit-mode #layoutResetBtn { display: grid; }
+    #appContainer.layout-edit-mode #layoutEditBtn {
+      background: var(--dash-accent);
+      color: var(--dash-bg);
+      border-color: var(--dash-accent);
+    }
+
+    .layout-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      color: var(--dash-text-muted);
+      font-size: .8rem;
+      line-height: 1;
+      user-select: none;
+    }
+    .layout-handle:active { cursor: grabbing; }
+
+    /* Section-level handle - a thin bar prepended as the first child of
+       every reorderable section (injected by JS, not hand-written 6
+       times in the markup - one function, one source of truth, shared
+       with the reorder wiring itself). */
+    .layout-section-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--dash-border-strong);
+    }
+    #appContainer.layout-edit-mode .layout-section-bar { display: flex; }
+    .layout-section-bar .layout-handle { display: flex; width: 28px; height: 28px; }
+    .layout-section-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      color: var(--dash-text-secondary);
+      text-transform: uppercase;
+    }
+
+    /* Card-level handle - absolutely positioned in a card's own corner
+       (every .metric-card/.kpi-card is already position:relative, see
+       those rules above) - only shown/draggable in edit mode, same as
+       the section bar. inset-inline-start (not left) so it lands on the
+       correct visual corner in this RTL page without a manual mirror. */
+    .layout-card-handle {
+      position: absolute;
+      top: 8px;
+      inset-inline-start: 8px;
+      width: 24px;
+      height: 24px;
+      background: var(--dash-surface-2);
+      border: 1px solid var(--dash-border-strong);
+      border-radius: 6px;
+      z-index: 2;
+    }
+    #appContainer.layout-edit-mode .layout-card-handle { display: flex; }
+
+    /* Cards/sections a user could currently grab get a dashed outline
+       for the duration of edit mode only - a visible "these are the
+       reorderable units" cue, not a permanent style. padding-top is
+       pushed down too, only in edit mode - found in mobile testing that
+       the card-handle's fixed top:8px/24px-square footprint sits directly
+       over a kpi-card's own big bold number (kpi-value-num) otherwise,
+       since that card's normal padding (12px) is smaller than the
+       handle's own footprint. Applied to every card uniformly rather
+       than only ones that actually carry a handle (a few, like the 3
+       individual donuts and the single activity chart card, don't) -
+       the extra blank space on those few is a minor, edit-mode-only
+       cosmetic cost, not worth a second selector just to avoid it. */
+    #appContainer.layout-edit-mode .metric-card,
+    #appContainer.layout-edit-mode .kpi-card {
+      outline: 1px dashed var(--dash-border-strong);
+      outline-offset: 2px;
+      padding-top: 42px;
+    }
+    .layout-dragging { opacity: .4; }
+
     /* Access-denied / login screens are NOT part of this redesign - they
        still render entirely from shared.css's own .overlay/.sheet/
        .google-btn/.secondary-btn chrome (data-tokens="core" data-theme=
@@ -587,6 +697,11 @@
     <header class="dash-head">
       <img class="dash-logo" src="gittrip-icon.svg" alt="GitTrip" width="30" height="30">
       <h1>GitTrip — לוח בקרה</h1>
+      <!-- Stage 7 - layoutResetBtn only ever shown while layout-edit-mode
+           is active (CSS below), not a permanent 3rd icon button - reset
+           only means something once you're already rearranging. -->
+      <button class="icon-btn" id="layoutResetBtn" aria-label="איפוס סידור לברירת מחדל" title="איפוס סידור לברירת מחדל">↺</button>
+      <button class="icon-btn" id="layoutEditBtn" aria-label="עריכת סידור הדשבורד" title="עריכת סידור הדשבורד">✥</button>
       <button class="icon-btn" id="refreshBtn" aria-label="רענון נתונים" title="רענון נתונים">🔄</button>
       <button class="icon-btn" id="signOutBtn" aria-label="התנתקות" title="התנתקות">🚪</button>
     </header>
@@ -625,14 +740,14 @@
          destType/writes/serverCalls/visitorStats) is untouched - out of
          this stage's scope. -->
     <section id="tripsChartsSection">
-      <div class="metric-card">
+      <div class="metric-card" id="tripsTimelineCard">
         <h2>טיולים לאורך זמן (מצטבר)</h2>
         <div class="chart-wrap">
           <canvas id="tripsTimelineChart" role="img" aria-label="גרף קו - מספר טיולים מצטבר לאורך זמן"></canvas>
         </div>
       </div>
 
-      <div class="donut-row">
+      <div class="donut-row" id="tripsDonutRow">
         <div class="metric-card">
           <h2>התפלגות סוג טיול</h2>
           <div class="chart-wrap donut-wrap">
@@ -688,21 +803,21 @@
          and the writesTotalValue/serverCallsTotalValue single-number
          cards (already covered by the KPI row, out of scope here). -->
     <section id="writesChartsSection">
-      <div class="metric-card">
+      <div class="metric-card" id="writesByContextCard">
         <h2>הצלחת כתיבות לפי פעולה (context)</h2>
         <div class="chart-wrap bar-wrap" id="writesByContextChartWrap">
           <canvas id="writesByContextChart" role="img" aria-label="גרף עמודות - אחוז הצלחת כתיבות לפי פעולה, ממוין מהגרוע ביותר"></canvas>
         </div>
       </div>
 
-      <div class="metric-card">
+      <div class="metric-card" id="serverCallsByFunctionCard">
         <h2>הצלחת קריאות שרת לפי פונקציה</h2>
         <div class="chart-wrap bar-wrap" id="serverCallsByFunctionChartWrap">
           <canvas id="serverCallsByFunctionChart" role="img" aria-label="גרף עמודות - אחוז הצלחת קריאות שרת לפי פונקציה, ממוין מהגרוע ביותר"></canvas>
         </div>
       </div>
 
-      <div class="metric-card">
+      <div class="metric-card" id="serverCallsTokensCard">
         <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
         <div class="chart-wrap bar-wrap" id="serverCallsTokensChartWrap">
           <canvas id="serverCallsTokensChart" role="img" aria-label="גרף עמודות - צריכת טוקנים לפי פונקציה, ממוין מהגבוה ביותר"></canvas>
@@ -724,7 +839,7 @@
          space than leaving it where it already reads well, packed in
          among #dashMain's other compact cards. -->
     <section id="visitorStatsSection">
-      <div class="metric-card">
+      <div class="metric-card" id="visitorMapCard">
         <h2>מדינות שביקרו בהן על המפה</h2>
         <div class="map-wrap" id="visitorMapWrap">
           <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="מפת עולם עם נקודות במדינות שביקרו בהן">
@@ -735,7 +850,7 @@
         <p class="metric-note" id="visitorMapNote"></p>
       </div>
 
-      <div class="metric-card">
+      <div class="metric-card" id="visitorContinentsCard">
         <h2>ביקורים לפי יבשת (כלל המשתמשים)</h2>
         <div class="chart-wrap bar-wrap" id="visitorContinentsChartWrap">
           <canvas id="visitorContinentsChart" role="img" aria-label="גרף עמודות - מדינות שביקרו בהן לפי יבשת, ממוין מהמדינות שביקרו בהן ביותר"></canvas>
@@ -744,50 +859,50 @@
     </section>
 
     <main id="dashMain">
-      <section class="metric-card">
+      <section class="metric-card" id="totalTripsCard">
         <h2>סה"כ טיולים</h2>
         <p class="metric-big" id="totalTripsValue">--</p>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="groupSizeCard">
         <h2>גודל קבוצה ממוצע</h2>
         <p class="metric-big" id="groupSizeValue">--</p>
         <p class="metric-note" id="groupSizeNote"></p>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="featuresCard">
         <h2>הפיצ'רים הפופולריים ביותר</h2>
         <div id="featuresTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="countriesCard">
         <h2>יעדים / מדינות פופולריים</h2>
         <div id="countriesTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="destTypeCard">
         <h2>טיול יעד-בודד מול רב-יעד</h2>
         <div id="destTypeTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:60%"></div></div>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="writesTotalCard">
         <h2>אחוז הצלחת כתיבות (safeWrite)</h2>
         <p class="metric-big" id="writesTotalValue">--</p>
         <p class="metric-note" id="writesTotalNote"></p>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="writesByFileCard">
         <h2>הצלחת כתיבות לפי עמוד (file)</h2>
         <div id="writesByFileTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="serverCallsTotalCard">
         <h2>קריאות שרת (Cloud Functions AI)</h2>
         <p class="metric-big" id="serverCallsTotalValue">--</p>
         <p class="metric-note" id="serverCallsTotalNote"></p>
       </section>
 
-      <section class="metric-card">
+      <section class="metric-card" id="visitorCapitalsCard">
         <h2>בירות שביקרו בהן (כלל המשתמשים)</h2>
         <p class="metric-big" id="visitorCapitalsValue">--</p>
         <p class="metric-note" id="visitorCapitalsNote"></p>
@@ -802,7 +917,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // Same public project config as every other page - not a secret, see the
 // file header on why a hardcoded UID below isn't one either.
@@ -884,7 +999,9 @@ function handleAuthStateChanged(user) {
 
   if (!dataLoaded) {
     dataLoaded = true;
-    loadAndRender();
+    loadAndApplyLayout().catch(error => {
+      console.warn("[dashboard] loadAndApplyLayout failed unexpectedly", error);
+    }).finally(loadAndRender);
   }
 }
 onAuthStateChanged(auth, handleAuthStateChanged);
@@ -899,6 +1016,258 @@ function escapeHtml(value) {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[ch]));
 }
+
+// ============================================================================
+// Stage 7 - drag & drop layout reordering, persisted to
+// _analytics/dashboardLayout (owner-UID-only read/write, database.rules.json -
+// a SEPARATE reviewed change from this file, see that commit). Every id
+// below already exists as a real element id in the markup above - none
+// invented for this feature. Default order mirrors the current DOM order
+// exactly - used both as the "nothing saved yet" fallback AND as what
+// "reset to default" restores.
+//
+// Card-level groups: one entry per section that has more than one
+// naturally-flat, same-role sibling. tripsChartsSection's 2 entries are
+// the timeline card and the WHOLE 3-donut row as one block - the 3 donuts
+// inside that row keep their own fixed order (they live in their own
+// 3-column CSS grid, not a flat stack like every other list here) -
+// deliberately out of scope, reported as a known limitation.
+// activityChartsSection has exactly one card - nothing to reorder against,
+// omitted entirely (not a group of 1).
+// ============================================================================
+const LAYOUT_SECTIONS = [
+  { id: "kpiGrid", label: "כרטיסי KPI" },
+  { id: "tripsChartsSection", label: "גרפי טיולים" },
+  { id: "activityChartsSection", label: "גרפי פעילות" },
+  { id: "writesChartsSection", label: "גרפי כתיבה ושרת" },
+  { id: "visitorStatsSection", label: "סטטיסטיקת ביקורים" },
+  { id: "dashMain", label: "פרטים נוספים" }
+];
+
+const LAYOUT_CARD_GROUPS = {
+  kpiGrid: ["kpiTotalTrips", "kpiWriteSuccess", "kpiServerSuccess", "kpiCountriesVisited"],
+  tripsChartsSection: ["tripsTimelineCard", "tripsDonutRow"],
+  writesChartsSection: ["writesByContextCard", "serverCallsByFunctionCard", "serverCallsTokensCard"],
+  visitorStatsSection: ["visitorMapCard", "visitorContinentsCard"],
+  dashMain: [
+    "totalTripsCard", "groupSizeCard", "featuresCard", "countriesCard", "destTypeCard",
+    "writesTotalCard", "writesByFileCard", "serverCallsTotalCard", "visitorCapitalsCard"
+  ]
+};
+
+function defaultLayout() {
+  const cards = {};
+  Object.entries(LAYOUT_CARD_GROUPS).forEach(([sectionId, ids]) => { cards[sectionId] = [...ids]; });
+  return { sections: LAYOUT_SECTIONS.map(s => s.id), cards };
+}
+
+// Mutable in-memory mirror of what's currently applied/about to be saved -
+// updated by every onReorder callback below, written to RTDB (debounced)
+// as a whole object each time, not per-path patches - simpler, and this is
+// a tiny object (15 short strings) so there's no cost to rewriting all of
+// it together.
+let currentLayout = defaultLayout();
+
+// Moves each id in `orderedIds`, in order, to the end of `container` via
+// plain appendChild - a well-known vanilla-JS reorder technique (no
+// library needed for a list this size, per this stage's own task). Since
+// Chart.js instances are bound to their <canvas> BY REFERENCE (not by DOM
+// position), moving an ancestor around the tree like this never touches,
+// invalidates, or leaks a chart instance - verified empirically (item 7 of
+// this stage), not just assumed. Any id in orderedIds that no longer
+// exists, or a stale id from an OLDER version of this feature that's since
+// been removed, is silently skipped - not a crash.
+function applyOrder(container, orderedIds) {
+  if (!container) return;
+  orderedIds.forEach(id => {
+    const el = $(id);
+    if (el && el.parentElement === container) container.appendChild(el);
+  });
+}
+
+function applyFullLayout(layout) {
+  applyOrder($("appContainer").querySelector(".dash-shell"), layout.sections);
+  Object.keys(LAYOUT_CARD_GROUPS).forEach(sectionId => {
+    const ids = layout.cards && layout.cards[sectionId];
+    if (Array.isArray(ids)) applyOrder($(sectionId), ids);
+  });
+}
+
+let layoutSaveTimer = null;
+// 500ms debounce (this stage's own requirement) - a drag fires dragover
+// dozens of times per second while the mouse moves; only the FINAL
+// settled order after the user stops matters for persistence.
+function scheduleLayoutSave() {
+  clearTimeout(layoutSaveTimer);
+  layoutSaveTimer = setTimeout(() => {
+    set(ref(db, "_analytics/dashboardLayout"), currentLayout).catch(error => {
+      console.warn("[dashboard] failed to save dashboardLayout", error);
+      if (window.toast) window.toast("שמירת הסידור נכשלה", "error");
+    });
+  }, 500);
+}
+
+// Generic reorder wiring, shared by the 6-section group AND every
+// individual card group - one implementation, not 6 near-identical copies.
+// draggable="true" lives ONLY on each item's own small handle (never on
+// the item itself) - a native browser drag can therefore only ever START
+// from that handle, which is exactly this stage's own "clear handle so it
+// doesn't conflict with a normal click/hover" requirement, with no extra
+// mousedown-tracking workaround needed. dragover/drop listen on the ITEM
+// though (not just the handle), so dropping anywhere over a target card's
+// body works, not only exactly on its own handle.
+function makeReorderable(container, itemIds, onReorder) {
+  let draggedId = null;
+
+  itemIds.forEach(id => {
+    const item = $(id);
+    // Card handles are the item's own direct child (injectLayoutHandles
+    // prepends them straight into the card); section handles sit one
+    // level deeper, inside the section's own .layout-section-bar - this
+    // combined selector matches whichever applies, in document order (the
+    // section-bar is always inserted as a section's first child, before
+    // any of its cards, so for a section this never accidentally matches
+    // a nested CARD's own handle instead).
+    const handle = item && item.querySelector(":scope > .layout-section-bar > .layout-handle, :scope > .layout-handle");
+    if (!item || !handle) return;
+
+    handle.setAttribute("draggable", "true");
+
+    handle.addEventListener("dragstart", e => {
+      draggedId = id;
+      item.classList.add("layout-dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", id); } catch (error) { /* Safari quirk, harmless */ }
+    });
+
+    item.addEventListener("dragend", () => {
+      item.classList.remove("layout-dragging");
+      draggedId = null;
+    });
+
+    item.addEventListener("dragover", e => {
+      if (!draggedId || draggedId === id) return;
+      e.preventDefault();
+      const draggedEl = $(draggedId);
+      if (!draggedEl) return;
+      const rect = item.getBoundingClientRect();
+      // KPI cards sit side-by-side (wider than tall) - compare horizontal
+      // position there; every other group stacks vertically.
+      const horizontal = rect.width > rect.height * 1.5;
+      const before = horizontal
+        ? (e.clientX - rect.left) < rect.width / 2
+        : (e.clientY - rect.top) < rect.height / 2;
+      container.insertBefore(draggedEl, before ? item : item.nextSibling);
+    });
+
+    item.addEventListener("drop", e => {
+      if (!draggedId) return;
+      e.preventDefault();
+      const finalIds = Array.from(container.children)
+        .map(el => el.id)
+        .filter(elId => itemIds.includes(elId));
+      onReorder(finalIds);
+    });
+  });
+}
+
+function wireUpReordering() {
+  makeReorderable($("appContainer").querySelector(".dash-shell"), currentLayout.sections, ids => {
+    currentLayout.sections = ids;
+    scheduleLayoutSave();
+  });
+
+  Object.keys(LAYOUT_CARD_GROUPS).forEach(sectionId => {
+    makeReorderable($(sectionId), currentLayout.cards[sectionId], ids => {
+      currentLayout.cards[sectionId] = ids;
+      scheduleLayoutSave();
+    });
+  });
+}
+
+// Injects every handle/section-bar ONCE, generated from LAYOUT_SECTIONS/
+// LAYOUT_CARD_GROUPS - the same data driving the reorder logic itself, not
+// 26 near-identical hand-written HTML snippets scattered across the
+// markup above (6 section bars + 20 card handles). Hidden by default via
+// CSS (.layout-edit-mode gate) - this runs regardless of edit-mode state,
+// the toggle only controls visibility/draggability, not existence.
+function injectLayoutHandles() {
+  LAYOUT_SECTIONS.forEach(({ id, label }) => {
+    const section = $(id);
+    if (!section || section.querySelector(":scope > .layout-section-bar")) return;
+    const bar = document.createElement("div");
+    bar.className = "layout-section-bar";
+    const handle = document.createElement("span");
+    handle.className = "layout-handle";
+    handle.title = "גרור לשינוי סדר הסקציה";
+    handle.textContent = "⋮⋮";
+    const labelEl = document.createElement("span");
+    labelEl.className = "layout-section-label";
+    labelEl.textContent = label;
+    bar.appendChild(handle);
+    bar.appendChild(labelEl);
+    section.insertBefore(bar, section.firstChild);
+  });
+
+  Object.values(LAYOUT_CARD_GROUPS).flat().forEach(cardId => {
+    const card = $(cardId);
+    if (!card || card.querySelector(":scope > .layout-card-handle")) return;
+    const handle = document.createElement("span");
+    handle.className = "layout-handle layout-card-handle";
+    handle.title = "גרור לשינוי סדר הכרטיס";
+    handle.textContent = "⋮⋮";
+    card.insertBefore(handle, card.firstChild);
+  });
+}
+
+// Reads the saved layout (if any) and applies it to the DOM before the
+// user sees the default order - a separate, independent try/catch (same
+// reasoning as loadAndRender's own 4 reads below): a failure here falls
+// back to the hardcoded default silently (console.warn per this app's own
+// convention), never blocks trips/writes/serverCalls/visitorStats from
+// loading. Handles/reorder-wiring are set up regardless of whether a
+// saved layout exists - a first-time user with nothing saved yet still
+// gets a fully working edit mode from their very first click.
+async function loadAndApplyLayout() {
+  injectLayoutHandles();
+
+  try {
+    const saved = (await get(ref(db, "_analytics/dashboardLayout"))).val();
+    if (saved) {
+      if (Array.isArray(saved.sections)) {
+        const validSections = saved.sections.filter(id => LAYOUT_SECTIONS.some(s => s.id === id));
+        if (validSections.length) currentLayout.sections = validSections;
+      }
+      if (saved.cards) {
+        Object.keys(LAYOUT_CARD_GROUPS).forEach(sectionId => {
+          const savedIds = saved.cards[sectionId];
+          if (Array.isArray(savedIds)) {
+            const validIds = savedIds.filter(id => LAYOUT_CARD_GROUPS[sectionId].includes(id));
+            if (validIds.length) currentLayout.cards[sectionId] = validIds;
+          }
+        });
+      }
+      applyFullLayout(currentLayout);
+    }
+  } catch (error) {
+    console.warn("[dashboard] failed to load dashboardLayout, using default order", error);
+  }
+
+  wireUpReordering();
+}
+
+$('layoutEditBtn').onclick = () => {
+  $('appContainer').classList.toggle('layout-edit-mode');
+};
+
+$('layoutResetBtn').onclick = () => {
+  currentLayout = defaultLayout();
+  applyFullLayout(currentLayout);
+  remove(ref(db, "_analytics/dashboardLayout")).catch(error => {
+    console.warn("[dashboard] failed to clear saved dashboardLayout", error);
+    if (window.toast) window.toast("איפוס הסידור נכשל", "error");
+  });
+};
 
 // --- Redesign stage 1/5 - KPI card row. `trend` is 'good'/'bad'/null:
 // null means "plain count, no inherent good/bad direction" (total trips,
@@ -1353,18 +1722,30 @@ function computeActivityTimeline(writesObj) {
 // visitorStats). Chart.js (stage 2/5) covers trips-over-time and the
 // type/language/character breakdowns instead - see renderTripsTimelineChart/
 // renderDonutChart further down. ---
+// Stage 8 (part 2) - rows is normally [label, count][], but a 3rd,
+// optional element per row - [label, count, warn] - flags that ONE row
+// as a known problem, not a normal list value: reuses
+// .metric-row-percent's own existing .warn styling (renderBreakdownRows'
+// success-rate rows below 90%, unchanged) rather than inventing a new
+// visual language - same red + "⚠ " prefix, so a below-threshold write/
+// serverCall row and a geocoding failure read as the same KIND of
+// problem at a glance. Only countriesTable's own "לא ידוע (geocoding
+// נכשל)" row ever passes `true` here - featuresTable/destTypeTable's
+// calls are unchanged (their rows never carry a 3rd element, `warn`
+// defaults to undefined/falsy).
 function renderRows(containerId, rows, totalForPercent) {
   const container = $(containerId);
   if (!rows.length) {
     container.innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
     return;
   }
-  container.innerHTML = rows.map(([label, count]) => {
+  container.innerHTML = rows.map(([label, count, warn]) => {
     const pct = totalForPercent ? Math.round((count / totalForPercent) * 100) : 0;
+    const warnClass = warn ? " warn" : "";
     return `<div class="metric-row">
-      <span class="metric-row-label">${escapeHtml(label)}</span>
+      <span class="metric-row-label${warnClass}">${escapeHtml(label)}</span>
       <span class="metric-row-count">${count}</span>
-      <span class="metric-row-percent">${pct}%</span>
+      <span class="metric-row-percent${warnClass}">${pct}%</span>
     </div>`;
   }).join("");
 }
@@ -1982,7 +2363,7 @@ function renderAll(m) {
 
   const countryRows = sortedEntries(m.countryCounts).map(([k, v]) => [countryLabel(k), v]);
   const totalLegs = Object.values(m.countryCounts).reduce((a, b) => a + b, 0) + m.unknownCountryLegs;
-  if (m.unknownCountryLegs) countryRows.push(["לא ידוע (geocoding נכשל)", m.unknownCountryLegs]);
+  if (m.unknownCountryLegs) countryRows.push(["לא ידוע (geocoding נכשל)", m.unknownCountryLegs, true]);
   renderRows("countriesTable", countryRows, totalLegs);
 
   renderRows(
