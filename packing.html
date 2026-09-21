@@ -4342,23 +4342,47 @@
       // accept, single-call AI accept) never passes a third argument, so
       // explicitLegId stays undefined there and this falls through to the
       // exact activeLegFilter-based tagging that's always run - unchanged.
-      await push(
-        ref(
-          db,
-          `${userBase()}/items/${targetCategory}`
-        ),
-        {
-          name,
-          isDone:false,
-          isPublic:false,
-          ownerName:profile.name,
-          createdAt:Date.now(),
-          createdByUid:user.uid,
-          ...(explicitLegId !== undefined
-            ? (explicitLegId ? { legId: explicitLegId } : {})
-            : (activeLegFilter !== "all" ? { legId: activeLegFilter } : {}))
-        }
-      );
+      //
+      // This single push() is the one write shared by all 4 real entry
+      // points (typed input, quick-pick chips, AI-suggestion accept, and
+      // the add-item modal - see addItem()'s own callers) - it previously
+      // had NO safeWrite, NO try/catch, and NO analytics logging at all,
+      // unlike every other write in this file: a rejected push() became a
+      // silent unhandled promise rejection with zero feedback to the user
+      // (found during the stage-3 analytics investigation). One context
+      // label ("addItem") covers every caller uniformly - they're not
+      // differentiated further, same reasoning as duplicateList/
+      // setListVisibility using a single plain label with no per-caller
+      // suffix.
+      if (
+        !(await window.safeWrite(
+          push(
+            ref(
+              db,
+              `${userBase()}/items/${targetCategory}`
+            ),
+            {
+              name,
+              isDone:false,
+              isPublic:false,
+              ownerName:profile.name,
+              createdAt:Date.now(),
+              createdByUid:user.uid,
+              ...(explicitLegId !== undefined
+                ? (explicitLegId ? { legId: explicitLegId } : {})
+                : (activeLegFilter !== "all" ? { legId: activeLegFilter } : {}))
+            }
+          ),
+          "addItem",
+          () => logWriteEvent("addItem", true)
+        ))
+      ) {
+        logWriteEvent("addItem", false);
+        toast(
+          tr("ההוספה נכשלה. נסו שוב.", "Failed to add. Please try again.")
+        );
+        return;
+      }
 
       $("newItem").value = "";
       $("categorySuggest").classList.remove("show");
