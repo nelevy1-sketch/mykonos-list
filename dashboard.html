@@ -108,7 +108,17 @@
 
       --dash-text: #E7EDF0;
       --dash-text-secondary: #93A2AC;
-      --dash-text-muted: #61707A;
+      /* Redesign stage 5/5 - was #61707A, measured (WCAG relative-luminance
+         formula, not eyeballed) at 3.43:1 against --dash-surface-1 - fails
+         AA's 4.5:1 minimum for normal text, which every actual use of this
+         token is (kpi-label/metric-note/metric-empty/metric-row-percent are
+         all well under the 18px/14px-bold "large text" threshold that would
+         relax to 3:1). This value measures 4.84:1 against surface-1 (the
+         darkest surface it's ever used on, so also the worst case) - passes
+         AA with a small margin, while staying visibly dimmer than
+         --dash-text-secondary right above it so the 2-tier hierarchy still
+         reads as two tiers. */
+      --dash-text-muted: #7B8894;
 
       /* Brand accent - the exact teal gittrip-icon.svg's pin/route glyph
          is drawn in (verified by loading the SVG directly, not guessed) -
@@ -173,7 +183,13 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 22px;
+      /* Redesign stage 5/5 - was 22px, kpi-grid below had its own,
+         different 22px too, while every section after it (trips/writes/
+         visitor charts) settled on 14px as stages 2-4 were each built
+         independently - never reconciled against the first two until this
+         consistency pass. 14px everywhere between major sections now,
+         matching #dashMain's own inter-card gap too. */
+      margin-bottom: 14px;
     }
     .dash-logo {
       width: 30px;
@@ -223,7 +239,9 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(168px, 200px));
       gap: 10px;
-      margin-bottom: 22px;
+      /* Redesign stage 5/5 - see .dash-head's own comment above: was 22px,
+         now 14px for the same cross-section consistency reason. */
+      margin-bottom: 14px;
     }
     @media (max-width: 480px) {
       .kpi-grid { grid-template-columns: 1fr; }
@@ -413,6 +431,7 @@
       margin-bottom: 14px;
     }
     .map-wrap {
+      position: relative;
       width: 100%;
       aspect-ratio: 2 / 1;
       border-radius: var(--dash-radius-md);
@@ -430,6 +449,85 @@
       fill: var(--dash-accent);
       stroke: var(--dash-bg);
       stroke-width: 1;
+    }
+
+    /* Redesign stage 5/5 - consistency pass. Every chart-rendering
+       function used to just clearRect() and silently return on empty
+       data - a blank canvas under a header, indistinguishable from
+       "still loading" or "broken". setChartEmptyState() (JS, below) now
+       shows this message instead, for every chart on the page uniformly
+       (trips timeline, all 3 donuts, all 3 bar charts, continents). Not
+       applied to the map itself - an empty world outline with zero dots
+       already reads as intentional ("here's the map, nothing plotted
+       yet"), not broken, and its own caption already says so in words. */
+    .chart-empty {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dash-text-muted);
+      font-size: .82rem;
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    /* Redesign stage 5/5 - loading skeleton. Was: every value sits at its
+       static "--" (or, worse, several table divs sat fully EMPTY - no
+       placeholder at all) until loadAndRender's first await resolves,
+       then everything jumps to real content at once - exactly the "ugly
+       empty-to-full jump" this task asked to check for. #appContainer
+       gets .is-loading added at the start of every loadAndRender() call
+       (initial load AND manual refresh alike) and removed at the very
+       end - while it's present, the KPI numbers/metric-big values pulse
+       in place (not hidden - whatever they already say keeps showing,
+       so a value that resolves early is never wrong, just still
+       pulsing until the whole refresh cycle finishes) and every
+       .chart-wrap/.map-wrap gets a solid pulsing overlay covering the
+       still-blank canvas beneath it. .skeleton-line is a THIRD piece -
+       default placeholder content for the 4 table divs that had no
+       fallback markup at all before (featuresTable/countriesTable/
+       destTypeTable/writesByFileTable) - these get overwritten by
+       renderRows()/renderBreakdownRows()'s own innerHTML= the moment
+       their real data (or genuine empty-state message) is ready, same as
+       today, so there's no risk of a stray skeleton line surviving past
+       its own section's real render. */
+    @keyframes dash-skeleton-pulse {
+      0%, 100% { opacity: .35; }
+      50% { opacity: .75; }
+    }
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: var(--dash-surface-3);
+      margin: 8px 0;
+    }
+    .skeleton-line:first-child { margin-top: 0; }
+    .skeleton-line:last-child { margin-bottom: 0; }
+    #appContainer.is-loading .skeleton-line,
+    #appContainer.is-loading .kpi-value-num,
+    #appContainer.is-loading .metric-big {
+      animation: dash-skeleton-pulse 1.4s ease-in-out infinite;
+    }
+    #appContainer.is-loading .chart-wrap::after,
+    #appContainer.is-loading .map-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--dash-surface-3);
+      border-radius: var(--dash-radius-md);
+      animation: dash-skeleton-pulse 1.4s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #appContainer.is-loading .skeleton-line,
+      #appContainer.is-loading .kpi-value-num,
+      #appContainer.is-loading .metric-big,
+      #appContainer.is-loading .chart-wrap::after,
+      #appContainer.is-loading .map-wrap::after {
+        animation: none;
+        opacity: .6;
+      }
     }
 
     /* Access-denied / login screens are NOT part of this redesign - they
@@ -478,8 +576,8 @@
 <div class="hidden" id="appContainer">
   <div class="dash-shell">
     <header class="dash-head">
-      <img class="dash-logo" src="gittrip-icon.svg" alt="GitTrip" width="34" height="34">
-      <h1>דשבורד אנליטיקס</h1>
+      <img class="dash-logo" src="gittrip-icon.svg" alt="GitTrip" width="30" height="30">
+      <h1>GitTrip — לוח בקרה</h1>
       <button class="icon-btn" id="refreshBtn" aria-label="רענון נתונים" title="רענון נתונים">🔄</button>
       <button class="icon-btn" id="signOutBtn" aria-label="התנתקות" title="התנתקות">🚪</button>
     </header>
@@ -518,32 +616,32 @@
          destType/writes/serverCalls/visitorStats) is untouched - out of
          this stage's scope. -->
     <section id="tripsChartsSection">
-      <div class="metric-card chart-card">
+      <div class="metric-card">
         <h2>טיולים לאורך זמן (מצטבר)</h2>
         <div class="chart-wrap">
-          <canvas id="tripsTimelineChart"></canvas>
+          <canvas id="tripsTimelineChart" role="img" aria-label="גרף קו - מספר טיולים מצטבר לאורך זמן"></canvas>
         </div>
       </div>
 
       <div class="donut-row">
-        <div class="metric-card chart-card donut-card">
+        <div class="metric-card">
           <h2>התפלגות סוג טיול</h2>
           <div class="chart-wrap donut-wrap">
-            <canvas id="tripTypeChart"></canvas>
+            <canvas id="tripTypeChart" role="img" aria-label="גרף עוגה - התפלגות טיולים לפי סוג טיול"></canvas>
           </div>
         </div>
 
-        <div class="metric-card chart-card donut-card">
+        <div class="metric-card">
           <h2>שפת הטיול</h2>
           <div class="chart-wrap donut-wrap">
-            <canvas id="tripLanguageChart"></canvas>
+            <canvas id="tripLanguageChart" role="img" aria-label="גרף עוגה - התפלגות טיולים לפי שפה"></canvas>
           </div>
         </div>
 
-        <div class="metric-card chart-card donut-card">
+        <div class="metric-card">
           <h2>התפלגות אופי טיול</h2>
           <div class="chart-wrap donut-wrap">
-            <canvas id="tripCharacterChart"></canvas>
+            <canvas id="tripCharacterChart" role="img" aria-label="גרף עוגה - התפלגות טיולים לפי אופי טיול"></canvas>
           </div>
           <p class="metric-note" id="characterNote"></p>
         </div>
@@ -561,24 +659,24 @@
          and the writesTotalValue/serverCallsTotalValue single-number
          cards (already covered by the KPI row, out of scope here). -->
     <section id="writesChartsSection">
-      <div class="metric-card chart-card">
+      <div class="metric-card">
         <h2>הצלחת כתיבות לפי פעולה (context)</h2>
         <div class="chart-wrap bar-wrap" id="writesByContextChartWrap">
-          <canvas id="writesByContextChart"></canvas>
+          <canvas id="writesByContextChart" role="img" aria-label="גרף עמודות - אחוז הצלחת כתיבות לפי פעולה, ממוין מהגרוע ביותר"></canvas>
         </div>
       </div>
 
-      <div class="metric-card chart-card">
+      <div class="metric-card">
         <h2>הצלחת קריאות שרת לפי פונקציה</h2>
         <div class="chart-wrap bar-wrap" id="serverCallsByFunctionChartWrap">
-          <canvas id="serverCallsByFunctionChart"></canvas>
+          <canvas id="serverCallsByFunctionChart" role="img" aria-label="גרף עמודות - אחוז הצלחת קריאות שרת לפי פונקציה, ממוין מהגרוע ביותר"></canvas>
         </div>
       </div>
 
-      <div class="metric-card chart-card">
+      <div class="metric-card">
         <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
         <div class="chart-wrap bar-wrap" id="serverCallsTokensChartWrap">
-          <canvas id="serverCallsTokensChart"></canvas>
+          <canvas id="serverCallsTokensChart" role="img" aria-label="גרף עמודות - צריכת טוקנים לפי פונקציה, ממוין מהגבוה ביותר"></canvas>
         </div>
       </div>
     </section>
@@ -597,7 +695,7 @@
          space than leaving it where it already reads well, packed in
          among #dashMain's other compact cards. -->
     <section id="visitorStatsSection">
-      <div class="metric-card chart-card">
+      <div class="metric-card">
         <h2>מדינות שביקרו בהן על המפה</h2>
         <div class="map-wrap" id="visitorMapWrap">
           <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="מפת עולם עם נקודות במדינות שביקרו בהן">
@@ -608,10 +706,10 @@
         <p class="metric-note" id="visitorMapNote"></p>
       </div>
 
-      <div class="metric-card chart-card">
+      <div class="metric-card">
         <h2>ביקורים לפי יבשת (כלל המשתמשים)</h2>
         <div class="chart-wrap bar-wrap" id="visitorContinentsChartWrap">
-          <canvas id="visitorContinentsChart"></canvas>
+          <canvas id="visitorContinentsChart" role="img" aria-label="גרף עמודות - מדינות שביקרו בהן לפי יבשת, ממוין מהמדינות שביקרו בהן ביותר"></canvas>
         </div>
       </div>
     </section>
@@ -630,17 +728,17 @@
 
       <section class="metric-card">
         <h2>הפיצ'רים הפופולריים ביותר</h2>
-        <div id="featuresTable"></div>
+        <div id="featuresTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>
       </section>
 
       <section class="metric-card">
         <h2>יעדים / מדינות פופולריים</h2>
-        <div id="countriesTable"></div>
+        <div id="countriesTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>
       </section>
 
       <section class="metric-card">
         <h2>טיול יעד-בודד מול רב-יעד</h2>
-        <div id="destTypeTable"></div>
+        <div id="destTypeTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:60%"></div></div>
       </section>
 
       <section class="metric-card">
@@ -651,7 +749,7 @@
 
       <section class="metric-card">
         <h2>הצלחת כתיבות לפי עמוד (file)</h2>
-        <div id="writesByFileTable"></div>
+        <div id="writesByFileTable"><div class="skeleton-line"></div><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>
       </section>
 
       <section class="metric-card">
@@ -1173,14 +1271,42 @@ function measureMaxLabelWidth(labels, font) {
   return labels.reduce((max, l) => Math.max(max, ctx.measureText(String(l)).width), 0);
 }
 
+// Redesign stage 5/5 - shared empty-state for every Chart.js canvas on
+// this page. Before this, an empty dataset just cleared the canvas and
+// returned - a professionally-empty card should say so, not leave a
+// blank rectangle under its own header. Derives the wrapping .chart-wrap
+// from the canvas itself (closest()) rather than threading a wrapId
+// parameter through renderTripsTimelineChart/renderDonutChart, which
+// never took one - works identically whether the caller already has a
+// wrapId (the 4 bar charts) or not (line/donut charts).
+function setChartEmptyState(canvas, isEmpty, message) {
+  const wrap = canvas.closest(".chart-wrap");
+  if (!wrap) return;
+  let emptyEl = wrap.querySelector(".chart-empty");
+  if (isEmpty) {
+    canvas.style.visibility = "hidden";
+    if (!emptyEl) {
+      emptyEl = document.createElement("p");
+      emptyEl.className = "chart-empty";
+      wrap.appendChild(emptyEl);
+    }
+    emptyEl.textContent = message || "אין נתונים עדיין";
+  } else {
+    canvas.style.visibility = "";
+    if (emptyEl) emptyEl.remove();
+  }
+}
+
 function renderTripsTimelineChart(timeline) {
   destroyChart("tripsTimelineChart");
   const canvas = $("tripsTimelineChart");
 
   if (!timeline.labels.length) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
     return;
   }
+  setChartEmptyState(canvas, false);
 
   chartInstances.tripsTimelineChart = new Chart(canvas, {
     type: "line",
@@ -1240,8 +1366,10 @@ function renderDonutChart(canvasId, entries, labelMap) {
 
   if (!entries.length) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
     return;
   }
+  setChartEmptyState(canvas, false);
 
   const labels = entries.map(([k]) => labelMap[k] || k);
   const values = entries.map(([, v]) => v);
@@ -1342,8 +1470,10 @@ function renderSuccessRateBarChart(canvasId, wrapId, breakdown) {
 
   if (!entries.length) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
     return;
   }
+  setChartEmptyState(canvas, false);
 
   setDynamicBarHeight(wrapId, entries.length);
 
@@ -1402,8 +1532,10 @@ function renderTokenBarChart(canvasId, wrapId, byFunction) {
 
   if (!entries.length) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
     return;
   }
+  setChartEmptyState(canvas, false);
 
   setDynamicBarHeight(wrapId, entries.length);
 
@@ -1536,8 +1668,10 @@ function renderContinentBarChart(canvasId, wrapId, continentVisited, continentTo
 
   if (!continents.length) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
     return;
   }
+  setChartEmptyState(canvas, false);
 
   setDynamicBarHeight(wrapId, continents.length);
 
@@ -1690,6 +1824,11 @@ function renderWriteStats(stats) {
     $("writesTotalValue").textContent = "--";
     $("writesTotalNote").textContent = "אין נתוני כתיבה עדיין";
     $("writesByFileTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    // Redesign stage 5/5 - empty breakdown still goes through the chart's
+    // own render function (not skipped) so its internal setChartEmptyState
+    // call fires - same consistency reasoning as renderServerCallStats/
+    // renderVisitorStats below.
+    renderSuccessRateBarChart("writesByContextChart", "writesByContextChartWrap", {});
     return;
   }
   const pct = Math.round((stats.successCount / stats.total) * 100);
@@ -1740,6 +1879,8 @@ function renderServerCallStats(stats) {
   if (!stats.total) {
     $("serverCallsTotalValue").textContent = "--";
     $("serverCallsTotalNote").textContent = "אין נתוני קריאות שרת עדיין";
+    renderSuccessRateBarChart("serverCallsByFunctionChart", "serverCallsByFunctionChartWrap", {});
+    renderTokenBarChart("serverCallsTokensChart", "serverCallsTokensChartWrap", {});
     return;
   }
   const pct = Math.round((stats.successCount / stats.total) * 100);
@@ -1877,7 +2018,7 @@ function renderVisitorStats(result) {
   if (!userCount || !stats.visitedCount) {
     $("visitorMapDots").innerHTML = "";
     $("visitorMapNote").textContent = "אין נתוני ביקורים עדיין";
-    destroyChart("visitorContinentsChart");
+    renderContinentBarChart("visitorContinentsChart", "visitorContinentsChartWrap", {}, {}, {});
     $("visitorCapitalsValue").textContent = "--";
     $("visitorCapitalsNote").textContent = "";
     return;
@@ -1894,6 +2035,15 @@ function renderVisitorStats(result) {
 }
 
 async function loadAndRender() {
+  // Redesign stage 5/5 - loading skeleton, see .is-loading's own CSS
+  // comment above for the full reasoning. Added on every call (initial
+  // load AND manual refresh via refreshBtn alike), removed once all 4
+  // independent try/catch blocks below have settled - each one already
+  // fully handles its own success/failure/empty case by the time it
+  // resolves, so by the time this class comes off, every value on the
+  // page (or its genuine empty/error state) is already correct.
+  $("appContainer").classList.add("is-loading");
+
   try {
     const tripsVal = (await get(ref(db, "trips"))).val();
     const m = computeMetrics(tripsVal);
@@ -1954,6 +2104,8 @@ async function loadAndRender() {
     console.warn("[dashboard] failed to load _analytics/visitorStats", error);
     if (window.toast) window.toast("טעינת נתוני הביקורים נכשלה", "error");
   }
+
+  $("appContainer").classList.remove("is-loading");
 }
 
 </script>
