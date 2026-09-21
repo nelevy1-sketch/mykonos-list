@@ -1123,15 +1123,75 @@ function scheduleLayoutSave() {
   }, 500);
 }
 
+// Given the cursor position and every OTHER candidate item (the one
+// being dragged excluded), returns the item to insert the dragged
+// element before - or null, meaning "past the last candidate, append at
+// the end" (container.insertBefore(el, null) is spec-equivalent to
+// appendChild). Pure geometry, no DOM mutation - called fresh on every
+// dragover so it always reflects the CURRENT layout, not a stale one
+// computed at drag-start.
+function getReorderTarget(candidateItems, horizontal, clientX, clientY) {
+  for (const item of candidateItems) {
+    const rect = item.getBoundingClientRect();
+    const before = horizontal
+      ? clientX < rect.left + rect.width / 2
+      : clientY < rect.top + rect.height / 2;
+    if (before) return item;
+  }
+  return null;
+}
+
+// Decides drag axis from the actual layout of the first two items in this
+// specific list, not from a single item's own aspect ratio. Bug fix - found
+// with a REAL mouse drag testing SECTION-level reordering: itemIds[0] for
+// the sections list is the kpiGrid SECTION itself (wide/short, like a KPI
+// card), so the old "check itemIds[0]'s own width/height ratio" heuristic
+// wrongly classified the whole (vertically-stacked) sections list as
+// horizontal - it was measuring the wrong item's shape, not the container's
+// actual layout. Comparing two consecutive real items instead: if they share
+// most of their vertical range (like side-by-side KPI cards), it's
+// horizontal; if they share most of their horizontal range (like stacked
+// sections), it's vertical.
+function detectHorizontal(itemIds) {
+  const els = itemIds.map(id => $(id)).filter(Boolean);
+  if (els.length < 2) {
+    const r = els[0] && els[0].getBoundingClientRect();
+    return !!r && r.width > r.height * 1.5;
+  }
+  const a = els[0].getBoundingClientRect();
+  const b = els[1].getBoundingClientRect();
+  const verticalOverlap = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  const horizontalOverlap = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  return verticalOverlap > horizontalOverlap;
+}
+
 // Generic reorder wiring, shared by the 6-section group AND every
-// individual card group - one implementation, not 6 near-identical copies.
-// draggable="true" lives ONLY on each item's own small handle (never on
-// the item itself) - a native browser drag can therefore only ever START
-// from that handle, which is exactly this stage's own "clear handle so it
-// doesn't conflict with a normal click/hover" requirement, with no extra
-// mousedown-tracking workaround needed. dragover/drop listen on the ITEM
-// though (not just the handle), so dropping anywhere over a target card's
-// body works, not only exactly on its own handle.
+// individual card group - one implementation, not 6 near-identical
+// copies. draggable="true" lives ONLY on each item's own small handle
+// (never on the item itself) - a native browser drag can therefore only
+// ever START from that handle, which is exactly this stage's own "clear
+// handle so it doesn't conflict with a normal click/hover" requirement,
+// with no extra mousedown-tracking workaround needed.
+//
+// Bug fix - found with a REAL mouse drag (mousedown+move+mouseup, not a
+// synthetic dispatchEvent, which never exercises this path since it
+// jumps straight to the destination): dragover/drop used to live on each
+// ITEM, with preventDefault() skipped whenever the (bubbled) target
+// resolved to the item currently being dragged - which is exactly what
+// happens at the START of every real drag, before the cursor has moved
+// away. An un-prevented dragover is disallowed by the browser BY
+// DEFAULT (the "not-allowed" cursor this was reported with) - and the
+// CSS `gap` between items, and the container's own padding, belong to
+// the CONTAINER, not any item, so they had zero listener coverage at
+// all. Both regions are impossible to avoid crossing during any real
+// drag between two cards. Fixed by moving dragover/drop to the
+// CONTAINER itself (its bounding box covers the gaps too) and calling
+// preventDefault() UNCONDITIONALLY whenever a drag is active
+// (draggedId set) - regardless of what the event's target is. Which
+// item to insert before is now decided by comparing the cursor's
+// position directly against each candidate's own rect (getReorderTarget
+// above), not by relying on the event having landed on that specific
+// item's own listener.
 function makeReorderable(container, itemIds, onReorder) {
   let draggedId = null;
 
@@ -1160,30 +1220,46 @@ function makeReorderable(container, itemIds, onReorder) {
       item.classList.remove("layout-dragging");
       draggedId = null;
     });
+  });
 
-    item.addEventListener("dragover", e => {
-      if (!draggedId || draggedId === id) return;
-      e.preventDefault();
-      const draggedEl = $(draggedId);
-      if (!draggedEl) return;
-      const rect = item.getBoundingClientRect();
-      // KPI cards sit side-by-side (wider than tall) - compare horizontal
-      // position there; every other group stacks vertically.
-      const horizontal = rect.width > rect.height * 1.5;
-      const before = horizontal
-        ? (e.clientX - rect.left) < rect.width / 2
-        : (e.clientY - rect.top) < rect.height / 2;
-      container.insertBefore(draggedEl, before ? item : item.nextSibling);
-    });
+  // KPI cards sit side-by-side; every other group (including the sections
+  // list itself) stacks vertically. Decided ONCE per container (see
+  // detectHorizontal above) - not recomputed per dragover event the way the
+  // old per-item version had to.
+  const horizontal = detectHorizontal(itemIds);
 
-    item.addEventListener("drop", e => {
-      if (!draggedId) return;
-      e.preventDefault();
-      const finalIds = Array.from(container.children)
-        .map(el => el.id)
-        .filter(elId => itemIds.includes(elId));
-      onReorder(finalIds);
-    });
+  // dragenter needs the same unconditional preventDefault() as dragover -
+  // per spec both matter for a drop target to be considered valid; most
+  // engines only strictly enforce dragover's, but this costs nothing and
+  // removes any browser-specific doubt about it.
+  container.addEventListener("dragenter", e => {
+    if (!draggedId) return;
+    e.preventDefault();
+  });
+
+  container.addEventListener("dragover", e => {
+    if (!draggedId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    const draggedEl = $(draggedId);
+    if (!draggedEl) return;
+
+    const candidates = itemIds
+      .filter(itemId => itemId !== draggedId)
+      .map(itemId => $(itemId))
+      .filter(Boolean);
+    const target = getReorderTarget(candidates, horizontal, e.clientX, e.clientY);
+    container.insertBefore(draggedEl, target || null);
+  });
+
+  container.addEventListener("drop", e => {
+    if (!draggedId) return;
+    e.preventDefault();
+    const finalIds = Array.from(container.children)
+      .map(el => el.id)
+      .filter(elId => itemIds.includes(elId));
+    onReorder(finalIds);
   });
 }
 
