@@ -4422,28 +4422,54 @@ body.modal-open .modal-card {
     }
   }
 
-  function setAuditStatus(id, status) {
+  // No local state to roll back on failure here (unlike setStatusAndSave's
+  // listStatus/isAuditMode) - this never mutates a module-level variable
+  // ahead of the write, so the fix is purely: wrap, log, and give the
+  // 'partial' branch's already-existing toast a real success/failure
+  // gate, and give the plain branch a failure toast it never had (it also
+  // never had a success one - left that as-is, not adding a new success
+  // toast beyond what this bug fix calls for).
+  async function setAuditStatus(id, status) {
     triggerHapticFeedback(15);
     if (status === 'partial') {
       const item = itemsMap[id];
       const totalOrdered = calculateTotalQty(item);
       const rec = prompt(tr(`הוזמנו סך הכל ${totalOrdered} ${item ? (item.unit || "יח'") : "יח'"}.\n\nכמה יחידות התקבלו בפועל?`, `${totalOrdered} ${item ? (item.unit || 'items') : 'items'} were ordered.\n\nHow many were actually received?`), "1");
-      
+
       if (rec !== null) {
         const receivedQty = parseInt(rec) || 0;
         const missingQty = Math.max(0, totalOrdered - receivedQty);
-        
-        update(ref(db, `${listPath(currentListType)}/${id}`), {
-          auditStatus: 'partial',
-          partialReceivedQty: receivedQty,
-          partialMissingQty: missingQty
-        });
+
+        if (
+          !(await window.safeWrite(
+            update(ref(db, `${listPath(currentListType)}/${id}`), {
+              auditStatus: 'partial',
+              partialReceivedQty: receivedQty,
+              partialMissingQty: missingQty
+            }),
+            "setAuditStatus",
+            () => logWriteEvent("setAuditStatus", true)
+          ))
+        ) {
+          logWriteEvent("setAuditStatus", false);
+          showToast(tr('העדכון נכשל. נסו שוב.', 'Failed to update. Please try again.'));
+          return;
+        }
         showToast(tr(`עודכן: התקבלו ${receivedQty}, חסרים ${missingQty}`, `Updated: ${receivedQty} received, ${missingQty} missing`));
       }
       return;
     }
 
-    update(ref(db, `${listPath(currentListType)}/${id}`), { auditStatus: status });
+    if (
+      !(await window.safeWrite(
+        update(ref(db, `${listPath(currentListType)}/${id}`), { auditStatus: status }),
+        "setAuditStatus",
+        () => logWriteEvent("setAuditStatus", true)
+      ))
+    ) {
+      logWriteEvent("setAuditStatus", false);
+      showToast(tr('העדכון נכשל. נסו שוב.', 'Failed to update. Please try again.'));
+    }
   }
 
   async function toggleClaimItem(id, currentBuyer) {
