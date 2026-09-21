@@ -1,8 +1,35 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
+
+// Private analytics dashboard (dashboard.html) - server-side call logging,
+// stage 3 (client-side writes were stage 2, safeWrite.js). Admin SDK
+// writes run with full admin privileges and bypass database.rules.json
+// entirely - no rules change needed for this to work, unlike every
+// client-side write in this app. Own try/catch, awaited from each
+// handler's own `finally` block AFTER res.json()/res.status() has already
+// sent the real response - the write can still fail or be slow without
+// the client ever seeing it, since the response has already gone out by
+// the time this runs. A failure here is logged and swallowed, never
+// rethrown - this must never turn a successful AI suggestion into a
+// reported failure for the function's own execution.
+async function logServerCall(functionName, success, meta = {}) {
+  try {
+    await admin.database().ref("_analytics/serverCalls").push({
+      function: functionName,
+      success,
+      timestamp: Date.now(),
+      ...meta
+    });
+  } catch (error) {
+    logger.warn(`[_analytics] failed to log server call for ${functionName}`, error);
+  }
+}
 
 /**
  * suggestPackingList
@@ -121,6 +148,10 @@ Each item is one distinct real-world need. Never suggest the same item twice und
 Respond in ${lang}.
 Respond ONLY with a raw JSON array of strings. No explanation, no markdown formatting, no code fences. Example: ["item one","item two"]`;
 
+    const callStartedAt = Date.now();
+    let callSucceeded = false;
+    let callUsageMetadata = null;
+
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
@@ -148,6 +179,7 @@ Respond ONLY with a raw JSON array of strings. No explanation, no markdown forma
       const data = await response.json();
       const candidate = data.candidates?.[0];
       const text = candidate?.content?.parts?.[0]?.text || "";
+      callUsageMetadata = data.usageMetadata || null;
 
       logger.info("Gemini raw response", {
         finishReason: candidate?.finishReason,
@@ -197,10 +229,16 @@ Respond ONLY with a raw JSON array of strings. No explanation, no markdown forma
         .map(item => item.trim())
         .slice(0, 14);
 
+      callSucceeded = true;
       res.json({ items: cleanItems });
     } catch (error) {
       logger.error("suggestPackingList failed", error);
       res.status(500).json({ error: "Server error" });
+    } finally {
+      await logServerCall("suggestPackingList", callSucceeded, {
+        latencyMs: Date.now() - callStartedAt,
+        ...(callUsageMetadata ? { usageMetadata: callUsageMetadata } : {})
+      });
     }
   }
 );
@@ -276,6 +314,10 @@ For each place, give:
 Respond in ${lang} for "name", "city" and "reason" alike.
 Respond ONLY with a raw JSON array of objects. No explanation, no markdown formatting, no code fences. Example: [{"name":"...","city":"...","reason":"..."}]`;
 
+    const callStartedAt = Date.now();
+    let callSucceeded = false;
+    let callUsageMetadata = null;
+
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
@@ -307,6 +349,7 @@ Respond ONLY with a raw JSON array of objects. No explanation, no markdown forma
       const data = await response.json();
       const candidate = data.candidates?.[0];
       const text = candidate?.content?.parts?.[0]?.text || "";
+      callUsageMetadata = data.usageMetadata || null;
 
       logger.info("Gemini raw response", {
         finishReason: candidate?.finishReason,
@@ -360,10 +403,16 @@ Respond ONLY with a raw JSON array of objects. No explanation, no markdown forma
         }))
         .slice(0, 5);
 
+      callSucceeded = true;
       res.json({ places: cleanPlaces });
     } catch (error) {
       logger.error("suggestPlaces failed", error);
       res.status(500).json({ error: "Server error" });
+    } finally {
+      await logServerCall("suggestPlaces", callSucceeded, {
+        latencyMs: Date.now() - callStartedAt,
+        ...(callUsageMetadata ? { usageMetadata: callUsageMetadata } : {})
+      });
     }
   }
 );

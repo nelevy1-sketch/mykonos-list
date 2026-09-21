@@ -294,6 +294,22 @@
         <h2>הצלחת כתיבות לפי עמוד (file)</h2>
         <div id="writesByFileTable"></div>
       </section>
+
+      <section class="metric-card">
+        <h2>קריאות שרת (Cloud Functions AI)</h2>
+        <p class="metric-big" id="serverCallsTotalValue">--</p>
+        <p class="metric-note" id="serverCallsTotalNote"></p>
+      </section>
+
+      <section class="metric-card">
+        <h2>הצלחת קריאות שרת לפי פונקציה</h2>
+        <div id="serverCallsByFunctionTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
+        <div id="serverCallsTokensTable"></div>
+      </section>
     </main>
   </div>
 </div>
@@ -718,6 +734,82 @@ function renderWriteStats(stats) {
   renderBreakdownRows("writesByFileTable", stats.byFile);
 }
 
+// --- Server-side (Cloud Functions) call logging (stage 3) - _analytics/
+// serverCalls/{eventId}: {function, success, timestamp, latencyMs,
+// usageMetadata?} - written by functions/index.js itself via the Admin
+// SDK (bypasses database.rules.json entirely, see that file's own
+// comment header - no client, no safeWrite, involved at all here).
+// usageMetadata is Gemini's own token-count object on the raw response,
+// included only when the Gemini call actually returned one - a call that
+// failed before ever reaching Gemini has no usageMetadata, so
+// tokenSamples below tracks how many events actually contributed a token
+// count, keeping the average from being silently diluted by ones that
+// never had one.
+function computeServerCallStats(callsObj) {
+  const events = Object.values(callsObj || {}).filter(Boolean);
+  const total = events.length;
+  const successCount = events.filter(e => e.success).length;
+
+  const byFunction = {};
+  events.forEach(e => {
+    const key = e.function || "לא ידוע";
+    if (!byFunction[key]) {
+      byFunction[key] = { total: 0, success: 0, tokenSum: 0, tokenSamples: 0 };
+    }
+    const stat = byFunction[key];
+    stat.total++;
+    if (e.success) stat.success++;
+
+    const tokens = e.usageMetadata && e.usageMetadata.totalTokenCount;
+    if (typeof tokens === "number") {
+      stat.tokenSum += tokens;
+      stat.tokenSamples++;
+    }
+  });
+
+  return { total, successCount, byFunction };
+}
+
+// Sorted by total tokens descending (highest cost first) - unlike the
+// success-rate tables above, cost is naturally "biggest first", there's
+// no "recurring failure point" framing here.
+function renderTokenRows(containerId, byFunction) {
+  const container = $(containerId);
+  const entries = Object.entries(byFunction).sort((a, b) => b[1].tokenSum - a[1].tokenSum);
+  if (!entries.length) {
+    container.innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    return;
+  }
+  container.innerHTML = entries.map(([key, stat]) => {
+    const avg = stat.tokenSamples ? Math.round(stat.tokenSum / stat.tokenSamples) : null;
+    return `<div class="metric-row">
+      <span class="metric-row-label">${escapeHtml(key)}</span>
+      <span class="metric-row-count">${stat.tokenSum.toLocaleString('he-IL')} טוקנים</span>
+      <span class="metric-row-percent">${avg != null ? `ממוצע ${avg.toLocaleString('he-IL')}` : '--'}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderServerCallStats(stats) {
+  if (!stats.total) {
+    $("serverCallsTotalValue").textContent = "--";
+    $("serverCallsTotalNote").textContent = "אין נתוני קריאות שרת עדיין";
+    $("serverCallsByFunctionTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    $("serverCallsTokensTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    return;
+  }
+  const pct = Math.round((stats.successCount / stats.total) * 100);
+  $("serverCallsTotalValue").textContent = `${pct}%`;
+  $("serverCallsTotalNote").textContent = `${stats.successCount} מתוך ${stats.total} קריאות הצליחו`;
+
+  // Same renderBreakdownRows as the client-side writes tables above -
+  // {total,success} is exactly the shape it expects, byFunction's extra
+  // tokenSum/tokenSamples fields are simply ignored here (renderTokenRows
+  // reads them instead).
+  renderBreakdownRows("serverCallsByFunctionTable", stats.byFunction);
+  renderTokenRows("serverCallsTokensTable", stats.byFunction);
+}
+
 async function loadAndRender() {
   try {
     const snapshot = await get(ref(db, "trips"));
@@ -736,6 +828,17 @@ async function loadAndRender() {
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/writes", error);
     if (window.toast) window.toast("טעינת נתוני הכתיבות נכשלה", "error");
+  }
+
+  // Third independent try/catch, same reasoning - a failure reading
+  // _analytics/serverCalls must not block trips/ or _analytics/writes
+  // from rendering, and vice versa.
+  try {
+    const serverCallsSnapshot = await get(ref(db, "_analytics/serverCalls"));
+    renderServerCallStats(computeServerCallStats(serverCallsSnapshot.val()));
+  } catch (error) {
+    console.warn("[dashboard] failed to load _analytics/serverCalls", error);
+    if (window.toast) window.toast("טעינת נתוני קריאות השרת נכשלה", "error");
   }
 }
 
