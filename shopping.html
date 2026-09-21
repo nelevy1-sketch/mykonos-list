@@ -3694,14 +3694,37 @@ body.modal-open .modal-card {
     }
   }
 
-  function setStatusAndSave(newStatus) {
+  async function setStatusAndSave(newStatus) {
     if (!requireOrganizer()) return;
+
+    const previousStatus = listStatus;
+    const wasAuditMode = isAuditMode;
     listStatus = newStatus;
     if (listStatus === '🔍 בדיקת המשלוח') {
       isAuditMode = true;
       showMissingSummaryBtn.style.display = 'block';
     }
-    set(listStatusRef, listStatus);
+
+    // Real fix, not just added logging: the success toast used to fire
+    // immediately after an un-awaited set() - true regardless of whether
+    // the write actually landed. Now it only fires after a real await, and
+    // the local status/audit-mode state is rolled back on failure so the
+    // UI doesn't keep claiming a status that was never actually saved.
+    if (
+      !(await window.safeWrite(
+        set(listStatusRef, listStatus),
+        "setStatusAndSave",
+        () => logWriteEvent("setStatusAndSave", true)
+      ))
+    ) {
+      logWriteEvent("setStatusAndSave", false);
+      listStatus = previousStatus;
+      isAuditMode = wasAuditMode;
+      if (!wasAuditMode) showMissingSummaryBtn.style.display = 'none';
+      showToast(tr('עדכון הסטטוס נכשל. נסו שוב.', 'Failed to update the status. Please try again.'));
+      return;
+    }
+
     statusModalOverlay.classList.remove('show');
     showToast(tr(`הסטטוס עודכן ל-${listStatus}`, `Status updated to ${displayStatus(listStatus)}`));
   }
@@ -3770,16 +3793,27 @@ body.modal-open .modal-card {
     });
   }
 
-  function mergeOrCreateItem(targetListPath, targetItemsMap, item, qtyToAdd, byLabel, opts = {}) {
+  // Now async, returns { merged, key, ok } - ok reflects whether the
+  // underlying write actually succeeded, so all 3 callers
+  // (transferSingleItemToInPerson, executeBulkTransfer,
+  // transferMissingToInPersonBtn) can report real success/failure counts
+  // instead of an unconditional happy-path toast.
+  async function mergeOrCreateItem(targetListPath, targetItemsMap, item, qtyToAdd, byLabel, opts = {}) {
     const existingKey = findMatchingItemKey(targetItemsMap, item);
     if (existingKey) {
-      runTransaction(ref(db, `${targetListPath}/${existingKey}/qty`), current => ((parseInt(current) || 1) + qtyToAdd).toString());
-      return { merged: true, key: existingKey };
+      const ok = await window.safeWrite(
+        runTransaction(ref(db, `${targetListPath}/${existingKey}/qty`), current => ((parseInt(current) || 1) + qtyToAdd).toString()),
+        "mergeOrCreateItem-merge",
+        () => logWriteEvent("mergeOrCreateItem-merge", true)
+      );
+      if (!ok) logWriteEvent("mergeOrCreateItem-merge", false);
+      return { merged: true, key: existingKey, ok };
     }
 
     const itemName = (item.name || item.text || '').trim();
     const newItemRef = push(ref(db, targetListPath));
-    set(newItemRef, {
+    const ok = await window.safeWrite(
+      set(newItemRef, {
       name: itemName,
       qty: qtyToAdd.toString(),
       unit: item.unit || "יח'",
@@ -3790,8 +3824,12 @@ body.modal-open .modal-card {
       isPriority: opts.isPriority !== undefined ? opts.isPriority : (item.isPriority || false),
       auditStatus: '',
       personalQtyMap: opts.carryPersonalMap && item.personalQtyMap ? item.personalQtyMap : {}
-    });
-    return { merged: false, key: newItemRef.key };
+      }),
+      "mergeOrCreateItem-create",
+      () => logWriteEvent("mergeOrCreateItem-create", true)
+    );
+    if (!ok) logWriteEvent("mergeOrCreateItem-create", false);
+    return { merged: false, key: newItemRef.key, ok };
   }
 
   function render() {
@@ -4200,28 +4238,48 @@ body.modal-open .modal-card {
     }
   };
 
-  savePersonalQtyBtn.onclick = () => {
+  savePersonalQtyBtn.onclick = async () => {
     if (!requireUserName() || !activePersonalItemId) return;
 
     triggerHapticFeedback(20);
     saveUndoBackup(activePersonalItemId);
 
-    update(ref(db, `${listPath(currentListType)}/${activePersonalItemId}/personalQtyMap`), {
-      [currentUser.uid]: tempPersonalQty
-    });
+    if (
+      !(await window.safeWrite(
+        update(ref(db, `${listPath(currentListType)}/${activePersonalItemId}/personalQtyMap`), {
+          [currentUser.uid]: tempPersonalQty
+        }),
+        "savePersonalQtyBtn",
+        () => logWriteEvent("savePersonalQtyBtn", true)
+      ))
+    ) {
+      logWriteEvent("savePersonalQtyBtn", false);
+      showToast(tr('השמירה נכשלה. נסו שוב.', 'Failed to save. Please try again.'));
+      return;
+    }
 
     personalQtyModalOverlay.classList.remove('show');
     showToast(tr(`הבקשה האישית שלך עודכנה ל-+${tempPersonalQty}`, `Your personal quantity was updated to +${tempPersonalQty}`), true);
   };
 
-  removePersonalQtyBtn.onclick = () => {
+  removePersonalQtyBtn.onclick = async () => {
     if (!requireUserName() || !activePersonalItemId) return;
 
     saveUndoBackup(activePersonalItemId);
 
-    update(ref(db, `${listPath(currentListType)}/${activePersonalItemId}/personalQtyMap`), {
-      [currentUser.uid]: null
-    });
+    if (
+      !(await window.safeWrite(
+        update(ref(db, `${listPath(currentListType)}/${activePersonalItemId}/personalQtyMap`), {
+          [currentUser.uid]: null
+        }),
+        "removePersonalQtyBtn",
+        () => logWriteEvent("removePersonalQtyBtn", true)
+      ))
+    ) {
+      logWriteEvent("removePersonalQtyBtn", false);
+      showToast(tr('ההסרה נכשלה. נסו שוב.', 'Failed to remove. Please try again.'));
+      return;
+    }
 
     personalQtyModalOverlay.classList.remove('show');
     showToast(tr('הבקשה האישית הוסרה', 'Your personal request was removed'), true);
@@ -4253,7 +4311,11 @@ body.modal-open .modal-card {
       if (!shouldMerge) return;
     }
 
-    mergeOrCreateItem(listPath('inPerson'), inPersonItems, item, totalQty, tr(`הועבר ממשלוח (${user})`, `Moved from delivery (${user})`), { carryPersonalMap: true });
+    const result = await mergeOrCreateItem(listPath('inPerson'), inPersonItems, item, totalQty, tr(`הועבר ממשלוח (${user})`, `Moved from delivery (${user})`), { carryPersonalMap: true });
+    if (!result.ok) {
+      showToast(tr('ההעברה נכשלה. נסו שוב.', 'Failed to move. Please try again.'));
+      return;
+    }
     showToast(existingKey      ? tr(`הכמות עודכנה ברשימת "בקנייה עצמית" 🛒`, `Quantity updated in local shopping 🛒`)
       : tr(`"${itemName}" הועבר בהצלחה לרשימת "בקנייה עצמית" 🛒`, `"${itemName}" moved to local shopping 🛒`));
   }
@@ -4328,23 +4390,36 @@ body.modal-open .modal-card {
     duplicateTransferModalOverlay.classList.remove('show');
   };
 
-  function executeBulkTransfer(inPersonItems, duplicateAction) {
+  // Async now (was sync, fire-and-forget per item) - callers below still
+  // don't await it, same as before (an immediate optimistic modal-close
+  // stays immediate), but now the eventual toast reports what actually
+  // happened instead of a hardcoded success count.
+  async function executeBulkTransfer(inPersonItems, duplicateAction) {
     const user = requireUserName();
     let transferredCount = 0;
+    let failedCount = 0;
 
-    pendingBulkTransferItems.forEach(item => {
+    for (const item of pendingBulkTransferItems) {
       const totalQty = calculateTotalQty(item);
       const existingKey = findMatchingItemKey(inPersonItems, item);
 
       if (existingKey && duplicateAction === 'skip') {
-        return;
+        continue;
       }
 
-      mergeOrCreateItem(listPath('inPerson'), inPersonItems, item, totalQty, tr(`הועבר ממשלוח (${user})`, `Moved from delivery (${user})`), { carryPersonalMap: true });
-      transferredCount++;
-    });
+      const result = await mergeOrCreateItem(listPath('inPerson'), inPersonItems, item, totalQty, tr(`הועבר ממשלוח (${user})`, `Moved from delivery (${user})`), { carryPersonalMap: true });
+      if (result.ok) {
+        transferredCount++;
+      } else {
+        failedCount++;
+      }
+    }
 
-    showToast(tr(`${transferredCount} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`, `${transferredCount} items moved to local shopping! 🛒`));
+    if (failedCount > 0) {
+      showToast(tr(`${transferredCount} פריטים הועברו, ${failedCount} נכשלו. נסו שוב.`, `${transferredCount} items moved, ${failedCount} failed. Please try again.`));
+    } else {
+      showToast(tr(`${transferredCount} פריטים הועברו בהצלחה לרשימת "בקנייה עצמית"! 🛒`, `${transferredCount} items moved to local shopping! 🛒`));
+    }
   }
 
   function setAuditStatus(id, status) {
@@ -4371,29 +4446,65 @@ body.modal-open .modal-card {
     update(ref(db, `${listPath(currentListType)}/${id}`), { auditStatus: status });
   }
 
-  function toggleClaimItem(id, currentBuyer) {
+  async function toggleClaimItem(id, currentBuyer) {
     if (!requireUserName()) return;
 
     triggerHapticFeedback(15);
     const uid = currentUser.uid;
     const newBuyer = (currentBuyer === uid) ? '' : uid;
-    update(ref(db, `${listPath(currentListType)}/${id}`), { buyer: newBuyer });
+    if (
+      !(await window.safeWrite(
+        update(ref(db, `${listPath(currentListType)}/${id}`), { buyer: newBuyer }),
+        "toggleClaimItem",
+        () => logWriteEvent("toggleClaimItem", true)
+      ))
+    ) {
+      logWriteEvent("toggleClaimItem", false);
+      showToast(tr('הפעולה נכשלה. נסו שוב.', 'Action failed. Please try again.'));
+    }
   }
 
-  function togglePriority(id, currentStatus) {
-    update(ref(db, `${listPath(currentListType)}/${id}`), { isPriority: !currentStatus });
+  async function togglePriority(id, currentStatus) {
+    if (
+      !(await window.safeWrite(
+        update(ref(db, `${listPath(currentListType)}/${id}`), { isPriority: !currentStatus }),
+        "togglePriority",
+        () => logWriteEvent("togglePriority", true)
+      ))
+    ) {
+      logWriteEvent("togglePriority", false);
+      showToast(tr('הפעולה נכשלה. נסו שוב.', 'Action failed. Please try again.'));
+    }
   }
 
-  function editItem(id, currentName, currentQty) {
+  async function editItem(id, currentName, currentQty) {
     const newName = prompt(tr('שם המוצר:', 'Product name:'), currentName);
     if (!newName) return;
     const normalizedName = normalizeProductName(newName.trim());
-    update(ref(db, `${listPath(currentListType)}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) });
+    if (
+      !(await window.safeWrite(
+        update(ref(db, `${listPath(currentListType)}/${id}`), { name: normalizedName, category: detectCategory(normalizedName) }),
+        "editItem",
+        () => logWriteEvent("editItem", true)
+      ))
+    ) {
+      logWriteEvent("editItem", false);
+      showToast(tr('השמירה נכשלה. נסו שוב.', 'Failed to save. Please try again.'));
+    }
   }
 
-  function toggleItem(id, currentStatus) {
+  async function toggleItem(id, currentStatus) {
     triggerHapticFeedback(25);
-    runTransaction(ref(db, `${listPath(currentListType)}/${id}/done`), current => !current);
+    if (
+      !(await window.safeWrite(
+        runTransaction(ref(db, `${listPath(currentListType)}/${id}/done`), current => !current),
+        "toggleItem",
+        () => logWriteEvent("toggleItem", true)
+      ))
+    ) {
+      logWriteEvent("toggleItem", false);
+      showToast(tr('הפעולה נכשלה. נסו שוב.', 'Action failed. Please try again.'));
+    }
   }
 
   async function deleteItem(id) {
@@ -4448,22 +4559,35 @@ body.modal-open .modal-card {
     const inPersonSnap = await get(ref(db, listPath('inPerson')));
     const inPersonItems = inPersonSnap.val() || {};
     let transferredCount = 0;
+    let failedCount = 0;
 
-    missingItems.forEach(id => {
+    // Modal closes immediately, same timing as before - only the toast
+    // afterward now waits for the real per-item results instead of
+    // reporting a hardcoded count.
+    missingModalOverlay.classList.remove('show');
+
+    for (const id of missingItems) {
       const item = itemsMap[id];
       let missingQty = calculateTotalQty(item);
       if (item.auditStatus === 'partial' && item.partialMissingQty !== undefined) {
         missingQty = item.partialMissingQty;
       }
 
-      if (missingQty <= 0) return;
+      if (missingQty <= 0) continue;
 
-      mergeOrCreateItem(listPath('inPerson'), inPersonItems, item, missingQty, tr(`הועבר ממשלוח (${user})`, `Moved from delivery (${user})`), { isPriority: true, carryPersonalMap: false });
-      transferredCount++;
-    });
+      const result = await mergeOrCreateItem(listPath('inPerson'), inPersonItems, item, missingQty, tr(`הועבר ממשלוח (${user})`, `Moved from delivery (${user})`), { isPriority: true, carryPersonalMap: false });
+      if (result.ok) {
+        transferredCount++;
+      } else {
+        failedCount++;
+      }
+    }
 
-    missingModalOverlay.classList.remove('show');
-    showToast(tr(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`, `${transferredCount} missing items were added to local shopping! 🛒`));
+    if (failedCount > 0) {
+      showToast(tr(`${transferredCount} פריטים חסרים עודכנו, ${failedCount} נכשלו. נסו שוב.`, `${transferredCount} missing items updated, ${failedCount} failed. Please try again.`));
+    } else {
+      showToast(tr(`${transferredCount} פריטים חסרים עודכנו בהצלחה ב"קנייה עצמית"! 🛒`, `${transferredCount} missing items were added to local shopping! 🛒`));
+    }
   };
 
   clearCurrentListBtn.addEventListener('click', async () => {

@@ -1,5 +1,29 @@
 # GitTrip — CHANGELOG
 
+## v4.83.1 — תיקון: 10+ נקודות כתיבה fire-and-forget בלי טיפול שגיאות (packing.html, shopping.html)
+
+### 🐛 הבאגים הדחופים
+מהחקירה הקודמת (מציאת פערי כיסוי בדשבורד האנליטיקס) - כל הפונקציות הבאות כתבו ל-RTDB בלי `safeWrite`, בלי `try/catch`, בלי שום פידבק למשתמש בכישלון:
+
+**packing.html**: `ensureStarterLists()` (**הכי דחוף** - רץ בלי משתמש בתוך ה-`onValue` בטעינה הראשונה של כל משתמש חדש; כישלון היה משאיר אותו לצמיתות בלי רשימות התחלתיות, בלי שום הודעה, ובלי ניסיון חוזר כי הדגל שסימן "כבר טופל" היה נדלק גם כשהכתיבה נכשלה), `renameList()`, מתג "בוצע" לתת-פריט (`data-sub-check`), `addSubItem()`, `addToSuggestedCategory()`, `importItem()`.
+
+**shopping.html**: `setStatusAndSave()` (**תיקון לוגי אמיתי, לא רק logging** - ה-toast של הצלחה הופיע קודם ללא await על הכתיבה בכלל, ולכן תמיד "הצליח" גם כשהכתיבה נכשלה; עכשיו ה-toast מגיע רק אחרי await אמיתי, וה-state המקומי [`listStatus`/`isAuditMode`] מתאפס לערך הקודם בכישלון), `mergeOrCreateItem()` (+ 3 הקוראים לה: `transferSingleItemToInPerson`, `executeBulkTransfer`, `transferMissingToInPersonBtn`), `toggleClaimItem()`, `togglePriority()`, `editItem()`, `toggleItem()`, `savePersonalQtyBtn`/`removePersonalQtyBtn`.
+
+**תוקן**: כל אחת עטופה עכשיו ב-`safeWrite`/`logWriteEvent` (אותה תבנית כמו 35 הנקודות הקיימות), עם toast אמיתי בכישלון. שינוי נוסף מעבר לתוספת פידבק: מתג תת-הפריט מחזיר את מצב הצ'קבוקס למצבו הקודם בכישלון (כדי שהתצוגה לא תמשיך "לשקר" על מה שנשמר בפועל).
+
+**במפורש לא נגענו**: `setAuditStatus()` - הופיעה ברשימת ה-🔴 המקורית אבל לא נכללה בבקשת התיקון הזו. פער פתוח, ממתין להחלטה נפרדת.
+
+### 🔍 מה שנבדק בפועל
+- `ensureStarterLists`: קריאה ישירה - כישלון (ללא auth אמיתי) מחזיר `false` נכון, הצלחה מדומה (`safeWrite` מוחלף זמנית) מחזירה `true` ומעדכנת `activeList`, ומצב "כבר יש listMeta" מחזיר `true` בלי לנסות כתיבה כלל. גם ה-caller (בתוך ה-`onValue`) נבדק בקוד - לא מסמן `starterCheckDone` בכישלון.
+- `renameList`: כישלון - המודל **נשאר פתוח** (לא נסגר בטרם עת), toast נכון; הצלחה מדומה - המודל נסגר, toast "הרשימה עודכנה".
+- `setStatusAndSave`: כישלון - `listStatus` נשאר בערכו הקודם (לא "משקר"), toast כישלון; הצלחה מדומה - `listStatus` באמת מתעדכן, toast הצלחה עם הסטטוס הנכון.
+- `mergeOrCreateItem`: שני הענפים (יצירה חדשה + מיזוג לפריט קיים) נבדקו ישירות - שניהם מחזירים `{merged,key,ok}` נכון, עם context labels נפרדים (`mergeOrCreateItem-create`/`mergeOrCreateItem-merge`).
+- `toggleClaimItem`: נבדק ישירות - context ונתיב נכונים.
+- `dashboard.html`: דאטה מפוברקת עם 5 מה-context-ים החדשים (`ensureStarterLists`, `setStatusAndSave`, `mergeOrCreateItem-create`, `toggleClaimItem`) - הפילוח לפי context ולפי file תואם בדיוק חישוב ידני.
+- `node --check` נקי בכל 3 הקבצים. `scripts/i18n-audit.js` - 0 ממצאים חדשים. כל hook-בדיקה זמני הוסר ואומת שהוסר (0 בכל 3 הקבצים).
+
+**תיקון באג (silent-failure אמיתי בשני עמודים) → patch bump.**
+
 ## v4.83.0 — שכבת aggregate לסטטיסטיקת ביקורים חוצת-משתמשים (_analytics/visitorStats)
 
 ### 🎯 מה השתנה

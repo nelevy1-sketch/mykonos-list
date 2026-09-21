@@ -2177,18 +2177,25 @@
     // category id itself when no listMeta entry exists for it, which is
     // why "gear"/"clothing" render fine even before this write lands, not
     // a separate gap.
+    // Returns true when there's nothing to do OR the write succeeded, false
+    // only when a write was actually attempted and failed - the caller
+    // (packingListening's onValue) uses this to decide whether it's safe to
+    // mark starterCheckDone, so a failed first-time write gets retried
+    // instead of leaving the user on a permanently-empty packing page with
+    // no starter lists and no way to trigger this again short of a reload
+    // that happens to fire onValue while starterCheckDone is still false.
     async function ensureStarterLists() {
       const metadata = allPacking?.users?.[user?.uid]?.listMeta;
       const existingItems = allPacking?.users?.[user?.uid]?.items;
 
       if (metadata || (existingItems && Object.keys(existingItems).length)) {
-        return;
+        return true;
       }
 
       const lists = starterLists();
 
       if (!lists.length) {
-        return;
+        return true;
       }
 
       const updates = {};
@@ -2201,8 +2208,19 @@
         };
       });
 
-      await update(ref(db), updates);
+      if (
+        !(await window.safeWrite(
+          update(ref(db), updates),
+          "ensureStarterLists",
+          () => logWriteEvent("ensureStarterLists", true)
+        ))
+      ) {
+        logWriteEvent("ensureStarterLists", false);
+        return false;
+      }
+
       activeList = lists[0].id;
+      return true;
     }
 
     // Core of createList() below, without its UI side effects (closing
@@ -2347,10 +2365,17 @@
         return;
       }
 
-      await update(
-        ref(db, `${userBase()}/listMeta/${activeList}`),
-        { name }
-      );
+      if (
+        !(await window.safeWrite(
+          update(ref(db, `${userBase()}/listMeta/${activeList}`), { name }),
+          "renameList",
+          () => logWriteEvent("renameList", true)
+        ))
+      ) {
+        logWriteEvent("renameList", false);
+        toast(tr("שינוי השם נכשל. נסו שוב.", "Failed to rename. Please try again."));
+        return;
+      }
 
       $("manageListOverlay").classList.add("hidden");
       toast(tr("הרשימה עודכנה", "List updated"));
@@ -3513,17 +3538,28 @@
       document
         .querySelectorAll("[data-sub-check]")
         .forEach(checkbox => {
-          checkbox.onchange = () => {
+          checkbox.onchange = async () => {
             const categoryId = requireCategory(checkbox, "data-sub-check");
             const [itemId, subId] = checkbox.dataset.subCheck.split(":");
+            const nextChecked = checkbox.checked;
 
-            update(
-              ref(
-                db,
-                `${userBase()}/items/${categoryId}/${itemId}/subItems/${subId}`
-              ),
-              { isDone: checkbox.checked }
-            );
+            if (
+              !(await window.safeWrite(
+                update(
+                  ref(
+                    db,
+                    `${userBase()}/items/${categoryId}/${itemId}/subItems/${subId}`
+                  ),
+                  { isDone: nextChecked }
+                ),
+                "subItemCheck",
+                () => logWriteEvent("subItemCheck", true)
+              ))
+            ) {
+              logWriteEvent("subItemCheck", false);
+              checkbox.checked = !nextChecked;
+              toast(tr("העדכון נכשל. נסו שוב.", "Failed to update. Please try again."));
+            }
           };
         });
 
@@ -3562,7 +3598,7 @@
       // categoryId is the sub-item's PARENT category - sub-items don't
       // carry their own (see renderMine(), which tags every sub-item
       // element with the parent item's categoryId, not one of its own).
-      function addSubItem(itemId, categoryId) {
+      async function addSubItem(itemId, categoryId) {
         const input = document.querySelector(`[data-sub-add-input="${itemId}"]`);
         const name = input.value.trim();
 
@@ -3570,13 +3606,23 @@
           return;
         }
 
-        push(
-          ref(
-            db,
-            `${userBase()}/items/${categoryId}/${itemId}/subItems`
-          ),
-          { name, isDone: false }
-        );
+        if (
+          !(await window.safeWrite(
+            push(
+              ref(
+                db,
+                `${userBase()}/items/${categoryId}/${itemId}/subItems`
+              ),
+              { name, isDone: false }
+            ),
+            "addSubItem",
+            () => logWriteEvent("addSubItem", true)
+          ))
+        ) {
+          logWriteEvent("addSubItem", false);
+          toast(tr("ההוספה נכשלה. נסו שוב.", "Failed to add. Please try again."));
+          return;
+        }
 
         input.value = "";
       }
@@ -4065,19 +4111,29 @@
       // the source. Doesn't happen automatically the way it does for
       // AI-suggestion/quick-pick adds - those call addItem() itself,
       // importItem() has always had its own push() here.
-      await push(
-        ref(db, `${userBase()}/items/${targetCategory}`),
-        {
-          name: sourceItem.name,
-          isDone: false,
-          isPublic: false,
-          importedFrom: memberName,
-          ownerName: profile.name,
-          createdByUid: user.uid,
-          createdAt: Date.now(),
-          ...(activeLegFilter !== "all" ? { legId: activeLegFilter } : {})
-        }
-      );
+      if (
+        !(await window.safeWrite(
+          push(
+            ref(db, `${userBase()}/items/${targetCategory}`),
+            {
+              name: sourceItem.name,
+              isDone: false,
+              isPublic: false,
+              importedFrom: memberName,
+              ownerName: profile.name,
+              createdByUid: user.uid,
+              createdAt: Date.now(),
+              ...(activeLegFilter !== "all" ? { legId: activeLegFilter } : {})
+            }
+          ),
+          "importItem",
+          () => logWriteEvent("importItem", true)
+        ))
+      ) {
+        logWriteEvent("importItem", false);
+        toast(tr("הייבוא נכשל. נסו שוב.", "Failed to import. Please try again."));
+        return;
+      }
 
       toast(
         tr(
@@ -4113,8 +4169,16 @@
             allPacking.users?.[user.uid]?.items || {};
 
           if (!starterCheckDone) {
-            starterCheckDone = true;
-            await ensureStarterLists();
+            if (await ensureStarterLists()) {
+              starterCheckDone = true;
+            } else {
+              toast(
+                tr(
+                  "הקמת רשימות ברירת המחדל נכשלה. ננסה שוב.",
+                  "Failed to set up your default lists. We'll try again."
+                )
+              );
+            }
           }
 
           render();
@@ -4244,25 +4308,49 @@
       );
 
       if (!parentId) {
-        const newParentRef = await push(
-          ref(db, `${userBase()}/items/${activeList}`),
-          {
-            name: categoryName,
-            isDone: false,
-            isPublic: false,
-            ownerName: profile.name,
-            createdAt: Date.now(),
-            createdByUid: user.uid
-          }
-        );
+        // push() with no data reserves the key synchronously (its .key is
+        // available immediately) - set() on that reference is the real,
+        // separately-awaitable write, so its failure can be safeWrite-
+        // wrapped without losing access to the new key the way wrapping
+        // the combined push(ref,data) form would.
+        const newParentRef = push(ref(db, `${userBase()}/items/${activeList}`));
+
+        if (
+          !(await window.safeWrite(
+            set(newParentRef, {
+              name: categoryName,
+              isDone: false,
+              isPublic: false,
+              ownerName: profile.name,
+              createdAt: Date.now(),
+              createdByUid: user.uid
+            }),
+            "addToSuggestedCategory-createParent",
+            () => logWriteEvent("addToSuggestedCategory-createParent", true)
+          ))
+        ) {
+          logWriteEvent("addToSuggestedCategory-createParent", false);
+          toast(tr("ההוספה נכשלה. נסו שוב.", "Failed to add. Please try again."));
+          return;
+        }
 
         parentId = newParentRef.key;
       }
 
-      await push(
-        ref(db, `${userBase()}/items/${activeList}/${parentId}/subItems`),
-        { name: value, isDone: false }
-      );
+      if (
+        !(await window.safeWrite(
+          push(
+            ref(db, `${userBase()}/items/${activeList}/${parentId}/subItems`),
+            { name: value, isDone: false }
+          ),
+          "addToSuggestedCategory-subItem",
+          () => logWriteEvent("addToSuggestedCategory-subItem", true)
+        ))
+      ) {
+        logWriteEvent("addToSuggestedCategory-subItem", false);
+        toast(tr("ההוספה נכשלה. נסו שוב.", "Failed to add. Please try again."));
+        return;
+      }
 
       $("newItem").value = "";
       box.classList.remove("show");
