@@ -70,87 +70,169 @@
        other tag here - attaches window.Chart, no type="module". -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <style>
+    /* ==========================================================================
+       GitTrip Analytics Dashboard - independent design system (redesign,
+       "stop stage 2, rebuild the design language" task). Deliberately NOT
+       shared.css's tokens or component classes below - shared.css was built
+       for the 6 mobile-first app pages, not a desktop-first internal
+       analytics tool, and every --bg/--surface/--primary/--muted/--line/
+       --success/--danger reference that used to live in this block is gone.
+       shared.css is still <link>ed (its .overlay/.sheet/.google-btn/
+       .secondary-btn/.auth-loading chrome still backs the login/denied
+       screens below, via data-tokens="core" data-theme="dark" on <html> -
+       unstyled by this redesign, out of its scope), but nothing past this
+       point reads a single shared.css custom property. Two completely
+       independent systems coexist on the same page: shared.css owns the
+       auth gate, this stylesheet owns everything a signed-in owner
+       actually sees. ========================================================================== */
+    :root {
+      /* Surface scale - 3 graduated levels (page -> card -> nested/hover),
+         not one flat color. Built UP from the two colors already
+         established elsewhere on this exact page - #0B1015 is
+         gittrip-icon.svg's own baked-in background, #151D24-ish was the
+         original (pre-redesign) card surface - both kept as the base of
+         the scale, not replaced, then extended into a real ladder. */
+      --dash-bg: #0B1015;
+      --dash-surface-1: #131A21;
+      --dash-surface-2: #1A232C;
+      --dash-surface-3: #232E39;
+
+      /* Subtle hairline borders (light-on-dark), not the box-shadow this
+         page used before - that shadow recipe (dark blur under a card)
+         is a light-mode-surface convention (a card lifted off a pale
+         page); on a page that's dark everywhere, a soft border reads as
+         "card edge" far more clearly than a shadow most eyes barely
+         register against an already-dark background. */
+      --dash-border: rgba(255, 255, 255, 0.08);
+      --dash-border-strong: rgba(255, 255, 255, 0.16);
+
+      --dash-text: #E7EDF0;
+      --dash-text-secondary: #93A2AC;
+      --dash-text-muted: #61707A;
+
+      /* Brand accent - the exact teal gittrip-icon.svg's pin/route glyph
+         is drawn in (verified by loading the SVG directly, not guessed) -
+         every chart color below is anchored to this one hue, not
+         Chart.js's own default categorical palette. */
+      --dash-accent: #2DD4C8;
+
+      --dash-good: #34D399;
+      --dash-bad: #F87171;
+
+      /* Chart categorical scale - teal first (the brand hue above), then
+         6 more hues chosen for the same dark-background legibility as
+         the teal itself (equivalent lightness/saturation family, popular
+         in dark-dashboard design systems for exactly that reason) rather
+         than tied to any single trip attribute's own "meaning" - simpler
+         and more consistent than assigning bespoke per-category colors,
+         and no longer borrowed from shared.css's per-trip-type theme
+         colors the way an earlier version of this stage did. */
+      --dash-chart-1: #2DD4C8;
+      --dash-chart-2: #38BDF8;
+      --dash-chart-3: #818CF8;
+      --dash-chart-4: #C084FC;
+      --dash-chart-5: #FB923C;
+      --dash-chart-6: #F472B6;
+      --dash-chart-7: #A3E635;
+
+      --dash-radius-lg: 14px;
+      --dash-radius-md: 10px;
+      --dash-font: 'Assistant', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    }
+
     * { box-sizing: border-box; }
     html, body {
-      background: var(--bg);
+      background: var(--dash-bg);
       margin: 0;
     }
     body {
-      color: var(--text);
-      font-family: 'Assistant', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      color: var(--dash-text);
+      font-family: var(--dash-font);
       min-height: 100vh;
       padding-bottom: max(24px, env(safe-area-inset-bottom));
     }
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
 
+    /* Desktop-first shell - a real desktop analytics tool uses real
+       screen width. 1440px cap (not "min(720px,100%)", a phone-article
+       width) with generous but not wasteful side padding; mobile's own
+       padding shrinks in the breakpoint below, it isn't the base this
+       scales down FROM. */
     .dash-shell {
-      width: min(720px, 100%);
+      width: 100%;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: max(14px, env(safe-area-inset-top)) 16px 0;
+      padding: max(20px, env(safe-area-inset-top)) 32px 0;
+    }
+    @media (max-width: 720px) {
+      .dash-shell { padding-inline: 16px; }
     }
 
     .dash-head {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 12px;
+      margin-bottom: 22px;
     }
     .dash-logo {
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       flex: 0 0 auto;
-      border-radius: 9px;
+      border-radius: 8px;
       /* Belt-and-suspenders: gittrip-icon.svg already bakes its own dark
          rounded-square background into the artwork (verified visually -
          it is not a transparent glyph that would need a background here
          to avoid "white on white"), but a page-matching background-color
          still avoids any edge-antialiasing seam against .dash-head. */
-      background: var(--bg);
+      background: var(--dash-bg);
     }
     .dash-head h1 {
       flex: 1;
       min-width: 0;
       margin: 0;
-      font-size: 1.15rem;
-      color: var(--primary-dark);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+      color: var(--dash-text);
     }
     .icon-btn {
-      width: 44px;
-      height: 44px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--surface);
-      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--dash-border);
+      border-radius: var(--dash-radius-md);
+      background: var(--dash-surface-1);
+      color: var(--dash-text-secondary);
       display: grid;
       place-items: center;
       flex: 0 0 auto;
+      font-size: .95rem;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .icon-btn:hover {
+      background: var(--dash-surface-2);
+      border-color: var(--dash-border-strong);
     }
 
-    /* Redesign stage 1/5 - KPI card row. Deliberately more "card-like" than
-       .metric-card below (added box-shadow, no .metric-card has one) so
-       the new top row visually reads as a distinct, higher-priority layer
-       above the existing detail tables, not just more of the same rows. */
+    /* KPI row - narrow and compact by design (requirement, not an
+       oversight): minmax(...,200px) caps how wide each card can grow to
+       even on a 1440px container, so auto-fill just leaves trailing
+       empty space in the row rather than stretching 4 small numbers
+       across the full width the way auto-FIT would. */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(168px, 200px));
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 22px;
     }
-    /* True mobile widths stack one-per-row (explicit requirement) rather
-       than auto-fit's own 2-per-row at ~375px - a phone screen reads
-       better as a single clear column here than two narrow ones. */
     @media (max-width: 480px) {
-      .kpi-grid {
-        grid-template-columns: 1fr;
-      }
+      .kpi-grid { grid-template-columns: 1fr; }
     }
     .kpi-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px 14px 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
+      background: var(--dash-surface-1);
+      border: 1px solid var(--dash-border);
+      border-radius: var(--dash-radius-lg);
+      padding: 12px 14px;
       min-width: 0;
     }
     .kpi-value {
@@ -161,62 +243,72 @@
       min-width: 0;
     }
     .kpi-value-num {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 800;
-      color: var(--primary-dark);
+      letter-spacing: -.01em;
+      color: var(--dash-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    /* ▲/▼ are shape cues, not just color - state is never color-only
+       here (requirement 7). The one place that WAS color-only
+       (.metric-row-percent.warn below) gets the same treatment now. */
     .kpi-trend {
-      font-size: 0.85rem;
-      font-weight: 800;
+      font-size: .78rem;
+      font-weight: 700;
       line-height: 1;
     }
-    .kpi-trend.good { color: var(--success); }
-    .kpi-trend.bad { color: var(--danger); }
+    .kpi-trend.good { color: var(--dash-good); }
+    .kpi-trend.bad { color: var(--dash-bad); }
     .kpi-label {
-      margin: 4px 0 0;
-      font-size: 0.72rem;
+      margin: 3px 0 0;
+      font-size: .66rem;
       font-weight: 650;
-      color: var(--muted);
+      letter-spacing: .03em;
+      color: var(--dash-text-muted);
+      text-transform: uppercase;
     }
 
+    /* Hierarchical typography for every remaining card: section headers
+       are small/uppercase/secondary (not the loudest thing on the card),
+       the actual number is the loudest thing on it. */
     .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
+      background: var(--dash-surface-1);
+      border: 1px solid var(--dash-border);
+      border-radius: var(--dash-radius-lg);
+      padding: 16px 18px;
     }
     .metric-card h2 {
-      margin: 0 0 10px;
-      font-size: 0.88rem;
-      font-weight: 750;
-      color: var(--primary-dark);
+      margin: 0 0 12px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: var(--dash-text-secondary);
+      text-transform: uppercase;
     }
     .metric-big {
       margin: 0;
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       font-weight: 800;
-      color: var(--primary-dark);
+      color: var(--dash-text);
     }
     .metric-note {
       margin: 8px 0 0;
-      font-size: 0.78rem;
-      color: var(--muted);
+      font-size: .74rem;
+      color: var(--dash-text-muted);
     }
     .metric-empty {
-      font-size: 0.82rem;
-      color: var(--muted);
+      font-size: .8rem;
+      color: var(--dash-text-muted);
     }
     .metric-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--line);
-      font-size: 0.85rem;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--dash-border);
+      font-size: .82rem;
     }
     .metric-row:last-child {
       border-bottom: 0;
@@ -225,38 +317,82 @@
     .metric-row-label {
       flex: 1;
       min-width: 0;
+      color: var(--dash-text-secondary);
     }
     .metric-row-count {
-      font-weight: 750;
-      color: var(--text);
+      font-weight: 700;
+      color: var(--dash-text);
     }
     .metric-row-percent {
-      color: var(--muted);
-      font-size: 0.78rem;
-      min-width: 3.2em;
+      color: var(--dash-text-muted);
+      font-size: .74rem;
+      min-width: 3.6em;
       text-align: left;
       direction: ltr;
     }
     /* Flags a context/file whose success rate dropped low enough to be
-       worth a look - the whole point of breaking this down per-context per
-       the task ("is there a specific recurring failure point"), not just
-       decoration. */
+       worth a look. The ⚠ glyph is the point of this rule, not the red
+       text alone (requirement 7 - color is never the only signal). */
     .metric-row-percent.warn {
-      color: var(--danger);
-      font-weight: 750;
+      color: var(--dash-bad);
+      font-weight: 700;
+    }
+    .metric-row-percent.warn::before {
+      content: "⚠ ";
     }
 
-    /* Access-denied / login: same .overlay/.sheet chrome as every other
-       page (shared.css core tokens) - this page's own auth check just
-       decides WHICH of the two ever gets its "hidden" class removed. */
+    /* Desktop-first grid for every remaining detail card (features/
+       countries/destType/writes/serverCalls/visitorStats) - real columns
+       on a wide screen, not one big stack of full-width cards. Varying
+       card heights (a single big number vs. a long table) leave some
+       visual give within a row, same accepted tradeoff as .donut-row
+       below already uses (align-items:start, no forced equal height). */
+    #dashMain {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    /* Charts (redesign stage 2) - fixed-height wrappers because Chart.js's
+       maintainAspectRatio:false needs an explicit container height to
+       size its canvas against - without one it collapses to near-zero
+       height. */
+    #tripsChartsSection {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 230px;
+    }
+    .donut-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 780px) {
+      .donut-row { grid-template-columns: 1fr; }
+    }
+    .donut-wrap {
+      height: 250px;
+    }
+
+    /* Access-denied / login screens are NOT part of this redesign - they
+       still render entirely from shared.css's own .overlay/.sheet/
+       .google-btn/.secondary-btn chrome (data-tokens="core" data-theme=
+       "dark" on <html>, unchanged). These two rules are the only
+       page-specific tweaks layered on top of that shared chrome. */
     .denied-icon {
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       text-align: center;
       margin: 0 0 4px;
     }
     .denied-email {
-      font-size: 0.8rem;
-      color: var(--muted);
+      font-size: .78rem;
+      color: var(--dash-text-muted);
       text-align: center;
       word-break: break-all;
       margin: 0 0 16px;
@@ -320,31 +456,52 @@
       </div>
     </section>
 
+    <!-- Redesign stage 2/5 - trips/ charts. Replaces 4 old plain-table
+         cards outright (timeline/type/character/language) rather than
+         keeping them as redundant fallback below - each chart's own
+         legend already carries the exact count+percentage the old tables
+         showed (see renderDonutChart's generateLabels below), so nothing
+         from those tables is actually lost, just presented better. Every
+         OTHER old table on this page (groupSize/features/countries/
+         destType/writes/serverCalls/visitorStats) is untouched - out of
+         this stage's scope. -->
+    <section id="tripsChartsSection">
+      <div class="metric-card chart-card">
+        <h2>טיולים לאורך זמן (מצטבר)</h2>
+        <div class="chart-wrap">
+          <canvas id="tripsTimelineChart"></canvas>
+        </div>
+      </div>
+
+      <div class="donut-row">
+        <div class="metric-card chart-card donut-card">
+          <h2>התפלגות סוג טיול</h2>
+          <div class="chart-wrap donut-wrap">
+            <canvas id="tripTypeChart"></canvas>
+          </div>
+        </div>
+
+        <div class="metric-card chart-card donut-card">
+          <h2>שפת הטיול</h2>
+          <div class="chart-wrap donut-wrap">
+            <canvas id="tripLanguageChart"></canvas>
+          </div>
+        </div>
+
+        <div class="metric-card chart-card donut-card">
+          <h2>התפלגות אופי טיול</h2>
+          <div class="chart-wrap donut-wrap">
+            <canvas id="tripCharacterChart"></canvas>
+          </div>
+          <p class="metric-note" id="characterNote"></p>
+        </div>
+      </div>
+    </section>
+
     <main id="dashMain">
       <section class="metric-card">
         <h2>סה"כ טיולים</h2>
         <p class="metric-big" id="totalTripsValue">--</p>
-      </section>
-
-      <section class="metric-card">
-        <h2>טיולים לאורך זמן (לפי חודש יצירה)</h2>
-        <div id="timelineTable"></div>
-      </section>
-
-      <section class="metric-card">
-        <h2>התפלגות סוג טיול</h2>
-        <div id="typeTable"></div>
-      </section>
-
-      <section class="metric-card">
-        <h2>התפלגות אופי טיול</h2>
-        <div id="characterTable"></div>
-        <p class="metric-note" id="characterNote"></p>
-      </section>
-
-      <section class="metric-card">
-        <h2>שפת הטיול</h2>
-        <div id="languageTable"></div>
       </section>
 
       <section class="metric-card">
@@ -572,6 +729,21 @@ const FEATURE_LABELS = {
   expenses: "הוצאות"
 };
 
+// --- Chart colors - read from this page's own --dash-chart-1..7 custom
+// properties (defined in the <style> block above), not hardcoded here a
+// second time and not borrowed from shared.css's per-trip-type theme
+// colors (an earlier version of this stage did that - moved away from
+// deliberately, this page's design language no longer references
+// shared.css at all). One shared categorical palette for every donut,
+// teal (the brand accent) always first - see the CSS variable block's
+// own comment for why a single generated-feeling scale replaces the old
+// per-category semantic color assignment.
+function chartColorVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+const CATEGORICAL_PALETTE = [1, 2, 3, 4, 5, 6, 7].map(i => chartColorVar(`--dash-chart-${i}`));
+const CHART_ACCENT = CATEGORICAL_PALETTE[0];
+
 let countryDisplayNames = null;
 function countryLabel(code) {
   if (!code) return code;
@@ -603,24 +775,14 @@ function computeMetrics(tripsObj) {
   const trips = Object.values(tripsObj || {}).filter(Boolean);
   const total = trips.length;
 
-  // 1. Trips over time - trip.createdAt (epoch ms, always written - see
-  // wizard.html's tripData object).
-  const byMonth = {};
-  trips.forEach(t => {
-    if (!t.createdAt) return;
-    const d = new Date(t.createdAt);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    byMonth[key] = (byMonth[key] || 0) + 1;
-  });
-
-  // 2. trip.tripType - required field, always present.
+  // 1. trip.tripType - required field, always present.
   const byType = {};
   trips.forEach(t => {
     const key = t.tripType || "לא ידוע";
     byType[key] = (byType[key] || 0) + 1;
   });
 
-  // 3. trip.tripCharacter - optional, OMITTED (not empty string) when not
+  // 2. trip.tripCharacter - optional, OMITTED (not empty string) when not
   // chosen (wizard.html's own comment: "no character" and "character not
   // yet asked about" are deliberately indistinguishable) - tracked
   // separately from the distribution itself, not as a fake category.
@@ -631,14 +793,14 @@ function computeMetrics(tripsObj) {
     else noCharacterCount++;
   });
 
-  // 4. trip.language - "he" | "en", always present.
+  // 3. trip.language - "he" | "en", always present.
   const byLanguage = {};
   trips.forEach(t => {
     const key = t.language || "לא ידוע";
     byLanguage[key] = (byLanguage[key] || 0) + 1;
   });
 
-  // 5. trip.participants - array of typed-in NAME STRINGS from the wizard
+  // 4. trip.participants - array of typed-in NAME STRINGS from the wizard
   // (not uids, not memberProfiles - the group size as declared at planning
   // time). Old pre-field trips simply don't count toward the average.
   const groupSizes = trips
@@ -648,7 +810,7 @@ function computeMetrics(tripsObj) {
     ? groupSizes.reduce((a, b) => a + b, 0) / groupSizes.length
     : 0;
 
-  // 6. trip.features - an OBJECT of booleans ({packing:true,...}), NOT an
+  // 5. trip.features - an OBJECT of booleans ({packing:true,...}), NOT an
   // array (verified directly against wizard.html's selectedFeatures()) -
   // tally every key that's true.
   const featureCounts = {};
@@ -660,7 +822,7 @@ function computeMetrics(tripsObj) {
     }
   });
 
-  // 7. Country popularity - per LEG, not per trip (a 3-destination trip
+  // 6. Country popularity - per LEG, not per trip (a 3-destination trip
   // contributes 3 tallies) - getLegsForTrip's fallback means every trip
   // contributes at least one leg, geocoded or not.
   const countryCounts = {};
@@ -673,7 +835,7 @@ function computeMetrics(tripsObj) {
     });
   });
 
-  // 8. Single-destination vs multi-destination - same getLegsForTrip
+  // 7. Single-destination vs multi-destination - same getLegsForTrip
   // fallback, length > 1 is the only thing that matters.
   let singleDest = 0, multiDest = 0;
   trips.forEach(t => {
@@ -682,14 +844,82 @@ function computeMetrics(tripsObj) {
   });
 
   return {
-    total, byMonth, byType, byCharacter, noCharacterCount, byLanguage,
+    total, byType, byCharacter, noCharacterCount, byLanguage,
     avgGroupSize, groupSizeCount: groupSizes.length, featureCounts,
     countryCounts, unknownCountryLegs, singleDest, multiDest
   };
 }
 
-// --- Rendering - plain rows, no Chart.js yet (a later stage adds it once
-// there's real data worth graphing - see file header). ---
+// --- Redesign stage 2/5 - trips-over-time line chart. Dynamic bucket
+// granularity (day/week/month) based on the actual data's own volume and
+// date span - a handful of trips over a few weeks reads better bucketed
+// by day than lost in mostly-empty monthly buckets; hundreds of trips
+// over a year+ reads better monthly than an unreadable wall of daily
+// ticks. Cumulative total (not new-per-period) - matches this
+// dashboard's own original "trips over time" table's exact choice (a
+// monotonic growth curve is the more readable trend shape for a line
+// chart than a noisy new-per-period line, especially with sparse data).
+// Takes tripsObj directly (not computeMetrics' own derived `trips`
+// array) - same standalone-function pattern as computeWriteStats/
+// computeServerCallStats below, each doing its own Object.values(...)
+// rather than threading a shared array through every function.
+function computeTripsTimeline(tripsObj) {
+  const dates = Object.values(tripsObj || {})
+    .filter(Boolean)
+    .map(t => t.createdAt)
+    .filter(Boolean)
+    .map(ms => new Date(ms))
+    .sort((a, b) => a - b);
+
+  if (!dates.length) return { labels: [], data: [], granularity: null };
+
+  const spanDays = (dates[dates.length - 1] - dates[0]) / (1000 * 60 * 60 * 24);
+  const granularity = (dates.length <= 20 || spanDays <= 45) ? "day"
+    : (spanDays <= 240) ? "week"
+    : "month";
+
+  const dayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  // Week bucket key is its Monday (ISO-style week start) - only used to
+  // GROUP dates together, the display label below is formatted from this
+  // same key, not shown raw.
+  const weekKey = d => {
+    const start = new Date(d);
+    const dow = start.getDay(); // 0=Sun..6=Sat
+    start.setDate(start.getDate() - ((dow + 6) % 7));
+    return dayKey(start);
+  };
+  const monthKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const keyFn = granularity === "day" ? dayKey : granularity === "week" ? weekKey : monthKey;
+
+  const counts = {};
+  dates.forEach(d => {
+    const key = keyFn(d);
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  const sortedKeys = Object.keys(counts).sort();
+  let cumulative = 0;
+  const data = sortedKeys.map(key => (cumulative += counts[key]));
+
+  // Month labels stay as the raw "YYYY-MM" key (same format the old
+  // table showed) - day/week labels are reformatted from their y-m-d key
+  // into a short locale date, more readable on a chart axis than a full
+  // ISO string.
+  const labels = granularity === "month"
+    ? sortedKeys
+    : sortedKeys.map(key => {
+        const [y, mo, d] = key.split("-").map(Number);
+        return new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "numeric" }).format(new Date(y, mo - 1, d));
+      });
+
+  return { labels, data, granularity };
+}
+
+// --- Rendering - plain rows (still used by several cards below this
+// stage's own scope - features/countries/destType/writes/serverCalls/
+// visitorStats). Chart.js (stage 2/5) covers trips-over-time and the
+// type/language/character breakdowns instead - see renderTripsTimelineChart/
+// renderDonutChart further down. ---
 function renderRows(containerId, rows, totalForPercent) {
   const container = $(containerId);
   if (!rows.length) {
@@ -710,44 +940,163 @@ function sortedEntries(obj) {
   return Object.entries(obj).sort((a, b) => b[1] - a[1]);
 }
 
+// --- Redesign stage 2/5 - Chart.js instances. loadAndRender can run more
+// than once (refreshBtn) - Chart.js throws ("Canvas is already in use")
+// if a new chart is created on a canvas that already has a live instance,
+// so every instance is tracked here and destroyed before its replacement
+// is created. One shared registry (keyed by canvas id) rather than 4
+// separate module-level `let`s, since the two render functions below are
+// themselves shared across all 4 charts. ---
+const chartInstances = {};
+
+function destroyChart(canvasId) {
+  if (chartInstances[canvasId]) {
+    chartInstances[canvasId].destroy();
+    chartInstances[canvasId] = null;
+  }
+}
+
+// Colors read from the SAME CSS custom properties every other element on
+// this page already uses (getComputedStyle, not hardcoded duplicates) -
+// see shared.css's dark-mode core-token block for their values. If that
+// block ever changes, these follow automatically instead of silently
+// drifting out of sync.
+const CHART_TEXT = chartColorVar("--dash-text");
+const CHART_MUTED = chartColorVar("--dash-text-muted");
+const CHART_GRID = chartColorVar("--dash-border-strong");
+const CHART_TOOLTIP_BG = chartColorVar("--dash-surface-2");
+
+function renderTripsTimelineChart(timeline) {
+  destroyChart("tripsTimelineChart");
+  const canvas = $("tripsTimelineChart");
+
+  if (!timeline.labels.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  chartInstances.tripsTimelineChart = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: timeline.labels,
+      datasets: [{
+        label: "טיולים (מצטבר)",
+        data: timeline.data,
+        borderColor: CHART_ACCENT,
+        backgroundColor: CHART_ACCENT + "33",
+        fill: true,
+        tension: 0.25,
+        // Dense point markers on a long axis just clutter the line - the
+        // exact same "too many rows" reasoning as this page's own tables,
+        // applied to a chart instead.
+        pointRadius: timeline.labels.length > 40 ? 0 : 3,
+        pointBackgroundColor: CHART_ACCENT
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: CHART_TEXT } },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1
+        }
+      },
+      scales: {
+        x: { ticks: { color: CHART_MUTED, maxRotation: 45, minRotation: 0 }, grid: { color: CHART_GRID } },
+        y: { ticks: { color: CHART_MUTED, precision: 0 }, grid: { color: CHART_GRID }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Shared by all 3 donut charts (type/language/character) - entries is
+// already-sorted [key,count] pairs (sortedEntries' own output), labelMap
+// resolves the key to a display label (falls back to the raw key, same
+// convention as renderRows above). Color is always CATEGORICAL_PALETTE
+// by slice index - one shared scale for every donut, not a bespoke
+// per-category color assignment.
+//
+// The legend's generateLabels below is the one genuinely custom part -
+// Chart.js's own default legend only shows the category label, not its
+// value. The old tables this replaced always showed count AND percentage
+// per row, so the legend reproduces exactly that (not a regression in
+// precision, just a different presentation) via a custom label per entry
+// instead of the tables' own rows.
+function renderDonutChart(canvasId, entries, labelMap) {
+  destroyChart(canvasId);
+  const canvas = $(canvasId);
+
+  if (!entries.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  const labels = entries.map(([k]) => labelMap[k] || k);
+  const values = entries.map(([, v]) => v);
+  const total = values.reduce((a, b) => a + b, 0);
+  const colors = entries.map((_, i) => CATEGORICAL_PALETTE[i % CATEGORICAL_PALETTE.length]);
+
+  chartInstances[canvasId] = new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderColor: CHART_TOOLTIP_BG, borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            color: CHART_TEXT,
+            boxWidth: 12,
+            padding: 8,
+            font: { size: 11 },
+            generateLabels(chart) {
+              const ds = chart.data.datasets[0];
+              return chart.data.labels.map((label, i) => {
+                const value = ds.data[i];
+                const pct = total ? Math.round((value / total) * 100) : 0;
+                return {
+                  text: `${label} — ${value} (${pct}%)`,
+                  fillStyle: ds.backgroundColor[i],
+                  strokeStyle: ds.backgroundColor[i],
+                  index: i
+                };
+              });
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1
+        }
+      }
+    }
+  });
+}
+
 function renderAll(m) {
   $("totalTripsValue").textContent = m.total;
 
-  // Timeline: chronological (oldest first) - this is a growth-over-time
-  // table, reads naturally top-to-bottom, with a running total.
-  const monthKeys = Object.keys(m.byMonth).sort();
-  let cumulative = 0;
-  $("timelineTable").innerHTML = monthKeys.length
-    ? monthKeys.map(key => {
-        cumulative += m.byMonth[key];
-        return `<div class="metric-row">
-          <span class="metric-row-label">${escapeHtml(key)}</span>
-          <span class="metric-row-count">${m.byMonth[key]}</span>
-          <span class="metric-row-percent">סה"כ ${cumulative}</span>
-        </div>`;
-      }).join("")
-    : `<p class="metric-empty">אין נתונים עדיין</p>`;
-
-  renderRows(
-    "typeTable",
-    sortedEntries(m.byType).map(([k, v]) => [TRIP_TYPE_LABELS[k] || k, v]),
-    m.total
-  );
-
-  renderRows(
-    "characterTable",
-    sortedEntries(m.byCharacter).map(([k, v]) => [TRIP_CHARACTER_LABELS[k] || k, v]),
-    m.total
-  );
+  // Timeline/type/character/language used to be plain tables here - now
+  // charts (renderTripsTimelineChart/renderDonutChart, called from
+  // loadAndRender alongside this function) - see tripsChartsSection's own
+  // header comment for why those 4 tables were removed outright rather
+  // than kept as redundant fallback. characterNote's element still
+  // exists (relocated under the character donut), so this line stays.
   $("characterNote").textContent = m.total
     ? `${m.noCharacterCount} מתוך ${m.total} טיולים (${Math.round((m.noCharacterCount / m.total) * 100)}%) בלי אופי טיול מוגדר`
     : "";
-
-  renderRows(
-    "languageTable",
-    sortedEntries(m.byLanguage).map(([k, v]) => [LANGUAGE_LABELS[k] || k, v]),
-    m.total
-  );
 
   $("groupSizeValue").textContent = m.groupSizeCount ? m.avgGroupSize.toFixed(1) : "--";
   $("groupSizeNote").textContent = m.groupSizeCount
@@ -1073,9 +1422,15 @@ function renderVisitorStats(result) {
 
 async function loadAndRender() {
   try {
-    const m = computeMetrics((await get(ref(db, "trips"))).val());
+    const tripsVal = (await get(ref(db, "trips"))).val();
+    const m = computeMetrics(tripsVal);
     renderAll(m);
     updateKPI("kpiTotalTrips", m.total, null);
+
+    renderTripsTimelineChart(computeTripsTimeline(tripsVal));
+    renderDonutChart("tripTypeChart", sortedEntries(m.byType), TRIP_TYPE_LABELS);
+    renderDonutChart("tripLanguageChart", sortedEntries(m.byLanguage), LANGUAGE_LABELS);
+    renderDonutChart("tripCharacterChart", sortedEntries(m.byCharacter), TRIP_CHARACTER_LABELS);
   } catch (error) {
     console.warn("[dashboard] failed to load trips/", error);
     if (window.toast) window.toast("טעינת הנתונים נכשלה", "error");
