@@ -386,6 +386,16 @@
     .metric-row-percent.warn::before {
       content: "⚠ ";
     }
+    /* Green counterpart (90%+) - same good/bad threshold and glyph-not-
+       color-alone convention as .metric-big.good/.bad and the KPI cards.
+       ▲ here, not ⚠ - that glyph stays reserved for the warn case above. */
+    .metric-row-percent.good {
+      color: var(--dash-good);
+      font-weight: 700;
+    }
+    .metric-row-percent.good::before {
+      content: "▲ ";
+    }
 
     /* Desktop-first grid for every remaining detail card (features/
        countries/destType/writes/serverCalls/visitorStats) - real columns
@@ -2511,11 +2521,11 @@ function renderBreakdownRows(containerId, breakdown) {
   }
   container.innerHTML = entries.map(([key, stat]) => {
     const pct = Math.round((stat.success / stat.total) * 100);
-    const warnClass = pct < 90 ? " warn" : "";
+    const statusClass = pct < 90 ? " warn" : " good";
     return `<div class="metric-row">
       <span class="metric-row-label">${escapeHtml(key)}</span>
       <span class="metric-row-count">${stat.success}/${stat.total}</span>
-      <span class="metric-row-percent${warnClass}">${pct}%</span>
+      <span class="metric-row-percent${statusClass}">${pct}%</span>
     </div>`;
   }).join("");
 }
