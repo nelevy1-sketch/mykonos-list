@@ -455,6 +455,22 @@ const config = {
 };
 const app = initializeApp(config), auth = getAuth(app), provider = new GoogleAuthProvider(), db = getDatabase(app);
 
+// Private analytics dashboard (dashboard.html) write-logging - stage 2.
+// Fire-and-forget, own .catch - never awaited by callers, never allowed to
+// affect the real write it's reporting on. _analytics/writes' .write is
+// "auth != null" (database.rules.json) - any signed-in user can log an
+// event here, because safeWrite runs in THAT user's own browser. Only
+// _analytics's own .read is locked to one specific UID (dashboard.html is
+// the only reader).
+function logWriteEvent(context, success) {
+  push(ref(db, "_analytics/writes"), {
+    file: "achievements.html",
+    context,
+    success,
+    timestamp: Date.now()
+  }).catch(error => console.warn(`[analytics] failed to log ${context}`, error));
+}
+
 const $ = id => document.getElementById(id);
 
 // --- Theme toggle (own key, own element - see the file header comment
@@ -863,7 +879,12 @@ async function saveManualVisit() {
     visitedAt,
     createdAt: new Date().toISOString()
   };
-  if (!(await window.safeWrite(push(ref(db, `users/${auth.currentUser.uid}/visits`), record), "saveManualVisit"))) {
+  if (!(await window.safeWrite(
+    push(ref(db, `users/${auth.currentUser.uid}/visits`), record),
+    "saveManualVisit",
+    () => logWriteEvent("saveManualVisit", true)
+  ))) {
+    logWriteEvent("saveManualVisit", false);
     if (window.toast) window.toast("השמירה נכשלה. נסו שוב.", "error");
     return;
   }
@@ -1097,6 +1118,7 @@ async function startGlobe() {
     })
     .catch(err => console.warn("[achievements] texture upgrade failed, staying on placeholder", err));
 }
+
 </script>
 
 </body>

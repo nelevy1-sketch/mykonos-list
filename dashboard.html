@@ -172,6 +172,14 @@
       text-align: left;
       direction: ltr;
     }
+    /* Flags a context/file whose success rate dropped low enough to be
+       worth a look - the whole point of breaking this down per-context per
+       the task ("is there a specific recurring failure point"), not just
+       decoration. */
+    .metric-row-percent.warn {
+      color: var(--danger);
+      font-weight: 750;
+    }
 
     /* Access-denied / login: same .overlay/.sheet chrome as every other
        page (shared.css core tokens) - this page's own auth check just
@@ -269,6 +277,22 @@
       <section class="metric-card">
         <h2>טיול יעד-בודד מול רב-יעד</h2>
         <div id="destTypeTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>אחוז הצלחת כתיבות (safeWrite)</h2>
+        <p class="metric-big" id="writesTotalValue">--</p>
+        <p class="metric-note" id="writesTotalNote"></p>
+      </section>
+
+      <section class="metric-card">
+        <h2>הצלחת כתיבות לפי פעולה (context)</h2>
+        <div id="writesByContextTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>הצלחת כתיבות לפי עמוד (file)</h2>
+        <div id="writesByFileTable"></div>
       </section>
     </main>
   </div>
@@ -623,6 +647,77 @@ function renderAll(m) {
   );
 }
 
+// --- safeWrite success/failure logging (stage 2) - _analytics/writes/
+// {eventId}: {file, context, success, timestamp}, written by EVERY signed-
+// in user's own safeWrite calls (see safeWrite.js's own onSuccess param and
+// each page's local logWriteEvent()) - not just this account's. Only the
+// READ of _analytics is restricted to this one UID (database.rules.json) -
+// computed fresh from the raw events on every load, nothing cached, same
+// rule as every other metric on this page. ---
+function computeWriteStats(writesObj) {
+  const events = Object.values(writesObj || {}).filter(Boolean);
+  const total = events.length;
+  const successCount = events.filter(e => e.success).length;
+
+  const byContext = {};
+  const byFile = {};
+  events.forEach(e => {
+    const contextKey = e.context || "לא ידוע";
+    if (!byContext[contextKey]) byContext[contextKey] = { total: 0, success: 0 };
+    byContext[contextKey].total++;
+    if (e.success) byContext[contextKey].success++;
+
+    const fileKey = e.file || "לא ידוע";
+    if (!byFile[fileKey]) byFile[fileKey] = { total: 0, success: 0 };
+    byFile[fileKey].total++;
+    if (e.success) byFile[fileKey].success++;
+  });
+
+  return { total, successCount, byContext, byFile };
+}
+
+// Success-rate rows aren't "biggest first" like every other table on this
+// page - a rare-but-100%-failing context is exactly the "recurring failure
+// point" this table exists to surface (the task's own wording), so it's
+// sorted by success rate ascending (worst first), not by volume.
+function renderBreakdownRows(containerId, breakdown) {
+  const container = $(containerId);
+  const entries = Object.entries(breakdown).sort((a, b) => {
+    const pctA = a[1].success / a[1].total;
+    const pctB = b[1].success / b[1].total;
+    return pctA - pctB;
+  });
+  if (!entries.length) {
+    container.innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    return;
+  }
+  container.innerHTML = entries.map(([key, stat]) => {
+    const pct = Math.round((stat.success / stat.total) * 100);
+    const warnClass = pct < 90 ? " warn" : "";
+    return `<div class="metric-row">
+      <span class="metric-row-label">${escapeHtml(key)}</span>
+      <span class="metric-row-count">${stat.success}/${stat.total}</span>
+      <span class="metric-row-percent${warnClass}">${pct}%</span>
+    </div>`;
+  }).join("");
+}
+
+function renderWriteStats(stats) {
+  if (!stats.total) {
+    $("writesTotalValue").textContent = "--";
+    $("writesTotalNote").textContent = "אין נתוני כתיבה עדיין";
+    $("writesByContextTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    $("writesByFileTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    return;
+  }
+  const pct = Math.round((stats.successCount / stats.total) * 100);
+  $("writesTotalValue").textContent = `${pct}%`;
+  $("writesTotalNote").textContent = `${stats.successCount} מתוך ${stats.total} כתיבות הצליחו`;
+
+  renderBreakdownRows("writesByContextTable", stats.byContext);
+  renderBreakdownRows("writesByFileTable", stats.byFile);
+}
+
 async function loadAndRender() {
   try {
     const snapshot = await get(ref(db, "trips"));
@@ -631,7 +726,19 @@ async function loadAndRender() {
     console.warn("[dashboard] failed to load trips/", error);
     if (window.toast) window.toast("טעינת הנתונים נכשלה", "error");
   }
+
+  // Separate try/catch on purpose - a failure reading _analytics/ (e.g.
+  // its rule not published yet) must not block trips/ from rendering, and
+  // vice versa - the two are unrelated at read time.
+  try {
+    const writesSnapshot = await get(ref(db, "_analytics/writes"));
+    renderWriteStats(computeWriteStats(writesSnapshot.val()));
+  } catch (error) {
+    console.warn("[dashboard] failed to load _analytics/writes", error);
+    if (window.toast) window.toast("טעינת נתוני הכתיבות נכשלה", "error");
+  }
 }
+
 </script>
 
 </body>

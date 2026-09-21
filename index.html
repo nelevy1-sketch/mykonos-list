@@ -3044,6 +3044,40 @@
       document.getElementById("authGate").classList.remove("hidden");
     }
 
+    // Private analytics dashboard (dashboard.html) write-logging - stage 2.
+    // Fire-and-forget, own .catch - never awaited by callers, never allowed
+    // to affect the real write it's reporting on. _analytics/writes'
+    // .write is "auth != null" (database.rules.json) - any signed-in user
+    // can log an event here, because safeWrite runs in THAT user's own
+    // browser, not in the dashboard owner's - the whole point is to see
+    // every user's write outcomes, not just one account's. Only
+    // _analytics's own .read is locked to one specific UID (dashboard.html
+    // is the only reader) - this write is intentionally open the same way
+    // shopping/lists/$listType/$itemId's own ".write": "auth != null"
+    // already is, no new trust bar for this app.
+    //
+    // Two-step push()+set() on purpose, NOT the one-argument db.ref(path)
+    // .push(data) shorthand used elsewhere in this file for real app data -
+    // confirmed directly (not assumed) that in this compat v8 SDK, the
+    // ThenableReference the one-argument form returns has real .then/
+    // .catch methods, but a rejected write never actually reaches them -
+    // it surfaces as an uncaught promise rejection instead, bypassing this
+    // function's own .catch entirely. push() with no argument (just
+    // reserving a new key) then .set(data) on that reference is a genuine,
+    // reliably-catchable promise - verified empirically against this exact
+    // path before shipping, not just assumed from the SDK's types.
+    function logWriteEvent(context, success) {
+      db.ref("_analytics/writes")
+        .push()
+        .set({
+          file: "index.html",
+          context,
+          success,
+          timestamp: Date.now()
+        })
+        .catch(error => console.warn(`[analytics] failed to log ${context}`, error));
+    }
+
     async function doGoogleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -5967,8 +6001,13 @@
       updates[`personalLocker/${uid}`] = null;
 
       if (
-        !(await safeWrite(db.ref(tripRoot).update(updates), "releaseMember"))
+        !(await safeWrite(
+          db.ref(tripRoot).update(updates),
+          "releaseMember",
+          () => logWriteEvent("releaseMember", true)
+        ))
       ) {
+        logWriteEvent("releaseMember", false);
         customAlert(
           tr(
             "ניתוק החשבון נכשל. נסו שוב.",
@@ -6007,9 +6046,11 @@
       if (
         !(await safeWrite(
           saveTripCollection("group_members", updatedMembers),
-          "removeMemberTag"
+          "removeMemberTag",
+          () => logWriteEvent("removeMemberTag", true)
         ))
       ) {
+        logWriteEvent("removeMemberTag", false);
         customAlert(
           tr(
             "הסרת השם נכשלה. נסו שוב.",
@@ -6049,9 +6090,11 @@
         if (
           !(await safeWrite(
             saveTripCollection("group_members", updatedMembers),
-            "addMemberTag"
+            "addMemberTag",
+            () => logWriteEvent("addMemberTag", true)
           ))
         ) {
+          logWriteEvent("addMemberTag", false);
           customAlert(
             tr(
               "הוספת השם נכשלה. נסו שוב.",
@@ -6414,9 +6457,11 @@
             db
               .ref(`${tripRoot}/personalLocker/${currentUser.uid}`)
               .set(personalLockerCards[currentUser.uid]),
-            "savePersonalLockerCard"
+            "savePersonalLockerCard",
+            () => logWriteEvent("savePersonalLockerCard", true)
           ))
         ) {
+          logWriteEvent("savePersonalLockerCard", false);
           customAlert(
             tr(
               "שמירת הכרטיס האישי נכשלה. נסו שוב.",
@@ -7412,9 +7457,11 @@
           if (
             !(await safeWrite(
               db.ref(`${tripRoot}/features`).update(newFeatures),
-              "saveModulesBtn"
+              "saveModulesBtn",
+              () => logWriteEvent("saveModulesBtn", true)
             ))
           ) {
+            logWriteEvent("saveModulesBtn", false);
             customAlert(
               tr(
                 "שמירת המודולים נכשלה. נסו שוב.",
@@ -7864,8 +7911,13 @@
           }
 
           if (
-            !(await safeWrite(db.ref().update(updates), "saveFlightBtn"))
+            !(await safeWrite(
+              db.ref().update(updates),
+              "saveFlightBtn",
+              () => logWriteEvent("saveFlightBtn", true)
+            ))
           ) {
+            logWriteEvent("saveFlightBtn", false);
             customAlert(
               tr(
                 "שמירת הגדרות הטיול נכשלה. נסו שוב.",

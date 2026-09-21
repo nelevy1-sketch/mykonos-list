@@ -10,6 +10,14 @@
       }
     },
 
+    "_analytics": {
+      ".read": "auth != null && auth.uid === 'ne56ZOFgDMRfaH03WAvO7jbinty2'",
+
+      "writes": {
+        ".write": "auth != null"
+      }
+    },
+
     "trips": {
 
       ".read": "auth != null && auth.uid === 'ne56ZOFgDMRfaH03WAvO7jbinty2'",

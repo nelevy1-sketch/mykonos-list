@@ -1319,6 +1319,22 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // Private analytics dashboard (dashboard.html) write-logging - stage 2.
+    // Fire-and-forget, own .catch - never awaited by callers, never allowed
+    // to affect the real write it's reporting on. _analytics/writes' .write
+    // is "auth != null" (database.rules.json) - any signed-in user can log
+    // an event here, because safeWrite runs in THAT user's own browser.
+    // Only _analytics's own .read is locked to one specific UID
+    // (dashboard.html is the only reader).
+    function logWriteEvent(context, success) {
+      push(ref(db, "_analytics/writes"), {
+        file: "packing.html",
+        context,
+        success,
+        timestamp: Date.now()
+      }).catch(error => console.warn(`[analytics] failed to log ${context}`, error));
+    }
+
     const query = new URLSearchParams(location.search);
     const tripId = query.get("tripId");
     const tripRoot = tripId ? `trips/${tripId}` : null;
@@ -2208,9 +2224,11 @@
             name: trimmed,
             createdAt: Date.now()
           }),
-          "createListReturningId"
+          "createListReturningId",
+          () => logWriteEvent("createListReturningId", true)
         ))
       ) {
+        logWriteEvent("createListReturningId", false);
         return null;
       }
 
@@ -2272,7 +2290,8 @@
         updates[`${userBase()}/items/${newId}/${id}`] = item;
       });
 
-      if (!(await window.safeWrite(update(ref(db), updates), "duplicateList"))) {
+      if (!(await window.safeWrite(update(ref(db), updates), "duplicateList", () => logWriteEvent("duplicateList", true)))) {
+        logWriteEvent("duplicateList", false);
         toast(
           tr(
             "שכפול הרשימה נכשל. נסו שוב.",
@@ -2303,7 +2322,8 @@
         updates[`${userBase()}/items/${activeList}/${id}/isPublic`] = isPublic;
       });
 
-      if (!(await window.safeWrite(update(ref(db), updates), "setListVisibility"))) {
+      if (!(await window.safeWrite(update(ref(db), updates), "setListVisibility", () => logWriteEvent("setListVisibility", true)))) {
+        logWriteEvent("setListVisibility", false);
         toast(
           tr("השינוי נכשל. נסו שוב.", "The change failed. Please try again.")
         );
@@ -3725,7 +3745,8 @@
         updates[`${userBase()}/items/${categoryId}/${id}/isDone`] = !allDone;
       });
 
-      if (!(await window.safeWrite(update(ref(db), updates), "bulkToggleDone"))) {
+      if (!(await window.safeWrite(update(ref(db), updates), "bulkToggleDone", () => logWriteEvent("bulkToggleDone", true)))) {
+        logWriteEvent("bulkToggleDone", false);
         toast(
           tr("העדכון נכשל. נסו שוב.", "Failed to update. Please try again.")
         );
@@ -3756,7 +3777,8 @@
         updates[`${userBase()}/items/${categoryId}/${id}/isPublic`] = !allShared;
       });
 
-      if (!(await window.safeWrite(update(ref(db), updates), "bulkToggleShared"))) {
+      if (!(await window.safeWrite(update(ref(db), updates), "bulkToggleShared", () => logWriteEvent("bulkToggleShared", true)))) {
+        logWriteEvent("bulkToggleShared", false);
         toast(
           tr("העדכון נכשל. נסו שוב.", "Failed to update. Please try again.")
         );
@@ -3842,7 +3864,8 @@
         return;
       }
 
-      if (!(await window.safeWrite(update(ref(db), updates), "confirmBulkMove"))) {
+      if (!(await window.safeWrite(update(ref(db), updates), "confirmBulkMove", () => logWriteEvent("confirmBulkMove", true)))) {
+        logWriteEvent("confirmBulkMove", false);
         toast(
           tr("ההעברה נכשלה. נסו שוב.", "Failed to move. Please try again.")
         );
@@ -4410,9 +4433,11 @@
                 ...fields
               }
             }),
-            "saveEdit-move"
+            "saveEdit-move",
+            () => logWriteEvent("saveEdit-move", true)
           ))
         ) {
+          logWriteEvent("saveEdit-move", false);
           toast(
             tr("השמירה נכשלה. נסו שוב.", "Failed to save. Please try again.")
           );
@@ -4429,9 +4454,11 @@
               ref(db, `${userBase()}/items/${sourceList}/${editingId}`),
               fields
             ),
-            "saveEdit"
+            "saveEdit",
+            () => logWriteEvent("saveEdit", true)
           ))
         ) {
+          logWriteEvent("saveEdit", false);
           toast(
             tr("השמירה נכשלה. נסו שוב.", "Failed to save. Please try again.")
           );

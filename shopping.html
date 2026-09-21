@@ -1897,6 +1897,22 @@ body.modal-open .modal-card {
   const db = getDatabase(app);
   const auth = getAuth(app);
 
+  // Private analytics dashboard (dashboard.html) write-logging - stage 2.
+  // Fire-and-forget, own .catch - never awaited by callers, never allowed
+  // to affect the real write it's reporting on. _analytics/writes' .write
+  // is "auth != null" (database.rules.json) - any signed-in user can log
+  // an event here, because safeWrite runs in THAT user's own browser. Only
+  // _analytics's own .read is locked to one specific UID (dashboard.html
+  // is the only reader).
+  function logWriteEvent(context, success) {
+    push(ref(db, "_analytics/writes"), {
+      file: "shopping.html",
+      context,
+      success,
+      timestamp: Date.now()
+    }).catch(error => console.warn(`[analytics] failed to log ${context}`, error));
+  }
+
   function doGoogleSignIn() {
     const provider = new GoogleAuthProvider();
 
@@ -4062,9 +4078,11 @@ body.modal-open .modal-card {
     if (
       !(await window.safeWrite(
         runTransaction(ref(db, `${listPath(currentListType)}/${id}/qty`), current => ((parseInt(current) || 1) + delta).toString()),
-        "updateBaseQty"
+        "updateBaseQty",
+        () => logWriteEvent("updateBaseQty", true)
       ))
     ) {
+      logWriteEvent("updateBaseQty", false);
       showToast(tr('העדכון נכשל. נסו שוב.', 'Failed to update. Please try again.'));
       return;
     }
@@ -4106,9 +4124,11 @@ body.modal-open .modal-card {
         if (
           !(await window.safeWrite(
             runTransaction(ref(db, `${listPath(currentListType)}/${existingKey}/qty`), current => ((parseInt(current) || 1) + inputQty).toString()),
-            "addModalForm-updateQty"
+            "addModalForm-updateQty",
+            () => logWriteEvent("addModalForm-updateQty", true)
           ))
         ) {
+          logWriteEvent("addModalForm-updateQty", false);
           showToast(tr('העדכון נכשל. נסו שוב.', 'Failed to update. Please try again.'));
           return;
         }
@@ -4133,9 +4153,11 @@ body.modal-open .modal-card {
             personalQtyMap: {},
             notes: note ? [note] : []
           }),
-          "addModalForm-newItem"
+          "addModalForm-newItem",
+          () => logWriteEvent("addModalForm-newItem", true)
         ))
       ) {
+        logWriteEvent("addModalForm-newItem", false);
         showToast(tr('הוספת הפריט נכשלה. נסו שוב.', 'Failed to add the item. Please try again.'));
         return;
       }
