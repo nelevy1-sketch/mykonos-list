@@ -71,6 +71,8 @@
   <link rel="stylesheet" href="shared.css">
   <script src="toast.js"></script>
   <script src="auth-gate.js"></script>
+  <script src="countryContinent.js"></script>
+  <script src="capitalCities.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -309,6 +311,23 @@
       <section class="metric-card">
         <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
         <div id="serverCallsTokensTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>מדינות שביקרו בהן (כלל המשתמשים)</h2>
+        <p class="metric-big" id="visitorCountriesValue">--</p>
+        <p class="metric-note" id="visitorCountriesNote"></p>
+      </section>
+
+      <section class="metric-card">
+        <h2>ביקורים לפי יבשת (כלל המשתמשים)</h2>
+        <div id="visitorContinentsTable"></div>
+      </section>
+
+      <section class="metric-card">
+        <h2>בירות שביקרו בהן (כלל המשתמשים)</h2>
+        <p class="metric-big" id="visitorCapitalsValue">--</p>
+        <p class="metric-note" id="visitorCapitalsNote"></p>
       </section>
     </main>
   </div>
@@ -810,6 +829,158 @@ function renderServerCallStats(stats) {
   renderTokenRows("serverCallsTokensTable", stats.byFunction);
 }
 
+// --- Cross-user visitor stats (country/continent/capital) - reads
+// _analytics/visitorStats/{uid}, each a mirror written by achievements.html
+// (its own computeCountryVisitInfo output + a trimmed per-visit list -
+// source/countryCode/cityName only) whenever that user's own
+// users/{uid}/visits changes. Merging happens at the RAW-VISIT level (one
+// flat array built from every user's trimmed `visits`), then the exact
+// same computeCountryVisitInfo/computeStats functions achievements.html
+// already uses for a single user are reused completely unchanged here -
+// copied verbatim below, not reimplemented, because dashboard.html and
+// achievements.html don't share a common module for this logic (unlike
+// legs.js/datetime.js's classic-script pattern, which both files load).
+// The only genuinely new code on this page is computeAggregateVisitorStats
+// itself, which does nothing but concatenate arrays before handing them to
+// the unchanged functions below - see CLAUDE.md's own note on this file's
+// commit history about not silently duplicating logic without saying so.
+//
+// computeStats(visits) reads the MODULE-LEVEL `countryVisitInfo` variable
+// (not just its own `visits` parameter) for `visitedCodes` - copied as-is
+// from achievements.html, including this exact quirk, so it must be set
+// immediately before every computeStats() call here, exactly like
+// achievements.html's own startVisitsListener does. ---
+let countryVisitInfo = {};
+
+function computeCountryVisitInfo(visits) {
+  const info = {};
+  Object.values(visits || {}).forEach(v => {
+    if (!v || !v.countryCode) return;
+    const cc = String(v.countryCode).toUpperCase();
+    if (!info[cc]) info[cc] = { hasApp: false, hasManual: false, count: 0 };
+    info[cc].count++;
+    if (v.source === "app") info[cc].hasApp = true;
+    else if (v.source === "manual") info[cc].hasManual = true;
+  });
+  return info;
+}
+
+function normalizeForMatch(str) {
+  return String(str || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[֑-ׇ̀-ͯ]/g, "");
+}
+
+function cityMatchesCapital(cityName, capitalEntries) {
+  const normCity = normalizeForMatch(cityName);
+  if (!normCity) return false;
+  return capitalEntries.some(entry =>
+    [entry.en, entry.he].some(name => {
+      if (!name) return false;
+      const normCapital = normalizeForMatch(name);
+      return normCity.includes(normCapital) || normCapital.includes(normCity);
+    })
+  );
+}
+
+function computeStats(visits) {
+  const worldTotal = Object.keys(window.COUNTRY_CONTINENT || {}).length;
+  const visitedCodes = Object.keys(countryVisitInfo);
+
+  const continentTotals = {};
+  Object.values(window.COUNTRY_CONTINENT || {}).forEach(cont => {
+    continentTotals[cont] = (continentTotals[cont] || 0) + 1;
+  });
+  const continentVisited = {};
+  visitedCodes.forEach(code => {
+    const cont = window.COUNTRY_CONTINENT && window.COUNTRY_CONTINENT[code];
+    if (!cont) return;
+    continentVisited[cont] = (continentVisited[cont] || 0) + 1;
+  });
+
+  let capitalsVisited = 0;
+  visitedCodes.forEach(code => {
+    const capitalEntries = window.CAPITAL_CITIES && window.CAPITAL_CITIES[code];
+    if (!capitalEntries) return;
+    const cityNames = Object.values(visits || {})
+      .filter(v => v && v.cityName && v.countryCode && String(v.countryCode).toUpperCase() === code)
+      .map(v => v.cityName);
+    if (cityNames.some(name => cityMatchesCapital(name, capitalEntries))) capitalsVisited++;
+  });
+
+  return { worldTotal, visitedCount: visitedCodes.length, continentTotals, continentVisited, capitalsVisited };
+}
+
+const CONTINENT_LABELS_HE = {
+  Africa: "אפריקה",
+  Americas: "אמריקה",
+  Asia: "אסיה",
+  Europe: "אירופה",
+  Oceania: "אוקיאניה",
+  Antarctica: "אנטארקטיקה"
+};
+
+// The one genuinely new function on this page - concatenates every user's
+// already-trimmed visits array into one flat list, then hands it to the
+// unchanged functions above exactly as if it were a single user's own
+// visits. Distinct visitors (not events) is the whole point of merging at
+// this level instead of merging pre-aggregated per-user country tallies -
+// a country visited by 3 different users still counts once.
+function computeAggregateVisitorStats(visitorStatsObj) {
+  const mergedVisits = [];
+  Object.values(visitorStatsObj || {}).forEach(userMirror => {
+    if (userMirror && Array.isArray(userMirror.visits)) {
+      mergedVisits.push(...userMirror.visits);
+    }
+  });
+
+  countryVisitInfo = computeCountryVisitInfo(mergedVisits);
+
+  return {
+    stats: computeStats(mergedVisits),
+    userCount: Object.keys(visitorStatsObj || {}).length
+  };
+}
+
+function renderVisitorStats(result) {
+  const { stats, userCount } = result;
+
+  if (!userCount || !stats.visitedCount) {
+    $("visitorCountriesValue").textContent = "--";
+    $("visitorCountriesNote").textContent = "אין נתוני ביקורים עדיין";
+    $("visitorContinentsTable").innerHTML = `<p class="metric-empty">אין נתונים עדיין</p>`;
+    $("visitorCapitalsValue").textContent = "--";
+    $("visitorCapitalsNote").textContent = "";
+    return;
+  }
+
+  const worldPct = Math.round((stats.visitedCount / stats.worldTotal) * 100);
+  $("visitorCountriesValue").textContent = `${stats.visitedCount}/${stats.worldTotal}`;
+  $("visitorCountriesNote").textContent = `${worldPct}% מהעולם - מבוסס על ${userCount} משתמשים`;
+
+  // Not renderRows() - each continent has its OWN total (continentTotals[cont]),
+  // not one shared denominator, so the percent must be computed per-row.
+  const continentContainer = $("visitorContinentsTable");
+  continentContainer.innerHTML = Object.keys(stats.continentVisited)
+    .sort((a, b) => stats.continentVisited[b] - stats.continentVisited[a])
+    .map(cont => {
+      const visited = stats.continentVisited[cont];
+      const total = stats.continentTotals[cont] || 0;
+      const pct = total ? Math.round((visited / total) * 100) : 0;
+      const label = CONTINENT_LABELS_HE[cont] || cont;
+      return `<div class="metric-row">
+        <span class="metric-row-label">${escapeHtml(label)}</span>
+        <span class="metric-row-count">${visited}/${total}</span>
+        <span class="metric-row-percent">${pct}%</span>
+      </div>`;
+    }).join("");
+
+  $("visitorCapitalsValue").textContent = `${stats.capitalsVisited}/${stats.visitedCount}`;
+  $("visitorCapitalsNote").textContent = "בירות שביקרו בהן, מתוך המדינות שביקרו בהן";
+}
+
 async function loadAndRender() {
   try {
     const snapshot = await get(ref(db, "trips"));
@@ -839,6 +1010,16 @@ async function loadAndRender() {
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/serverCalls", error);
     if (window.toast) window.toast("טעינת נתוני קריאות השרת נכשלה", "error");
+  }
+
+  // Fourth independent try/catch, same reasoning - a failure reading
+  // _analytics/visitorStats must not block anything else on this page.
+  try {
+    const visitorStatsSnapshot = await get(ref(db, "_analytics/visitorStats"));
+    renderVisitorStats(computeAggregateVisitorStats(visitorStatsSnapshot.val()));
+  } catch (error) {
+    console.warn("[dashboard] failed to load _analytics/visitorStats", error);
+    if (window.toast) window.toast("טעינת נתוני הביקורים נכשלה", "error");
   }
 }
 

@@ -440,7 +440,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // Same project config as every other page.
 const config = {
@@ -469,6 +469,45 @@ function logWriteEvent(context, success) {
     success,
     timestamp: Date.now()
   }).catch(error => console.warn(`[analytics] failed to log ${context}`, error));
+}
+
+// Private analytics dashboard (dashboard.html) - visitor-stats mirror
+// (cross-user country/continent/capital aggregation). Fires on every
+// users/{uid}/visits change, from startVisitsListener's own onValue
+// callback below - any source, manual entry today or app-written visits
+// in the future, whichever caused the change. Additive and independent of
+// this page's own rendering above it in that callback - never blocks or
+// affects it. _analytics/visitorStats/{uid}'s .write is restricted to
+// auth.uid === $uid (database.rules.json), same ownership shape as
+// users/{uid} itself - startVisitsListener is only ever called with the
+// signed-in user's own uid, never someone else's, so this always
+// satisfies that rule.
+//
+// Stores computeCountryVisitInfo's own output directly - the existing,
+// already-proven function, not reimplemented - plus a trimmed per-visit
+// list keeping only the 3 fields computeCountryVisitInfo/
+// computeContinentVisitInfo/computeStats/computeCityVisitInfo actually
+// read (source, countryCode, cityName), dropping ownerName/timestamps/
+// tripId/legId, which no aggregate stat needs. The trimmed visits (not
+// just countryVisitInfo alone) are what let dashboard.html's merged
+// computeStats() call still correctly cross-reference capitals across
+// every user's data - computeStats needs raw cityName+countryCode pairs
+// for that, not just a country tally - reusing the function completely
+// unchanged there too, not duplicating its logic.
+function mirrorVisitorStats(uid, visits) {
+  const trimmedVisits = Object.values(visits || {})
+    .filter(v => v && v.countryCode)
+    .map(v => ({
+      source: v.source || null,
+      countryCode: v.countryCode,
+      cityName: v.cityName || null
+    }));
+
+  set(ref(db, `_analytics/visitorStats/${uid}`), {
+    countryVisitInfo: computeCountryVisitInfo(visits),
+    visits: trimmedVisits,
+    updatedAt: Date.now()
+  }).catch(error => console.warn("[analytics] failed to mirror visitor stats", error));
 }
 
 const $ = id => document.getElementById(id);
@@ -1000,6 +1039,7 @@ function startVisitsListener(uid) {
     countryVisitInfo = computeCountryVisitInfo(latestVisits);
     continentVisitInfo = computeContinentVisitInfo(countryVisitInfo);
     renderStats();
+    mirrorVisitorStats(uid, latestVisits);
     // Re-applying the same accessor forces globe.gl to re-evaluate every
     // polygon's cap color against the just-updated info - needed because
     // nothing else about the polygons layer changed, so nothing would

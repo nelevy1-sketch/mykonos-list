@@ -1,5 +1,25 @@
 # GitTrip — CHANGELOG
 
+## v4.83.0 — שכבת aggregate לסטטיסטיקת ביקורים חוצת-משתמשים (_analytics/visitorStats)
+
+### 🎯 מה השתנה
+`database.rules.json`: `_analytics/visitorStats/$uid` חדש - `.write` מוגבל ל-`auth.uid === $uid` בלבד (כל משתמש כותב רק לרשומה של עצמו, בדיוק כמו `users/$uid` עצמו), קריא במלואו רק ל-UID הדשבורד (דרך `.read` הקיים כבר ברמת `_analytics`). **לא פורסם עדיין** - הפרסום בקונסולה בידי המשתמש, כרגיל.
+
+`achievements.html`: פונקציה חדשה `mirrorVisitorStats(uid, visits)` - נקראת מתוך `startVisitsListener`'s `onValue` הקיים בכל פעם ש-`users/{uid}/visits` משתנה (כל מקור - טופס ידני היום, `app` עתידית), תוספתית לחלוטין, לא נוגעת ברינדור הקיים. משתמשת ב-`computeCountryVisitInfo` הקיימת (בלי לשכתב לוגיקה) לחשב את הפלט, ושומרת אותו יחד עם רשימת ביקורים מצומצמת (`source`/`countryCode`/`cityName` בלבד - בלי `ownerName`/חותמות זמן/`tripId`/`legId`, שאף סטטיסטיקה מצטברת לא צריכה) ל-`_analytics/visitorStats/{uid}`.
+
+`dashboard.html`: קורא `_analytics/visitorStats` (קריאה אחת), מאחד את רשימות הביקורים המצומצמות של כל המשתמשים למערך שטוח אחד, ומזין אותו ל-`computeCountryVisitInfo`/`computeStats` - **מועתקות מ-achievements.html ללא שינוי** (אין קובץ משותף בין שני העמודים לפונקציות האלה, בדיוק כמו ש-`scripts/backfill-visits.js` כבר משכפל לוגיקת `legs.js` ל-Node - אותו נימוק). מציג: מדינות שביקרו בהן מתוך העולם, פילוח יבשות (ממוין מהגבוה ביותר), ובירות שביקרו בהן.
+
+`scripts/backfill-visitor-stats.js` (חדש, בהשראת `scripts/backfill-visits.js`): סקריפט חד-פעמי, **Admin SDK** (לא טוקן רגיל כמו הסקריפט הקיים) - כי המשימה כאן היא בדיוק מה ש-`backfill-visits.js` כבר תיעד כדורש הרשאת Admin: קריאת `/users.json` כעץ שלם. Admin SDK עוקף את `database.rules.json` לגמרי, אז אין צורך גם בזיהוי UIDs דרך `memberProfiles` - קורא `/users.json` ישירות. אידמפוטנטי מבנית (`set()` דורס בכל הרצה, לא `push()`) - פשוט יותר מהאידמפוטנטיות של `backfill-visits.js`. **לא הורץ** - מוכן להרצה בידי המשתמש בלבד (`node scripts/backfill-visitor-stats.js --apply`), דורש `GOOGLE_APPLICATION_CREDENTIALS` (Admin SDK הרגיל, לא env var ייחודי ל-GitTrip).
+
+### 🔍 מה שנבדק בפועל
+- `mirrorVisitorStats`: קריאה ישירה (hook זמני) עם דאטה מפוברקת (2 מדינות, ביקור app+manual באותה מדינה) - `computeCountryVisitInfo` חישבה נכון (`hasApp`/`hasManual`/`count` לפי הציפייה המדויקת), הכתיבה האמיתית ל-`_analytics/visitorStats/{uid}` ניסתה את הנתיב הנכון (נדחתה - `PERMISSION_DENIED`, מגבלת הסביבה הידועה - ללא auth אמיתי).
+- `dashboard.html`: 3 משתמשים מפוברקים (TH/GR/IT/FR, כולל חפיפת מדינה בין שני משתמשים) - התוצאה (4/248 מדינות, 2%, אירופה 3/51 6%, אסיה 1/50 2%, 4/4 בירות) תואמת בדיוק חישוב ידני עצמאי. כהה נבדק (צילום מסך).
+- `node --check` נקי בכל 3 הקבצים (`achievements.html`, `dashboard.html`, `scripts/backfill-visitor-stats.js`). `database.rules.json` תקין JSON. `scripts/i18n-audit.js` - 0 ממצאים חדשים.
+- הסקריפט **לא הורץ** מול production - רק אומת שהוא נטען, מתחבר ל-`firebase-admin` דרך `functions/node_modules` בהצלחה, ומנסה את הפעולה הנכונה (נכשל כצפוי בלי credentials אמיתיים - `app/invalid-credential`, לא נגע בשום דאטה אמיתי).
+- כל hook-בדיקה זמני הוסר ואומת שהוסר (0 ב-2 הקבצים).
+
+**תכונה חדשה (schema + לוגיקת aggregate) → minor bump.**
+
 ## v4.82.1 — תיקון: הוספת ציוד ידנית נכשלת בשקט; חיבור תמונות/ציוד ללוגינג האנליטיקס
 
 ### 🐛 הבאג הדחוף
