@@ -381,6 +381,15 @@
       gap: 14px;
       margin-bottom: 14px;
     }
+    /* Stage 6 - single card today, but grid/gap/margin match every other
+       section wrapper on the page (same shape everywhere, stage 5's own
+       consistency pass) rather than a one-off rule just because it's
+       currently one card. */
+    #activityChartsSection {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
     .chart-wrap {
       position: relative;
       height: 230px;
@@ -645,6 +654,26 @@
           </div>
           <p class="metric-note" id="characterNote"></p>
         </div>
+      </div>
+    </section>
+
+    <!-- Stage 6 - content-activity volume (music/photos/places/packing)
+         over time, built entirely from _analytics/writes' own context+
+         timestamp fields - zero new instrumentation. Own section (not
+         folded into #tripsChartsSection above it) since it's a different
+         data source (_analytics/writes, not trips/) - same reasoning
+         #writesChartsSection/#visitorStatsSection already got their own
+         sections rather than being appended to an existing one. Placed
+         directly below the trips timeline, above the writes/server-call
+         charts - a deliberate bridge position between "trips/ data" and
+         "_analytics/writes data" above/below it. -->
+    <section id="activityChartsSection">
+      <div class="metric-card">
+        <h2>כמויות פעילות לפי תאריך</h2>
+        <div class="chart-wrap">
+          <canvas id="activityTimelineChart" role="img" aria-label="גרף קו - כמות פעילות מצטברת לפי תאריך, לפי קטגוריה: מוזיקה, תמונות, מקומות וציוד"></canvas>
+        </div>
+        <p class="metric-note" id="activityTimelineNote"></p>
       </div>
     </section>
 
@@ -940,6 +969,54 @@ const FEATURE_LABELS = {
 const CATEGORICAL_PALETTE = ["#2DD4C8", "#38BDF8", "#818CF8", "#C084FC", "#FB923C", "#F472B6", "#A3E635"];
 const CHART_ACCENT = CATEGORICAL_PALETTE[0];
 
+// Stage 6 - "content activity" categories, built entirely from
+// _analytics/writes' own context+timestamp fields (already collected by
+// every page's existing logWriteEvent() calls, via safeWrite.js's
+// onSuccess hook) - zero new instrumentation, matching this stage's own
+// framing. Each context string verified directly against every
+// logWriteEvent() call site in the repo (packing/places/itinerary/
+// shopping/index/achievements.html), not guessed. Deliberately NOT every
+// context that exists under these 4 pages - only ones where a user is
+// actually adding/editing real trip content (a song, a photo, a place, a
+// packing item). Excluded on purpose: list-management/toggle/
+// administrative contexts that share a file with an included one but
+// aren't "content" themselves - ensureStarterLists/createListReturningId/
+// duplicateList/setListVisibility/renameList (packing list-level admin,
+// not an item), subItemCheck/bulkToggleDone/bulkToggleShared/
+// confirmBulkMove (packing - toggling/reorganizing existing items, not
+// adding content), and everything under shopping.html/index.html/
+// achievements.html (a different domain entirely - grocery lists,
+// membership/locker/flight admin, manual country visits). "Update"
+// contexts ARE included for music/places/packing (saveMusic-update,
+// savePlace-update, saveEdit/saveEdit-move) - an edit to real content is
+// still activity on that content, same as an add; this is why "ציוד"
+// isn't just addItem alone despite the task's own shorthand naming only
+// that one context by name.
+const ACTIVITY_CATEGORIES = {
+  music: { label: "מוזיקה", contexts: ["saveMusic-add", "saveMusic-update"] },
+  photos: { label: "תמונות", contexts: ["uploadPhotos"] },
+  places: { label: "מקומות", contexts: ["savePlace-add", "savePlace-update", "addPlaceToDay"] },
+  packing: {
+    label: "ציוד",
+    contexts: [
+      "addItem", "addSubItem", "saveEdit", "saveEdit-move",
+      "addToSuggestedCategory-createParent", "addToSuggestedCategory-subItem",
+      "importItem"
+    ]
+  }
+};
+// Fixed per-category color (not palette-index-by-sort-order) - so music
+// is always the same color across reloads regardless of which category
+// happens to have the most events that day, same reasoning as every
+// other CHART_* constant on this page being hardcoded rather than
+// computed at render time.
+const ACTIVITY_CATEGORY_COLORS = {
+  music: CATEGORICAL_PALETTE[0],
+  photos: CATEGORICAL_PALETTE[1],
+  places: CATEGORICAL_PALETTE[2],
+  packing: CATEGORICAL_PALETTE[3]
+};
+
 // Redesign stage 4/5 - flat SVG dot map. [lat, lon] centroid per ISO
 // 3166-1 alpha-2 code, one entry for every code window.COUNTRY_CONTINENT
 // itself has (248, cross-checked against that same file's own code list -
@@ -1140,18 +1217,20 @@ function computeMetrics(tripsObj) {
 // array) - same standalone-function pattern as computeWriteStats/
 // computeServerCallStats below, each doing its own Object.values(...)
 // rather than threading a shared array through every function.
-function computeTripsTimeline(tripsObj) {
-  const dates = Object.values(tripsObj || {})
-    .filter(Boolean)
-    .map(t => t.createdAt)
-    .filter(Boolean)
-    .map(ms => new Date(ms))
-    .sort((a, b) => a - b);
-
-  if (!dates.length) return { labels: [], data: [], granularity: null };
-
-  const spanDays = (dates[dates.length - 1] - dates[0]) / (1000 * 60 * 60 * 24);
-  const granularity = (dates.length <= 20 || spanDays <= 45) ? "day"
+// Stage 6 - extracted from computeTripsTimeline (stage 2) the moment a
+// second caller (computeActivityTimeline, below) needed the exact same
+// day/week/month choice - not copied a second time, same reasoning as
+// this codebase's own datetime.js/legs.js precedent (CLAUDE.md). Takes
+// an already-sorted, non-empty Date[]; returns a key function (buckets
+// one Date into its granularity-appropriate string key) and a label
+// formatter for that key - NOT the counting/cumulative logic itself,
+// which differs between a single series (computeTripsTimeline) and
+// several series sharing one set of buckets (computeActivityTimeline).
+// Pure extraction - behavior unchanged, verified against the trips
+// timeline chart still rendering identically after this refactor.
+function chooseDateGranularity(sortedDates) {
+  const spanDays = (sortedDates[sortedDates.length - 1] - sortedDates[0]) / (1000 * 60 * 60 * 24);
+  const granularity = (sortedDates.length <= 20 || spanDays <= 45) ? "day"
     : (spanDays <= 240) ? "week"
     : "month";
 
@@ -1168,6 +1247,32 @@ function computeTripsTimeline(tripsObj) {
   const monthKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   const keyFn = granularity === "day" ? dayKey : granularity === "week" ? weekKey : monthKey;
 
+  // Month labels stay as the raw "YYYY-MM" key (same format the old
+  // table showed) - day/week labels are reformatted from their y-m-d key
+  // into a short locale date, more readable on a chart axis than a full
+  // ISO string.
+  const formatLabel = granularity === "month"
+    ? (key => key)
+    : (key => {
+        const [y, mo, d] = key.split("-").map(Number);
+        return new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "numeric" }).format(new Date(y, mo - 1, d));
+      });
+
+  return { granularity, keyFn, formatLabel };
+}
+
+function computeTripsTimeline(tripsObj) {
+  const dates = Object.values(tripsObj || {})
+    .filter(Boolean)
+    .map(t => t.createdAt)
+    .filter(Boolean)
+    .map(ms => new Date(ms))
+    .sort((a, b) => a - b);
+
+  if (!dates.length) return { labels: [], data: [], granularity: null };
+
+  const { granularity, keyFn, formatLabel } = chooseDateGranularity(dates);
+
   const counts = {};
   dates.forEach(d => {
     const key = keyFn(d);
@@ -1177,19 +1282,70 @@ function computeTripsTimeline(tripsObj) {
   const sortedKeys = Object.keys(counts).sort();
   let cumulative = 0;
   const data = sortedKeys.map(key => (cumulative += counts[key]));
-
-  // Month labels stay as the raw "YYYY-MM" key (same format the old
-  // table showed) - day/week labels are reformatted from their y-m-d key
-  // into a short locale date, more readable on a chart axis than a full
-  // ISO string.
-  const labels = granularity === "month"
-    ? sortedKeys
-    : sortedKeys.map(key => {
-        const [y, mo, d] = key.split("-").map(Number);
-        return new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "numeric" }).format(new Date(y, mo - 1, d));
-      });
+  const labels = sortedKeys.map(formatLabel);
 
   return { labels, data, granularity };
+}
+
+// Stage 6 - 4 cumulative series (one per ACTIVITY_CATEGORIES key) sharing
+// ONE set of date buckets, so they can be plotted on the same x-axis.
+// Granularity is chosen from the POOLED span/count across all 4
+// categories together (chooseDateGranularity, same helper
+// computeTripsTimeline uses) - not decided per-category, which would give
+// each line its own incompatible bucket boundaries. Only successful
+// writes count - a failed write saved nothing, so it shouldn't inflate a
+// "how much real content exists by now" curve (different from
+// computeWriteStats' own success-RATE stat, which deliberately counts
+// every attempt including failures).
+function computeActivityTimeline(writesObj) {
+  const events = Object.values(writesObj || {}).filter(Boolean);
+
+  const contextToCategory = {};
+  Object.entries(ACTIVITY_CATEGORIES).forEach(([key, cat]) => {
+    cat.contexts.forEach(ctx => { contextToCategory[ctx] = key; });
+  });
+
+  const categoryDates = {};
+  const totals = {};
+  Object.keys(ACTIVITY_CATEGORIES).forEach(key => {
+    categoryDates[key] = [];
+    totals[key] = 0;
+  });
+
+  events.forEach(e => {
+    if (!e.success || !e.timestamp || !e.context) return;
+    const cat = contextToCategory[e.context];
+    if (!cat) return;
+    categoryDates[cat].push(new Date(e.timestamp));
+    totals[cat]++;
+  });
+
+  const allDates = Object.values(categoryDates).flat().sort((a, b) => a - b);
+  if (!allDates.length) return { labels: [], datasets: [], totals };
+
+  const { keyFn, formatLabel } = chooseDateGranularity(allDates);
+
+  const perCategoryCounts = {};
+  const allKeys = new Set();
+  Object.keys(ACTIVITY_CATEGORIES).forEach(key => {
+    perCategoryCounts[key] = {};
+    categoryDates[key].forEach(d => {
+      const bucketKey = keyFn(d);
+      perCategoryCounts[key][bucketKey] = (perCategoryCounts[key][bucketKey] || 0) + 1;
+      allKeys.add(bucketKey);
+    });
+  });
+
+  const sortedKeys = Array.from(allKeys).sort();
+  const labels = sortedKeys.map(formatLabel);
+
+  const datasets = Object.entries(ACTIVITY_CATEGORIES).map(([key, cat]) => {
+    let cumulative = 0;
+    const data = sortedKeys.map(bucketKey => (cumulative += (perCategoryCounts[key][bucketKey] || 0)));
+    return { key, label: cat.label, data };
+  });
+
+  return { labels, datasets, totals };
 }
 
 // --- Rendering - plain rows (still used by several cards below this
@@ -1345,6 +1501,78 @@ function renderTripsTimelineChart(timeline) {
       }
     }
   });
+}
+
+// Stage 6 - 4-series version of renderTripsTimelineChart above (same
+// line-chart shape, same axis/tooltip styling), fill:false instead of
+// true - 4 filled/stacked-looking areas on one chart would be far
+// harder to read than 4 clean lines, unlike the single-series trips
+// chart where a filled area under one line reads fine.
+function renderActivityTimelineChart(timeline) {
+  destroyChart("activityTimelineChart");
+  const canvas = $("activityTimelineChart");
+
+  if (!timeline.labels.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
+    return;
+  }
+  setChartEmptyState(canvas, false);
+
+  chartInstances.activityTimelineChart = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: timeline.labels,
+      datasets: timeline.datasets.map(ds => ({
+        label: ds.label,
+        data: ds.data,
+        borderColor: ACTIVITY_CATEGORY_COLORS[ds.key],
+        backgroundColor: ACTIVITY_CATEGORY_COLORS[ds.key],
+        fill: false,
+        tension: 0.25,
+        pointRadius: timeline.labels.length > 40 ? 0 : 2,
+        pointBackgroundColor: ACTIVITY_CATEGORY_COLORS[ds.key]
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: CHART_TEXT } },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1
+        }
+      },
+      scales: {
+        x: { ticks: { color: CHART_MUTED, maxRotation: 45, minRotation: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID } },
+        y: { ticks: { color: CHART_MUTED, precision: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Item 3 of this stage's own task - a small "most active category"
+// breakdown next to the chart, decided worth adding (reported): one line
+// of real headline insight (which category dominates, and by how much)
+// at near-zero visual cost, same "caption under a chart" pattern this
+// page already uses (visitorMapNote/characterNote), not a whole second
+// card/table for a single number.
+function renderActivityTimelineNote(totals) {
+  const entries = Object.entries(totals || {}).filter(([, count]) => count > 0);
+  if (!entries.length) {
+    $("activityTimelineNote").textContent = "";
+    return;
+  }
+  entries.sort((a, b) => b[1] - a[1]);
+  const [topKey, topCount] = entries[0];
+  const totalAll = entries.reduce((sum, [, count]) => sum + count, 0);
+  const pct = Math.round((topCount / totalAll) * 100);
+  $("activityTimelineNote").textContent =
+    `הכי פעילה: ${ACTIVITY_CATEGORIES[topKey].label} (${topCount} מתוך ${totalAll}, ${pct}%)`;
 }
 
 // Shared by all 3 donut charts (type/language/character) - entries is
@@ -2070,6 +2298,11 @@ async function loadAndRender() {
       const pct = Math.round((writeStats.successCount / writeStats.total) * 100);
       updateKPI("kpiWriteSuccess", `${pct}%`, pct >= 90 ? "good" : "bad");
     }
+
+    // Stage 6 - same already-fetched writesSnapshot, no second read.
+    const activityTimeline = computeActivityTimeline(writesSnapshot.val());
+    renderActivityTimelineChart(activityTimeline);
+    renderActivityTimelineNote(activityTimeline.totals);
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/writes", error);
     if (window.toast) window.toast("טעינת נתוני הכתיבות נכשלה", "error");
