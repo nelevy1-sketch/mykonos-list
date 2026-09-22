@@ -187,6 +187,19 @@
        and the file header above for why the "capitals visited" stat is
        fuzzy on purpose. -->
   <script src="capitalCities.js"></script>
+  <!-- Gamification (level track + badge grid) dependency: the "5+ יעדים
+       שונים בטיול אחד" badge counts distinct real-stay legs across every
+       trip the signed-in user belongs to (users/{uid}/trips index ->
+       trips/{tripId}/legs), via window.getLegs()/window.isRealVisit() -
+       legs.js's own isRealVisit was written specifically for this feature
+       (see its file header) but never called until now. Same load order
+       as itinerary.html (legs.js then datetime.js) - isRealVisit only
+       calls window.dateKeyInZone at invocation time, not at parse time,
+       so the two scripts' relative order doesn't actually matter, but
+       matching the existing convention avoids a third, different order
+       existing in the codebase for no reason. -->
+  <script src="legs.js"></script>
+  <script src="datetime.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -370,6 +383,207 @@
       pointer-events: none;
       direction: ltr;
     }
+
+    /* Gamification: level track (Duolingo-style horizontal path) + badge
+       grid, placed above stats-block/globe on purpose - a deliberate
+       product decision (both stay fixed at the top and the globe shrinks
+       to make room, rather than hiding either behind a sheet). Horizontal-
+       scroll mechanics (flex/overflow/scrollbar-width:none + the
+       pointer:fine desktop-scrollbar fallback) are copied from
+       packing.html's .quick-picks - the already-fixed reference pattern
+       (CLAUDE.md), not .forecast-strip's still-broken one. scroll-snap is
+       new to this codebase (no prior use) but standard/low-risk, added on
+       top for the "each station is a resting point" feel. No --glow-color
+       here - this page loads no theme-{tripType} class (see file header),
+       so that token is simply undefined on it; glows below build off
+       --primary directly instead, same as everywhere else on this page. */
+    .level-track-wrap {
+      flex: 0 0 auto;
+      margin: 4px 0 8px;
+    }
+    .level-track {
+      position: relative;
+      display: flex;
+      gap: 22px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      padding-block: 10px 4px;
+      padding-inline: 20px;
+      scroll-snap-type: x proximity;
+    }
+    .level-track::-webkit-scrollbar { display: none; }
+    .level-track::before {
+      content: "";
+      position: absolute;
+      inset-inline: 20px;
+      top: 32px;
+      height: 2px;
+      background: var(--line);
+      z-index: 0;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .level-track {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+        padding-block-end: 10px;
+      }
+      .level-track::-webkit-scrollbar { display: block; height: 5px; }
+      .level-track::-webkit-scrollbar-track { background: transparent; }
+      .level-track::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+    }
+    .level-station {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      width: 68px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      scroll-snap-align: center;
+      text-align: center;
+    }
+    .level-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      background: var(--surface);
+      border: 2px solid var(--line);
+      filter: grayscale(1);
+      opacity: .45;
+    }
+    .level-station.achieved .level-dot {
+      background: var(--primary);
+      border-color: var(--primary);
+      filter: none;
+      opacity: 1;
+    }
+    .level-station.current .level-dot {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent),
+                  0 0 14px color-mix(in srgb, var(--primary) 55%, transparent);
+      animation: level-pulse 2.2s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .level-station.current .level-dot { animation: none; }
+    }
+    @keyframes level-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    .level-name {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+    .level-station.achieved .level-name { color: var(--primary-dark); }
+
+    .level-next-hint {
+      margin: 2px 16px 0;
+      font-size: .74rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .level-next-hint.hidden { display: none; }
+
+    /* Badge grid - a real 2D grid on purpose (not another horizontal
+       scroller), per the feature's own spec: it should read as visually
+       distinct from the level track above it. 4 columns fits 375px width
+       (the app's own minimum test width) without cramping. */
+    .badge-grid {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 0 16px 10px;
+    }
+    .badge-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 4px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .badge-tile.locked {
+      opacity: .5;
+      filter: grayscale(1);
+    }
+    .badge-tile.unlocked {
+      border-color: var(--primary);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .badge-tile.unlocked:hover {
+        box-shadow: 0 0 0 1px var(--primary),
+                    0 0 12px color-mix(in srgb, var(--primary) 40%, transparent);
+      }
+    }
+    .badge-icon { font-size: 1.3rem; }
+    .badge-name {
+      font-size: .62rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.15;
+    }
+    .badge-progress {
+      font-size: .6rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* Celebration overlay - full-screen, tap-anywhere-to-dismiss, per the
+       feature spec. Not itinerary.html's/index.html's .overlay+.sheet
+       (those are bottom-sheets over an already-visible page; this is a
+       full centered takeover with confetti behind it - different enough
+       visual language to warrant its own rules rather than reusing that
+       component and fighting its bottom-anchored layout). */
+    .celebration-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(11, 16, 21, 0.82);
+      color: #fff;
+      text-align: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+    .celebration-overlay.show { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .celebration-overlay { transition: none; }
+    }
+    .celebration-overlay.hidden { display: none; }
+    .celebration-kicker {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #FFD166;
+      letter-spacing: .02em;
+    }
+    .celebration-icon {
+      font-size: 4rem;
+      line-height: 1;
+    }
+    .celebration-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+    .celebration-hint {
+      margin-top: 14px;
+      font-size: .74rem;
+      opacity: .7;
+    }
   </style>
 </head>
 <body>
@@ -391,6 +605,12 @@
     <h1>🏆 ההישגים שלי</h1>
     <button class="icon-btn" id="themeBtn" aria-label="החלפת מצב תצוגה" title="החלפת מצב תצוגה">🌙</button>
   </header>
+
+  <div class="level-track-wrap">
+    <div class="level-track" id="levelTrack"></div>
+    <div class="level-next-hint hidden" id="levelNextHint"></div>
+  </div>
+  <div class="badge-grid" id="badgeGrid"></div>
 
   <div class="stats-block" id="statsBlock"></div>
 
@@ -434,13 +654,20 @@
 
 <div id="fpsHud">FPS --</div>
 
+<div class="celebration-overlay hidden" id="celebrationOverlay">
+  <div class="celebration-kicker" id="celebrationKicker"></div>
+  <div class="celebration-icon" id="celebrationIcon"></div>
+  <div class="celebration-name" id="celebrationName"></div>
+  <div class="celebration-hint">געו בכל מקום כדי להמשיך</div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, get, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // Same project config as every other page.
 const config = {
@@ -585,6 +812,12 @@ function handleAuthStateChanged(user) {
     signInLogged = true;
     logSignInEvent(user);
   }
+
+  if (user && !gamificationStarted) {
+    gamificationStarted = true;
+    loadStoredGamification(user.uid);
+    refreshMultiLegBadge(user.uid);
+  }
 }
 onAuthStateChanged(auth, handleAuthStateChanged);
 if (window.armAuthGate) {
@@ -608,6 +841,11 @@ let visitsListenerStarted = false;
 // "only once, on first real user" shape, not a reason to piggyback on
 // either of those two's own flag.
 let signInLogged = false;
+// Gamification (level track + badge grid) - same "only once, on first real
+// user" shape as globeStarted/visitsListenerStarted/signInLogged above, own
+// flag for the same reason signInLogged has its own: an unrelated concern
+// that happens to need identical guarding.
+let gamificationStarted = false;
 let world = null; // set once startGlobe()'s Globe() call resolves - read by startVisitsListener()'s onValue callback to force a repaint when new data arrives after the globe already exists.
 
 // --- Country identification bridge - see the file header comment for why
@@ -1100,6 +1338,7 @@ function startVisitsListener(uid) {
     continentVisitInfo = computeContinentVisitInfo(countryVisitInfo);
     renderStats();
     mirrorVisitorStats(uid, latestVisits);
+    evaluateGamification(uid);
     // Re-applying the same accessor forces globe.gl to re-evaluate every
     // polygon's cap color against the just-updated info - needed because
     // nothing else about the polygons layer changed, so nothing would
@@ -1116,6 +1355,302 @@ function startVisitsListener(uid) {
     console.warn("[achievements] users/{uid}/visits read failed", error);
     if (window.toast) window.toast(error.message, "error");
   });
+}
+
+// --- Gamification: level track (5-tier, country-count based) + badge grid
+// (7 specific achievements). Computed fresh on every visits/trips change,
+// same "no caching of derived numbers" rule as computeStats/renderStats
+// above - only users/{uid}/gamification (currentLevel + seenBadges) is
+// actually persisted, and only to remember what's already been celebrated,
+// never as the source of truth for what's currently true. ---
+
+const GAMIFICATION_LEVELS = [
+  { key: "curious_local", icon: "🎒", name: "סקרן מקומי", min: 1 },
+  { key: "path_finder", icon: "🧭", name: "מגלה שבילים", min: 5 },
+  { key: "map_explorer", icon: "🗺️", name: "חוקר מפות", min: 10 },
+  { key: "pro_nomad", icon: "🌍", name: "נווד מקצועי", min: 25 },
+  { key: "legend", icon: "👑", name: "אגדת מסעות", min: 50 }
+];
+
+// Highest index whose threshold is met, or -1 if not even the first (1
+// country) is met yet. GAMIFICATION_LEVELS is ordered ascending by min, so
+// the first failing threshold ends the search - no need to check the rest.
+function computeCurrentLevelIndex(visitedCount) {
+  let index = -1;
+  for (let i = 0; i < GAMIFICATION_LEVELS.length; i++) {
+    if (visitedCount >= GAMIFICATION_LEVELS[i].min) index = i;
+    else break;
+  }
+  return index;
+}
+
+// Badge #4's own axis (calendar year, not lifetime total) - visitedAt is a
+// plain optional date the user picks when logging a manual visit (see the
+// manual-visit form above), not a trip-scoped, timezone-anchored instant
+// like legs[n].startAt - so a plain getFullYear() in the browser's own
+// local time is the right level of precision here, not dateKeyInZone.
+function maxCountriesInOneCalendarYear(visits) {
+  const byYear = {};
+  Object.values(visits || {}).forEach(v => {
+    if (!v || !v.countryCode || !v.visitedAt) return;
+    const year = new Date(v.visitedAt).getFullYear();
+    if (!Number.isFinite(year)) return;
+    if (!byYear[year]) byYear[year] = new Set();
+    byYear[year].add(String(v.countryCode).toUpperCase());
+  });
+  let max = 0;
+  Object.values(byYear).forEach(set => { if (set.size > max) max = set.size; });
+  return max;
+}
+
+const GAMIFICATION_BADGES = [
+  {
+    key: "first_country", icon: "🌱", name: "מדינה ראשונה",
+    compute: ctx => ({ done: ctx.stats.visitedCount >= 1, progress: Math.min(ctx.stats.visitedCount, 1), target: 1 })
+  },
+  {
+    key: "continents_3", icon: "🌐", name: "3+ יבשות",
+    compute: ctx => {
+      const n = Object.keys(ctx.continentVisitInfo).length;
+      return { done: n >= 3, progress: Math.min(n, 3), target: 3 };
+    }
+  },
+  {
+    key: "capitals_5", icon: "🏛️", name: "5 בירות",
+    compute: ctx => ({ done: ctx.stats.capitalsVisited >= 5, progress: Math.min(ctx.stats.capitalsVisited, 5), target: 5 })
+  },
+  {
+    key: "countries_10_year", icon: "📅", name: "10 מדינות בשנה קלנדרית אחת",
+    compute: ctx => ({ done: ctx.maxCountriesInYear >= 10, progress: Math.min(ctx.maxCountriesInYear, 10), target: 10 })
+  },
+  {
+    // Distinct real-stay leg destinations within a single trip - see the
+    // legs.js script-tag comment above for why this reads
+    // trips/{tripId}/legs (via users/{uid}/trips) instead of visits.
+    key: "multi_leg_5", icon: "🧳", name: "5+ יעדים שונים בטיול אחד",
+    compute: ctx => ({ done: ctx.maxDestinationsInTrip >= 5, progress: Math.min(ctx.maxDestinationsInTrip, 5), target: 5 })
+  },
+  {
+    key: "all_continents", icon: "🧭", name: "כל היבשות חוץ מאנטארקטיקה",
+    compute: ctx => {
+      const need = ["Africa", "Americas", "Asia", "Europe", "Oceania"];
+      const have = need.filter(c => ctx.continentVisitInfo[c]);
+      return { done: have.length === need.length, progress: have.length, target: need.length };
+    }
+  },
+  {
+    key: "europe_5", icon: "🇪🇺", name: "5+ מדינות באירופה",
+    compute: ctx => {
+      const n = Object.keys(ctx.countryVisitInfo)
+        .filter(cc => window.COUNTRY_CONTINENT && window.COUNTRY_CONTINENT[cc] === "Europe").length;
+      return { done: n >= 5, progress: Math.min(n, 5), target: 5 };
+    }
+  }
+];
+
+// --- Badge #5's data source: every trip the signed-in user belongs to
+// (owner or member - users/{uid}/trips is written for both, see
+// shopping.html's join flow), read once (not a live listener - trip
+// destinations essentially never change after the fact, and this is a
+// multi-fetch operation not worth re-running on every visits tick). ---
+let maxDestinationsInTrip = 0;
+
+async function computeMaxDestinationsInTrip(uid) {
+  const userTripsSnap = await get(ref(db, `users/${uid}/trips`));
+  const tripIds = Object.keys(userTripsSnap.val() || {});
+  if (!tripIds.length) return 0;
+
+  const tripSnaps = await Promise.all(tripIds.map(id => get(ref(db, `trips/${id}`))));
+
+  let max = 0;
+  tripSnaps.forEach(snap => {
+    const trip = snap.val();
+    if (!trip) return; // trip was deleted but this user's own index entry lingers - skip silently, not an error
+    const legs = (window.getLegs(trip) || []).filter(window.isRealVisit);
+    const names = new Set(legs.map(l => String(l.name || "").trim().toLowerCase()).filter(Boolean));
+    if (names.size > max) max = names.size;
+  });
+  return max;
+}
+
+async function refreshMultiLegBadge(uid) {
+  try {
+    maxDestinationsInTrip = await computeMaxDestinationsInTrip(uid);
+  } catch (error) {
+    console.warn("[achievements] failed to compute multi-leg badge", error);
+    maxDestinationsInTrip = 0;
+  }
+  evaluateGamification(uid);
+}
+
+// --- Persisted "already seen" state (users/{uid}/gamification - no new
+// RTDB rule needed, users/$uid's existing rule already covers every child
+// path). Loaded once via get(), then kept in memory and updated locally on
+// every write this session - not re-read after each write - so a second
+// evaluateGamification() call in the same session (visits tick right after
+// the trips fetch resolves, say) diffs against the just-updated copy
+// instead of stale data and never re-queues the same celebration twice. ---
+let storedGamification = null;
+let gamificationLoaded = false;
+
+async function loadStoredGamification(uid) {
+  try {
+    const snap = await get(ref(db, `users/${uid}/gamification`));
+    storedGamification = snap.val() || { currentLevel: -1, seenBadges: {} };
+  } catch (error) {
+    console.warn("[achievements] failed to load stored gamification state", error);
+    // Fail open: worst case a badge/level already seen in a previous
+    // session gets celebrated again once - better than getting permanently
+    // stuck never celebrating anything because this one read failed.
+    storedGamification = { currentLevel: -1, seenBadges: {} };
+  }
+  gamificationLoaded = true;
+  evaluateGamification(uid);
+}
+
+function evaluateGamification(uid) {
+  const stats = computeStats(latestVisits);
+  const ctx = {
+    stats,
+    continentVisitInfo,
+    countryVisitInfo,
+    maxCountriesInYear: maxCountriesInOneCalendarYear(latestVisits),
+    maxDestinationsInTrip
+  };
+
+  const levelIndex = computeCurrentLevelIndex(stats.visitedCount);
+  const badgeResults = GAMIFICATION_BADGES.map(b => ({ ...b, result: b.compute(ctx) }));
+
+  renderLevelTrack(levelIndex, stats.visitedCount);
+  renderBadgeGrid(badgeResults);
+  detectAndCelebrateUnlocks(uid, levelIndex, badgeResults);
+}
+
+function renderLevelTrack(levelIndex, visitedCount) {
+  $("levelTrack").innerHTML = GAMIFICATION_LEVELS.map((lvl, i) => {
+    const state = i < levelIndex ? "achieved" : i === levelIndex ? "achieved current" : "locked";
+    return `
+      <div class="level-station ${state}">
+        <div class="level-dot">${lvl.icon}</div>
+        <div class="level-name">${escapeHtml(lvl.name)}</div>
+      </div>`;
+  }).join("");
+
+  const hintEl = $("levelNextHint");
+  const nextLevel = GAMIFICATION_LEVELS[levelIndex + 1];
+  if (nextLevel) {
+    const remaining = nextLevel.min - visitedCount;
+    hintEl.textContent = `עוד ${remaining} ${remaining === 1 ? "מדינה" : "מדינות"} ועוברים ל${nextLevel.icon} ${nextLevel.name}`;
+    hintEl.classList.remove("hidden");
+  } else if (levelIndex >= 0) {
+    hintEl.textContent = "הגעת לדרגה הגבוהה ביותר!";
+    hintEl.classList.remove("hidden");
+  } else {
+    hintEl.classList.add("hidden");
+  }
+}
+
+function renderBadgeGrid(badgeResults) {
+  $("badgeGrid").innerHTML = badgeResults.map(b => {
+    const progressText = !b.result.done && b.result.target > 1 ? `${b.result.progress}/${b.result.target}` : "";
+    return `
+      <div class="badge-tile ${b.result.done ? "unlocked" : "locked"}" title="${escapeHtml(b.name)}">
+        <div class="badge-icon">${b.icon}</div>
+        <div class="badge-name">${escapeHtml(b.name)}</div>
+        ${progressText ? `<div class="badge-progress">${escapeHtml(progressText)}</div>` : ""}
+      </div>`;
+  }).join("");
+}
+
+// --- Unlock diff + celebration queue (Q7/Q8 from the investigation).
+// Compares freshly-computed level/badges against storedGamification,
+// queues one celebration per newly-true item (ascending level order first,
+// then badges), and persists the merged state immediately - marked "seen"
+// the moment it's detected, not when the celebration is dismissed, so a
+// closed tab mid-celebration never replays it on next load. Handles a
+// multi-unlock backfill (e.g. a user who already had 12 countries before
+// this feature shipped) by queuing every level/badge crossed, not just the
+// final one. ---
+let celebrationQueue = [];
+let celebrationShowing = false;
+
+function detectAndCelebrateUnlocks(uid, levelIndex, badgeResults) {
+  if (!gamificationLoaded) return; // loadStoredGamification's own .then re-invokes this once it resolves
+
+  const storedLevel = typeof storedGamification.currentLevel === "number" ? storedGamification.currentLevel : -1;
+  const storedBadges = storedGamification.seenBadges || {};
+
+  const newLevelIndexes = [];
+  for (let i = storedLevel + 1; i <= levelIndex; i++) newLevelIndexes.push(i);
+
+  const newBadgeKeys = badgeResults.filter(b => b.result.done && !storedBadges[b.key]).map(b => b.key);
+
+  if (!newLevelIndexes.length && !newBadgeKeys.length) return;
+
+  newLevelIndexes.forEach(i => celebrationQueue.push({ type: "level", data: GAMIFICATION_LEVELS[i] }));
+  newBadgeKeys.forEach(key => {
+    celebrationQueue.push({ type: "badge", data: GAMIFICATION_BADGES.find(b => b.key === key) });
+  });
+
+  const updatedSeenBadges = { ...storedBadges };
+  newBadgeKeys.forEach(key => { updatedSeenBadges[key] = true; });
+  storedGamification = { currentLevel: Math.max(storedLevel, levelIndex), seenBadges: updatedSeenBadges };
+
+  set(ref(db, `users/${uid}/gamification`), {
+    currentLevel: storedGamification.currentLevel,
+    seenBadges: storedGamification.seenBadges,
+    updatedAt: Date.now()
+  }).catch(error => console.warn("[achievements] failed to save gamification state", error));
+
+  processCelebrationQueue();
+}
+
+function processCelebrationQueue() {
+  if (celebrationShowing || !celebrationQueue.length) return;
+  celebrationShowing = true;
+  showCelebration(celebrationQueue.shift());
+}
+
+function dismissCelebration() {
+  const overlay = $("celebrationOverlay");
+  overlay.classList.remove("show");
+  overlay.classList.add("hidden");
+  celebrationShowing = false;
+  processCelebrationQueue();
+}
+
+$("celebrationOverlay").addEventListener("click", dismissCelebration);
+
+// canvas-confetti (MIT, ~6KB gzipped, zero deps) - loaded lazily, only on
+// the first actual celebration, via the exact same "UMD lib via dynamic
+// import, then read off window" pattern startGlobe() below already uses
+// for globe.gl (proven working in this file, not a new risk). Has its own
+// built-in prefers-reduced-motion handling.
+let confettiLoadPromise = null;
+function ensureConfetti() {
+  if (!confettiLoadPromise) {
+    confettiLoadPromise = import("https://cdn.jsdelivr.net/npm/canvas-confetti@1/dist/confetti.browser.min.js")
+      .then(() => window.confetti)
+      .catch(error => {
+        console.warn("[achievements] failed to load canvas-confetti - celebration will show without confetti", error);
+        return null;
+      });
+  }
+  return confettiLoadPromise;
+}
+
+async function showCelebration(item) {
+  const isLevel = item.type === "level";
+  $("celebrationKicker").textContent = isLevel ? "דרגה חדשה נפתחה!" : "תג חדש נפתח!";
+  $("celebrationIcon").textContent = item.data.icon;
+  $("celebrationName").textContent = item.data.name;
+
+  const overlay = $("celebrationOverlay");
+  overlay.classList.remove("hidden");
+  requestAnimationFrame(() => overlay.classList.add("show"));
+
+  const confettiFn = await ensureConfetti();
+  if (confettiFn) confettiFn({ particleCount: 120, spread: 90, origin: { y: 0.4 } });
 }
 
 (function startFpsCounter() {
