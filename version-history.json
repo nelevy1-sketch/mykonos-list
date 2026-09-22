@@ -1,0 +1,1668 @@
+[
+  {
+    "major": 4,
+    "minor": 90,
+    "patch": 1,
+    "summary": "תיקון: combobox בחירת מדינה (achievements.html) לא מוצא כמה מדינות אמיתיות",
+    "date": "2026-09-22T21:00:07+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 90,
+    "patch": 0,
+    "summary": "achievements.html: רשת התגים + הסטטיסטיקה עוברים לטאב \"הישגים\" רביעי",
+    "date": "2026-09-22T20:45:55+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 89,
+    "patch": 0,
+    "summary": "achievements.html: דרגת חוקר (מסלול 5 דרגות) + רשת 7 תגים + חגיגת פתיחה",
+    "date": "2026-09-22T20:33:08+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 88,
+    "patch": 0,
+    "summary": "רישום אירועי sign-in (7 עמודים) + דשבורד: גרף כניסות וזיהוי אנומליות",
+    "date": "2026-09-22T18:51:20+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 87,
+    "patch": 0,
+    "summary": "ביטול הצמצום המבני של gittrip-showcase.html, הוספת מסך ההישגים",
+    "date": "2026-09-22T18:12:07+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 86,
+    "patch": 1,
+    "summary": "תיקון היררכיית כותרת בראש gittrip-showcase.html (המשך v4.86.0)",
+    "date": "2026-09-22T17:59:05+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 86,
+    "patch": 0,
+    "summary": "צמצום מבני מלא של gittrip-showcase.html - 26 יחידות תוכן ל-2 פיצ'רים מרכזיים",
+    "date": "2026-09-22T17:59:05+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 85,
+    "patch": 0,
+    "summary": "ניתוב אוטומטי של מבקר קר מ-index.html ל-gittrip-showcase.html (המשך v4.84.0)",
+    "date": "2026-09-22T06:57:44+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 84,
+    "patch": 0,
+    "summary": "טעימה (teaser) למבקר קר ב-gittrip-showcase.html - יעד אחד, תצוגה מקדימה אמיתית",
+    "date": "2026-09-22T06:31:19+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 7,
+    "summary": "מיגרציית domain: og:image/og:url/twitter:image + קישור CTA (index.html, gittrip-showcase.html)",
+    "date": "2026-09-22T06:13:18+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 6,
+    "summary": "תיקון: טקסט מיושן \"מקומות\" במודול \"תמונות ומוזיקה\" (wizard.html, המשך v4.83.5)",
+    "date": "2026-09-21T21:55:35+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 5,
+    "summary": "תיקון: אייקון סיכת מיקום ישן גם ב-wizard.html (המשך v4.83.4)",
+    "date": "2026-09-21T21:47:33+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 4,
+    "summary": "תיקון: אייקון סיכת מיקום ישן בשורת הניווט התחתונה (5 עמודים)",
+    "date": "2026-09-21T21:39:43+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 3,
+    "summary": "תיקון: קומבו בחירת מדינה בטופס הידני (achievements.html) בוחר מדינה שגויה/כלום",
+    "date": "2026-09-21T20:31:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 2,
+    "summary": "תיקון: setAuditStatus() נשמט מהתיקון הקודם (shopping.html)",
+    "date": "2026-09-21T12:48:05+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 1,
+    "summary": "תיקון: 10+ נקודות כתיבה fire-and-forget בלי טיפול שגיאות (packing.html, shopping.html)",
+    "date": "2026-09-21T12:43:12+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 83,
+    "patch": 0,
+    "summary": "שכבת aggregate לסטטיסטיקת ביקורים חוצת-משתמשים (_analytics/visitorStats)",
+    "date": "2026-09-21T12:02:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 82,
+    "patch": 1,
+    "summary": "תיקון: הוספת ציוד ידנית נכשלת בשקט; חיבור תמונות/ציוד ללוגינג האנליטיקס",
+    "date": "2026-09-21T11:34:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 82,
+    "patch": 0,
+    "summary": "לוגינג הצלחה/כישלון כתיבות (safeWrite) לדשבורד האנליטיקס",
+    "date": "2026-09-21T10:55:08+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 81,
+    "patch": 2,
+    "summary": "תיקון: רשימת המדינה חופפת ויזואלית לשדה העיר",
+    "date": "2026-09-21T00:25:52+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 81,
+    "patch": 1,
+    "summary": "תיקון: זום אוטומטי ב-iOS Safari בפוקוס על שדות הטופס",
+    "date": "2026-09-21T00:11:23+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 81,
+    "patch": 0,
+    "summary": "\"ההישגים שלי\" - בלוק סטטיסטיקה (מדינות/יבשות/בירות)",
+    "date": "2026-09-20T23:59:28+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 80,
+    "patch": 1,
+    "summary": "שדה מדינה בטופס ההזנה הידנית: combobox עם autocomplete במקום select",
+    "date": "2026-09-20T23:20:18+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 80,
+    "patch": 0,
+    "summary": "\"ההישגים שלי\" - הזנת ביקור ידני (שלב 4/4, סוגר את התכונה)",
+    "date": "2026-09-20T23:06:10+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 79,
+    "patch": 0,
+    "summary": "\"ההישגים שלי\" - toggle מדינה/עיר/יבשת (שלב 3/4)",
+    "date": "2026-09-20T22:40:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 78,
+    "patch": 0,
+    "summary": "\"ההישגים שלי\" - דאטה אמיתית ברמת מדינה (שלב 2/4)",
+    "date": "2026-09-20T22:21:49+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 77,
+    "patch": 0,
+    "summary": "עמוד \"ההישגים שלי\" - שלד (שלב 1/4, בלי דאטה אמיתית)",
+    "date": "2026-09-20T22:04:11+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 76,
+    "patch": 2,
+    "summary": "תיקון: \"חזרה לתפריט\" - openMenu=1 נשמר דרך redirect פנימי",
+    "date": "2026-09-20T20:17:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 76,
+    "patch": 1,
+    "summary": "דיאגנוסטיקה זמנית: באג \"חזרה לתפריט\" לא פותח את התפריט",
+    "date": "2026-09-20T20:01:26+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 76,
+    "patch": 0,
+    "summary": "\"מה זה GitTrip?\" בתפריט ההמבורגר, עם \"חזרה לתפריט\"",
+    "date": "2026-09-20T19:46:50+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 75,
+    "patch": 1,
+    "summary": "legs.js: isRealVisit() + countryContinent.js (הכנה לאשכול הגיימיזה, המשך)",
+    "date": "2026-09-20T19:04:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 75,
+    "patch": 0,
+    "summary": "legGeocode.js: שמירת cityName/region (הכנה לאשכול הגיימיפיקציה)",
+    "date": "2026-09-20T18:54:07+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 74,
+    "patch": 2,
+    "summary": "authDomain: מעבר ל-gittrip.app (6 עמודים)",
+    "date": "2026-09-20T17:45:56+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 74,
+    "patch": 1,
+    "summary": "geocoding יעד: fallback ל-Nominatim כש-Open-Meteo ריק (עברית)",
+    "date": "2026-09-20T17:32:16+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 74,
+    "patch": 0,
+    "summary": "index.html: עריכת תאריכי-קצה בטיול מרובה-רגליים",
+    "date": "2026-09-20T15:03:07+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 73,
+    "patch": 2,
+    "summary": "packing.html: הסרת כפילות שם בתצוגה (userChip)",
+    "date": "2026-09-20T14:32:43+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 73,
+    "patch": 1,
+    "summary": "itinerary.html/places.html: הסרת כפילות שם בתצוגה (userChip)",
+    "date": "2026-09-20T14:28:57+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 73,
+    "patch": 0,
+    "summary": "index.html: כפתור \"איפוס לשם מ-Google\" ב-profileModal",
+    "date": "2026-09-20T14:10:48+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 28,
+    "summary": "ניגודיות `--muted` בכל 6 העמודים (אשכול 5, ממצא 3, סגירה)",
+    "date": "2026-09-20T13:53:09+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 27,
+    "summary": "shopping.html: אזור מגע וaria-label לכפתורי סגירה (אשכול 5, ממצא 2)",
+    "date": "2026-09-20T13:46:48+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 26,
+    "summary": "wizard.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 6/6 - סגירה)",
+    "date": "2026-09-20T13:41:35+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 25,
+    "summary": "index.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 5/6)",
+    "date": "2026-09-20T13:35:55+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 24,
+    "summary": "places.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 4/6)",
+    "date": "2026-09-20T13:30:52+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 23,
+    "summary": "itinerary.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 3/6)",
+    "date": "2026-09-20T13:27:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 22,
+    "summary": "shopping.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 2/6)",
+    "date": "2026-09-20T13:23:23+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 21,
+    "summary": "packing.html: קישור תוויות טופס (אשכול 5, ממצא 1, commit 1/6)",
+    "date": "2026-09-20T13:15:43+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 20,
+    "summary": "הגבלת מספרי טלפון חברים למארגן בלבד (אשכול 4, ממצא 1, commit 1)",
+    "date": "2026-09-20T11:26:01+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 19,
+    "summary": "scrollbar עכבר לרצועות גוללות אופקיות (אשכול 6, ממצא 1)",
+    "date": "2026-09-19T23:30:41+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 18,
+    "summary": "itinerary.html: safeWrite() בארבע פונקציות (אשכול 2, commit 5 - סגירה)",
+    "date": "2026-09-19T23:07:18+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 17,
+    "summary": "places.html: safeWrite() בשמונה פונקציות (אשכול 2, commit 4)",
+    "date": "2026-09-19T22:46:28+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 16,
+    "summary": "shopping.html: safeWrite() ב-updateBaseQty ו-addModalForm (אשכול 2, commit 3)",
+    "date": "2026-09-19T22:15:39+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 15,
+    "summary": "packing.html: safeWrite() בשבע פונקציות (אשכול 2, commit 2)",
+    "date": "2026-09-19T22:05:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 14,
+    "summary": "index.html: safeWrite() בחמש נקודות כתיבה שקטות (אשכול 2, commit 1)",
+    "date": "2026-09-19T21:36:43+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 13,
+    "summary": "itinerary.html: טיפול בכשלון במחיקת מקום/פעילות (סוגר אשכול 3)",
+    "date": "2026-09-17T23:27:32+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 12,
+    "summary": "places.html: טיפול בכשלון בכל נתיבי המחיקה",
+    "date": "2026-09-17T23:18:57+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 11,
+    "summary": "shopping.html: deleteItem לא מכריז הצלחה כוזבת",
+    "date": "2026-09-17T23:08:32+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 10,
+    "summary": "packing.html: אישור מחיקה + טיפול בכשלון בכל נתיבי המחיקה",
+    "date": "2026-09-17T22:53:46+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 9,
+    "summary": "escapeHtml(): הוספת גרש בודד (index.html, wizard.html)",
+    "date": "2026-09-17T22:40:36+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 8,
+    "summary": "toast(): תיקון race condition בין קריאות מהירות",
+    "date": "2026-09-17T22:18:16+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 7,
+    "summary": "#memberGate: שדה טקסט חופשי כשהרישום האוטומטי נכשל",
+    "date": "2026-09-17T19:13:53+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 6,
+    "summary": "הודעה למשתמש כשכניסת Google ב-redirect נכשלת (index/shopping/wizard)",
+    "date": "2026-09-17T18:51:01+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 5,
+    "summary": "ויזרד: הסרת חסימת \"לפחות חבר קבוצה אחד\"",
+    "date": "2026-09-17T18:39:17+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 4,
+    "summary": "כספת אישית: ניסוח \"(אופציונלי)\" + placeholder \"לדוגמה:\" למספר טיסה/שעה",
+    "date": "2026-09-16T20:30:57+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 3,
+    "summary": "כספת אישית: הסרת הבורר המפורש, חזרה לזיהוי-רגל אוטומטי",
+    "date": "2026-09-16T20:22:11+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 2,
+    "summary": "תיקון: חלון אישור (customConfirm/customAlert) הוצג מתחת לחלונית פתוחה, לא מעליה",
+    "date": "2026-09-16T19:55:22+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 1,
+    "summary": "כספת אישית: בורר טיסה מפורש (תיקון ל-commit 1/4, לפני commit 2)",
+    "date": "2026-09-16T19:31:03+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 72,
+    "patch": 0,
+    "summary": "כספת אישית: מספר טיסה + שעת המראה, commit 1/4 (סריקת כרטיס טיסה)",
+    "date": "2026-09-16T18:54:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 71,
+    "patch": 0,
+    "summary": "מצב ריק בטאב \"מפה\": כפתור אמיתי לטאב \"מקומות\", commit 5/5 (מעבר מקומות ל-itinerary.html)",
+    "date": "2026-09-16T18:41:33+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 70,
+    "patch": 5,
+    "summary": "כפתור הוצאות: הודעת מארגן עם קישור אמיתי (itinerary/places/packing.html)",
+    "date": "2026-09-16T18:27:54+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 70,
+    "patch": 4,
+    "summary": "אייקון \"זיכרונות\" עודכן ל-📸 (index.html)",
+    "date": "2026-09-16T18:01:17+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 70,
+    "patch": 3,
+    "summary": "תיקון: כפתור ☰ קרס בשקט בתוך tripPicker (index.html)",
+    "date": "2026-09-16T17:41:42+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 70,
+    "patch": 2,
+    "summary": "תיקון: מפת המסלול לא הגיבה חי לשינוי מצב כהה/בהיר (itinerary.html)",
+    "date": "2026-09-16T17:38:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 70,
+    "patch": 1,
+    "summary": "תיקון: \"מקומות ותמונות\" נשאר ב-6 מקומות נוספים בדף הבית (index.html)",
+    "date": "2026-09-16T17:37:57+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 70,
+    "patch": 0,
+    "summary": "places.html מתנקה, תווית \"זיכרונות\", commit 4/5 (מעבר מקומות ל-itinerary.html)",
+    "date": "2026-09-16T07:44:06+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 69,
+    "patch": 0,
+    "summary": "טאב המפה עובר ל-itinerary.html, commit 3/5 (מעבר מקומות ל-itinerary.html)",
+    "date": "2026-09-16T07:29:58+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 68,
+    "patch": 0,
+    "summary": "רשימת המקומות עוברת ל-itinerary.html, commit 2/5 (מעבר מקומות ל-itinerary.html)",
+    "date": "2026-09-16T07:19:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 67,
+    "patch": 0,
+    "summary": "תשתית טאבים ב-itinerary.html, commit 1/5 (מעבר מקומות ל-itinerary.html)",
+    "date": "2026-09-16T06:57:07+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 66,
+    "patch": 1,
+    "summary": "תיקון באג: הבהוב בהיר בכניסה לטאב \"מפה\" גם במצב כהה (places.html)",
+    "date": "2026-09-16T06:22:19+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 66,
+    "patch": 0,
+    "summary": "אריחי מפה כהים לפי מצב תצוגה (mapView.js, places.html - המשך למפת מסלול)",
+    "date": "2026-09-15T23:50:59+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 65,
+    "patch": 0,
+    "summary": "אנימציית כניסה לסיכות (mapView.js, places.html, commit 5/5 - מפת מסלול)",
+    "date": "2026-09-15T23:26:24+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 64,
+    "patch": 1,
+    "summary": "תיקון באג חמור: geocoding נותן קואורדינטות שגויות-אבל-תקינות-טכנית למקום עם שם כללי (geocode.js, places.html)",
+    "date": "2026-09-15T23:09:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 64,
+    "patch": 0,
+    "summary": "רינדור בפועל: סיכות צבועות, popup, רשימת \"לא אותרו\" (places.html, commit 4/5 - מפת מסלול)",
+    "date": "2026-09-15T22:55:18+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 63,
+    "patch": 0,
+    "summary": "תשתית Leaflet + Tabler, טאב \"מפה\" ריק (places.html, commit 3/5 - מפת מסלול)",
+    "date": "2026-09-15T22:27:45+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 62,
+    "patch": 0,
+    "summary": "geocoding למקומות שמורים - קואורדינטות בזמן שמירה (places.html, commit 1/5 - מפת מסלול)",
+    "date": "2026-09-15T21:41:07+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 61,
+    "patch": 1,
+    "summary": "תיקון: \"הטיולים שלי\" נחת ישירות בטיול במקום להציג רשימה (index.html)",
+    "date": "2026-09-15T18:19:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 61,
+    "patch": 0,
+    "summary": "\"יצירת טיול חדש\" בתפריט ההמבורגר, נגיש לכל משתמש מחובר (index.html)",
+    "date": "2026-09-14T22:27:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 60,
+    "patch": 0,
+    "summary": "תפריט המבורגר: שיתוף ההזמנה נגיש לכל משתתף, לא רק למארגן (index.html, commit 3/3)",
+    "date": "2026-09-14T22:14:50+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 59,
+    "patch": 2,
+    "summary": "טקסט גלוי ליד ☰ (index.html)",
+    "date": "2026-09-14T22:11:52+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 59,
+    "patch": 1,
+    "summary": "תפריט המבורגר: הזזת tripsLink/logoutLink + עיצוב אחיד (index.html, commit 2/3)",
+    "date": "2026-09-14T21:47:06+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 59,
+    "patch": 0,
+    "summary": "תפריט המבורגר: תשתית + כפתור ☰ (index.html, commit 1/3)",
+    "date": "2026-09-14T21:43:03+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 58,
+    "patch": 0,
+    "summary": "בורר חברת תעופה גם בוויזרד, לא רק בפאנל האדמין",
+    "date": "2026-09-14T20:57:55+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 57,
+    "patch": 0,
+    "summary": "מחיקה/הסרה מ-#tripPicker (index.html, commit ב/ב)",
+    "date": "2026-09-14T20:36:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 56,
+    "patch": 1,
+    "summary": "🔒 תיקון אבטחה: חבר-לא-מארגן יכול היה למחוק טיול שלם (commit א/ב)",
+    "date": "2026-09-14T20:20:45+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 56,
+    "patch": 0,
+    "summary": "קיצור קישורים בהודעות וואטסאפ (TinyURL, לא מנגנון עצמי)",
+    "date": "2026-09-14T19:44:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 55,
+    "patch": 0,
+    "summary": "כפתור \"שיתוף בוואטסאפ\" במסך הסיום של הוויזרד",
+    "date": "2026-09-14T18:49:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 54,
+    "patch": 0,
+    "summary": "עריכת \"שם הטיול\" בפאנל האדמין (commit 6/6, אחרון בסדרה)",
+    "date": "2026-09-14T18:34:28+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 6,
+    "summary": "עוד שני מקומות עם \"לטיול לטיול X\", שנחשפו בחקירת באג אמיתי",
+    "date": "2026-09-14T18:10:18+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 5,
+    "summary": "תיקון ניסוח \"לטיול לטיול X\" כשה-d הוא כותרת (index.html + gittrip-showcase.html)",
+    "date": "2026-09-14T17:44:24+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 4,
+    "summary": "packing.html + shopping.html מעדיפים tripTitle (commit 4/6)",
+    "date": "2026-09-14T17:22:16+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 3,
+    "summary": "itinerary.html + places.html מעדיפים tripTitle (commit 3/6)",
+    "date": "2026-09-14T17:06:48+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 2,
+    "summary": "tripTitle נכתב גם כשחבר (לא מארגן) מצטרף לטיול (commit 2ב)",
+    "date": "2026-09-14T14:23:26+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 1,
+    "summary": "index.html מעדיף tripTitle בכל מקום שמציג שם טיול (commit 2/5+)",
+    "date": "2026-09-14T13:59:48+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 53,
+    "patch": 0,
+    "summary": "שדה \"שם הטיול\" נפרד מהיעד (commit 1/5: סכימה + wizard.html)",
+    "date": "2026-09-14T13:12:59+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 52,
+    "patch": 0,
+    "summary": "התחברות בתחילת תהליך יצירת הטיול, לא בסוף (wizard.html)",
+    "date": "2026-09-14T12:07:54+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 51,
+    "patch": 3,
+    "summary": "פיצול פאנל האדמין, commit 3 (אחרון): בורר-המושבים-בכל-יעד עובר ל\"טיסות ומושבים\" (index.html)",
+    "date": "2026-09-12T20:10:44+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 51,
+    "patch": 2,
+    "summary": "פיצול פאנל האדמין, commit 2: box נפרד ל\"טיסות ומושבים\" (index.html)",
+    "date": "2026-09-12T19:54:32+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 51,
+    "patch": 1,
+    "summary": "פיצול פאנל האדמין, commit 1: בידול ויזואלי בין קטעים (index.html)",
+    "date": "2026-09-12T19:41:58+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 51,
+    "patch": 0,
+    "summary": "בורר \"חברת תעופה\" ממלא את קישור הצ'ק-אין (index.html)",
+    "date": "2026-09-12T19:19:24+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 50,
+    "patch": 0,
+    "summary": "מפת מושבים פר-רגל, commit 5 (אחרון): personalLocker מקבל legId (index.html)",
+    "date": "2026-09-12T18:32:47+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 49,
+    "patch": 0,
+    "summary": "מפת מושבים פר-רגל, commit 4: חיווט התצוגה (index.html)",
+    "date": "2026-09-12T18:21:06+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 48,
+    "patch": 1,
+    "summary": "תיקון רגרסיה: גלישה אופקית בפאנל האדמין במובייל (commit 3)",
+    "date": "2026-09-12T18:11:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 48,
+    "patch": 0,
+    "summary": "מפת מושבים פר-רגל, commit 3: פאנל אדמין (index.html)",
+    "date": "2026-09-12T17:48:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 47,
+    "patch": 3,
+    "summary": "מפת מושבים פר-רגל, commit 2: legSeatLayouts (legBuilder.js)",
+    "date": "2026-09-11T15:15:26+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 47,
+    "patch": 2,
+    "summary": "מפת מושבים פר-רגל, commit 1: getRelevantFlight (legs.js)",
+    "date": "2026-09-11T15:11:17+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 47,
+    "patch": 1,
+    "summary": "טבעת הנשימה נמסה בצד כמו הרקע, ומחליפה את מנגנון v4.47.0 (index.html)",
+    "date": "2026-09-11T11:46:20+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 47,
+    "patch": 0,
+    "summary": "אפקט \"נשימה\" על קוביות עם תוכן (index.html, commit ג — סיום עיצוב מחדש)",
+    "date": "2026-09-11T11:24:54+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 46,
+    "patch": 0,
+    "summary": "סיגנל \"יש תוכן\" תקין לכל 5 קוביות המודולים, כולל תוכנית (index.html, commit ב)",
+    "date": "2026-09-11T11:17:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 45,
+    "patch": 4,
+    "summary": "תיקון היקף: מסגרת בסיס ניטרלית עדיין נשארה על .action-card (index.html)",
+    "date": "2026-09-11T11:12:11+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 45,
+    "patch": 3,
+    "summary": "תיקון: ההמסה הצידית לא הוצגה בפועל (index.html)",
+    "date": "2026-09-11T11:06:56+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 45,
+    "patch": 2,
+    "summary": "רשת המודולים בדף הבית: הסרת צבע-לפי-מודול, רקע נמס (index.html, commit א)",
+    "date": "2026-09-11T10:45:24+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 45,
+    "patch": 1,
+    "summary": "ניסוח ותצוגה למטייל יחיד (index.html, itinerary.html)",
+    "date": "2026-09-10T16:51:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 45,
+    "patch": 0,
+    "summary": "ייצוא פעילויות ליומן כקובץ .ics (itinerary.html, commit א)",
+    "date": "2026-09-10T16:03:54+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 44,
+    "patch": 1,
+    "summary": "תיקון: אין אינדיקציית טעינה בהצעות AI למקומות כשהרשימה לא ריקה",
+    "date": "2026-09-10T15:46:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 44,
+    "patch": 0,
+    "summary": "ולידציית הזנת מושב תלוית-תצורה (index.html, commit ב)",
+    "date": "2026-09-10T15:36:02+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 43,
+    "patch": 0,
+    "summary": "תצורת מושבים ניתנת לבחירה במפת ההושבה (index.html, commit א)",
+    "date": "2026-09-10T15:28:36+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 42,
+    "patch": 0,
+    "summary": "הצעות AI למקומות (places.html, commit א)",
+    "date": "2026-09-10T14:22:58+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 41,
+    "patch": 0,
+    "summary": "שיתוף/ביטול שיתוף חוצה-קטגוריות בבחירה מרובה (packing.html, commit ב)",
+    "date": "2026-09-10T12:18:39+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 40,
+    "patch": 1,
+    "summary": "צ'קבוקס כפול במצב בחירה מרובה (packing.html)",
+    "date": "2026-09-10T12:05:43+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 40,
+    "patch": 0,
+    "summary": "\"בחר הכל\" במצב בחירה מרובה (packing.html, commit א)",
+    "date": "2026-09-10T11:57:20+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 39,
+    "patch": 0,
+    "summary": "קישור לקבוצת וואטסאפ (index.html, ד3 — האחרון בסדרת \"מי בטיול\")",
+    "date": "2026-09-10T11:23:49+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 38,
+    "patch": 0,
+    "summary": "מספר טלפון וכפתור וואטסאפ (index.html, ד2)",
+    "date": "2026-09-10T10:20:35+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 37,
+    "patch": 0,
+    "summary": "חלונית \"מי בטיול\" (index.html, ד1)",
+    "date": "2026-09-10T10:02:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 36,
+    "patch": 0,
+    "summary": "הרחבת רשימת הקטגוריות בקניות: 8 ← 10, 122 ← 413 מילות מפתח (shopping.html)",
+    "date": "2026-09-10T09:24:15+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 8,
+    "summary": "זיהוי הקטגוריה בקניות: התאמת התחלת-מילה + ההתאמה הכי ספציפית מנצחת (shopping.html)",
+    "date": "2026-09-10T08:31:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 7,
+    "summary": "שלושה תיקונים בטאב המוזיקה (places.html)",
+    "date": "2026-09-10T07:33:16+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 6,
+    "summary": "צביעת תגי המקור בטאב המוזיקה (places.html)",
+    "date": "2026-09-10T07:05:20+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 5,
+    "summary": "תיקון באג: שינוי שם לא מגיע ל-packing.html",
+    "date": "2026-09-09T23:36:53+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 4,
+    "summary": "starterLists() ל-4 סוגי הטיול: אותו מספר קטגוריות, gear+clothing תמיד קיימים",
+    "date": "2026-09-09T23:21:48+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 3,
+    "summary": "תיקון באג: ייבוא פריט משותף יצר קטגוריה חדשה בלי סימוכין ל-tripType",
+    "date": "2026-09-09T23:18:55+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 2,
+    "summary": "שלושה תיקוני באגים משוב אמיתי: הצעות AI, תצוגת קבוצה, ספירה לאחור",
+    "date": "2026-09-09T22:26:01+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 1,
+    "summary": "כרטיס \"חזרה לטיול\" ברשימת הטיולים",
+    "date": "2026-09-09T22:02:12+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 35,
+    "patch": 0,
+    "summary": "כפתור \"הטיולים שלי\" ב-index.html, דלת כניסה למסך בחירת טיול שכבר קיים",
+    "date": "2026-09-09T21:51:15+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 34,
+    "patch": 3,
+    "summary": "היפוך צבעי האייקון לרקע כהה, og-preview חדש, og-tags ל-index.html",
+    "date": "2026-09-09T21:20:46+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 34,
+    "patch": 2,
+    "summary": "סט אייקונים חדש: מסלול לירוק כהה על טורקיז, מחליף את מטוס הנייר",
+    "date": "2026-09-09T20:50:35+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 34,
+    "patch": 1,
+    "summary": "showcase מכיר tripId, סוגר את מעגל ההזמנה (commit 2ג מתוך 3, אחרון)",
+    "date": "2026-09-09T20:00:49+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 34,
+    "patch": 0,
+    "summary": "מסך ההזמנה עצמו (commit 2ব מתוך 3)",
+    "date": "2026-09-09T19:50:31+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 33,
+    "patch": 0,
+    "summary": "organizerName + פרטי הזמנה בקישור המשותף (commit 2א מתוך 3)",
+    "date": "2026-09-09T19:37:04+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 32,
+    "patch": 2,
+    "summary": "שינוי שם תצוגה (commit ג, אחרון בשרשרת ההרשמה האוטומטית)",
+    "date": "2026-09-09T19:03:36+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 32,
+    "patch": 1,
+    "summary": "מצבים ריקים: שיהיה ברור שזה כפתור",
+    "date": "2026-09-09T18:37:47+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 32,
+    "patch": 0,
+    "summary": "shopping.html: buyer ו-personalQtyMap עוברים משם ל-uid (commit ব2)",
+    "date": "2026-09-09T18:20:17+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 31,
+    "patch": 0,
+    "summary": "מצבים ריקים: מהודעה להזמנה",
+    "date": "2026-09-09T18:10:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 30,
+    "patch": 2,
+    "summary": "תיקון shopping.html: זהות הייתה תלויה ב-<select> שלא התעדכן (commit ב1)",
+    "date": "2026-09-09T17:51:54+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 30,
+    "patch": 1,
+    "summary": "הרשמה אוטומטית בארבעת עמודי המשנה (commit ב מתוך 3)",
+    "date": "2026-09-09T07:56:32+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 30,
+    "patch": 0,
+    "summary": "הרשמה אוטומטית במקום בחירת שם (שלב חוויית המשתמש הראשון, commit א מתוך 3)",
+    "date": "2026-09-09T07:20:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 29,
+    "patch": 0,
+    "summary": "הצעות AI לכל רגל (שלב 12, commit ג מתוך 3 - האחרון)",
+    "date": "2026-09-08T23:24:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 28,
+    "patch": 5,
+    "summary": "הצעות AI מתעלמות ממסנן היעד (שלב 12, commit ב מתוך 3)",
+    "date": "2026-09-08T23:01:15+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 28,
+    "patch": 4,
+    "summary": "זיהוי חיתוך בהצעות AI (שלב 12, commit א מתוך 3)",
+    "date": "2026-09-08T22:47:30+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 28,
+    "patch": 3,
+    "summary": "תיקון אמיתי: הפס הלבן ב-shopping.html (v4.28.2 לא הספיק)",
+    "date": "2026-09-08T22:31:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 28,
+    "patch": 2,
+    "summary": "תיקון: רקע לא מגיע לקצוות בנייד (safe-area)",
+    "date": "2026-09-08T22:09:05+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 28,
+    "patch": 1,
+    "summary": "בורר יעד בטופס המקום (השלמת שלב 9)",
+    "date": "2026-09-08T21:54:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 28,
+    "patch": 0,
+    "summary": "סינון מקומות לפי יעד (שלב 9)",
+    "date": "2026-09-08T21:03:49+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 27,
+    "patch": 0,
+    "summary": "סינון רשימת הציוד לפי יעד (שלב 6)",
+    "date": "2026-09-08T20:35:57+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 26,
+    "patch": 2,
+    "summary": "מפריד בין רגליים בטאבי הימים (שלב 7, כולל 4ב שנדחה משלב 4)",
+    "date": "2026-09-08T19:45:24+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 26,
+    "patch": 1,
+    "summary": "מפריד בין רגליים ברצועת מזג האוויר (שלב 8, commit ג)",
+    "date": "2026-09-08T19:27:52+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 26,
+    "patch": 0,
+    "summary": "רצועת מזג האוויר הופכת מרובת-רגליים (שלב 8, commit ב)",
+    "date": "2026-09-08T19:01:06+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 25,
+    "patch": 4,
+    "summary": "תיקון: קריסה חוזרת כשלרגל הפעילה אין timezone (רגרסיה מ-v4.25.0)",
+    "date": "2026-09-08T18:38:44+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 25,
+    "patch": 3,
+    "summary": "תיקון: geocoding כושל נשלח ל-Open-Meteo כ-(0,0) במקום להיחסם",
+    "date": "2026-09-08T18:31:37+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 25,
+    "patch": 2,
+    "summary": "תיקון: שורת \"עכשיו\" מציגה מזג אוויר של הרגל הראשונה תמיד",
+    "date": "2026-09-08T18:15:51+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 25,
+    "patch": 1,
+    "summary": "תיקון: legId לא היה יציב בין שמירות בפאנל אדמין",
+    "date": "2026-09-08T17:57:50+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 25,
+    "patch": 0,
+    "summary": "שורת המצב בכרטיס הבית ביעדים מרובים (index.html בלבד)",
+    "date": "2026-09-08T09:58:09+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 24,
+    "patch": 0,
+    "summary": "כותרת דף הבית ביעדים מרובים (§5.8, index.html בלבד)",
+    "date": "2026-09-08T09:04:22+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 23,
+    "patch": 2,
+    "summary": "תיקון: טאב \"היום\" לא נגלל לתצוגה ברצועת הימים (itinerary.html)",
+    "date": "2026-09-08T08:13:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 23,
+    "patch": 1,
+    "summary": "תיקון: \"היום\" חושב לפי אזור הזמן של הרגל האחרונה, לא הפעילה (שלב 5, commit ג)",
+    "date": "2026-09-08T06:57:12+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 23,
+    "patch": 0,
+    "summary": "`countryCode` עובר לשדה per-leg (שלב 11ব.3, תיקון עוקב)",
+    "date": "2026-09-08T06:33:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 22,
+    "patch": 0,
+    "summary": "פאנל אדמין: שמירה בפועל של רגליים (שלב 11ব.2)",
+    "date": "2026-09-08T06:16:13+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 21,
+    "patch": 0,
+    "summary": "פאנל אדמין: עורך רגליים בזיכרון (שלב 11ב.1)",
+    "date": "2026-09-07T23:11:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 20,
+    "patch": 3,
+    "summary": "חילוץ `legBuilder.js` מ-wizard.html (שלב 11, commit ב - רה-פקטור)",
+    "date": "2026-09-07T22:49:26+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 20,
+    "patch": 2,
+    "summary": "תיקון: trip.timezone נכתב מהרגל הראשונה במקום האחרונה (שלב 11, commit א.5)",
+    "date": "2026-09-07T22:28:28+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 20,
+    "patch": 1,
+    "summary": "תיקון: פאנל האדמין דרס legs בשינוי יעד/תאריכים (שלב 11, commit דחוף)",
+    "date": "2026-09-07T22:16:15+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 20,
+    "patch": 0,
+    "summary": "ויזרד: תאריכי מעבר, geocoding מקבילי, שמירת legs (שלב 10, commit ב מתוך 2)",
+    "date": "2026-09-07T20:21:12+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 19,
+    "patch": 0,
+    "summary": "קלט רשימת יעדים בוויזרד (שלב 10, commit א מתוך 3)",
+    "date": "2026-09-07T19:53:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 18,
+    "patch": 2,
+    "summary": "תיקון: fetchForecast פירשה flightOut לפי אזור הזמן הלא נכון (שלב 5, commit ב מתוך 3)",
+    "date": "2026-09-07T19:11:24+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 18,
+    "patch": 1,
+    "summary": "תיקון: פאנל האדמין כתב endAt לפי אזור הזמן הישן (שלב 5, commit א מתוך 3)",
+    "date": "2026-09-07T18:58:04+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 18,
+    "patch": 0,
+    "summary": "`tripDayDates` עובר ל-`legs.js` + תיקון startAt (שלב 4, commit א מתוך 2)",
+    "date": "2026-09-07T18:33:52+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 17,
+    "patch": 1,
+    "summary": "תיקון: פס המבטא של ski נבלע בטורקיז של חו״ל",
+    "date": "2026-09-07T17:31:03+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 17,
+    "patch": 0,
+    "summary": "שכבת מבטא צבעוני לפי אופי הטיול (שלב 3ב מתוך §8 ב-docs/schema-legs.md)",
+    "date": "2026-09-07T17:16:38+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 16,
+    "patch": 0,
+    "summary": "ייבוא פריט מחבר נוחת בקטגוריה התואמת, לא ב-activeList (שלב 6ב מתוך 6, commit ב מתוך 2)",
+    "date": "2026-09-07T16:42:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 15,
+    "patch": 0,
+    "summary": "\"main\" מוסתרת מרצועת הצ׳יפים כשהיא ריקה (שלב 6א מתוך 6, commit א מתוך 2)",
+    "date": "2026-09-07T16:27:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 14,
+    "patch": 1,
+    "summary": "תיקון: רצועת הצ׳יפים קטומה בנייד, מאחורי כפתורי ⚙️/בחירה מרובה",
+    "date": "2026-09-07T16:11:04+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 14,
+    "patch": 0,
+    "summary": "רצועת צ׳יפים במקום בורר הרשימות ב-packing.html (שלב 5 מתוך 6)",
+    "date": "2026-09-07T15:44:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 13,
+    "summary": "בחירה מרובה חוצת-קטגוריות (שלב 4 מתוך 6)",
+    "date": "2026-09-07T15:14:26+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 12,
+    "summary": "7 נקודות כתיבה קוראות `data-category` במקום `activeList` (שלב 3 מתוך 6, השלב המסוכן)",
+    "date": "2026-09-07T14:42:36+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 11,
+    "summary": "`renderMine` מתייגת `data-category` (שלב 2 מתוך 6, רשימת ציוד מסוננת)",
+    "date": "2026-09-07T14:26:58+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 10,
+    "summary": "`itemsForCategoryFilter()` ב-packing.html (שלב 1 מתוך 6, רשימת ציוד מסוננת במקום בורר רשימות)",
+    "date": "2026-09-07T14:08:56+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 9,
+    "summary": "תיקון: הרשימה הפעילה ב-packing.html מתאפסת ל\"רשימה ראשית\" בכל טעינת עמוד",
+    "date": "2026-09-07T13:45:56+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 8,
+    "summary": "תיקון: places.html מציגה יום פנטום שנעלם ל-itinerary.html (commit ב מתוך 2)",
+    "date": "2026-09-07T13:13:36+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 7,
+    "summary": "`datetime.js`: ריכוז `zonedParts`/`todayKeyInZone`/`nowHHMMInZone`/`dateKeyInZone` (commit א מתוך 2)",
+    "date": "2026-09-07T13:07:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 6,
+    "summary": "תיקון: aria-label \"הסר X\" לא מתעדכן, ולא מתעדכן חי (commit ג2 מתוך 3, `scripts/i18n-audit.js`)",
+    "date": "2026-09-07T12:14:48+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 5,
+    "summary": "תיקון: 4 aria-label/title שלא תורגמו (commit ב מתוך 3, `scripts/i18n-audit.js`)",
+    "date": "2026-09-07T12:14:03+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 4,
+    "summary": "תיקון: 12 טקסטים גלויים שלא תורגמו, ב-3 עמודים (commit א מתוך 3, `scripts/i18n-audit.js`)",
+    "date": "2026-09-07T12:02:08+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 3,
+    "summary": "תיקון: מודאל \"הוספת פריט חדש\" נשאר בעברית באנגלית (packing.html)",
+    "date": "2026-09-07T11:38:53+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 2,
+    "summary": "תיקון: אין דרך לגלול את רצועת ההצעות במחשב (packing.html)",
+    "date": "2026-09-07T11:27:02+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 1,
+    "summary": "תיקון: רצועת \"מה עוד חסר לך?\" נגללת אבל לא מציגה את זה (packing.html)",
+    "date": "2026-09-07T11:11:10+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 13,
+    "patch": 0,
+    "summary": "tripCharacter משפיע על קטגוריות הציוד (שלב 3ב מתוך docs/schema-legs.md, packing.html בלבד)",
+    "date": "2026-09-07T09:53:35+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 9,
+    "summary": "פרומפט הצעות AI: אין תוארי קישוט מיותרים (functions/index.js)",
+    "date": "2026-09-07T08:23:53+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 8,
+    "summary": "רשת ביטחון: סינון כפילויות-תחילית בהצעות AI (packing.html)",
+    "date": "2026-09-07T08:11:03+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 7,
+    "summary": "פרומפט הצעות AI לציוד: שמות קצרים, בלי כפילויות סמנטיות (functions/index.js)",
+    "date": "2026-09-07T07:57:50+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 6,
+    "summary": "legs.js: האזהרה על lat/lon חסר שותקת בטיול שעוד לא נטען",
+    "date": "2026-09-07T07:39:40+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 5,
+    "summary": "קריאות destination/endAt דרך getLegs ב-packing.html (אפס שינוי התנהגות)",
+    "date": "2026-09-07T07:29:31+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 4,
+    "summary": "קריאות destination/lat/lon/timezone/endAt דרך getLegs (itinerary/places/shopping, אפס שינוי התנהגות)",
+    "date": "2026-09-07T07:17:50+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 3,
+    "summary": "hydrateTripData ניזונה מ-getLegs (index.html, אפס שינוי התנהגות)",
+    "date": "2026-09-07T06:56:12+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 2,
+    "summary": "legs.js: פונקציות עזר ליעדים מרובים (תשתית בלבד, לא בשימוש עדיין)",
+    "date": "2026-09-06T23:39:34+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 1,
+    "summary": "undo וreset רשימה לא מכריזים הצלחה לפני שהכתיבה אושרה (shopping.html)",
+    "date": "2026-09-06T22:08:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 11,
+    "patch": 0,
+    "summary": "timeout על loadProfile: אין תקיעה בלי מוצא (packing/places/itinerary)",
+    "date": "2026-09-06T21:47:03+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 10,
+    "patch": 1,
+    "summary": "רשימת הציוד לא תלויה בטעינת הזהות (packing.html)",
+    "date": "2026-09-06T21:18:50+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 10,
+    "patch": 0,
+    "summary": "תשתית משותפת: טוסט גלובלי + רג'יסטרי onForeground",
+    "date": "2026-09-06T21:04:21+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 9,
+    "patch": 1,
+    "summary": "כפתור הבית המוקדם ב-shopping.html",
+    "date": "2026-09-06T19:47:27+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 9,
+    "patch": 0,
+    "summary": "מסך בחירת טיול ב-index.html כשאין tripId (שלב 2/2)",
+    "date": "2026-09-06T19:43:19+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 8,
+    "patch": 1,
+    "summary": "datetime-local לא נפתח בלחיצה בדסקטופ (רגרסיה)",
+    "date": "2026-09-06T19:19:55+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 8,
+    "patch": 0,
+    "summary": "הצטרפות לטיול רושמת אותו תחת users/{uid}/trips (שלב 1/2)",
+    "date": "2026-09-06T18:53:52+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 7,
+    "patch": 3,
+    "summary": "הסרת נפילת-לאחור גלובלית שהחזירה טיולים ישנים (index.html)",
+    "date": "2026-09-06T18:22:01+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "summary": "timeout על שער ה-auth (סעיף 1 מתוך התחקיר: אפליקציה נתקעת אחרי חוסר פעילות)",
+    "date": "2026-09-06T17:48:00+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 7,
+    "patch": 1,
+    "summary": "הידוק המרווחים באזור העליון של עמוד הציוד (packing.html)",
+    "date": "2026-09-06T06:48:19+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 7,
+    "patch": 0,
+    "summary": "הידוק האזור העליון ברשימת קניות (shopping.html)",
+    "date": "2026-09-06T00:45:49+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 6,
+    "patch": 1,
+    "summary": "תיקון חלקי 1/N: קטימת ראש העמוד חוזרת ב-wizard.html",
+    "date": "2026-09-06T00:09:01+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 6,
+    "patch": 0,
+    "summary": "כיווץ האזור העליון בעמוד הציוד (packing.html)",
+    "date": "2026-09-05T23:09:35+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 5,
+    "patch": 0,
+    "summary": "כיווץ שורת ציוד ומקומות/מוזיקה למבנה שתי-שורות (כמו כרטיס הפעילות)",
+    "date": "2026-09-05T22:33:31+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 4,
+    "patch": 3,
+    "summary": "באג: תת-רשימת ציוד נבלעת מאחורי הפריט הבא (packing.html)",
+    "date": "2026-09-05T22:01:27+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 4,
+    "patch": 2,
+    "summary": "כיווץ נוסף של כרטיס הפעילות (מדוד: 91px→75px)",
+    "date": "2026-09-05T21:29:44+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 3,
+    "patch": 2,
+    "summary": "ניסיון תיקון ממוקד: לא ניתן לגלול חזרה לראש הוויזרד",
+    "date": "2026-09-05T18:59:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 3,
+    "patch": 1,
+    "summary": "תפריט תחתון שצף גבוה מדי במובייל עם safe-area",
+    "date": "2026-09-05T18:35:09+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 3,
+    "patch": 0,
+    "summary": "שעון היעד, שדה תאריך חכם לפי סוג טיול, ובדיקת גרסה אוטומטית",
+    "date": "2026-09-05T18:04:25+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 2,
+    "patch": 0,
+    "summary": "תפריטי 3-נקודות בכל מקום, תיקוני מובייל, צבעי טיול מעודכנים",
+    "date": "2026-09-04T00:07:37+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 1,
+    "patch": 0,
+    "summary": "עוד סבב הבהוב שם + מספור גרסה אחיד",
+    "date": "2026-09-03T18:24:23+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 0,
+    "patch": 3,
+    "summary": "סוף להבהוב שם הטיול במעבר בין עמודים",
+    "date": "2026-09-03T16:18:59+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 0,
+    "patch": 2,
+    "summary": "כפתור \"טיול חדש\" באדמין + תיקון מחלקת hidden",
+    "date": "2026-09-03T15:51:37+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 0,
+    "patch": 1,
+    "summary": "shared.css: איחוד ה-CSS המשותף",
+    "date": "2026-09-03T14:20:08+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 0,
+    "patch": 0,
+    "summary": "Dark Mode, AI, and Cross-Page Overhaul",
+    "date": "2026-09-03T13:13:59+03:00"
+  }
+]

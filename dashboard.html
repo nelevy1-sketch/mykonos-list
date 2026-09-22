@@ -62,6 +62,16 @@
   <script src="auth-gate.js"></script>
   <script src="countryContinent.js"></script>
   <script src="capitalCities.js"></script>
+  <!-- Version-history investigation, item 1 (current version display) -
+       this is the ONLY reason this file loads version.js: to read
+       window.APP_VERSION, not to participate in its own update-banner
+       mechanism (that mechanism targets the 6 app pages/achievements.html,
+       not an internal tool with no users to notify - harmless here either
+       way, just not the point). Does NOT make this file
+       version.js-tracked - the file header's own exemption (see top of
+       file) is about THIS page's own version bumps/CHANGELOG entries, not
+       about which scripts it's allowed to load. -->
+  <script src="version.js"></script>
   <!-- Redesign stage 1/5: loaded now, not used yet - later stages replace
        the plain tables below with real charts. Pinned version (same
        convention as this project's own Firebase pin) - v4 UMD, minified,
@@ -507,6 +517,64 @@
       stroke-width: 1;
     }
 
+    /* Version-history investigation, items 1+2 only (current version +
+       major/minor/patch donut) - same stacked single-column pattern as
+       #visitorStatsSection/#writesChartsSection above (a KPI-sized card
+       and a donut-sized card don't share a natural grid-column count, so
+       full-width stacking is simplest, not a compromise). Date-based
+       metrics (per-day chart, scrollable log) intentionally not here yet -
+       blocked on a data-source decision, see CHANGELOG comment on
+       fetchChangelogText() below. */
+    #versionHistorySection {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    /* Version-history item 4 - scrollable per-version log. dashboard.html
+       has no prior internal-scroll-list pattern of its own (the whole page
+       just scrolls normally, unlike achievements.html's fixed-viewport
+       design) - built fresh rather than reaching for that unrelated
+       mobile-app pattern. A capped max-height + its own overflow-y keeps
+       238 entries from ballooning this one card to the page's full height;
+       everything else on the page stays exactly where it is. */
+    .version-log-scroll {
+      max-height: 420px;
+      overflow-y: auto;
+      padding-inline-end: 4px;
+    }
+    .version-log-row {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--dash-border);
+    }
+    .version-log-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .version-log-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+    .version-log-num {
+      font-weight: 700;
+      color: var(--dash-text);
+      font-size: .84rem;
+    }
+    .version-log-date {
+      font-size: .72rem;
+      color: var(--dash-text-muted);
+      white-space: nowrap;
+    }
+    .version-log-summary {
+      margin: 0;
+      font-size: .8rem;
+      color: var(--dash-text-secondary);
+      line-height: 1.4;
+    }
+
     /* Redesign stage 5/5 - consistency pass. Every chart-rendering
        function used to just clearRect() and silently return on empty
        data - a blank canvas under a header, indistinguishable from
@@ -914,6 +982,44 @@
       </div>
     </section>
 
+    <!-- Version-history investigation - all 4 items now. Items 1+2
+         (current version, major/minor/patch donut) are sourced live from
+         GitHub (raw.githubusercontent.com - see fetchChangelogText()'s own
+         comment). Items 3+4 (per-day/week bar chart, scrollable timeline)
+         need a real per-version DATE, which neither CHANGELOG.md nor
+         GitHub's commits-list API can reliably supply (~90% of commits
+         never state their own version number in the message - see
+         scripts/generate-version-history.js's header comment for the full
+         investigation) - sourced instead from version-history.json, a
+         static file this app's own Firebase Hosting serves, generated
+         locally via `git log -S` (100% reliable) and committed, not fetched
+         live from GitHub. -->
+    <section id="versionHistorySection">
+      <div class="kpi-card" id="currentVersionCard">
+        <p class="kpi-value"><span class="kpi-value-num" id="currentVersionValue">--</span></p>
+        <p class="kpi-label">גרסה נוכחית</p>
+      </div>
+
+      <div class="metric-card" id="versionTypeChartCard">
+        <h2>התפלגות עדכוני גרסה (Major / Minor / Patch)</h2>
+        <div class="chart-wrap donut-wrap">
+          <canvas id="versionTypeChart" role="img" aria-label="גרף עוגה - התפלגות עדכוני גרסה לפי Major, Minor ו-Patch"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card" id="versionsTimelineChartCard">
+        <h2>גרסאות לאורך זמן</h2>
+        <div class="chart-wrap">
+          <canvas id="versionsTimelineChart" role="img" aria-label="גרף עמודות - מספר עדכוני גרסה לפי יום/שבוע/חודש"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card" id="versionLogCard">
+        <h2>יומן גרסאות</h2>
+        <div class="version-log-scroll" id="versionLogList"></div>
+      </div>
+    </section>
+
     <main id="dashMain">
       <section class="metric-card" id="totalTripsCard">
         <h2>סה"כ טיולים</h2>
@@ -995,6 +1101,13 @@ const app = initializeApp(config), auth = getAuth(app), provider = new GoogleAut
 const ALLOWED_UID = "ne56ZOFgDMRfaH03WAvO7jbinty2";
 
 const $ = id => document.getElementById(id);
+
+// Version-history investigation, item 1 - version.js (classic script,
+// loaded in <head>) has already executed by the time this module script
+// runs (see its own <script> tag comment for why there's no race), so
+// window.APP_VERSION is available synchronously here - no network, no
+// auth dependency, doesn't need to wait for loadAndRender()'s async flow.
+$("currentVersionValue").textContent = window.APP_VERSION || "--";
 
 // --- Auth - identical mechanics to every other page's gate (doGoogleSignIn,
 // popup->redirect fallback, getRedirectResult, armAuthGate watchdog). The
@@ -1097,6 +1210,7 @@ const LAYOUT_SECTIONS = [
   { id: "activityChartsSection", label: "גרפי פעילות" },
   { id: "writesChartsSection", label: "גרפי כתיבה, שרת וכניסות" },
   { id: "visitorStatsSection", label: "סטטיסטיקת ביקורים" },
+  { id: "versionHistorySection", label: "היסטוריית גרסאות" },
   { id: "dashMain", label: "פרטים נוספים" }
 ];
 
@@ -1108,6 +1222,7 @@ const LAYOUT_CARD_GROUPS = {
     "signInsChartCard", "writeSuccessDailyCard", "serverSuccessDailyCard"
   ],
   visitorStatsSection: ["visitorMapCard", "visitorContinentsCard"],
+  versionHistorySection: ["currentVersionCard", "versionTypeChartCard", "versionsTimelineChartCard", "versionLogCard"],
   dashMain: [
     "totalTripsCard", "groupSizeCard", "featuresCard", "countriesCard", "destTypeCard",
     "writesTotalCard", "writesByFileCard", "serverCallsTotalCard", "visitorCapitalsCard"
@@ -1983,6 +2098,173 @@ function renderRows(containerId, rows, totalForPercent) {
 
 function sortedEntries(obj) {
   return Object.entries(obj).sort((a, b) => b[1] - a[1]);
+}
+
+// --- Version-history investigation, item 2 (major/minor/patch donut).
+// CHANGELOG.md itself cannot be fetched from this app's own hosting -
+// firebase.json's hosting.ignore excludes "*.md" (and "docs/**") entirely,
+// confirmed empirically: fetch('/CHANGELOG.md') on the live site returns a
+// real 404, not a stale cache hit - this isn't a Cache-Control problem like
+// the one already fixed for the 6 app pages, the file was never published
+// at all. Fetching it straight from GitHub instead - verified working in a
+// real browser (not assumed): raw.githubusercontent.com/<owner>/<repo>/
+// main/CHANGELOG.md returns the full file (200, real content, RTL Hebrew
+// intact - checked for "צ׳כיה" specifically) with its own Cache-Control:
+// max-age=300 (GitHub's CDN, not this project's own header config) and,
+// unlike api.github.com, is NOT subject to the 60/hour unauthenticated
+// rate limit (that limit is real and confirmed too - see the investigation
+// report - but only applies to the commits API this file doesn't call).
+// Safe to call on every dashboard load without a caching layer of its own.
+const CHANGELOG_RAW_URL = "https://raw.githubusercontent.com/nelevy1-sketch/mykonos-list/main/CHANGELOG.md";
+
+async function fetchChangelogText() {
+  const res = await fetch(CHANGELOG_RAW_URL, { cache: "no-store" });
+  if (!res.ok) throw new Error(`CHANGELOG.md fetch failed: HTTP ${res.status}`);
+  return res.text();
+}
+
+// Version headers are "## vX.Y.Z — description" (em dash, U+2014) -
+// verified against the real file: 238 of 239 "## v..." lines match this
+// exactly; the one exception ("## v3.1.0 ואילך (לפני שיחה זו)", the
+// pre-tracking catch-all footer) has no em dash and no real description,
+// so it's naturally excluded by this same regex - no special-case needed.
+// Order in the file is newest-first (top of file = current version).
+function parseChangelogVersions(text) {
+  const re = /^## v(\d+)\.(\d+)\.(\d+) — (.+)$/gm;
+  const versions = [];
+  let m;
+  while ((m = re.exec(text))) {
+    versions.push({ major: +m[1], minor: +m[2], patch: +m[3], summary: m[4].trim() });
+  }
+  return versions;
+}
+
+// Classifies each version AGAINST THE ONE IMMEDIATELY BEFORE IT (older, one
+// entry down in the newest-first list) by semver precedence - major wins
+// over minor wins over patch - not by guessing from the description text
+// (this project's own CLAUDE.md rule: bump type is decided by which number
+// changed, not by what the text says). The oldest entry in the list has no
+// older neighbor to compare against and is excluded, matching how a real
+// semver history has no "type" for its own starting point. Verified
+// against the real file: every one of Minor's own patch-resets-to-zero
+// transitions (e.g. 4.86.1 -> 4.87.0, patch AND minor both differ) still
+// classifies correctly as "minor" under this precedence order, not
+// miscounted as some kind of combined/ambiguous case.
+function classifyVersionTransitions(versions) {
+  const counts = { major: 0, minor: 0, patch: 0 };
+  for (let i = 0; i < versions.length - 1; i++) {
+    const newer = versions[i], older = versions[i + 1];
+    if (newer.major !== older.major) counts.major++;
+    else if (newer.minor !== older.minor) counts.minor++;
+    else counts.patch++;
+  }
+  return counts;
+}
+
+const VERSION_TYPE_LABELS = { major: "Major", minor: "Minor", patch: "Patch" };
+
+// --- Version-history investigation, items 3+4 (per-day/week bar chart +
+// scrollable timeline). Both need version-history.json - see
+// scripts/generate-version-history.js's header comment for why that file
+// exists instead of matching commit messages live from the browser (the
+// approach items 1+2 use for their own data - not usable here, ~90% of
+// this repo's commits never state their own version number in the
+// message). Same-origin fetch (this app's own Firebase Hosting), so no
+// CORS/rate-limit concern at all, unlike the GitHub-sourced cards. ---
+async function fetchVersionHistory() {
+  const res = await fetch("version-history.json", { cache: "no-store" });
+  if (!res.ok) throw new Error(`version-history.json fetch failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+// Buckets by day/week/month via chooseDateGranularity - the SAME function
+// computeTripsTimeline (above) already uses, reused as-is rather than
+// reimplemented. Unlike that one, this counts entries PER BUCKET (a bar
+// chart - "how many releases this week"), not a running cumulative total
+// (a line chart would misrepresent this - a release COUNT has no
+// meaningful "total so far" reading the way trip signups do). Versions
+// with no resolved date (should be none post-script, but the script
+// itself warns rather than guarantees - see its own comment) are silently
+// excluded here, not shown as a fake zero-dated bucket.
+function computeVersionsTimeline(versionHistory) {
+  const dated = versionHistory
+    .filter(v => v.date)
+    .map(v => new Date(v.date))
+    .sort((a, b) => a - b);
+
+  if (!dated.length) return { labels: [], data: [] };
+
+  const { keyFn, formatLabel } = chooseDateGranularity(dated);
+  const counts = {};
+  dated.forEach(d => { const key = keyFn(d); counts[key] = (counts[key] || 0) + 1; });
+
+  const sortedKeys = Object.keys(counts).sort();
+  return { labels: sortedKeys.map(formatLabel), data: sortedKeys.map(key => counts[key]) };
+}
+
+function renderVersionsTimelineChart(timeline) {
+  destroyChart("versionsTimelineChart");
+  const canvas = $("versionsTimelineChart");
+
+  if (!timeline.labels.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
+    return;
+  }
+  setChartEmptyState(canvas, false);
+
+  chartInstances.versionsTimelineChart = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: timeline.labels,
+      datasets: [{ data: timeline.data, backgroundColor: CHART_GOOD, barPercentage: 0.7, categoryPercentage: 0.8 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1
+        }
+      },
+      scales: {
+        x: { ticks: { color: CHART_MUTED, maxRotation: 45, minRotation: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID } },
+        y: { ticks: { color: CHART_MUTED, precision: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Newest-first (version-history.json's own order, inherited from
+// CHANGELOG.md) - a changelog reads top-down, most recent first, same
+// convention as the file it's generated from. A missing date (should not
+// happen post-script, handled gracefully anyway per this stage's own
+// requirement 5) shows literal "תאריך לא ידוע" instead of silently
+// omitting the row or crashing the whole list over one bad entry.
+const VERSION_LOG_DATE_FORMAT = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "numeric", year: "numeric" });
+
+function renderVersionLog(versionHistory) {
+  const container = $("versionLogList");
+  if (!versionHistory.length) {
+    container.innerHTML = '<p class="metric-note">אין נתוני גרסאות</p>';
+    return;
+  }
+  container.innerHTML = versionHistory.map(v => {
+    const dateLabel = v.date ? VERSION_LOG_DATE_FORMAT.format(new Date(v.date)) : "תאריך לא ידוע";
+    return `
+      <div class="version-log-row">
+        <div class="version-log-head">
+          <span class="version-log-num">v${v.major}.${v.minor}.${v.patch}</span>
+          <span class="version-log-date">${escapeHtml(dateLabel)}</span>
+        </div>
+        <p class="version-log-summary">${escapeHtml(v.summary)}</p>
+      </div>`;
+  }).join("");
 }
 
 // --- Redesign stage 2/5 - Chart.js instances. loadAndRender can run more
@@ -3047,6 +3329,35 @@ async function loadAndRender() {
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/signIns", error);
     if (window.toast) window.toast("טעינת נתוני הכניסות נכשלה", "error");
+  }
+
+  // Sixth independent try/catch, same reasoning as the 5 above - a failure
+  // here must not block anything else. Different in kind from the other
+  // 5 though: this reads an external GitHub URL, not this app's own RTDB -
+  // a real network hiccup or GitHub outage is a more likely failure mode
+  // here than anywhere else on this page, exactly why it stays isolated.
+  try {
+    const changelogText = await fetchChangelogText();
+    const versions = parseChangelogVersions(changelogText);
+    renderDonutChart("versionTypeChart", sortedEntries(classifyVersionTransitions(versions)), VERSION_TYPE_LABELS);
+  } catch (error) {
+    console.warn("[dashboard] failed to load CHANGELOG.md version history", error);
+    if (window.toast) window.toast("טעינת היסטוריית הגרסאות נכשלה", "error");
+  }
+
+  // Seventh independent try/catch, same reasoning as the 6 above. Separate
+  // from the sixth (GitHub-sourced) on purpose - different source (this
+  // app's own Firebase Hosting, not GitHub), different failure mode (a
+  // missing/stale version-history.json - forgot to re-run the generator
+  // script and redeploy - not a GitHub outage), so a failure here
+  // shouldn't be blamed on or confused with the GitHub-sourced cards.
+  try {
+    const versionHistory = await fetchVersionHistory();
+    renderVersionsTimelineChart(computeVersionsTimeline(versionHistory));
+    renderVersionLog(versionHistory);
+  } catch (error) {
+    console.warn("[dashboard] failed to load version-history.json", error);
+    if (window.toast) window.toast("טעינת יומן הגרסאות נכשלה", "error");
   }
 
   $("appContainer").classList.remove("is-loading");
