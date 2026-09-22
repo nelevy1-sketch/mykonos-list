@@ -1,5 +1,22 @@
 # GitTrip — CHANGELOG
 
+## v4.91.1 — achievements.html: computeUSStateVisitInfo (commit 3/4, שכבת חישוב בלבד)
+
+### 🔧 שינוי פנימי (בלי השפעה על מה שהמשתמש רואה)
+`computeUSStateVisitInfo(visits)` חדשה - מצטברת לפי `stateCode` בלבד עבור רשומות `countryCode==="US"` שיש להן `stateCode` (מגיע מ-geocoding, commit 2/4). **לא נקראת עדיין משום מקום** - שכבת חישוב טהורה, אין תצוגה (מגיע ב-commit 4/4).
+
+**נפרדת לגמרי מ-`computeCountryVisitInfo`, בכוונה** - לא בנויה על הפלט שלה (בניגוד ל-`computeContinentVisitInfo`, שכן בנויה עליה) - קוראת ישירות מ-`visits` הגולמי. **אומת בפועל**: `computeCountryVisitInfo`/`computeContinentVisitInfo` מקבלות תוצאה זהה בדיוק לפני ואחרי - ארה"ב עדיין נספרת כרשומת מדינה יחידה (`count` מצטבר, לא מפוצל לפי state) בכל חישוב קיים - אפס סיכון רגרסיה, לא רק בבדיקה אלא במבנה עצמו.
+
+**עדיפות app-מנצח-manual - אומת שלא רלוונטת כרגע, לא רק הונחה**: הצורה `{hasApp, hasManual, count}` נשמרה לעקביות עם `countryVisitInfo`/`continentVisitInfo` הקיימים, אבל `hasApp` **אינרטי לחלוטין היום** - הכותב היחיד ל-`stateCode` הוא `saveManualVisit` (`source:"manual"` תמיד); אין כרגע שום כותב `source:"app"` חי שממלא `stateCode` בכלל (`scripts/backfill-visits.js` קודם לפיצ'ר הזה ולא כתוב מעולם שהוא רץ בפועל). העדיפות עצמה היא החלטת תצוגה (איזה צבע כשיש גם וגם) - לא רלוונטית לשכבת החישוב הזו כלל.
+
+### 🔍 מה שנבדק בפועל
+- state בודד עם 2 ביקורים - `count:2` נכון.
+- 3 states שונים - כל אחד `count:1` בנפרד.
+- ביקור ארה"ב **בלי** `stateCode` - לא נספר בפונקציה החדשה, לא קורס. רשומה עם `countryCode` שאינו US אבל `stateCode` תקוע עליה (דאטה פגומה/לא צפויה) - מסוננת נכון.
+- `null`/`{}` - מחזירה `{}`, לא קורס.
+- `computeCountryVisitInfo`/`computeContinentVisitInfo` על אותו פיקסצ'ר (3 states + מדינה נוספת) - ארה"ב מוצגת כרשומה יחידה עם `count:3`, בדיוק כמו לפני השינוי.
+- hook-בדיקה זמני הוסר ואומת (`grep -c "__test"` → 0).
+
 ## v4.91.0 — achievements.html: geocoding ל-stateCode בביקור ידני בארה"ב (commit 2/4, שינוי סכמה)
 
 ### ✨ שינוי סכמה

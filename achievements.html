@@ -965,6 +965,49 @@ function capColorForFeature(feature) {
   return info.hasApp ? COLOR_APP : COLOR_MANUAL;
 }
 
+// --- US-state drill-down (commit 3/4) - computation layer only, no
+// color/UI function reads this yet (that's commit 4). Deliberately a
+// completely separate function reading raw `visits` directly, NOT built
+// on top of countryVisitInfo's own output the way computeContinentVisitInfo
+// is (§5 of the investigation this implements: "does this change existing
+// logic for all other countries, or can it be kept separate" - answered
+// there as "separate", built that way here) - computeCountryVisitInfo
+// itself is completely untouched by this commit, and the US still counts
+// as exactly one country everywhere it already did (world-total stat,
+// country/continent choropleth, "X countries visited" line) - zero
+// regression risk to any of that, by construction, not just by testing.
+//
+// Same {hasApp, hasManual, count} shape as countryVisitInfo/
+// continentVisitInfo above, for consistency with the established pattern -
+// but hasApp is INERT today, not just unlikely: the only current writer of
+// stateCode anywhere in this app is saveManualVisit's own geocoding
+// (commit 2/4, source:"manual" always) - no live "app" writer of visits
+// sets stateCode (scripts/backfill-visits.js's record shape predates this
+// feature and doesn't include it, and it's the only source:"app" writer
+// that exists at all, itself not confirmed as ever having been run - see
+// this session's earlier investigation). hasApp is kept in the shape
+// anyway (not dropped) purely for forward-compatibility with a future
+// app-derived writer that might one day set stateCode too - not because
+// it does anything today. The app-wins-over-manual PRIORITY itself (which
+// color a choropleth cell gets when both exist) is a display-time
+// decision, not something this computation function makes - see
+// capColorForFeature above for how that pattern works when there IS
+// something to prioritize; nothing here needs it yet since hasApp can
+// never actually be true in current data.
+function computeUSStateVisitInfo(visits) {
+  const info = {};
+  Object.values(visits || {}).forEach(v => {
+    if (!v || !v.stateCode) return;
+    if (String(v.countryCode || "").toUpperCase() !== "US") return;
+    const sc = String(v.stateCode).toUpperCase();
+    if (!info[sc]) info[sc] = { hasApp: false, hasManual: false, count: 0 };
+    info[sc].count++;
+    if (v.source === "app") info[sc].hasApp = true;
+    else if (v.source === "manual") info[sc].hasManual = true;
+  });
+  return info;
+}
+
 // --- Continent view (stage 3) - same app-wins-over-manual priority, just
 // aggregated one level up via countryContinent.js's window.COUNTRY_CONTINENT
 // (alpha-2 -> English continent name, loaded since stage 2). Derived from
