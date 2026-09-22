@@ -187,6 +187,11 @@
        and the file header above for why the "capitals visited" stat is
        fuzzy on purpose. -->
   <script src="capitalCities.js"></script>
+  <!-- US-state drill-down (commit 2/4) dependency: ISO 3166-2:US code ->
+       English/Hebrew name, new file (commit 1/4) - see its own header for
+       sourcing. First actual consumer: saveManualVisit() below, matching a
+       geocoded US visit's resolved state name back to its code. -->
+  <script src="usStates.js"></script>
   <!-- Gamification (level track + badge grid) dependency: the "5+ יעדים
        שונים בטיול אחד" badge counts distinct real-stay legs across every
        trip the signed-in user belongs to (users/{uid}/trips index ->
@@ -1317,6 +1322,47 @@ function openAddVisitForm() {
   $("addVisitOverlay").classList.remove("hidden");
 }
 
+// US-state drill-down (commit 2/4) - built once, eagerly, from
+// window.US_STATES (usStates.js, a classic script loaded above this
+// module and therefore already populated by the time this runs - same
+// load-order guarantee legs.js/datetime.js already rely on elsewhere in
+// this file). Keyed by the ENGLISH name lowercased - geocodeStateForUSVisit
+// below always requests language:"en" from the geocoder regardless of
+// this page's own Hebrew-only UI, specifically so this lookup only ever
+// has to handle one language, not two.
+const US_STATE_NAME_TO_CODE = (() => {
+  const map = {};
+  Object.entries(window.US_STATES || {}).forEach(([code, info]) => {
+    map[info.nameEn.toLowerCase()] = code;
+  });
+  return map;
+})();
+
+// Best-effort only - NEVER throws, NEVER blocks the save that calls it.
+// Returns null (not a rejected promise) on anything short of a full,
+// cross-checked match: no city typed, geocoding failed entirely (already
+// non-throwing internally - see legGeocode.js's own doc comment - this
+// wrapper's try/catch is defense-in-depth, not the primary safety net),
+// no region in the result, or - the one active validation, not just a
+// missing-data check - the geocoded result's OWN countryCode doesn't
+// match "US". That last check matters: cityName is free text the user
+// typed with no state qualifier required (e.g. plain "Paris" while US is
+// selected in the combobox, really meaning Paris, Texas) - a geocode that
+// resolved somewhere else entirely is a real signal of a mismatch, not
+// a reason to guess a state from it anyway (same caution as the
+// investigation's own backfill-safety finding: a wrong state is worse
+// than no state).
+async function geocodeStateForUSVisit(cityName) {
+  try {
+    const geo = await window.geocodeLegDestination(cityName, "en");
+    if (!geo || geo.countryCode !== "US" || !geo.region) return null;
+    return US_STATE_NAME_TO_CODE[geo.region.toLowerCase()] || null;
+  } catch (error) {
+    console.warn("[achievements] US state geocoding failed - saving visit without stateCode", error);
+    return null;
+  }
+}
+
 async function saveManualVisit() {
   if (!auth.currentUser) return;
   const countryCode = selectedCountryCode;
@@ -1339,6 +1385,19 @@ async function saveManualVisit() {
     visitedAt,
     createdAt: new Date().toISOString()
   };
+  // US-state drill-down (commit 2/4) - only attempted for a US visit with
+  // an actual city typed (no city = nothing to geocode, same optional-gap
+  // shape every other field here already has). Adds one geocode network
+  // round-trip before the write for US visits specifically - accepted
+  // latency cost, not hidden: this call is awaited, not fired in the
+  // background, so the save genuinely takes a little longer for this one
+  // case. A failure here never blocks the write below - stateCode is
+  // simply omitted from the record, exactly like a country whose combobox
+  // pick isn't US never gets one at all.
+  if (record.countryCode === "US" && cityName) {
+    const stateCode = await geocodeStateForUSVisit(cityName);
+    if (stateCode) record.stateCode = stateCode;
+  }
   if (!(await window.safeWrite(
     push(ref(db, `users/${auth.currentUser.uid}/visits`), record),
     "saveManualVisit",
