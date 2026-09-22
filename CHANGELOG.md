@@ -1,5 +1,24 @@
 # GitTrip — CHANGELOG
 
+## v4.83.7 — מיגרציית domain: og:image/og:url/twitter:image + קישור CTA (index.html, gittrip-showcase.html)
+
+### 🐛 הבאג
+סריקה שיטתית של כל הריפו (לא רק gittrip-showcase.html) אחר אזכורי הדומיין הישן `nelevy1-sketch.github.io` (מלפני המעבר ל-`gittrip.app`) העלתה 7 מופעים פונקציונליים בשני קבצים - כל שאר מופעי ה-domain בריפו נבדקו ונפסלו כלא-רלוונטיים (Firebase RTDB/Storage URLs, User-Agent header של `scripts/backfill-place-coordinates.js` שמצביע נכון על `github.com/.../mykonos-list` - כתובת ה-**ריפו**, לא hosting - ורשומות היסטוריות ב-CHANGELOG שנשארות כמו שהן בכוונה).
+
+**תוקן**:
+- **`index.html`**: `og:image`/`twitter:image` → `https://gittrip.app/og-preview.png` (גם `/mykonos-list/` נעלם מהנתיב - היה חלק מ-GitHub-Pages-project-path, לא רלוונטי תחת custom domain).
+- **`gittrip-showcase.html`**: אותו תיקון ל-`og:image`/`twitter:image`, ובנוסף `og:url` → `https://gittrip.app/gittrip-showcase.html`.
+- **`gittrip-showcase.html` - קישור ה-CTA** (`#ctaBtn`, המקרה הדיפולטיבי בלי `tripId`): הוחלף מ-URL מוחלט (`https://nelevy1-sketch.github.io/mykonos-list/wizard.html`, `target="_blank"`) לנתיב יחסי (`href="wizard.html"`, אותו טאב) - `target="_blank"` הוסר **רק** במקרה הזה; ה-branches של `tripId`/`from=menu` ב-JS (`initCtaFromUrl()`) נשארו בלי שינוי - הם ממילא רק `removeAttribute("target"/"rel")`, אף פעם לא set, אז ההסרה מה-HTML הסטטי היא no-op מבחינתם, לא רגרסיה.
+
+### 🔍 מה שנבדק בפועל
+- **`og-preview.png` על `gittrip.app` (לא רק github.io)** - נבדק ישירות לפני שנסגר, לא הונח: `curl -I https://gittrip.app/og-preview.png` → `200 OK`, `image/png`, 28539 bytes. סוגר גם את הפריט הפתוח המקביל ב-`docs/roadmap.md` §7 ("לבדוק ש-og-preview.png באמת קיים").
+- `grep` על שני הקבצים אחרי השינוי - 0 מופעים נותרים של `nelevy1-sketch`.
+- ערכי ה-DOM בפועל בדפדפן חי: `ctaBtn.href` = `"wizard.html"`, בלי `target`/`rel`; שלושת ה-meta tags מציגים `gittrip.app` - נקרא ישירות מה-DOM, לא רק מהקוד המקור.
+- `node --check` נקי על כל 5 בלוקי ה-script המשולבים בין שני הקבצים.
+- הענף `tripId`/`from=menu` נבדק מקריאת קוד (לא live navigation - סביבת הבדיקה המקומית עם `file://`+query-params מפיקה "static snapshot" ולא מריצה JS אמיתי) - `removeAttribute` על attribute שכבר לא קיים הוא no-op מתועד, לא רגרסיה.
+
+**מיגרציית תוכן/קונפיג אמיתית (לא רק תיעוד) → patch bump.**
+
 ## v4.83.6 — תיקון: טקסט מיושן "מקומות" במודול "תמונות ומוזיקה" (wizard.html, המשך v4.83.5)
 
 ### 🐛 הבאג
