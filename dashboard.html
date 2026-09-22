@@ -754,6 +754,10 @@
         <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
         <p class="kpi-label">מדינות שביקרו בהן</p>
       </div>
+      <div class="kpi-card" id="kpiSignInsToday">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">כניסות ייחודיות היום</p>
+      </div>
     </section>
 
     <!-- Redesign stage 2/5 - trips/ charts. Replaces 4 old plain-table
@@ -847,6 +851,32 @@
         <h2>צריכת טוקנים לפי פונקציה (פרוקסי לעלות)</h2>
         <div class="chart-wrap bar-wrap" id="serverCallsTokensChartWrap">
           <canvas id="serverCallsTokensChart" role="img" aria-label="גרף עמודות - צריכת טוקנים לפי פונקציה, ממוין מהגבוה ביותר"></canvas>
+        </div>
+      </div>
+
+      <!-- Stage 9 - 3 new daily time-series charts, all sharing
+           renderAnomalyLineChart(): a day whose value drops 30%+ below its
+           own trailing 7-day average (and that average is at least 3, to
+           avoid flagging small-scale noise) is marked red + a larger point
+           - see computeAnomalyFlags' own comment. -->
+      <div class="metric-card" id="signInsChartCard">
+        <h2>כניסות ייחודיות לאורך זמן</h2>
+        <div class="chart-wrap">
+          <canvas id="signInsChart" role="img" aria-label="גרף קו - מספר משתמשים ייחודיים שנכנסו לאפליקציה לאורך זמן, ימים חריגים מסומנים באדום"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card" id="writeSuccessDailyCard">
+        <h2>הצלחת כתיבות לאורך זמן</h2>
+        <div class="chart-wrap">
+          <canvas id="writeSuccessDailyChart" role="img" aria-label="גרף קו - אחוז הצלחת כתיבות לפי יום, ימים חריגים מסומנים באדום"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card" id="serverSuccessDailyCard">
+        <h2>הצלחת קריאות שרת לאורך זמן</h2>
+        <div class="chart-wrap">
+          <canvas id="serverSuccessDailyChart" role="img" aria-label="גרף קו - אחוז הצלחת קריאות שרת לפי יום, ימים חריגים מסומנים באדום"></canvas>
         </div>
       </div>
     </section>
@@ -1065,15 +1095,18 @@ const LAYOUT_SECTIONS = [
   { id: "kpiGrid", label: "כרטיסי KPI" },
   { id: "tripsChartsSection", label: "גרפי טיולים" },
   { id: "activityChartsSection", label: "גרפי פעילות" },
-  { id: "writesChartsSection", label: "גרפי כתיבה ושרת" },
+  { id: "writesChartsSection", label: "גרפי כתיבה, שרת וכניסות" },
   { id: "visitorStatsSection", label: "סטטיסטיקת ביקורים" },
   { id: "dashMain", label: "פרטים נוספים" }
 ];
 
 const LAYOUT_CARD_GROUPS = {
-  kpiGrid: ["kpiTotalTrips", "kpiWriteSuccess", "kpiServerSuccess", "kpiCountriesVisited"],
+  kpiGrid: ["kpiTotalTrips", "kpiWriteSuccess", "kpiServerSuccess", "kpiCountriesVisited", "kpiSignInsToday"],
   tripsChartsSection: ["tripsTimelineCard", "tripsDonutRow"],
-  writesChartsSection: ["writesByContextCard", "serverCallsByFunctionCard", "serverCallsTokensCard"],
+  writesChartsSection: [
+    "writesByContextCard", "serverCallsByFunctionCard", "serverCallsTokensCard",
+    "signInsChartCard", "writeSuccessDailyCard", "serverSuccessDailyCard"
+  ],
   visitorStatsSection: ["visitorMapCard", "visitorContinentsCard"],
   dashMain: [
     "totalTripsCard", "groupSizeCard", "featuresCard", "countriesCard", "destTypeCard",
@@ -1819,6 +1852,102 @@ function computeActivityTimeline(writesObj) {
   return { labels, datasets, totals };
 }
 
+// Stage 9 - shared rolling-average anomaly flag, used by all 3 daily
+// series below (sign-ins/day, write success %, server success %) - NOT by
+// computeTripsTimeline/computeActivityTimeline above, whose series are
+// cumulative (a rolling-average drop can never trigger on a value that
+// never decreases). window days STRICTLY BEFORE index i, never including
+// i itself - an anomalous day shouldn't get diluted into its own
+// baseline, and the first `window` points in any series never qualify
+// (not enough history yet - not flagged, not a false negative, there's
+// genuinely nothing to compare against yet). minAvg guards the low-volume
+// case: with a handful of events a day, a 2->1 swing is a 50% "drop" by
+// the same math but means nothing at that scale - not worth a red flag.
+function computeAnomalyFlags(values, { window = 7, dropRatio = 0.7, minAvg = 3 } = {}) {
+  return values.map((value, i) => {
+    const prior = values.slice(Math.max(0, i - window), i);
+    if (prior.length < window) return false;
+    const movingAvg = prior.reduce((sum, v) => sum + v, 0) / prior.length;
+    return movingAvg >= minAvg && value < movingAvg * dropRatio;
+  });
+}
+
+// Unique-uid-per-bucket sign-ins - the one genuinely new dedup shape here;
+// granularity choice/labels are chooseDateGranularity, reused exactly like
+// computeTripsTimeline above, not reinvented. Deliberately NOT cumulative
+// (unlike computeTripsTimeline/computeActivityTimeline) - see
+// computeAnomalyFlags' own comment for why a cumulative series can't be
+// anomaly-checked this way. .size, not .length, on each bucket's Set - the
+// same uid signing in 3 times the same day (every page load re-fires
+// onAuthStateChanged, see each page's own wasSignedOut comment) counts
+// once, not 3 times.
+function computeSignInsTimeline(signInsObj) {
+  const events = Object.values(signInsObj || {}).filter(e => e && e.uid && e.timestamp);
+  if (!events.length) return { labels: [], data: [], anomalies: [], granularity: null };
+
+  const dates = events.map(e => new Date(e.timestamp)).sort((a, b) => a - b);
+  const { granularity, keyFn, formatLabel } = chooseDateGranularity(dates);
+
+  const uidsByBucket = {};
+  events.forEach(e => {
+    const key = keyFn(new Date(e.timestamp));
+    (uidsByBucket[key] || (uidsByBucket[key] = new Set())).add(e.uid);
+  });
+
+  const sortedKeys = Object.keys(uidsByBucket).sort();
+  const data = sortedKeys.map(key => uidsByBucket[key].size);
+  const labels = sortedKeys.map(formatLabel);
+
+  return { labels, data, anomalies: computeAnomalyFlags(data), granularity };
+}
+
+// Same y-m-d shape as chooseDateGranularity's own internal dayKey (not
+// exported from there - reimplemented here rather than refactoring that
+// well-established closure just for one KPI number). Used only to find
+// "today"'s own bucket below, independent of whatever granularity the
+// chart itself ends up choosing (which could be "week" once enough
+// history exists - the KPI card should still always mean literally today).
+function localDayKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function countTodaySignIns(signInsObj) {
+  const todayKey = localDayKey(new Date());
+  const uids = new Set();
+  Object.values(signInsObj || {}).forEach(e => {
+    if (e && e.uid && e.timestamp && localDayKey(new Date(e.timestamp)) === todayKey) {
+      uids.add(e.uid);
+    }
+  });
+  return uids.size;
+}
+
+// Daily success-rate series shared by write/server-call anomaly detection
+// (called twice below, once per event source - not written out twice).
+// success/total per bucket, same field names computeWriteStats/
+// computeServerCallStats above already assume.
+function computeDailySuccessRateTimeline(eventsObj) {
+  const events = Object.values(eventsObj || {}).filter(e => e && e.timestamp);
+  if (!events.length) return { labels: [], data: [], anomalies: [], granularity: null };
+
+  const dates = events.map(e => new Date(e.timestamp)).sort((a, b) => a - b);
+  const { granularity, keyFn, formatLabel } = chooseDateGranularity(dates);
+
+  const byBucket = {};
+  events.forEach(e => {
+    const key = keyFn(new Date(e.timestamp));
+    if (!byBucket[key]) byBucket[key] = { total: 0, success: 0 };
+    byBucket[key].total++;
+    if (e.success) byBucket[key].success++;
+  });
+
+  const sortedKeys = Object.keys(byBucket).sort();
+  const data = sortedKeys.map(key => Math.round((byBucket[key].success / byBucket[key].total) * 100));
+  const labels = sortedKeys.map(formatLabel);
+
+  return { labels, data, anomalies: computeAnomalyFlags(data), granularity };
+}
+
 // --- Rendering - plain rows (still used by several cards below this
 // stage's own scope - features/countries/destType/writes/serverCalls/
 // visitorStats). Chart.js (stage 2/5) covers trips-over-time and the
@@ -2028,6 +2157,71 @@ function renderActivityTimelineChart(timeline) {
           bodyColor: CHART_TEXT,
           borderColor: CHART_GRID,
           borderWidth: 1
+        }
+      },
+      scales: {
+        x: { ticks: { color: CHART_MUTED, maxRotation: 45, minRotation: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID } },
+        y: { ticks: { color: CHART_MUTED, precision: 0, font: { family: CHART_FONT_FAMILY } }, grid: { color: CHART_GRID }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Stage 9 - shared by all 3 anomaly-aware daily charts (sign-ins, write
+// success %, server success % over time) - one render function, not three
+// near-identical copies differing only in canvas id/label/units.
+// Anomalous points get CHART_BAD + a visibly larger radius - color is
+// never the only signal, same rule already applied to every other good/
+// bad indicator on this page (KPI cards, metric-row-percent, metric-big) -
+// plus their own "⚠ ... (חריגה מהממוצע)" tooltip line, not just a color
+// shift someone could miss at a glance or on a small screen.
+function renderAnomalyLineChart(canvasId, timeline, seriesLabel, valueSuffix) {
+  destroyChart(canvasId);
+  const canvas = $(canvasId);
+
+  if (!timeline.labels.length) {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setChartEmptyState(canvas, true);
+    return;
+  }
+  setChartEmptyState(canvas, false);
+
+  const pointColors = timeline.data.map((v, i) => (timeline.anomalies[i] ? CHART_BAD : CHART_ACCENT));
+  const pointRadii = timeline.data.map((v, i) => (timeline.anomalies[i] ? 6 : (timeline.labels.length > 40 ? 0 : 3)));
+
+  chartInstances[canvasId] = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: timeline.labels,
+      datasets: [{
+        label: seriesLabel,
+        data: timeline.data,
+        borderColor: CHART_ACCENT,
+        backgroundColor: CHART_ACCENT + "33",
+        fill: true,
+        tension: 0.25,
+        pointRadius: pointRadii,
+        pointBackgroundColor: pointColors,
+        pointBorderColor: pointColors
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: CHART_TEXT } },
+        tooltip: {
+          backgroundColor: CHART_TOOLTIP_BG,
+          titleColor: CHART_TEXT,
+          bodyColor: CHART_TEXT,
+          borderColor: CHART_GRID,
+          borderWidth: 1,
+          callbacks: {
+            label: ctx => {
+              const value = `${seriesLabel}: ${ctx.parsed.y}${valueSuffix || ""}`;
+              return timeline.anomalies[ctx.dataIndex] ? `⚠ ${value} (חריגה מהממוצע)` : value;
+            }
+          }
         }
       },
       scales: {
@@ -2792,6 +2986,14 @@ async function loadAndRender() {
     const activityTimeline = computeActivityTimeline(writesSnapshot.val());
     renderActivityTimelineChart(activityTimeline);
     renderActivityTimelineNote(activityTimeline.totals);
+
+    // Stage 9 - same already-fetched writesSnapshot, no second read.
+    renderAnomalyLineChart(
+      "writeSuccessDailyChart",
+      computeDailySuccessRateTimeline(writesSnapshot.val()),
+      "הצלחת כתיבה",
+      "%"
+    );
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/writes", error);
     if (window.toast) window.toast("טעינת נתוני הכתיבות נכשלה", "error");
@@ -2808,6 +3010,14 @@ async function loadAndRender() {
       const pct = Math.round((serverCallStats.successCount / serverCallStats.total) * 100);
       updateKPI("kpiServerSuccess", `${pct}%`, pct >= 90 ? "good" : "bad");
     }
+
+    // Stage 9 - same already-fetched serverCallsSnapshot, no second read.
+    renderAnomalyLineChart(
+      "serverSuccessDailyChart",
+      computeDailySuccessRateTimeline(serverCallsSnapshot.val()),
+      "הצלחת קריאות שרת",
+      "%"
+    );
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/serverCalls", error);
     if (window.toast) window.toast("טעינת נתוני קריאות השרת נכשלה", "error");
@@ -2825,6 +3035,18 @@ async function loadAndRender() {
   } catch (error) {
     console.warn("[dashboard] failed to load _analytics/visitorStats", error);
     if (window.toast) window.toast("טעינת נתוני הביקורים נכשלה", "error");
+  }
+
+  // Fifth independent try/catch, same reasoning - a failure reading
+  // _analytics/signIns must not block anything else on this page.
+  try {
+    const signInsSnapshot = await get(ref(db, "_analytics/signIns"));
+    const signInsVal = signInsSnapshot.val();
+    renderAnomalyLineChart("signInsChart", computeSignInsTimeline(signInsVal), "כניסות ייחודיות", "");
+    updateKPI("kpiSignInsToday", countTodaySignIns(signInsVal), null);
+  } catch (error) {
+    console.warn("[dashboard] failed to load _analytics/signIns", error);
+    if (window.toast) window.toast("טעינת נתוני הכניסות נכשלה", "error");
   }
 
   $("appContainer").classList.remove("is-loading");
