@@ -1,6 +1,27 @@
 [
   {
     "major": 4,
+    "minor": 92,
+    "patch": 0,
+    "summary": "achievements.html: drill-down ל-states בארה\"ב על הגלובוס (commit 4/4, סוגר את הפיצ'ר)",
+    "date": "2026-09-22T22:17:53+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 91,
+    "patch": 1,
+    "summary": "achievements.html: computeUSStateVisitInfo (commit 3/4, שכבת חישוב בלבד)",
+    "date": "2026-09-22T22:04:56+03:00"
+  },
+  {
+    "major": 4,
+    "minor": 91,
+    "patch": 0,
+    "summary": "achievements.html: geocoding ל-stateCode בביקור ידני בארה\"ב (commit 2/4, שינוי סכמה)",
+    "date": "2026-09-22T21:54:52+03:00"
+  },
+  {
+    "major": 4,
     "minor": 90,
     "patch": 1,
     "summary": "תיקון: combobox בחירת מדינה (achievements.html) לא מוצא כמה מדינות אמיתיות",
