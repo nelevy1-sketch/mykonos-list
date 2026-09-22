@@ -412,6 +412,25 @@
       direction: ltr;
     }
 
+    /* US-state drill-down (commit 4/4) - opposite corner from #fpsHud.
+       Physical `left`, not a logical inset-inline-* property - found as a
+       real bug while testing, not just a style preference: #fpsHud sets
+       its own `direction: ltr` (for its monospace digits), so ITS
+       inset-inline-end resolves against LTR (-> physical right), while a
+       logical inset-inline-start here would resolve against the page's
+       actual `dir="rtl"` (-> ALSO physical right, per RTL's own
+       start=right rule) - the two ends up on the exact same corner,
+       fully overlapping (confirmed via getBoundingClientRect before this
+       fix: both at right:526px). Physical `left` sidesteps both
+       elements' own direction contexts entirely - guaranteed opposite
+       corners regardless of either one's `direction`. */
+    #usStateBackBtn {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      left: 8px;
+      z-index: 5;
+    }
+
     /* Gamification: level track (Duolingo-style horizontal path), always
        visible across all 4 tabs - the page's fixed "hero". The badge grid
        (originally placed here too, stage 5) moved into its own
@@ -687,6 +706,13 @@
 
 <div id="fpsHud">FPS --</div>
 
+<!-- US-state drill-down (commit 4/4) - hidden by default, shown only
+     while usStatesDrilledIn is true (enterUSStateDrillDown/
+     exitUSStateDrillDown, above). Opposite corner from #fpsHud on
+     purpose - both are fixed-position globe overlays, never worth
+     stacking on top of each other. -->
+<button class="icon-btn hidden" id="usStateBackBtn" aria-label="חזרה למפת העולם" title="חזרה למפת העולם">↩</button>
+
 <div class="celebration-overlay hidden" id="celebrationOverlay">
   <div class="celebration-kicker" id="celebrationKicker"></div>
   <div class="celebration-icon" id="celebrationIcon"></div>
@@ -881,6 +907,22 @@ let signInLogged = false;
 let gamificationStarted = false;
 let world = null; // set once startGlobe()'s Globe() call resolves - read by startVisitsListener()'s onValue callback to force a repaint when new data arrives after the globe already exists.
 
+// US-state drill-down (commit 4/4). worldPolygonFeatures is the world
+// countries.features array startGlobe() already builds - saved here so
+// exitUSStateDrillDown() can restore EXACTLY the same features object,
+// not refetch/rebuild it. usStatesFeatures is the lazily-loaded, then
+// cached, us-atlas states-10m.json result (§1/§5 of the request: fetched
+// only on the first real drill-down click, never during normal page
+// load - confirmed in testing, see CHANGELOG). usStatesDrilledIn is a
+// sub-mode of the "country" tab, not a fourth currentView value - the
+// existing 3-tab toggle (מדינה/עיר/יבשת) is untouched and still means
+// exactly what it always did; this only ever changes what the "מדינה" tab
+// itself is currently showing (world colors, or - only after a real
+// US-with-a-visit click - state colors).
+let worldPolygonFeatures = null;
+let usStatesFeatures = null;
+let usStatesDrilledIn = false;
+
 // --- Country identification bridge - see the file header comment for why
 // this exists and how it was generated/verified (not hand-typed). Only
 // the 177 numeric codes that world-atlas's countries-110m.json actually
@@ -932,6 +974,36 @@ const ISO_NUMERIC_TO_ALPHA2 = {
   "887": "YE", "894": "ZM"
 };
 
+// --- US-state drill-down (commit 4/4) - same bridge pattern as
+// ISO_NUMERIC_TO_ALPHA2 above, one level down: us-atlas's states-10m.json
+// (loaded lazily - see loadUSStatesFeatures below) keys each state polygon
+// by its 2-digit FIPS code (feature.id, e.g. "06" for California), not an
+// ISO 3166-2 code - visits' own stateCode (commit 2/4) stores ISO
+// ("US-CA"). Generated the same way ISO_NUMERIC_TO_ALPHA2 was ("verified
+// against real data, not hand-typed"): fetched the real states-10m.json,
+// joined its 56 geometries' own properties.name against usStates.js's
+// nameEn - 55 of 56 matched by exact string, verified deterministically,
+// not eyeballed. ONE MANUAL ENTRY, DOCUMENTED: FIPS "69" - us-atlas's own
+// properties.name is "Commonwealth of the Northern Mariana Islands" (its
+// formal legal name), while usStates.js's nameEn (from Wikidata, see that
+// file's own header) is the shorter "Northern Mariana Islands" - same
+// place, different phrasing, not a data error - added by hand from the
+// same join, not guessed.
+const FIPS_TO_US_STATE = {
+  "01": "US-AL", "02": "US-AK", "04": "US-AZ", "05": "US-AR", "06": "US-CA",
+  "08": "US-CO", "09": "US-CT", "10": "US-DE", "11": "US-DC", "12": "US-FL",
+  "13": "US-GA", "15": "US-HI", "16": "US-ID", "17": "US-IL", "18": "US-IN",
+  "19": "US-IA", "20": "US-KS", "21": "US-KY", "22": "US-LA", "23": "US-ME",
+  "24": "US-MD", "25": "US-MA", "26": "US-MI", "27": "US-MN", "28": "US-MS",
+  "29": "US-MO", "30": "US-MT", "31": "US-NE", "32": "US-NV", "33": "US-NH",
+  "34": "US-NJ", "35": "US-NM", "36": "US-NY", "37": "US-NC", "38": "US-ND",
+  "39": "US-OH", "40": "US-OK", "41": "US-OR", "42": "US-PA", "44": "US-RI",
+  "45": "US-SC", "46": "US-SD", "47": "US-TN", "48": "US-TX", "49": "US-UT",
+  "50": "US-VT", "51": "US-VA", "53": "US-WA", "54": "US-WV", "55": "US-WI",
+  "56": "US-WY", "60": "US-AS", "66": "US-GU", "69": "US-MP", "72": "US-PR",
+  "78": "US-VI"
+};
+
 // --- Color priority, per the decision already made (not re-litigated
 // here): any app-sourced visit wins over manual, regardless of how many
 // manual visits also exist for that country. Cumulative count is tracked
@@ -965,9 +1037,9 @@ function capColorForFeature(feature) {
   return info.hasApp ? COLOR_APP : COLOR_MANUAL;
 }
 
-// --- US-state drill-down (commit 3/4) - computation layer only, no
-// color/UI function reads this yet (that's commit 4). Deliberately a
-// completely separate function reading raw `visits` directly, NOT built
+// --- US-state drill-down (commit 3/4, now consumed by
+// capColorForFeatureUSState below - commit 4/4). Deliberately a completely
+// separate function reading raw `visits` directly, NOT built
 // on top of countryVisitInfo's own output the way computeContinentVisitInfo
 // is (§5 of the investigation this implements: "does this change existing
 // logic for all other countries, or can it be kept separate" - answered
@@ -1006,6 +1078,22 @@ function computeUSStateVisitInfo(visits) {
     else if (v.source === "manual") info[sc].hasManual = true;
   });
   return info;
+}
+
+// Live mirror of computeUSStateVisitInfo's output, recomputed on every
+// visits snapshot in startVisitsListener below - same "no caching of
+// derived numbers" rule as countryVisitInfo/continentVisitInfo above.
+let usStateVisitInfo = {}; // ISO 3166-2:US code -> { hasApp, hasManual, count }
+
+// Same color-priority rule as capColorForFeature/capColorForFeatureContinent
+// above (app wins over manual) - inert in practice today (see
+// computeUSStateVisitInfo's own comment on why hasApp can't currently be
+// true), kept for consistency, not duplicated logic invented fresh.
+function capColorForFeatureUSState(feature) {
+  const stateCode = FIPS_TO_US_STATE[feature.id];
+  const info = stateCode && usStateVisitInfo[stateCode];
+  if (!info) return COLOR_NONE;
+  return info.hasApp ? COLOR_APP : COLOR_MANUAL;
 }
 
 // --- Continent view (stage 3) - same app-wins-over-manual priority, just
@@ -1142,6 +1230,71 @@ function applyView() {
   }
 }
 
+// --- US-state drill-down (commit 4/4). Lazy: us-atlas's states-10m.json
+// (114.5KB, verified in the investigation) is fetched only on the first
+// actual drill-down click, cached after - never during normal page load,
+// confirmed in testing (see CHANGELOG). topojson-client is NOT re-imported
+// here - startGlobe() already imports it before the globe (and therefore
+// before any click on it) can exist at all. ---
+async function loadUSStatesFeatures() {
+  if (usStatesFeatures) return usStatesFeatures;
+  const res = await fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json");
+  if (!res.ok) throw new Error(`us-atlas fetch failed: HTTP ${res.status}`);
+  const topology = await res.json();
+  usStatesFeatures = window.topojson.feature(topology, topology.objects.states).features;
+  return usStatesFeatures;
+}
+
+// Roughly the geographic center of the contiguous US - a fixed, generic
+// entry point, not computed from which specific state(s) have visits
+// (that would need this state's own bounding-box math, not worth it for
+// a first cut - the user can pan/zoom manually once drilled in).
+const US_CENTER_POV = { lat: 39.8, lng: -98.6, altitude: 1.6 };
+// A generic "whole world" view to return to on exit - not necessarily the
+// exact camera position the user was at before drilling in (this file
+// doesn't track that separately anywhere else either); simpler, and the
+// user can re-navigate manually same as after any other zoom.
+const WORLD_DEFAULT_POV = { lat: 15, lng: 10, altitude: 2.2 };
+
+async function enterUSStateDrillDown() {
+  $("usStateBackBtn").classList.remove("hidden"); // shown immediately - real feedback for a real fetch, not a silent wait
+  try {
+    const features = await loadUSStatesFeatures();
+    usStatesDrilledIn = true;
+    world.polygonsData(features).polygonCapColor(capColorForFeatureUSState);
+    world.pointOfView(US_CENTER_POV, 800);
+  } catch (error) {
+    console.warn("[achievements] failed to load US states topology", error);
+    $("usStateBackBtn").classList.add("hidden");
+    if (window.toast) window.toast("טעינת מפת המדינות נכשלה", "error");
+  }
+}
+
+function exitUSStateDrillDown() {
+  if (!usStatesDrilledIn) return;
+  usStatesDrilledIn = false;
+  $("usStateBackBtn").classList.add("hidden");
+  if (world && worldPolygonFeatures) {
+    world.polygonsData(worldPolygonFeatures).polygonCapColor(capColorForFeature);
+    world.pointOfView(WORLD_DEFAULT_POV, 800);
+  }
+}
+
+// onPolygonClick handler (wired in startGlobe() below) - the globe had no
+// click behavior at all before this (confirmed: no onPolygonClick was ever
+// set), so every case that returns early here without drilling in matches
+// today's actual existing behavior exactly (nothing happens), not a new
+// no-op invented for this feature.
+function handleCountryPolygonClick(feature) {
+  if (usStatesDrilledIn) return; // already drilled in - no second-level drill-down yet
+  if (currentView !== "country") return; // drill-down only makes sense from the מדינה tab
+  const alpha2 = ISO_NUMERIC_TO_ALPHA2[feature.id];
+  if (alpha2 !== "US") return; // not the US - no special behavior
+  if (!countryVisitInfo.US) return; // US has no visit (not colored) - no special behavior, per the request's own §4
+  enterUSStateDrillDown();
+}
+$("usStateBackBtn").onclick = exitUSStateDrillDown;
+
 // Swaps the whole content area below the tabs: globeContainer for the 3
 // map views, achievementsPanel (badge grid + stats text) for "achievements"
 // - never both at once. Deliberately NOT gated behind `world` existing
@@ -1157,7 +1310,18 @@ function applyPanelVisibility(view) {
 }
 
 function setView(view) {
-  if (view === currentView) return;
+  // Drilled-in is a sub-mode of "country", not tracked in currentView
+  // itself (see its own declaration comment) - so the usual "already on
+  // this tab, no-op" guard is widened to also let a tap on the already-
+  // active מדינה tab through while drilled in, as a second, obvious way
+  // back to the world view (the dedicated back button, wired above, is
+  // the primary one). Exiting unconditionally BEFORE the currentView
+  // branch below matters for every OTHER tab too, not just this one - a
+  // visits update or a tab switch while state polygons are still loaded
+  // would otherwise apply the wrong view's color accessor onto the wrong
+  // (state-level) polygon dataset.
+  if (view === currentView && !usStatesDrilledIn) return;
+  exitUSStateDrillDown();
   currentView = view;
   document.querySelectorAll("#viewTabs .tab").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.view === view);
@@ -1583,6 +1747,7 @@ function startVisitsListener(uid) {
     latestVisits = snapshot.val();
     countryVisitInfo = computeCountryVisitInfo(latestVisits);
     continentVisitInfo = computeContinentVisitInfo(countryVisitInfo);
+    usStateVisitInfo = computeUSStateVisitInfo(latestVisits);
     renderStats();
     mirrorVisitorStats(uid, latestVisits);
     evaluateGamification(uid);
@@ -1594,7 +1759,14 @@ function startVisitsListener(uid) {
     // color function reads its info fresh on every real invocation
     // regardless of which finished first.
     if (world) {
-      if (currentView === "country") world.polygonCapColor(capColorForFeature);
+      // Checked BEFORE the currentView branch below - drilled into US
+      // states is a sub-mode of the "country" tab, not a separate
+      // currentView value (see enterUSStateDrillDown's own comment), so
+      // without this check a visits update while drilled in would
+      // silently repaint the WORLD colors onto the STATE polygons still
+      // on screen.
+      if (usStatesDrilledIn) world.polygonCapColor(capColorForFeatureUSState);
+      else if (currentView === "country") world.polygonCapColor(capColorForFeature);
       else if (currentView === "continent") world.polygonCapColor(capColorForFeatureContinent);
       else refreshCityPoints(); // city view: polygon color doesn't depend on visits, but points do
     }
@@ -1952,6 +2124,10 @@ async function startGlobe() {
 
   await import("https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js");
   const countries = window.topojson.feature(topology, topology.objects.countries);
+  // Saved at module scope (not just this local const) - exitUSStateDrillDown
+  // (commit 4/4) restores exactly this same features array when backing out
+  // of the US-state view, rather than refetching/rebuilding it.
+  worldPolygonFeatures = countries.features;
 
   world = Globe()($('globeContainer'))
     .width($('globeContainer').clientWidth)
@@ -1963,6 +2139,13 @@ async function startGlobe() {
     .polygonStrokeColor(() => "#111")
     .polygonAltitude(0.01)
     .polygonsTransitionDuration(0)
+    // US-state drill-down (commit 4/4) - the only click behavior this
+    // globe has ever had (confirmed: no onPolygonClick existed before
+    // this). handleCountryPolygonClick itself no-ops for every case that
+    // isn't "on the מדינה tab, clicked the US, and it has a visit" -
+    // see its own comment for why each of those cases matches the globe's
+    // pre-existing (no-op) click behavior exactly.
+    .onPolygonClick(handleCountryPolygonClick)
     // City view (stage 3) point markers - accessors set up now, but
     // pointsData stays empty until applyView() below decides the city view
     // is actually the active one.
