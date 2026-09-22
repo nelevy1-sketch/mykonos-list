@@ -247,10 +247,13 @@
     /* View toggle (stage 3) - same .tabs/.tab pattern as itinerary.html/
        places.html (CLAUDE.md's own precedent: page-local copy, not shared
        CSS - see the .empty/.tab-btn note there on why these aren't
-       unified). 3 columns instead of their 2. */
+       unified). 4 columns instead of their 2 - a 4th tab ("הישגים") was
+       added on top of the original 3 (stage 6): it doesn't drive the globe
+       at all, see applyPanelVisibility() below - it swaps the whole content
+       area (globe <-> badge grid + stats text) instead. */
     .tabs {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       background: var(--surface-2);
       padding: 4px;
       border-radius: 16px;
@@ -342,11 +345,12 @@
     }
 
     /* Stats block (stage 5) - plain text, no card/background of its own on
-       purpose (this page is already visually busy with the header+tabs+
-       globe; a boxed panel here would compete with them). One line each,
-       small font - "smallest still legible" per this page's own density
-       rule, since a fully-visited user could otherwise see up to ~8 lines
-       (world + up to 6 continents + capitals). */
+       purpose (stage 6 moved it into achievements-panel alongside the badge
+       grid, which is already visually busy; a boxed panel here would
+       compete with it). One line each, small font - "smallest still
+       legible" per this page's own density rule, since a fully-visited
+       user could otherwise see up to ~8 lines (world + up to 6 continents +
+       capitals). */
     .stats-block {
       flex: 0 0 auto;
       margin: 0 16px 8px;
@@ -370,6 +374,25 @@
       position: relative;
     }
 
+    /* "הישגים" tab (stage 6) - occupies the exact same flex slot
+       globeContainer does (flex:1, min-height:0), swapped in instead of it
+       rather than shown alongside it - see applyPanelVisibility() below.
+       Its own overflow-y:auto is deliberate: the page itself stays
+       non-scrolling (html/body's overflow:hidden, unchanged), but this
+       panel's content (7-tile badge grid + up to ~8 lines of stats text)
+       can genuinely exceed the available height on a short/landscape
+       viewport, and unlike the globe there's no way to "zoom out" a text
+       list - a local scroll area here is the correct fix, not a layout
+       that silently clips content off the bottom. */
+    .achievements-panel {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding-top: 4px;
+    }
+
     #fpsHud {
       position: fixed;
       top: max(8px, env(safe-area-inset-top));
@@ -384,11 +407,13 @@
       direction: ltr;
     }
 
-    /* Gamification: level track (Duolingo-style horizontal path) + badge
-       grid, placed above stats-block/globe on purpose - a deliberate
-       product decision (both stay fixed at the top and the globe shrinks
-       to make room, rather than hiding either behind a sheet). Horizontal-
-       scroll mechanics (flex/overflow/scrollbar-width:none + the
+    /* Gamification: level track (Duolingo-style horizontal path), always
+       visible across all 4 tabs - the page's fixed "hero". The badge grid
+       (originally placed here too, stage 5) moved into its own
+       achievements-panel/tab (stage 6, see that section below) instead of
+       staying permanently above the globe - the level track alone is
+       thin enough to justify the permanent space; the 7-tile grid wasn't.
+       Horizontal-scroll mechanics (flex/overflow/scrollbar-width:none + the
        pointer:fine desktop-scrollbar fallback) are copied from
        packing.html's .quick-picks - the already-fixed reference pattern
        (CLAUDE.md), not .forecast-strip's still-broken one. scroll-snap is
@@ -610,17 +635,20 @@
     <div class="level-track" id="levelTrack"></div>
     <div class="level-next-hint hidden" id="levelNextHint"></div>
   </div>
-  <div class="badge-grid" id="badgeGrid"></div>
-
-  <div class="stats-block" id="statsBlock"></div>
 
   <div class="tabs" id="viewTabs">
     <button class="tab active" data-view="country" id="countryViewTab">מדינה</button>
     <button class="tab" data-view="city" id="cityViewTab">עיר</button>
     <button class="tab" data-view="continent" id="continentViewTab">יבשת</button>
+    <button class="tab" data-view="achievements" id="achievementsViewTab">הישגים</button>
   </div>
 
   <div id="globeContainer"></div>
+
+  <div class="achievements-panel hidden" id="achievementsPanel">
+    <div class="badge-grid" id="badgeGrid"></div>
+    <div class="stats-block" id="statsBlock"></div>
+  </div>
 
   <button class="fab" id="addVisitFab" aria-label="הוספת ביקור ידני" title="הוספת ביקור ידני">+</button>
 
@@ -1047,10 +1075,15 @@ function refreshCityPoints() {
 
 // --- View toggle - wired early like themeBtn (no auth dependency), but
 // applyView() itself no-ops until the globe exists (world is still null). ---
-let currentView = "country"; // "country" | "city" | "continent"
+let currentView = "country"; // "country" | "city" | "continent" | "achievements"
 
 function applyView() {
   if (!world) return;
+  // "achievements" doesn't touch the globe at all (see
+  // applyPanelVisibility below, which hides globeContainer entirely for
+  // it) - nothing to paint, and re-running the last real view's own
+  // accessor would be wasted work for a globe the user can't currently see.
+  if (currentView === "achievements") return;
   if (currentView === "country") {
     world.polygonCapColor(capColorForFeature).pointsData([]);
   } else if (currentView === "continent") {
@@ -1061,14 +1094,30 @@ function applyView() {
   }
 }
 
+// Swaps the whole content area below the tabs: globeContainer for the 3
+// map views, achievementsPanel (badge grid + stats text) for "achievements"
+// - never both at once. Deliberately NOT gated behind `world` existing
+// (unlike applyView above) - this is plain visibility, correct to run even
+// before the globe has finished loading. #fpsHud is a globe-perf debug
+// readout (see its own file-header comment) - meaningless with no globe on
+// screen, hidden along with it.
+function applyPanelVisibility(view) {
+  const isAchievements = view === "achievements";
+  $("globeContainer").classList.toggle("hidden", isAchievements);
+  $("fpsHud").classList.toggle("hidden", isAchievements);
+  $("achievementsPanel").classList.toggle("hidden", !isAchievements);
+}
+
 function setView(view) {
   if (view === currentView) return;
   currentView = view;
   document.querySelectorAll("#viewTabs .tab").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.view === view);
   });
+  applyPanelVisibility(view);
   applyView();
 }
+applyPanelVisibility(currentView); // initial state ("country") - keeps the panel/globe visibility in sync with the default active tab from first paint, not just after the first switch
 document.querySelectorAll("#viewTabs .tab").forEach(btn => {
   btn.onclick = () => setView(btn.dataset.view);
 });
