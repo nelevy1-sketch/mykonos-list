@@ -828,6 +828,45 @@
       </div>
     </section>
 
+    <!-- Version-history investigation - all 4 items now. Items 1+2
+         (current version, major/minor/patch donut) are sourced live from
+         GitHub (raw.githubusercontent.com - see fetchChangelogText()'s own
+         comment). Items 3+4 (per-day/week bar chart, scrollable timeline)
+         need a real per-version DATE, which neither CHANGELOG.md nor
+         GitHub's commits-list API can reliably supply (~90% of commits
+         never state their own version number in the message - see
+         scripts/generate-version-history.js's header comment for the full
+         investigation) - sourced instead from version-history.json, a
+         static file this app's own Firebase Hosting serves, generated
+         locally via `git log -S` (100% reliable) and committed, not fetched
+         live from GitHub. Placed right under the KPI row (moved here from
+         between visitorStatsSection/dashMain) per explicit request. -->
+    <section id="versionHistorySection">
+      <div class="kpi-card" id="currentVersionCard">
+        <p class="kpi-value"><span class="kpi-value-num" id="currentVersionValue">--</span></p>
+        <p class="kpi-label">גרסה נוכחית</p>
+      </div>
+
+      <div class="metric-card" id="versionTypeChartCard">
+        <h2>התפלגות עדכוני גרסה (Major / Minor / Patch)</h2>
+        <div class="chart-wrap donut-wrap">
+          <canvas id="versionTypeChart" role="img" aria-label="גרף עוגה - התפלגות עדכוני גרסה לפי Major, Minor ו-Patch"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card" id="versionsTimelineChartCard">
+        <h2>גרסאות לאורך זמן</h2>
+        <div class="chart-wrap">
+          <canvas id="versionsTimelineChart" role="img" aria-label="גרף עמודות - מספר עדכוני גרסה לפי יום/שבוע/חודש"></canvas>
+        </div>
+      </div>
+
+      <div class="metric-card" id="versionLogCard">
+        <h2>יומן גרסאות</h2>
+        <div class="version-log-scroll" id="versionLogList"></div>
+      </div>
+    </section>
+
     <!-- Redesign stage 2/5 - trips/ charts. Replaces 4 old plain-table
          cards outright (timeline/type/character/language) rather than
          keeping them as redundant fallback below - each chart's own
@@ -979,44 +1018,6 @@
         <div class="chart-wrap bar-wrap" id="visitorContinentsChartWrap">
           <canvas id="visitorContinentsChart" role="img" aria-label="גרף עמודות - מדינות שביקרו בהן לפי יבשת, ממוין מהמדינות שביקרו בהן ביותר"></canvas>
         </div>
-      </div>
-    </section>
-
-    <!-- Version-history investigation - all 4 items now. Items 1+2
-         (current version, major/minor/patch donut) are sourced live from
-         GitHub (raw.githubusercontent.com - see fetchChangelogText()'s own
-         comment). Items 3+4 (per-day/week bar chart, scrollable timeline)
-         need a real per-version DATE, which neither CHANGELOG.md nor
-         GitHub's commits-list API can reliably supply (~90% of commits
-         never state their own version number in the message - see
-         scripts/generate-version-history.js's header comment for the full
-         investigation) - sourced instead from version-history.json, a
-         static file this app's own Firebase Hosting serves, generated
-         locally via `git log -S` (100% reliable) and committed, not fetched
-         live from GitHub. -->
-    <section id="versionHistorySection">
-      <div class="kpi-card" id="currentVersionCard">
-        <p class="kpi-value"><span class="kpi-value-num" id="currentVersionValue">--</span></p>
-        <p class="kpi-label">גרסה נוכחית</p>
-      </div>
-
-      <div class="metric-card" id="versionTypeChartCard">
-        <h2>התפלגות עדכוני גרסה (Major / Minor / Patch)</h2>
-        <div class="chart-wrap donut-wrap">
-          <canvas id="versionTypeChart" role="img" aria-label="גרף עוגה - התפלגות עדכוני גרסה לפי Major, Minor ו-Patch"></canvas>
-        </div>
-      </div>
-
-      <div class="metric-card" id="versionsTimelineChartCard">
-        <h2>גרסאות לאורך זמן</h2>
-        <div class="chart-wrap">
-          <canvas id="versionsTimelineChart" role="img" aria-label="גרף עמודות - מספר עדכוני גרסה לפי יום/שבוע/חודש"></canvas>
-        </div>
-      </div>
-
-      <div class="metric-card" id="versionLogCard">
-        <h2>יומן גרסאות</h2>
-        <div class="version-log-scroll" id="versionLogList"></div>
       </div>
     </section>
 
@@ -1206,11 +1207,11 @@ function escapeHtml(value) {
 // ============================================================================
 const LAYOUT_SECTIONS = [
   { id: "kpiGrid", label: "כרטיסי KPI" },
+  { id: "versionHistorySection", label: "היסטוריית גרסאות" },
   { id: "tripsChartsSection", label: "גרפי טיולים" },
   { id: "activityChartsSection", label: "גרפי פעילות" },
   { id: "writesChartsSection", label: "גרפי כתיבה, שרת וכניסות" },
   { id: "visitorStatsSection", label: "סטטיסטיקת ביקורים" },
-  { id: "versionHistorySection", label: "היסטוריית גרסאות" },
   { id: "dashMain", label: "פרטים נוספים" }
 ];
 
