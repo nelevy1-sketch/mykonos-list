@@ -24,9 +24,11 @@
 // says). 100% reliable - verified against all 238 real versions with zero
 // misses. Only runs locally though: this is not something a browser fetch
 // against GitHub's REST API can do - there is no pickaxe-search equivalent
-// in the commits-list endpoint, and diffing all 242 commits individually
-// to find the same answer would blow through the 60/hour unauthenticated
-// rate limit.
+// in the commits-list endpoint, and diffing every commit individually to
+// find the same answer would blow through the 60/hour unauthenticated
+// rate limit (242 commits touched CHANGELOG.md when this was measured -
+// a number that only grows, so kept as "every commit" here rather than a
+// count that goes stale the next time this file is read).
 //
 // Output: version-history.json at the repo root - plain data, not a
 // <script src> file or one of the 6 app pages, so not version.js-tracked
