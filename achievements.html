@@ -471,6 +471,18 @@ function logWriteEvent(context, success) {
   }).catch(error => console.warn(`[analytics] failed to log ${context}`, error));
 }
 
+// Same shape/fire-and-forget style as logWriteEvent above, new sibling
+// path - called once per page-load, guarded by signInLogged above (this
+// page has no currentUser/user module variable to compare against, unlike
+// the other 6 pages' wasSignedOut check).
+function logSignInEvent(user) {
+  push(ref(db, "_analytics/signIns"), {
+    uid: user.uid,
+    file: "achievements.html",
+    timestamp: Date.now()
+  }).catch(error => console.warn("[analytics] failed to log sign-in", error));
+}
+
 // Private analytics dashboard (dashboard.html) - visitor-stats mirror
 // (cross-user country/continent/capital aggregation). Fires on every
 // users/{uid}/visits change, from startVisitsListener's own onValue
@@ -568,6 +580,11 @@ function handleAuthStateChanged(user) {
     visitsListenerStarted = true;
     startVisitsListener(user.uid);
   }
+
+  if (user && !signInLogged) {
+    signInLogged = true;
+    logSignInEvent(user);
+  }
 }
 onAuthStateChanged(auth, handleAuthStateChanged);
 if (window.armAuthGate) {
@@ -586,6 +603,11 @@ if (window.armAuthGate) {
 // the finished feature. ---
 let globeStarted = false;
 let visitsListenerStarted = false;
+// Separate from globeStarted/visitsListenerStarted above on purpose - a
+// different concern (sign-in logging) that happens to need the exact same
+// "only once, on first real user" shape, not a reason to piggyback on
+// either of those two's own flag.
+let signInLogged = false;
 let world = null; // set once startGlobe()'s Globe() call resolves - read by startVisitsListener()'s onValue callback to force a repaint when new data arrives after the globe already exists.
 
 // --- Country identification bridge - see the file header comment for why

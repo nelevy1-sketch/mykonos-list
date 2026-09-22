@@ -3078,6 +3078,21 @@
         .catch(error => console.warn(`[analytics] failed to log ${context}`, error));
     }
 
+    // Same shape/fire-and-forget style as logWriteEvent above, new sibling
+    // path (_analytics/signIns) - called once per page-load transition from
+    // signed-out to signed-in, see handleAuthStateChanged's own wasSignedOut
+    // comment for why that's the right (and only reliable) trigger point.
+    function logSignInEvent() {
+      db.ref("_analytics/signIns")
+        .push()
+        .set({
+          uid: currentUser.uid,
+          file: "index.html",
+          timestamp: Date.now()
+        })
+        .catch(error => console.warn("[analytics] failed to log sign-in", error));
+    }
+
     async function doGoogleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -3857,6 +3872,18 @@
 
     if (auth) {
       function handleAuthStateChanged(user) {
+        // Captured BEFORE the reassignment below - this is the only way to
+        // tell "just signed in" apart from "already signed in, this is just
+        // a re-render" (onAuthStateChanged fires on every foreground/
+        // reconnect too, not only on a fresh login). A page reload of an
+        // already-authenticated session also reads as a transition here
+        // (currentUser starts unset on every fresh load) - that's expected,
+        // not a bug: dashboard.html's own sign-ins chart dedupes by
+        // uid+day, so repeat reloads by the same person the same day
+        // collapse to one, same as the analogous over-count risk already
+        // accepted for _analytics/writes' own per-call logging.
+        const wasSignedOut = !currentUser;
+
         // Marks "this browser has signed in at least once" - set here AND
         // in wizard.html's own handleAuthStateChanged (the two places a
         // sign-in can actually happen), never read/written anywhere else.
@@ -3894,6 +3921,10 @@
         }
 
         currentUser = user;
+
+        if (wasSignedOut && user) {
+          logSignInEvent();
+        }
 
         document.getElementById("authLoading").classList.add("hidden");
 

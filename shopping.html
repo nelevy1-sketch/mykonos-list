@@ -1913,6 +1913,17 @@ body.modal-open .modal-card {
     }).catch(error => console.warn(`[analytics] failed to log ${context}`, error));
   }
 
+  // Same shape/fire-and-forget style as logWriteEvent above, new sibling
+  // path - called once per page-load transition from signed-out to
+  // signed-in (see handleAuthStateChanged's own wasSignedOut comment).
+  function logSignInEvent(user) {
+    push(ref(db, "_analytics/signIns"), {
+      uid: user.uid,
+      file: "shopping.html",
+      timestamp: Date.now()
+    }).catch(error => console.warn("[analytics] failed to log sign-in", error));
+  }
+
   function doGoogleSignIn() {
     const provider = new GoogleAuthProvider();
 
@@ -2369,7 +2380,14 @@ body.modal-open .modal-card {
   }
 
   function handleAuthStateChanged(user) {
+    // Captured BEFORE the reassignment below - see index.html's own
+    // handleAuthStateChanged for the full reasoning (same trigger point).
+    const wasSignedOut = !currentUser;
     currentUser = user;
+
+    if (wasSignedOut && user) {
+      logSignInEvent(user);
+    }
 
     document.getElementById("authLoading")
       .classList

@@ -733,7 +733,7 @@
 <!-- Firebase SDK & Wizard Logic -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     // נתוני ההתחברות האמיתיים של הפרויקט שלך מתוך Firebase Console
@@ -1374,8 +1374,29 @@
     document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
     document.getElementById('wizardGoogleBtn').addEventListener('click', () => handleProviderSignIn(googleProvider));
 
+    // Same fire-and-forget shape as the logWriteEvent() helper the other 6
+    // pages already have for _analytics/writes (wizard.html never had one -
+    // its only write is trip creation, not covered by that earlier
+    // rollout) - new sibling path, same "never throws, just warns" style.
+    function logSignInEvent(user) {
+        push(ref(db, "_analytics/signIns"), {
+            uid: user.uid,
+            file: "wizard.html",
+            timestamp: Date.now()
+        }).catch(error => console.warn("[analytics] failed to log sign-in", error));
+    }
+
     function handleAuthStateChanged(user) {
+        // Captured BEFORE the reassignment below - see index.html's own
+        // handleAuthStateChanged for the full reasoning (same trigger
+        // point, same over-count-is-fine-because-dashboard-dedupes note).
+        const wasSignedOut = !currentUser;
         currentUser = user;
+
+        if (wasSignedOut && user) {
+            logSignInEvent(user);
+        }
+
         document.getElementById('authLoading').classList.add('hidden');
         document.getElementById('authGate').classList.toggle('hidden', Boolean(user));
         document.getElementById('wizardApp').classList.toggle('hidden', !user);
