@@ -1,5 +1,33 @@
 # GitTrip — CHANGELOG
 
+## v4.84.0 — טעימה (teaser) למבקר קר ב-gittrip-showcase.html - יעד אחד, תצוגה מקדימה אמיתית
+
+### ✨ תכונה חדשה
+מבקר קר (בלי tripId, בלי הזמנה) שהגיע ל-`gittrip-showcase.html` יכול עכשיו להקליד יעד אחד בתוך כרטיס ה-CTA ולקבל תצוגה מקדימה חיה - **דאטה אמיתי, לא מוקאפ** - לפני שהוא בכלל נכנס לוויזארד. הכפתור הרגיל ("✈️ לפתיחת GitTrip") נשאר בדיוק כמו שהיה, תמיד עובד גם בלי להשתמש בשדה החדש כלל - זו תוספת אופציונלית מעליו, לא תחליף.
+
+**מימוש**:
+- `legGeocode.js` נטען עכשיו גם ב-`gittrip-showcase.html` (script קלאסי, כבר page-agnostic לגמרי - `window.geocodeLegDestination(name, language)` לא תלוי ב-tripId/DOM ספציפי, בדיוק כמו ב-wizard.html/index.html).
+- **לוגיקת השדה** מועתקת מ-`wireLegPreview()` הקיים ב-wizard.html: debounce 600ms → `geocodeLegDestination()` → guard נגד תגובה מיושנת (`input.value.trim() === value` אחרי כל `await`) → `countryCodeToFlag()` (אותו unicode trick, מועתק).
+- **מזג אוויר נוכחי** - fetch נפרד ל-Open-Meteo forecast עם ה-`lat`/`lon` שהתקבלו, עם טבלת `weather_code`→אייקון/טקסט מועתקת מ-`fetchWeather()` ב-index.html (7 הענפים המלאים: בהיר/מעונן חלקית/ערפל/גשום/שלג/ממטרים/סופת רעמים).
+- **בלי המלצת מקום לדוגמה** - הושמט במכוון מ-v1, כמו שהוחלט בחקירה הקודמת (אין מקור דאטה קיים לזה).
+- **כפתור "מעולה! בואו נמשיך לתכנן ←"** מופיע רק אחרי geocoding תקין (lat/lon אמיתיים, לא רק "משהו הוקלד"). בלחיצה: `localStorage['wizardDraft'] = {destination: <הטקסט הגולמי שהוקלד, לא השם הנקי מה-geocoding>}` (עקבי עם איך ש-wizard.html עצמו תמיד שומר `destination`/`legs[0]`) ואז ניווט (לא טאב חדש) ל-`wizard.html` - **אפס שינוי ב-`restoreWizardDraft()` הקיים שם**, הוא כבר קורא בדיוק את המפתח/הצורה הזו בטעינת עמוד.
+- **מצבי קצה**: "מחפשים..." בזמן ה-await (לא ריק מוזר), הודעה עדינה לא-מפחידה כש-geocoding לא מזהה כלום (צבעים ניטרליים - `var(--muted)`/`var(--line)` הקיימים, לא אדום/אזהרה שלא קיים בשום מקום אחר בדף), ואיפוס מלא (טקסט+מצב) בכל הקלדה חדשה, לא רק כשה-debounce יורה.
+- **i18n**: תוויות סטטיות (`tasteLabel`/`tasteLoadingText`/`tasteNotFoundText`/`tasteContinueBtn`) נרשמו כמו כל שאר האלמנטים ב-`SHOWCASE_TEXT` (אותו מנגנון `applyLanguage()` קיים). ה-placeholder (לא textContent, אז `applyLanguage()`'s הלולאה הגנרית לא מגיעה אליו) מטופל בפונקציה ייעודית חדשה (`updateTasteWidgetLanguage()`) שנקראת מתוך `applyLanguage()` עצמה - קריאה אחת, אף פעם לא שוכחת סנכרון. **החלטת עיצוב מכוונת**: מעבר שפה מאפס את השדה (טקסט+תוצאה) במקום לנסות לתרגם תוצאה שכבר הוצגה - v1 טעימה קלה, לא טופס מרובה-שלבים כמו wizard.html.
+- **עיצוב** - טוקנים קיימים בלבד (`--surface-2`/`--line`/`--muted`/`--c-abroad`), אותה שפת עיצוב בדיוק כמו `.cta-card`/`.cta-btn` הקיימים - לא יובא סגנון מדף אחר.
+
+### 🔍 מה שנבדק בפועל
+- **יעד תקין באנגלית** ("Lisbon") - flag 🇵🇹, עיר "Lisbon, Lisbon District", מזג אוויר אמיתי ("🌙 23°C · Clear night") - נקרא ישירות מה-DOM אחרי הקלדה אמיתית (`computer` tool, לא `dispatchEvent`).
+- **יעד תקין בעברית, דרך ה-Nominatim fallback** ("טוקיו") - Open-Meteo מחזיר ריק לעברית (בדיוק הבאג ש-`legGeocode.js` נבנה לתקן), נופל ל-Nominatim עם ה-throttle הקיים - flag 🇯🇵, עיר "טוקיו, טוקיו", מזג אוויר בעברית ("⛅ 30°C · מעונן חלקית").
+- **round-trip מלא ל-wizard.html** - לחיצה על הכפתור אחרי geocoding מוצלח, ניווט אמיתי (לא סימולציה), ו-`document.getElementById('tripDestination').value` על wizard.html מציג בדיוק את מה שהוקלד ("Lisbon") - `restoreWizardDraft()` הקיים עבד בלי שום שינוי.
+- **יעד לא מזוהה** (מחרוזת אקראית) - הודעה עדינה מוצגת, כפתור ההמשך נשאר מוסתר.
+- **איפוס במעבר שפה** - הקלדת "רומא" (עברית, נמצא), החלפה ל-English - השדה מתאפס לגמרי (ערך ריק, placeholder אנגלי, תוצאה מוסתרת) בדיוק כמתוכנן.
+- **רגרסיה**: הכפתור הרגיל (`ctaBtn`) נבדק אחרי כל התרחישים למעלה - `href="wizard.html"`, בלי `target` - בלתי מושפע.
+- `node scripts/i18n-audit.js gittrip-showcase.html` - 0 ממצאים חדשים (הממצא היחיד שחזר, `#langHeBtn`, קיים מלפני ולא קשור).
+- `node --check` נקי על שני בלוקי ה-script.
+- קונסול נקי לאורך כל הבדיקות.
+
+**תכונה חדשה, לא תיקון באג → minor bump.**
+
 ## v4.83.7 — מיגרציית domain: og:image/og:url/twitter:image + קישור CTA (index.html, gittrip-showcase.html)
 
 ### 🐛 הבאג

@@ -33,6 +33,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Cold-visitor destination teaser (below, in .cta-card) - same
+     window.geocodeLegDestination() wizard.html/index.html already use,
+     loaded the same way (classic script, before the page's own inline
+     script) - no adaptation needed, see its own header comment for why
+     it has zero page/DOM dependencies of its own. -->
+<script src="legGeocode.js"></script>
 <style>
   :root {
     --bg: #0B1015;
@@ -414,6 +421,99 @@
     border-radius: 999px;
     text-decoration: none;
     box-shadow: 0 12px 30px rgba(45,212,200,.25);
+  }
+
+  /* ---------- DESTINATION TEASER (inside .cta-card, above .cta-btn) ---------- */
+  /* text-align:start (not left/right) - follows html[dir] like everything
+     else on this page, no separate RTL/LTR override needed anywhere below. */
+  .taste-widget {
+    margin-bottom: 22px;
+    text-align: start;
+  }
+
+  .taste-label {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .taste-input {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    padding: 13px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--text);
+    box-sizing: border-box;
+  }
+
+  .taste-input:focus {
+    outline: none;
+    border-color: var(--c-abroad);
+  }
+
+  .taste-input::placeholder {
+    color: var(--muted);
+  }
+
+  .taste-preview {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(45,212,200,.08);
+    border: 1px solid rgba(45,212,200,.2);
+    font-size: .9rem;
+  }
+
+  /* "Not found" is deliberately muted/neutral, not the teal "good news"
+     styling above - requirement was a gentle message, not an alarming
+     error, so this reuses the quiet var(--line)/var(--muted) pair the
+     rest of the page already uses for secondary content, not red/warning
+     colors that don't otherwise exist on this page at all. */
+  .taste-preview.taste-notfound {
+    background: rgba(255,255,255,.04);
+    border-color: var(--line);
+    color: var(--muted);
+  }
+
+  .taste-found-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+
+  .taste-flag {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+
+  .taste-found-weather {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: .85rem;
+  }
+
+  .taste-continue-btn {
+    display: block;
+    width: 100%;
+    background: transparent;
+    color: var(--c-abroad);
+    font: inherit;
+    font-weight: 700;
+    font-size: .92rem;
+    padding: 12px 4px 4px;
+    border: none;
+    cursor: pointer;
+    text-align: start;
+  }
+
+  .hidden {
+    display: none;
   }
 
   footer {
@@ -841,6 +941,33 @@
     <div class="cta-card">
       <h2 id="ctaTitle">מוכנים להמריא?</h2>
       <p id="ctaP">פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.</p>
+
+      <!-- Cold-visitor destination teaser - optional, additive. The plain
+           ctaBtn below keeps working exactly as before with or without it;
+           this never replaces it, only appears above it. -->
+      <div class="taste-widget">
+        <label for="tasteInput" id="tasteLabel" class="taste-label">לאן בא לכם לנסוע?</label>
+        <input type="text" id="tasteInput" class="taste-input" autocomplete="off">
+
+        <div class="taste-preview hidden" id="tasteLoading">
+          <span id="tasteLoadingText">מחפשים...</span>
+        </div>
+
+        <div class="taste-preview hidden" id="tasteFound">
+          <div class="taste-found-main">
+            <span class="taste-flag" id="tasteFlag"></span>
+            <span id="tasteCityText"></span>
+          </div>
+          <div class="taste-found-weather" id="tasteWeatherText"></div>
+        </div>
+
+        <div class="taste-preview taste-notfound hidden" id="tasteNotFound">
+          <span id="tasteNotFoundText">לא הצלחנו לזהות את היעד הזה - נסו לכתוב את שם המקום קצת אחרת.</span>
+        </div>
+
+        <button type="button" class="taste-continue-btn hidden" id="tasteContinueBtn">מעולה! בואו נמשיך לתכנן ←</button>
+      </div>
+
       <a class="cta-btn" id="ctaBtn" href="wizard.html">
         ✈️ לפתיחת GitTrip
       </a>
@@ -1053,6 +1180,12 @@
 
     ctaTitle: { he: "מוכנים להמריא?", en: "Ready for takeoff?" },
     ctaP: { he: "פותחים את הקישור, בוחרים את השם שלכם, ומתחילים לתכנן ביחד.", en: "Open the link, pick your name, and start planning together." },
+
+    tasteLabel: { he: "לאן בא לכם לנסוע?", en: "Where do you want to go?" },
+    tasteLoadingText: { he: "מחפשים...", en: "Searching…" },
+    tasteNotFoundText: { he: "לא הצלחנו לזהות את היעד הזה - נסו לכתוב את שם המקום קצת אחרת.", en: "We couldn't recognize that destination - try spelling the place a little differently." },
+    tasteContinueBtn: { he: "מעולה! בואו נמשיך לתכנן ←", en: "Great! Let's keep planning →" },
+
     ctaBtn: { he: "✈️ לפתיחת GitTrip", en: "✈️ Open GitTrip" },
 
     footerText: { he: "GitTrip · תוכנן ונבנה בשביל טיולים טובים יותר", en: "GitTrip · Designed and built for better trips" }
@@ -1100,6 +1233,7 @@
     document.getElementById('langEnBtn').classList.toggle('active', currentLang === 'en');
 
     updateCtaButton();
+    updateTasteWidgetLanguage();
   }
 
   function setLang(lang) {
@@ -1219,6 +1353,152 @@
           ? (currentLang === "en" ? "✈️ Back to " + ctaDestination : "✈️ חזרה ל" + ctaDestination)
           : (currentLang === "en" ? "✈️ Back to the trip to " + ctaDestination : "✈️ חזרה לטיול ל" + ctaDestination))
       : (currentLang === "en" ? "✈️ Back to the trip" : "✈️ חזרה לטיול");
+  }
+
+  // ---------- DESTINATION TEASER ----------
+  // Cold visitor (no tripId, no invitation) types ONE destination and gets a
+  // real, live preview - built from the same window.geocodeLegDestination()
+  // wizard.html already uses (loaded above via legGeocode.js), not a mockup.
+  // Debounce + stale-response-guard pattern copied from wizard.html's own
+  // wireLegPreview() (not imported - this page deliberately loads no other
+  // app code, see the language-toggle comment above) - same 600ms delay,
+  // same "did the input change while I was awaiting?" check after every
+  // await, for the same reason: a fast typist can otherwise have an OLDER
+  // search's result land after a NEWER one already started.
+
+  function tasteCountryCodeToFlag(code) {
+    if (!code || code.length !== 2) return '';
+    return code.toUpperCase().replace(/./g, function (char) {
+      return String.fromCodePoint(127397 + char.charCodeAt(0));
+    });
+  }
+
+  // Same WMO weather_code -> icon/label table as index.html's fetchWeather()
+  // "current conditions" branch - copied, not shared (this page loads no
+  // app code by design, same reasoning as legRouteArrow() above).
+  function tasteWeatherIcon(code, isDay) {
+    if (code >= 1 && code <= 3) {
+      return { icon: isDay ? '⛅' : '☁️', label: currentLang === 'en' ? 'Partly cloudy' : 'מעונן חלקית' };
+    }
+    if (code === 45 || code === 48) {
+      return { icon: '🌫️', label: currentLang === 'en' ? 'Fog' : 'ערפל' };
+    }
+    if (code >= 51 && code <= 67) {
+      return { icon: '🌧️', label: currentLang === 'en' ? 'Rain' : 'גשום' };
+    }
+    if (code >= 71 && code <= 77) {
+      return { icon: '🌨️', label: currentLang === 'en' ? 'Snow' : 'שלג' };
+    }
+    if (code >= 80 && code <= 82) {
+      return { icon: '🌦️', label: currentLang === 'en' ? 'Showers' : 'ממטרים' };
+    }
+    if (code >= 95) {
+      return { icon: '⛈️', label: currentLang === 'en' ? 'Thunderstorm' : 'סופת רעמים' };
+    }
+    return isDay
+      ? { icon: '☀️', label: currentLang === 'en' ? 'Clear' : 'בהיר' }
+      : { icon: '🌙', label: currentLang === 'en' ? 'Clear night' : 'לילה בהיר' };
+  }
+
+  // No API key, no rate limit (unlike Nominatim above) - same plain,
+  // unauthenticated Open-Meteo forecast call index.html's fetchWeather()
+  // already makes, just the "current" subset.
+  async function tasteFetchWeather(lat, lon) {
+    try {
+      var response = await fetch(
+        'https://api.open-meteo.com/v1/forecast' +
+        '?latitude=' + lat +
+        '&longitude=' + lon +
+        '&current=temperature_2m,weather_code,is_day' +
+        '&timezone=auto'
+      );
+      if (!response.ok) return null;
+      var data = await response.json();
+      if (!data || !data.current) return null;
+      var w = tasteWeatherIcon(data.current.weather_code, data.current.is_day === 1);
+      return w.icon + ' ' + Math.round(data.current.temperature_2m) + '°C · ' + w.label;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var tastePreviewTimer = null;
+  // The raw text the user typed, exactly as wizard.html's own destination/
+  // leg field works - never the geocoded/clean cityName - set ONLY once a
+  // real result (real lat/lon) comes back, cleared on every keystroke.
+  var tasteResolvedDestination = null;
+
+  function tasteShowState(state) {
+    document.getElementById('tasteLoading').classList.toggle('hidden', state !== 'loading');
+    document.getElementById('tasteFound').classList.toggle('hidden', state !== 'found');
+    document.getElementById('tasteNotFound').classList.toggle('hidden', state !== 'notfound');
+    document.getElementById('tasteContinueBtn').classList.toggle('hidden', state !== 'found');
+  }
+
+  document.getElementById('tasteInput').addEventListener('input', function () {
+    var value = this.value.trim();
+    var input = this;
+
+    // Clears any previous found/notfound/continue-button on EVERY
+    // keystroke, same as wireLegPreview()'s own flag.classList.add('hidden')
+    // at the top of its handler - the debounce gap itself (still typing)
+    // needs no separate indicator, only the network-wait after it does
+    // (the 'loading' state below), so a stale result never lingers behind
+    // a half-typed new query.
+    if (tastePreviewTimer) clearTimeout(tastePreviewTimer);
+    tasteResolvedDestination = null;
+    tasteShowState('empty');
+
+    if (!value) return;
+
+    tastePreviewTimer = setTimeout(async function () {
+      tasteShowState('loading');
+
+      var location = await window.geocodeLegDestination(value, currentLang);
+      if (input.value.trim() !== value) return; // stale - kept typing meanwhile
+
+      if (!location || location.lat == null || location.lon == null) {
+        tasteShowState('notfound');
+        return;
+      }
+
+      var displayName = location.cityName || value;
+      document.getElementById('tasteFlag').textContent = tasteCountryCodeToFlag(location.countryCode);
+      document.getElementById('tasteCityText').textContent = location.region ? displayName + ', ' + location.region : displayName;
+      document.getElementById('tasteWeatherText').textContent = currentLang === 'en' ? 'Checking the weather…' : 'בודקים את מזג האוויר…';
+      tasteResolvedDestination = value;
+      tasteShowState('found');
+
+      var weatherText = await tasteFetchWeather(location.lat, location.lon);
+      if (input.value.trim() !== value) return; // stale - guard again after the 2nd await
+      document.getElementById('tasteWeatherText').textContent =
+        weatherText || (currentLang === 'en' ? 'Weather unavailable' : 'מזג אוויר לא זמין');
+    }, 600);
+  });
+
+  document.getElementById('tasteContinueBtn').addEventListener('click', function () {
+    if (!tasteResolvedDestination) return;
+    try {
+      // Same key/shape wizard.html's own restoreWizardDraft() already
+      // reads unconditionally on load - zero changes needed there.
+      localStorage.setItem('wizardDraft', JSON.stringify({ destination: tasteResolvedDestination }));
+    } catch (e) { /* ignore, same fallback as wizard.html's own saveWizardDraft */ }
+    window.location.href = 'wizard.html';
+  });
+
+  // Placeholder isn't textContent, so applyLanguage()'s generic
+  // SHOWCASE_TEXT loop can't reach it - handled here instead, called from
+  // applyLanguage() itself so it never needs a second call site to stay in
+  // sync. Also resets the widget on every language switch (typed value +
+  // any shown result) rather than trying to re-render a found/notfound
+  // result whose text was generated in the other language - simplest safe
+  // choice for a v1 teaser, not an oversight.
+  function updateTasteWidgetLanguage() {
+    document.getElementById('tasteInput').placeholder = currentLang === 'en' ? 'e.g. Lisbon, Rome…' : 'למשל: ליסבון, רומא...';
+    if (tastePreviewTimer) { clearTimeout(tastePreviewTimer); tastePreviewTimer = null; }
+    tasteResolvedDestination = null;
+    document.getElementById('tasteInput').value = '';
+    tasteShowState('empty');
   }
 
   applyLanguage();
