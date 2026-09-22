@@ -1133,8 +1133,62 @@ document.querySelectorAll("#viewTabs .tab").forEach(btn => {
 // choice) and the English name (matched against but never shown) - typing
 // "France" for a Hebrew-only-displayed "צרפת" is a real, expected input
 // path (an English keyboard/habit), not just Hebrew substrings.
-let countryOptions = null; // built lazily, once - [{code, nameHe, nameEn}]
+let countryOptions = null; // built lazily, once - [{code, nameHe, nameEn, aliases}]
 let selectedCountryCode = ""; // only set when a suggestion is actually clicked - cleared on every real keystroke, so free text can never pass validation
+
+// Search-only aliases (bug report: נייט searched "צ'כיה" and found nothing -
+// two separate, independently-confirmed root causes, see CHANGELOG for the
+// investigation this fixes). This table addresses the SECOND cause only -
+// the first (Hebrew geresh/gershayim in the CLDR name itself vs. whatever
+// apostrophe-like character a real keyboard produces) is fixed by
+// normalizeForMatch() below being wired into renderCountryList, not by an
+// alias here. These are ADDITIVE to the CLDR-derived nameHe/nameEn above,
+// never a replacement - what's displayed in the list and what gets written
+// as countryCode on selection are always the real Intl.DisplayNames value
+// (see buildCountryOptions/the click handler below), completely unaffected
+// by this table.
+//
+// Confidence is marked explicitly per entry, not uniform - this is NOT a
+// mechanical scan like the geresh one (Unicode ranges are a fact; "is this
+// old/colloquial name still what people search" is a judgment call):
+//
+// HIGH - either verified directly against the Intl API itself (US: the
+// only code in all 248 where style:"short"/"narrow" actually differs from
+// style:"long" in this engine's ICU data - a fact, not a guess, confirmed
+// by scanning all 248 codes across all 3 styles) or given directly in the
+// bug report (SZ/GE/KR/KP).
+//
+// MEDIUM - well-documented official former names or formal synonyms
+// (Swaziland->Eswatini renamed 2018, GB's own formal name, DR Congo's
+// pre-1997 name "Zaire" and its common Hebrew long-form "קונגו הדמוקרטית",
+// Iran's pre-1935 Western name, Ethiopia's traditional Hebrew name) -
+// plausible real search terms, not mechanically verified against usage
+// data (no such data available here).
+//
+// LOW/UNCERTAIN, included but flagged - older or more obscure former names
+// that are real and documented but less likely to actually be typed today;
+// worth having but genuinely less certain than the tiers above.
+//
+// Deliberately NOT included despite being a real, common colloquialism:
+// GB / "אנגליה" (England) - many Hebrew speakers casually say this to mean
+// the whole UK, but it's geographically wrong (England is one of four UK
+// constituent countries, not a synonym for it) - judged too likely to
+// mislead rather than help. Flagged here instead of silently added.
+const COUNTRY_NAME_ALIASES = {
+  SZ: ["סווזילנד"],                              // HIGH - former official name until 2018
+  GE: ["ג'ורג'יה"],                               // HIGH - from the bug report
+  KR: ["דרום קוריאה"],                            // HIGH - from the bug report
+  KP: ["צפון קוריאה"],                            // HIGH - from the bug report
+  US: ["ארה\"ב", "ארהב"],                         // HIGH - verified via Intl.DisplayNames style:"short"/"narrow"; both quoted and unquoted spellings, since the gershayim-vs-quote issue applies here too
+  GB: ["הממלכה המאוחדת"],                         // MEDIUM - UK's own formal name
+  CD: ["קונגו הדמוקרטית", "זאיר"],                // MEDIUM - DRC's common Hebrew long-form + its pre-1997 official name
+  IR: ["פרס"],                                    // MEDIUM - Iran's name until 1935, still common in Hebrew
+  ET: ["חבש"],                                    // MEDIUM - traditional Hebrew name for Ethiopia
+  TH: ["סיאם"],                                   // LOW/UNCERTAIN - Thailand's name until 1939
+  LK: ["ציילון"],                                 // LOW/UNCERTAIN - Sri Lanka's name until 1972
+  KH: ["קמפוצ'יה"],                               // LOW/UNCERTAIN - Cambodia's official name 1975-1989
+  ZW: ["רודזיה"]                                  // LOW/UNCERTAIN - Zimbabwe's colonial-era name
+};
 
 function buildCountryOptions() {
   const codes = Object.keys(window.COUNTRY_CONTINENT || {});
@@ -1149,7 +1203,8 @@ function buildCountryOptions() {
     .map(code => ({
       code,
       nameHe: (namesHe && namesHe.of(code)) || code,
-      nameEn: (namesEn && namesEn.of(code)) || code
+      nameEn: (namesEn && namesEn.of(code)) || code,
+      aliases: COUNTRY_NAME_ALIASES[code] || []
     }))
     .sort((a, b) => a.nameHe.localeCompare(b.nameHe, "he"));
 }
@@ -1177,16 +1232,35 @@ function getCountryOptions() {
 // (the normal case while still typing) has zero exact matches, so this
 // comparator is a no-op there - ordering during normal typing is
 // unchanged, only the FINAL "I typed the whole name" moment is affected.
+// normalizeForMatch (below) strips case/diacritics AND apostrophe-like
+// characters (geresh vs. keyboard apostrophe - see its own comment) - used
+// here for nameHe/nameEn/aliases alike, so "צ'כיה" typed with a plain
+// apostrophe matches CLDR's "צ׳כיה" (geresh), and an alias like "דרום
+// קוריאה" matches exactly like a real CLDR name would. aliases (from
+// COUNTRY_NAME_ALIASES) only WIDEN which options are found/sorted first -
+// what's shown in the list (o.nameHe) and what gets written as countryCode
+// on selection are untouched, always the real CLDR value.
+function optionMatchesQuery(o, q) {
+  return normalizeForMatch(o.nameHe).includes(q) ||
+    normalizeForMatch(o.nameEn).includes(q) ||
+    o.aliases.some(alias => normalizeForMatch(alias).includes(q));
+}
+function optionMatchesExactly(o, q) {
+  return normalizeForMatch(o.nameHe) === q ||
+    normalizeForMatch(o.nameEn) === q ||
+    o.aliases.some(alias => normalizeForMatch(alias) === q);
+}
+
 function renderCountryList(query) {
   const list = $("visitCountryList");
-  const q = query.trim().toLowerCase();
+  const q = normalizeForMatch(query);
   let matches = q
-    ? getCountryOptions().filter(o => o.nameHe.toLowerCase().includes(q) || o.nameEn.toLowerCase().includes(q))
+    ? getCountryOptions().filter(o => optionMatchesQuery(o, q))
     : getCountryOptions();
   if (q) {
     matches = matches.slice().sort((a, b) => {
-      const aExact = a.nameHe.toLowerCase() === q || a.nameEn.toLowerCase() === q;
-      const bExact = b.nameHe.toLowerCase() === q || b.nameEn.toLowerCase() === q;
+      const aExact = optionMatchesExactly(a, q);
+      const bExact = optionMatchesExactly(b, q);
       if (aExact === bExact) return 0;
       return aExact ? -1 : 1;
     });
@@ -1304,12 +1378,34 @@ const CONTINENT_LABELS_HE = {
 // marks once run through NFD normalization, just in different code-point
 // ranges) - not a full fuzzy-matching solution, see the file header on why
 // that's intentional here.
+//
+// Also strips apostrophe/quote-like characters (bug report: \u05e0\u05d9\u05d9\u05d8 searched
+// "\u05e6'\u05db\u05d9\u05d4" and found nothing) - Intl.DisplayNames(['he']) renders
+// transliterated consonant clusters (\u05e6'/\u05d2'/\u05d6') using HEBREW PUNCTUATION
+// GERESH (U+05F3, e.g. CZ -> "\u05e6\u05f3\u05db\u05d9\u05d4"), and abbreviations (e.g. US's short
+// form) using GERSHAYIM (U+05F4, "\u05d0\u05e8\u05d4\u05f4\u05d1") - never a plain keyboard
+// apostrophe/quote (U+0027/U+0022) or the curly variants (U+2019/U+201C/
+// U+201D) a phone's autocorrect commonly substitutes for them. None of
+// these are combining marks, so NFD+the diacritics strip above never
+// touched them. Confirmed empirically both halves of this actually needed
+// fixing separately, not just the geresh one: every realistic typed form
+// of "\u05e6'\u05db\u05d9\u05d4" (U+0027, U+2019, or no mark at all) failed to match "\u05e6\u05f3\u05db\u05d9\u05d4",
+// AND, caught only while testing the US alias below, a straight double-
+// quote query ("\u05d0\u05e8\u05d4\"\u05d1", U+0022 - the only realistic way to type that
+// abbreviation on a real keyboard) failed to match "\u05d0\u05e8\u05d4\u05f4\u05d1" (U+05F4) until
+// the double-quote class was added alongside the single-quote one. Both
+// classes stripped to nothing rather than mapped to one canonical form -
+// simpler, and the mark carries no information this search needs to
+// preserve. Confirmed by a full scan of all 248 window.COUNTRY_CONTINENT
+// codes: 13 have a geresh/gershayim in their CLDR Hebrew name, all equally
+// affected (see CHANGELOG for the full list) - not a one-country fix.
 function normalizeForMatch(str) {
   return String(str || "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0591-\u05C7\u0300-\u036f]/g, "");
+    .replace(/[\u0591-\u05C7\u0300-\u036f]/g, "")
+    .replace(/['"\u2019\u201c\u201d\u05f3\u05f4]/g, "");
 }
 
 function cityMatchesCapital(cityName, capitalEntries) {
