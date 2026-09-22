@@ -1382,6 +1382,12 @@
         if (stopCloudTrips) { stopCloudTrips(); stopCloudTrips = null; }
         cloudTrips = {};
         if (user) {
+            // Marks "this browser has signed in at least once" - read only by
+            // index.html's own handleAuthStateChanged, to tell a brand-new cold
+            // visitor apart from a returning user whose session just expired
+            // (both otherwise look identical as "!user, no tripId").
+            try { localStorage.setItem('gittrip_hasSignedInBefore', 'true'); } catch (error) {}
+
             stopCloudTrips = onValue(ref(db, `users/${user.uid}/trips`), snapshot => {
                 cloudTrips = snapshot.val() || {};
                 renderRecentTrips();

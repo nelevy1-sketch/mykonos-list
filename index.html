@@ -3857,6 +3857,42 @@
 
     if (auth) {
       function handleAuthStateChanged(user) {
+        // Marks "this browser has signed in at least once" - set here AND
+        // in wizard.html's own handleAuthStateChanged (the two places a
+        // sign-in can actually happen), never read/written anywhere else.
+        // This is what distinguishes a brand-new cold visitor from a
+        // returning user whose session simply expired/logged out - both
+        // look identical as "!user" otherwise.
+        if (user) {
+          try { localStorage.setItem("gittrip_hasSignedInBefore", "true"); } catch (error) {}
+        }
+
+        // Cold visitor - no session, no invitation link, AND never signed
+        // in on this browser before - gets sent straight to the marketing/
+        // showcase page instead of the generic "כניסה לטיול" gate
+        // (authGateCopy()'s own !destName && !hostName case, the same
+        // "nothing to personalize" bucket - keyed directly on tripId here
+        // since that's the actual signal this depends on, not on d/h,
+        // which are only ever set alongside a tripId in practice anyway).
+        // A returning user (flag already set) whose session merely expired
+        // gets the normal login wall instead, same as before this change -
+        // showcase.html is for first impressions, not a repeat visitor who
+        // already knows the app. A real invitee (tripId present) is
+        // unaffected either way - falls straight through to the existing
+        // gate below, unchanged, regardless of the flag.
+        // No loop risk: this only ever fires for !user, and showcase.html's
+        // own CTA/back-to-trip logic never redirects back here on its own -
+        // it's a plain link the visitor has to click.
+        if (!user && !tripId) {
+          let hasSignedInBefore = false;
+          try { hasSignedInBefore = localStorage.getItem("gittrip_hasSignedInBefore") === "true"; } catch (error) {}
+
+          if (!hasSignedInBefore) {
+            window.location.href = "gittrip-showcase.html";
+            return;
+          }
+        }
+
         currentUser = user;
 
         document.getElementById("authLoading").classList.add("hidden");
