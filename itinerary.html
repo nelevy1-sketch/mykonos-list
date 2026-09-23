@@ -50,6 +50,7 @@
   <script src="toast.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="knownUsers.js"></script>
   <script src="permissions.js"></script>
   <!-- places-into-itinerary merge, commit 2/5 - needed now (not commit 3)
        because savePlace() below geocodes at save time, independent of the
@@ -438,7 +439,7 @@ function listen(){if(stopTrip)stopTrip();stopTrip=onValue(ref(db,root),s=>{if(!s
 $('googleBtn').onclick=doGoogleSignIn;$('themeBtn').onclick=()=>{localStorage.setItem(themeKey,document.documentElement.dataset.theme==='dark'?'light':'dark');applyTheme()};$('fab').onclick=fabAction;$('saveActivity').onclick=saveActivity;$('exportDayBtn').onclick=exportDayToIcs;$('activityTitle').addEventListener('change',fillNoteFromMatchingPlace);document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{$(b.dataset.close).classList.add('hidden');editingActivityId=null;if(b.dataset.close==='placeOverlay')editingPlaceId=null});$('activityOverlay').onclick=e=>{if(e.target.id==='activityOverlay')$('cancelActivity').click()};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));$('savePlace').onclick=savePlace;$('suggestPlacesBtn').onclick=()=>requestPlaceSuggestions($('suggestPlacesBtn'));$('placeLeg').onchange=()=>refreshPlaceCategoryOptions();$('search').oninput=renderPlaces;$('placeOverlay').onclick=e=>{if(e.target.id==='placeOverlay')$('cancelPlace').click()};$('cancelDayPicker').onclick=()=>{$('dayPickerOverlay').classList.add('hidden');dayPickerPlaceId=null};$('dayPickerOverlay').onclick=e=>{if(e.target.id==='dayPickerOverlay')$('cancelDayPicker').click()};
 // wasSignedOut captured BEFORE user=u below - see index.html's own
 // handleAuthStateChanged for the full reasoning (same trigger point).
-function handleAuthStateChanged(u){const wasSignedOut=!user;user=u;if(wasSignedOut&&u)logSignInEvent(u);$('authLoading').classList.add('hidden');$('loginOverlay').classList.toggle('hidden',!!u);if(u){$('userChip').textContent=u.displayName||u.email||'';if(root)listen();else toast('Missing tripId')}else{profile=null;if(stopTrip){stopTrip();stopTrip=null}}}
+function handleAuthStateChanged(u){const wasSignedOut=!user;user=u;if(wasSignedOut&&u){logSignInEvent(u);window.trackKnownUser({transactionFirstSeen:updateFn=>runTransaction(ref(db,`_analytics/knownUsers/${u.uid}/firstSeen`),updateFn),updateLastSeen:nowIso=>update(ref(db,`_analytics/knownUsers/${u.uid}`),{lastSeen:nowIso})})}$('authLoading').classList.add('hidden');$('loginOverlay').classList.toggle('hidden',!!u);if(u){$('userChip').textContent=u.displayName||u.email||'';if(root)listen();else toast('Missing tripId')}else{profile=null;if(stopTrip){stopTrip();stopTrip=null}}}
 onAuthStateChanged(auth,handleAuthStateChanged);
 if(window.armAuthGate)window.armAuthGate(()=>{if(auth.currentUser)handleAuthStateChanged(auth.currentUser)});
 let lastLiveActivityId;setInterval(()=>{if(!activeDay)return;const dayData=itineraryDays[activeDay]?.activities||{},arr=Object.entries(dayData).map(([id,x])=>({id,...x})),liveId=computeLiveActivityId(arr);if(liveId!==lastLiveActivityId){lastLiveActivityId=liveId;renderActivities()}},60000);

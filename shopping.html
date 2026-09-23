@@ -65,6 +65,7 @@
 <script src="toast.js"></script>
 <script src="legs.js"></script>
 <script src="datetime.js"></script>
+<script src="knownUsers.js"></script>
 <script src="member.js"></script>
 <script src="auth-gate.js"></script>
 <script src="safeWrite.js"></script>
@@ -2387,6 +2388,15 @@ body.modal-open .modal-card {
 
     if (wasSignedOut && user) {
       logSignInEvent(user);
+      // Known-users tracking (_analytics/knownUsers/{uid}) - same
+      // connection point as logSignInEvent above, see knownUsers.js's
+      // own header for why the shared logic lives there.
+      window.trackKnownUser({
+        transactionFirstSeen: updateFn =>
+          runTransaction(ref(db, `_analytics/knownUsers/${user.uid}/firstSeen`), updateFn),
+        updateLastSeen: nowIso =>
+          update(ref(db, `_analytics/knownUsers/${user.uid}`), { lastSeen: nowIso })
+      });
     }
 
     document.getElementById("authLoading")

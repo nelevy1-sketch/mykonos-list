@@ -34,6 +34,7 @@
   <script src="urlShortener.js"></script>
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="knownUsers.js"></script>
   <script src="legBuilder.js"></script>
   <script src="legGeocode.js"></script>
   <script src="member.js"></script>
@@ -3924,6 +3925,16 @@
 
         if (wasSignedOut && user) {
           logSignInEvent();
+          // Known-users tracking (_analytics/knownUsers/{uid}) - same
+          // connection point as logSignInEvent above, see knownUsers.js's
+          // own header for why the shared logic lives there and only the
+          // SDK-flavored calls (compat v8 here) are written per-page.
+          window.trackKnownUser({
+            transactionFirstSeen: updateFn =>
+              db.ref(`_analytics/knownUsers/${user.uid}/firstSeen`).transaction(updateFn),
+            updateLastSeen: nowIso =>
+              db.ref(`_analytics/knownUsers/${user.uid}`).update({ lastSeen: nowIso })
+          });
         }
 
         document.getElementById("authLoading").classList.add("hidden");

@@ -42,6 +42,7 @@
     <script src="auth-gate.js"></script>
     <script src="legs.js"></script>
     <script src="datetime.js"></script>
+    <script src="knownUsers.js"></script>
     <script src="legBuilder.js"></script>
     <script src="legGeocode.js"></script>
     <style>
@@ -733,7 +734,7 @@
 <!-- Firebase SDK & Wizard Logic -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, update, onValue, get, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     // נתוני ההתחברות האמיתיים של הפרויקט שלך מתוך Firebase Console
@@ -1395,6 +1396,15 @@
 
         if (wasSignedOut && user) {
             logSignInEvent(user);
+            // Known-users tracking (_analytics/knownUsers/{uid}) - same
+            // connection point as logSignInEvent above, see knownUsers.js's
+            // own header for why the shared logic lives there.
+            window.trackKnownUser({
+                transactionFirstSeen: updateFn =>
+                    runTransaction(ref(db, `_analytics/knownUsers/${user.uid}/firstSeen`), updateFn),
+                updateLastSeen: nowIso =>
+                    update(ref(db, `_analytics/knownUsers/${user.uid}`), { lastSeen: nowIso })
+            });
         }
 
         document.getElementById('authLoading').classList.add('hidden');

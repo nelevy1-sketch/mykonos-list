@@ -205,6 +205,7 @@
        existing in the codebase for no reason. -->
   <script src="legs.js"></script>
   <script src="datetime.js"></script>
+  <script src="knownUsers.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -726,7 +727,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, onValue, get, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, get, push, set, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // Same project config as every other page.
 const config = {
@@ -870,6 +871,15 @@ function handleAuthStateChanged(user) {
   if (user && !signInLogged) {
     signInLogged = true;
     logSignInEvent(user);
+    // Known-users tracking (_analytics/knownUsers/{uid}) - same
+    // connection point as logSignInEvent above, see knownUsers.js's
+    // own header for why the shared logic lives there.
+    window.trackKnownUser({
+      transactionFirstSeen: updateFn =>
+        runTransaction(ref(db, `_analytics/knownUsers/${user.uid}/firstSeen`), updateFn),
+      updateLastSeen: nowIso =>
+        update(ref(db, `_analytics/knownUsers/${user.uid}`), { lastSeen: nowIso })
+    });
   }
 
   if (user && !gamificationStarted) {

@@ -1,5 +1,31 @@
 # GitTrip — CHANGELOG
 
+## v4.93.0 — מעקב משתמשים ייחודיים (UU): רישום, 7 עמודי האפליקציה + דשבורד
+
+### ✨ תכונה חדשה - רישום, 7 עמודי האפליקציה
+`knownUsers.js` חדש (classic script, נטען בכל 7 העמודים) - `_analytics/knownUsers/{uid}` = `{firstSeen, lastSeen}`, שתי מחרוזות ISO. נקרא מאותה נקודת חיבור בדיוק כמו `logSignInEvent` (מעבר null→user ב-`handleAuthStateChanged`, אותו `wasSignedOut`/`signInLogged` שכבר קיים לכל עמוד).
+
+**פונקציה משותפת אחת אמיתית, לא 7 עותקים** - אותו דפוס `ops`-injection שכבר קיים ב-`member.js` (index.html הוא Firebase compat v8, שאר 6 העמודים מודולרי v9 - שתי צורות קריאה שונות לגמרי, ר' CLAUDE.md). `trackKnownUser(ops)` ב-`knownUsers.js` מחזיקה את כל הלוגיקה המעניינת במקום אחד - כולל ה-closure של הטרנזקציה עצמה (`current => current ? undefined : nowIso`), ש**אינו** דורש גרסה נפרדת לכל SDK: לפי התיעוד של Firebase, לפונקציית ה-update של טרנזקציה יש בדיוק אותה חתימה בשני הדורות (`ref.transaction(fn)` מול `runTransaction(ref, fn)`), ו-`undefined` מבטל את הכתיבה בשניהם. רק הקריאה החיצונית (`ref().transaction()` מול `runTransaction(ref(),...)`) שונה בכל עמוד - שורה אחת, לא לוגיקה.
+
+**בפעם הראשונה**: טרנזקציה על `firstSeen` - כותבת רק אם השדה עדיין ריק, לעולם לא דורסת. **בכל פעם**: `update()` פשוט על `lastSeen`. שני החלקים best-effort ועצמאיים זה מזה - כישלון באחד לא חוסם את השני ולא את זרימת ההתחברות.
+
+### 🔒 כלל RTDB חדש (`_analytics/knownUsers/$uid`)
+`.write: "auth != null && auth.uid === $uid"` - אותו דפוס בדיוק כמו `visitorStats`. **בנוסף**, `.validate` על `lastSeen`: `!data.parent().child('firstSeen').exists() || newData.val() >= data.parent().child('firstSeen').val()` - מונע מצב שבו `lastSeen` נראה *לפני* `firstSeen` (השוואת מחרוזות ISO תקינה כרונולוגית כי שתיהן תמיד `toISOString()` UTC). ה-`!exists()` בתחילת התנאי סופג את מקרה-הקצה של סדר-כתיבה: אם `lastSeen` מגיע לפני שה-`firstSeen` הראשון בכלל נכתב (אין ערבות סדר בין הטרנזקציה ל-update הנפרדים), הכלל לא חוסם.
+
+### 📊 דשבורד - 3 כרטיסי KPI חדשים (`kpiGrid` הקיים, בלי section חדש)
+"משתמשים ידועים אי-פעם" (X, עם הערה קטנה תחת המספר: "מאז הפעלת המדד - לא כולל משתמשים מלפני התאריך הזה" - התיעוד הזה **ב-UI עצמו**, לא רק בקוד, כדרישה מפורשת), "פעילים ב-7 ימים אחרונים", "פעילים ב-30 ימים אחרונים" (שני מספרים נפרדים, לא כרטיס אחד עם "X/Y" - עקבי עם `kpiWriteSuccess`/`kpiServerSuccess` הקיימים, שגם הם שני כרטיסים נפרדים למדדים קשורים אך שונים).
+
+### 🔍 מה שנבדק בפועל
+- `computeKnownUsersStats` עם פיקסצ'ר: 5 משתמשים בגילאי lastSeen שונים - `total`/`active7d`/`active30d` נכונים במדויק (אומת ידנית מול הפיקסצ'ר).
+- `trackKnownUser` **עם ops מדומה, לא Firebase אמיתי**: תרחיש "משתמש חדש" (`current=null`) → כותב timestamp אמיתי; תרחיש "כבר יש firstSeen" → הפונקציה מחזירה `undefined` בדיוק (`=== undefined` אומת ישירות, לא רק "אמת/שקר") - הבטחת אי-הדריסה, הליבה של הפיצ'ר, אומתה ישירות.
+- כישלון משני ה-`ops` (מדומה) לא נזרק חזרה לקורא - `trackKnownUser` בולעת אותו, לא חוסמת שום דבר.
+- **`window.trackKnownUser` אומת מוגדר בפועל בכל 7 העמודים** (לא רק שהסקריפט נטען עם 200 - נבדק ישירות `typeof window.trackKnownUser === "function"` על כל אחד: index/wizard/packing/shopping/places/itinerary/achievements).
+- **תקלת בדיקה נתפסה ותוקנה תוך כדי**: הבדיקה הראשונה על index.html "נכשלה" (`undefined`) - התברר שזו לא באג אלא ניתוב-מבקר-קר הקיים (index.html→gittrip-showcase.html, v4.85.0) שהפנה את הדף לגמרי לעמוד שיווק לא-קשור בלי `knownUsers.js` בכלל. עקף עם `localStorage.setItem('gittrip_hasSignedInBefore','true')`, אומת מחדש על index.html האמיתי - עבר.
+- `node --check` נקי על כל 7 בלוקי הסקריפט + `knownUsers.js` עצמו.
+- `database.rules.json` - JSON תקין (`JSON.parse` נקי). **עדיין לא פורסם ב-Firebase Console** - צריך את הבדיקה/פרסום הידני שלך ב-Rules Playground לפני שה-commit של הקובץ נחשב "כבר חי".
+- דשבורד: 3 הכרטיסים מרונדרים נכון עם ערכים אמיתיים (צילום מסך), רשומים ב-`LAYOUT_CARD_GROUPS.kpiGrid`.
+- hook-בדיקה זמני הוסר ואומת שהוסר בכל 8 הקבצים שנגעו בהם (`grep -c "__test"` → 0 בכולם).
+
 ## v4.92.0 — achievements.html: drill-down ל-states בארה"ב על הגלובוס (commit 4/4, סוגר את הפיצ'ר)
 
 ### ✨ תכונה חדשה
