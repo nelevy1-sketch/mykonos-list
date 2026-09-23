@@ -283,7 +283,21 @@ async function matchActivityToCastle(title,language){try{const geo=await window.
 const DISCOVER_CASTLES_THRESHOLD_KM=70;
 function discoverCastlesNearRoute(){const legs=(window.getLegs(trip)||[]).filter(l=>window.hasValidCoords(l));if(!legs.length)return[];return Object.entries(window.EUROPE_CASTLES||{}).map(([id,c])=>({id,...c,dist:Math.min(...legs.map(l=>haversineKm(l.lat,l.lon,c.lat,c.lon)))})).filter(c=>c.dist<=DISCOVER_CASTLES_THRESHOLD_KM).sort((a,b)=>a.dist-b.dist)}
 function castleDisplayName(c){return trip.language!=='en'&&c.nameHe?c.nameHe:c.nameEn}
-function renderCastleDiscoveries(list){$('castleDiscoveries').classList.remove('hidden');$('castleDiscoveries').innerHTML=list.map(c=>`<article class="place-card ai-suggestion-card"><div class="place-top"><div class="place-icon">🏰</div><div class="place-copy"><h3>${escapeHtml(castleDisplayName(c))}</h3><div class="entry-meta"><span class="entry-note">${tr(`כ-${Math.round(c.dist)} ק"מ מהמסלול שלך`,`~${Math.round(c.dist)} km from your route`)}</span></div></div></div><p class="ai-suggestion-reason">${tr('מבוסס נתוני Wikidata - קואורדינטה מאומתת, לא הצעת AI','Based on Wikidata - a verified coordinate, not an AI guess')}</p><div class="ai-suggestion-actions"><a class="secondary-btn" target="_blank" rel="noopener" href="${buildMapsSearchUrl(castleDisplayName(c))}">${tr('🔍 חפש במפות','🔍 Search maps')}</a><button type="button" class="primary-btn" data-add-castle="${c.id}" data-castle-dist="${c.dist}">${tr('הוסף לתוכנית','Add to plan')}</button></div></article>`).join('');document.querySelectorAll('[data-add-castle]').forEach(btn=>{btn.onclick=()=>addCastleToPlaces(btn.dataset.addCastle,Number(btn.dataset.castleDist))})}
+// Same nav-icon-btn markup/icon/aria-label renderPlaces() already uses for
+// a saved place's own mapUrl (see its own .card-top-actions block) - not a
+// new visual pattern. The URL itself IS new: renderPlaces() opens whatever
+// URL the user manually pasted in (any service, validated only as
+// http/https by validUrl()), because a manually-saved place has no
+// coordinate of its own to build a link from. A castle from castles.js
+// already has an exact lat/lon (Wikidata's own P625) - no user-supplied
+// link needed, so this builds Google Maps' own documented turn-by-turn
+// "Get directions" URL (developers.google.com/maps/documentation/urls,
+// the /maps/dir/?api=1&destination= action) directly from it. Google
+// Maps, not Waze - Waze has zero existing precedent anywhere in this
+// codebase (grepped before choosing), Google Maps is already this app's
+// one external map-link dependency (buildMapsSearchUrl above).
+function buildCastleNavUrl(lat,lon){return`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lat+','+lon)}`}
+function renderCastleDiscoveries(list){$('castleDiscoveries').classList.remove('hidden');$('castleDiscoveries').innerHTML=list.map(c=>`<article class="place-card ai-suggestion-card"><div class="place-top"><div class="place-icon">🏰</div><div class="place-copy"><h3>${escapeHtml(castleDisplayName(c))}</h3><div class="entry-meta"><span class="entry-note">${tr(`כ-${Math.round(c.dist)} ק"מ מהמסלול שלך`,`~${Math.round(c.dist)} km from your route`)}</span></div></div><div class="card-top-actions"><a class="nav-icon-btn" target="_blank" rel="noopener" href="${buildCastleNavUrl(c.lat,c.lon)}" aria-label="${tr('ניווט','Navigate')}">🧭</a></div></div><p class="ai-suggestion-reason">${tr('מבוסס נתוני Wikidata - קואורדינטה מאומתת, לא הצעת AI','Based on Wikidata - a verified coordinate, not an AI guess')}</p><div class="ai-suggestion-actions"><a class="secondary-btn" target="_blank" rel="noopener" href="${buildMapsSearchUrl(castleDisplayName(c))}">${tr('🔍 חפש במפות','🔍 Search maps')}</a><button type="button" class="primary-btn" data-add-castle="${c.id}" data-castle-dist="${c.dist}">${tr('הוסף לתוכנית','Add to plan')}</button></div></article>`).join('');document.querySelectorAll('[data-add-castle]').forEach(btn=>{btn.onclick=()=>addCastleToPlaces(btn.dataset.addCastle,Number(btn.dataset.castleDist))})}
 function discoverCastles(){const list=discoverCastlesNearRoute();if(!list.length){toast(tr('לא נמצאו טירות בטווח סביר מהמסלול שלך','No castles found within a reasonable range of your route'));return}renderCastleDiscoveries(list)}
 // Creates a places/items record directly from castles.js's own lat/lon -
 // no geocoding call, the whole point of grounding in Wikidata instead of
