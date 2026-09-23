@@ -1883,6 +1883,17 @@ body.modal-open .modal-card {
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+  // RTDB read-membership investigation, step 1/2 (functions/index.js's own
+  // joinTrip - see its header for the full plan, and itinerary.html's own
+  // copy of this same comment for the fuller "why here, why now" version).
+  // NEW import - no page in this app has ever used the Firebase Functions
+  // client SDK before this. Not load-bearing yet: trips/$tripId/.read is
+  // still "auth != null" today.
+  import {
+    getFunctions,
+    httpsCallable
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
   const firebaseConfig = {
     apiKey:"AIzaSyDhTtqVrBiKfKLxdOVmd_XwBEJm5oh_vMg",
     authDomain:"gittrip.app",
@@ -1897,6 +1908,7 @@ body.modal-open .modal-card {
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app);
+  const joinTripCallable = httpsCallable(getFunctions(app), "joinTrip");
 
   // Private analytics dashboard (dashboard.html) write-logging - stage 2.
   // Fire-and-forget, own .catch - never awaited by callers, never allowed
@@ -2008,6 +2020,7 @@ body.modal-open .modal-card {
   let currentUser = null;
   let currentProfile = null;
   let stopTripListener = null;
+  let tripJoinAttempted = false;
 
   let enabledFeatures = {
     packing:true,
@@ -2881,17 +2894,47 @@ body.modal-open .modal-card {
           );
         }
       },
-      () => {
+      error => {
         stopTripListener = null;
-
-        showSystemMessage(
-          tr(
-            "לא ניתן לטעון את פרטי הטיול. בדקו את החיבור ונסו שוב.",
-            "Could not load the trip. Check your connection and try again."
-          )
-        );
+        handleTripReadError(error);
       }
     );
+  }
+
+  // Best-effort fallback, step 1/2 of the read-membership investigation -
+  // see joinTripCallable's own import comment above and itinerary.html's
+  // own copy of this function for the fuller version. Only reachable from
+  // startTripListener()'s own error callback, only once per page load.
+  // Cannot actually fire under today's rules - tested via a temporary hook
+  // calling this directly with a synthetic {code:"PERMISSION_DENIED"}
+  // error.
+  async function handleTripReadError(error) {
+    const failMessage = () => showSystemMessage(
+      tr(
+        "לא ניתן לטעון את פרטי הטיול. בדקו את החיבור ונסו שוב.",
+        "Could not load the trip. Check your connection and try again."
+      )
+    );
+
+    if (
+      tripJoinAttempted ||
+      String(error?.code || "").toUpperCase() !== "PERMISSION_DENIED"
+    ) {
+      failMessage();
+      return;
+    }
+
+    tripJoinAttempted = true;
+
+    try {
+      await joinTripCallable({ tripId });
+      startTripListener();
+      return;
+    } catch (joinError) {
+      console.warn("[shopping] joinTrip fallback failed", joinError);
+    }
+
+    failMessage();
   }
 
   const AUDIT_LABELS_BY_TAB = {

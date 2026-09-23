@@ -45,6 +45,16 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <!-- RTDB read-membership investigation, step 1/2 (functions/index.js's
+       own joinTrip - see its header for the full plan, and itinerary.html's
+       own copy of this same comment for the fuller "why here, why now"
+       version). NEW - no page in this app has ever used the Firebase
+       Functions SDK before this. Pinned to 9.22.1, matching every other
+       Firebase script on THIS page - the other 5 pages use 10.12.0
+       (modular v9), this one is compat v8 throughout, already pinned a
+       version behind before this change. Not load-bearing yet:
+       trips/$tripId/.read is still "auth != null" today. -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
 
   <style>
     :root {
@@ -3023,6 +3033,7 @@
 
     let db = null;
     let auth = null;
+    let joinTripCallable = null;
 
     try {
       if (!firebase.apps.length) {
@@ -3031,6 +3042,7 @@
 
       db = firebase.database();
       auth = firebase.auth();
+      joinTripCallable = firebase.functions().httpsCallable("joinTrip");
 
       auth.getRedirectResult().catch(() => {
         customAlert(
@@ -3161,6 +3173,7 @@
     let currentItineraryDays = {};
     let currentUser = null;
     let currentProfile = null;
+    let tripJoinAttempted = false;
     let participantClaims = {};
     let memberProfiles = {};
     let personalLockerCards = {};
@@ -6881,19 +6894,51 @@
             resolveTripSelection({ skipLastTripId: true });
           }
         },
-        () => {
-          showSystemMessage(
-            tr(
-              "לא ניתן לטעון את הטיול",
-              "Could not load the trip"
-            ),
-            tr(
-              "בדקו את החיבור לאינטרנט ונסו לרענן את העמוד.",
-              "Check your internet connection and refresh the page."
-            )
-          );
+        error => {
+          handleTripReadError(error);
         }
       );
+    }
+
+    // Best-effort fallback, step 1/2 of the read-membership investigation -
+    // see joinTripCallable's own script-tag comment above and
+    // itinerary.html's own copy of this function for the fuller version.
+    // Only reachable from startTripListener()'s own error callback, only
+    // once per page load. Cannot actually fire under today's rules -
+    // tested via a temporary hook calling this directly with a synthetic
+    // {code:"PERMISSION_DENIED"} error.
+    async function handleTripReadError(error) {
+      const failMessage = () => showSystemMessage(
+        tr(
+          "לא ניתן לטעון את הטיול",
+          "Could not load the trip"
+        ),
+        tr(
+          "בדקו את החיבור לאינטרנט ונסו לרענן את העמוד.",
+          "Check your internet connection and refresh the page."
+        )
+      );
+
+      if (
+        tripJoinAttempted ||
+        !joinTripCallable ||
+        String(error?.code || "").toUpperCase() !== "PERMISSION_DENIED"
+      ) {
+        failMessage();
+        return;
+      }
+
+      tripJoinAttempted = true;
+
+      try {
+        await joinTripCallable({ tripId });
+        startTripListener();
+        return;
+      } catch (joinError) {
+        console.warn("[index] joinTrip fallback failed", joinError);
+      }
+
+      failMessage();
     }
 
     applyTripLanguage();

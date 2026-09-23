@@ -1304,6 +1304,17 @@
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+    // RTDB read-membership investigation, step 1/2 (functions/index.js's
+    // own joinTrip - see its header for the full plan, and itinerary.html's
+    // own copy of this same comment for the fuller "why here, why now"
+    // version). NEW import - no page in this app has ever used the
+    // Firebase Functions client SDK before this. Not load-bearing yet:
+    // trips/$tripId/.read is still "auth != null" today.
+    import {
+      getFunctions,
+      httpsCallable
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
     const config = {
       apiKey: "AIzaSyDhTtqVrBiKfKLxdOVmd_XwBEJm5oh_vMg",
       authDomain: "gittrip.app",
@@ -1319,6 +1330,7 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
+    const joinTripCallable = httpsCallable(getFunctions(app), "joinTrip");
 
     // Private analytics dashboard (dashboard.html) write-logging - stage 2.
     // Fire-and-forget, own .catch - never awaited by callers, never allowed
@@ -1407,6 +1419,7 @@
     let editingCategoryId = null;
     let packingListening = false;
     let stopTrip = null;
+    let tripJoinAttempted = false;
     let selectionMode = false;
     // itemId -> categoryId. Not a flat Set: a selection can span categories
     // in a merged view, and every bulk action needs each item's own
@@ -4651,17 +4664,40 @@
             loadProfile();
           }
         },
-        () => {
+        error => {
           stopTrip = null;
-
-          toast(
-            tr(
-              "לא ניתן לטעון את הטיול",
-              "Could not load the trip"
-            )
-          );
+          handleTripReadError(error);
         }
       );
+    }
+
+    // Best-effort fallback, step 1/2 of the read-membership investigation -
+    // see joinTripCallable's own import comment above and itinerary.html's
+    // own copy of this function for the fuller version. Only reachable
+    // from loadTrip()'s own error callback, only once per page load.
+    // Cannot actually fire under today's rules - tested via a temporary
+    // hook calling this directly with a synthetic
+    // {code:"PERMISSION_DENIED"} error.
+    async function handleTripReadError(error) {
+      if (
+        tripJoinAttempted ||
+        String(error?.code || "").toUpperCase() !== "PERMISSION_DENIED"
+      ) {
+        toast(tr("לא ניתן לטעון את הטיול", "Could not load the trip"));
+        return;
+      }
+
+      tripJoinAttempted = true;
+
+      try {
+        await joinTripCallable({ tripId });
+        loadTrip();
+        return;
+      } catch (joinError) {
+        console.warn("[packing] joinTrip fallback failed", joinError);
+      }
+
+      toast(tr("לא ניתן לטעון את הטיול", "Could not load the trip"));
     }
 
     async function loadProfile() {

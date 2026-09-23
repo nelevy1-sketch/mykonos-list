@@ -1,4 +1,4 @@
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
@@ -414,5 +414,158 @@ Respond ONLY with a raw JSON array of objects. No explanation, no markdown forma
         ...(callUsageMetadata ? { usageMetadata: callUsageMetadata } : {})
       });
     }
+  }
+);
+
+// participantKey() - byte-for-byte reimplementation of member.js's own
+// client-side function (UTF-8 bytes -> base64 -> URL-safe, no padding).
+// Verified directly, not assumed: ran both algorithms (client's
+// TextEncoder+manual-byte-string+btoa approach vs. this Buffer-based one)
+// against 5 real test uids, including a realistic Firebase-uid-shaped
+// string - all 5 produced byte-identical output. Kept as a plain
+// function, not exported - this file has no client-callable "utility"
+// surface, matching every other helper here (logServerCall, etc.).
+function participantKey(value) {
+  return Buffer.from(String(value).trim(), "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+/**
+ * joinTrip (callable, v2 onCall - NOT onRequest like the two functions
+ * above, a genuinely new pattern for this file)
+ *
+ * Step 1/2 of the trips/$tripId read-membership investigation (dashboard/
+ * roadmap context - the .read rule is "auth != null" today, no real
+ * membership check, confirmed directly against database.rules.json and
+ * production before starting this). This function is the future
+ * server-side gatekeeper for FIRST-TIME joins; step 2 (hardening
+ * trips/$tripId/.read itself to "members only") is NOT part of this
+ * commit and does not happen here - today's .read stays exactly as wide
+ * as it already is. Every auth-gated page calls this ONLY when its own
+ * direct trip read fails with a permission-denied error, which cannot
+ * actually happen yet under today's rules - this lets the whole join-
+ * mediation path ship, deploy, and settle in production risk-free before
+ * the rules change that will make it load-bearing.
+ *
+ * Admin SDK bypasses database.rules.json entirely (same as
+ * logServerCall's own writes above) - this is precisely what lets a
+ * brand-new, not-yet-a-member user get registered without first needing
+ * read access to the trip they're trying to join, the chicken-and-egg
+ * this whole investigation exists to solve.
+ *
+ * Mirrors autoRegisterMember()'s (member.js) own decision sequence
+ * exactly - claim, then profile write, rollback the claim if the profile
+ * write fails - just running server-side instead of client-side. Deciding
+ * NOT to call this unconditionally: an already-a-member caller (the
+ * overwhelmingly common case once this is load-bearing, since it only
+ * runs after a *failed* direct read) short-circuits on the existing-
+ * profile check below - same idempotent gate loadProfile() (each page's
+ * own client code) already relies on, so nothing here conflicts with the
+ * client's own autoRegisterMember() call on a normal, unhardened-.read day
+ * like today: that client path only ever runs when memberProfiles/{uid}
+ * doesn't exist yet, and if this function ever created one first, the
+ * client would simply see it already exists and skip its own write.
+ */
+exports.joinTrip = onCall(
+  { region: "us-central1", maxInstances: 10 },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Sign-in required.");
+    }
+
+    const tripId = request.data?.tripId;
+    if (!tripId || typeof tripId !== "string") {
+      throw new HttpsError("invalid-argument", "tripId is required.");
+    }
+
+    const db = admin.database();
+    let trip;
+
+    try {
+      const tripSnap = await db.ref(`trips/${tripId}`).once("value");
+      if (!tripSnap.exists()) {
+        throw new HttpsError("not-found", "Trip not found.");
+      }
+      trip = tripSnap.val();
+    } catch (error) {
+      if (error instanceof HttpsError) throw error;
+      logger.error(`[joinTrip] trip read failed for ${tripId}`, error);
+      throw new HttpsError("internal", "Could not load this trip.");
+    }
+
+    const profileRef = db.ref(`trips/${tripId}/memberProfiles/${uid}`);
+
+    let existingSnap;
+    try {
+      existingSnap = await profileRef.once("value");
+    } catch (error) {
+      logger.error(`[joinTrip] profile read failed for ${tripId}/${uid}`, error);
+      throw new HttpsError("internal", "Could not check your membership.");
+    }
+
+    if (existingSnap.exists()) {
+      // Already a member (a second call, a race with the client's own
+      // autoRegisterMember, or a retry after a dropped connection) -
+      // nothing to do, not an error.
+      return { alreadyMember: true };
+    }
+
+    const token = request.auth.token || {};
+    const displayName = token.name || "";
+    const email = token.email || "";
+    const photoURL = token.picture || "";
+    // Same "no displayName/email -> fallback" shape as member.js's own
+    // ops.fallbackName parameter - there is no page-supplied string to
+    // use here, so this reads the trip's OWN language field instead
+    // (already fetched above), same signal every page's own tr() already
+    // keys off.
+    const fallbackName = trip.language === "en" ? "Traveler" : "משתתף";
+    const name = displayName || email || fallbackName;
+
+    const key = participantKey(uid);
+    const claimRef = db.ref(`trips/${tripId}/participantClaims/${key}`);
+
+    try {
+      // Structurally shouldn't abort for a uid-keyed claim (see member.js's
+      // own comment on this exact point) - a claim key derived from MY OWN
+      // uid can never already be held by a different uid. Not treated as
+      // fatal if it somehow does - same non-fatal handling as
+      // autoRegisterMember's own client-side version.
+      await claimRef.transaction(current => {
+        if (current === null || current === uid) return uid;
+        return undefined;
+      });
+    } catch (error) {
+      logger.error(`[joinTrip] claim transaction failed for ${tripId}/${uid}`, error);
+      throw new HttpsError("internal", "Could not register you for this trip.");
+    }
+
+    const profile = {
+      name,
+      participantKey: key,
+      email,
+      photoURL,
+      updatedAt: Date.now()
+    };
+
+    try {
+      await profileRef.set(profile);
+    } catch (error) {
+      try {
+        await claimRef.transaction(current => (current === uid ? null : current));
+      } catch (rollbackError) {
+        logger.error(`[joinTrip] rollback also failed for ${tripId}/${uid}`, rollbackError);
+      }
+      logger.error(`[joinTrip] profile write failed for ${tripId}/${uid}`, error);
+      throw new HttpsError("internal", "Could not register you for this trip.");
+    }
+
+    await logServerCall("joinTrip", true, { tripId });
+
+    return { alreadyMember: false };
   }
 );

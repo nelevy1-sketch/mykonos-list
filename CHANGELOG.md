@@ -1,5 +1,40 @@
 # GitTrip — CHANGELOG
 
+## v4.100.0 — RTDB read-membership: שלב 1/2 - Cloud Function מתווכת-הצטרפות (נתיב מקביל, בלי לגעת ב-.read)
+
+### ⚠️ פרויקט אבטחה רב-שלבי - שלב 1 בלבד, לא load-bearing עדיין
+זה שלב 1 מתוך 2 בתיקון פער אבטחה אמיתי: `trips/$tripId/.read` הוא `auth != null` בלבד היום - כל משתמש Google מחובר שיודע/מנחש tripId (32 ביט אנטרופיה בלבד - `crypto.getRandomValues` על מספר שלם יחיד) יכול לקרוא טיול זר במלואו, כולל טלפונים ב-`memberProfiles`. **השלב הזה לא משנה את ה-.read בכלל** - אין רגרסיה אפשרית, נתיב מקביל בלבד. שלב 2 (החמרת ה-.read בפועל) ייבנה בנפרד, רק אחרי ששלב הזה יוכח יציב בפרודקשן.
+
+### ✨ תכונה חדשה - Cloud Function `joinTrip` (functions/index.js)
+פונקציה חדשה מסוג `onCall` (לא `onRequest` כמו `suggestPackingList`/`suggestPlaces` הקיימות - דפוס חדש לגמרי בקובץ הזה). מקבלת `{tripId}`, `uid` מהקשר האימות. עם Admin SDK (עוקף rules לגמרי, כמו `logServerCall` הקיים): מוודאת שהטיול קיים, מבצעת בדיוק את לוגיקת ה-claim+profile-write ש-`autoRegisterMember()` (`member.js`) כבר עושה היום בצד לקוח - claim על `participantClaims/{key}`, כתיבת `memberProfiles/{uid}`, rollback אם הכתיבה נכשלת.
+
+**`participantKey()` שוכפלה בקוד השרת - byte-for-byte, לא ניחוש**: אומת בפועל (לא הונח) - הרצתי את שני האלגוריתמים (הלקוח: `TextEncoder`+מחרוזת-בייטים+`btoa`; השרת: `Buffer.from(...).toString('base64')`) על 5 uid-ים אמיתיים, כולל מחרוזת בצורת uid אמיתי של Firebase - חמישה מתוך חמישה הפיקו פלט זהה לחלוטין.
+
+### ⚠️ מגבלת פריסה אמיתית - חייבת לצאת מפורשות
+**GitHub Actions הקיים (`.github/workflows/firebase-hosting-merge.yml`) פורס רק Hosting** (`FirebaseExtended/action-hosting-deploy`) - **לא Cloud Functions**. אומת ישירות מול קובץ ה-workflow, לא הונח. המשמעות: אחרי ה-push הזה, `joinTrip` יושבת בריפו אבל **לא חיה** עד שמישהו ירוץ `firebase deploy --only functions` (או דומה) ידנית דרך ה-CLI - אין לי גישה לבצע את זה מהסביבה הזאת. זה לא חוסם את השלב הזה (הפונקציה לא load-bearing ממילא כרגע), אבל צריך לדעת את זה לפני שממשיכים לשלב 2.
+
+### 🔧 שינוי בצד לקוח - 5 עמודים (index/packing/places/itinerary/shopping)
+ייבוא Firebase Functions client SDK חדש לגמרי - שום עמוד באפליקציה לא השתמש בו לפני זה. **wizard.html ו-achievements.html לא נגעו** - `member.js`'s own header כבר מתעד ש-wizard.html אין לו trip/auth-gate בשלב הזה, ו-achievements.html מתעד במפורש שהוא לא טוען את `member.js` (עמוד cross-trip, אין tripId יחיד - ר' ההערה הקיימת בעמוד עצמו).
+
+**פיצול SDK אמיתי טופל**: 4 העמודים המודולריים (v9) מייבאים `getFunctions`/`httpsCallable` דרך `firebase-functions.js` (10.12.0, תואם לשאר ה-imports שלהם). `index.html` (compat v8, **מוצמד ל-9.22.1** כבר לפני השינוי הזה - כל שאר סקריפטי Firebase שלו) מקבל `firebase-functions-compat.js` **באותה גרסה 9.22.1**, לא 10.12.0 - אומת שה-URL אכן קיים (200 OK) לפני ההסתמכות עליו, לא הונח.
+
+`listen()`/`loadTrip()`/`startTripListener()` (השם משתנה בין העמודים - כל עמוד שמר על השם והסגנון שלו) מקבלות `handleTripReadError(error)` חדשה: אם השגיאה היא `PERMISSION_DENIED` (case-insensitive) **ועדיין לא ניסינו** (`tripJoinAttempted`, דגל חד-פעמי למניעת לולאת retry אינסופית), קוראות ל-`joinTripCallable({tripId})` ואז מנסות שוב את הקריאה המקורית. אחרת - אותה הודעת "לא ניתן לטעון" בדיוק כמו היום.
+
+**לא יכול לקרות בפועל היום** - `trips/$tripId/.read` עדיין `auth != null`, אף פעם לא permission-denied אמיתי. זה מכין תשתית לשלב 2 בלבד.
+
+### 🔍 בדיקה - עם test hook שמדמה permission-denied מלאכותי (לא ניתן לשחזר אמיתי, כמוסבר למעלה)
+- **itinerary.html** (מייצג): קוד שגיאה שגוי → אין ניסיון הצטרפות, טוסט רגיל. `PERMISSION_DENIED` אמיתי (מדומה) → `tripJoinAttempted=true`, ה-mock של `joinTripCallable` נקרא **עם `{tripId}` נכון**, `listen()` נוסה מחדש. קריאה שנייה עם `PERMISSION_DENIED` → **לא** ניסיון נוסף (ה-guard עובד, מונע לולאה אינסופית). מסלול כישלון (join עצמו נכשל) → לא זורק, לא מנסה `listen()` שוב, טוסט כישלון רגיל.
+- **shopping.html** (השם/מבנה הכי שונה - `currentUser`/`stopTripListener`/`tripRoot`): **אותה תוצאה מדויקת** כמו itinerary.html - מאשש שהדפוס מוכלל נכון על פני קוד עם מוסכמות שונות לגמרי.
+- שאר 3 העמודים (places/packing/index) - נטענו בדפדפן בפועל, אפס שגיאות קונסול חדשות (רק הרעש השיורי הידוע מבדיקות קודמות של הסשן).
+- `firebase.functions` (namespace) אומת קיים בפועל ב-`index.html` אחרי טעינת `firebase-functions-compat.js`.
+- `node --check` תקין על כל 5 העמודים + `functions/index.js`.
+- `i18n-audit.js` - אפס פערים חדשים (אין טקסט חדש למשתמש - כל ההודעות משתמשות במחרוזות `tr()` קיימות).
+- hooks בדיקה זמניים (itinerary.html, shopping.html) הוסרו ואומתו (`grep -c "__test"` → 0 בכל 6 הקבצים).
+- **לא נבדק, ולא ניתן לבדוק בסביבה הזו**: קריאה אמיתית ל-Cloud Function (לא פרוסה - ר' המגבלה למעלה), auth אמיתי מ-Google, permission-denied אמיתי (דורש שלב 2).
+
+### 🔒 מסמך אבטחה - לא נבנה כאן, רק תועד
+מצאתי בחקירה קודמת: אין Firebase App Check בקוד בכלל, אין rate-limiting מעבר לדרישת auth. tripId (32 ביט) ניתן תיאורטית לאכיפה בכוח גס. זה נשאר סיכון פתוח עד שלב 2 (`.read` מוחמר בפועל) - השלב הזה בלבד לא סוגר את הפער, רק בונה את התשתית שתאפשר לסגור אותו בבטחה.
+
 ## v4.99.0 — itinerary.html: לוגיקת חלון עונתי לשווקי חג מולד (תשתית בלבד, בלי UI)
 
 ### ✨ תכונה חדשה (לא בשימוש עדיין - תשתית, כמו castleId ב-v4.94.0)
