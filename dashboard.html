@@ -299,6 +299,21 @@
       text-transform: uppercase;
     }
 
+    /* Unique-users tracking - the one kpi-card that needs a third line
+       explaining a real limitation of the number above it ("since the
+       metric went live", not "ever, truly all-time") - the task's own
+       explicit requirement to document this in the UI text, not only in
+       a code comment nobody viewing the dashboard would ever see. No
+       text-transform:uppercase here (unlike .kpi-label) - this is a full
+       sentence, not a short label. */
+    .kpi-caption {
+      margin: 4px 0 0;
+      font-size: .6rem;
+      line-height: 1.3;
+      color: var(--dash-text-muted);
+      opacity: .8;
+    }
+
     /* Hierarchical typography for every remaining card: section headers
        are small/uppercase/secondary (not the loudest thing on the card),
        the actual number is the loudest thing on it. */
@@ -826,6 +841,26 @@
         <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
         <p class="kpi-label">כניסות ייחודיות היום</p>
       </div>
+      <!-- Unique-users tracking (_analytics/knownUsers) - three new KPI
+           cards, same row as the ones above (not a new section - these are
+           still single-focused counts, exactly the kpiGrid's own existing
+           shape). kpiKnownUsersTotal gets an extra small caption line
+           (.kpi-caption, new - no existing kpi-card needed one) instead of
+           only documenting the "since rule went live" limitation in code -
+           the task's own explicit requirement, not just a nice-to-have. -->
+      <div class="kpi-card" id="kpiKnownUsersTotal">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">משתמשים ידועים אי-פעם</p>
+        <p class="kpi-caption">מאז הפעלת המדד - לא כולל משתמשים מלפני התאריך הזה</p>
+      </div>
+      <div class="kpi-card" id="kpiActiveUsers7d">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">פעילים ב-7 ימים אחרונים</p>
+      </div>
+      <div class="kpi-card" id="kpiActiveUsers30d">
+        <p class="kpi-value"><span class="kpi-value-num">--</span><span class="kpi-trend"></span></p>
+        <p class="kpi-label">פעילים ב-30 ימים אחרונים</p>
+      </div>
     </section>
 
     <!-- Version-history investigation - all 4 items now. Items 1+2
@@ -1216,7 +1251,10 @@ const LAYOUT_SECTIONS = [
 ];
 
 const LAYOUT_CARD_GROUPS = {
-  kpiGrid: ["kpiTotalTrips", "kpiWriteSuccess", "kpiServerSuccess", "kpiCountriesVisited", "kpiSignInsToday"],
+  kpiGrid: [
+    "kpiTotalTrips", "kpiWriteSuccess", "kpiServerSuccess", "kpiCountriesVisited", "kpiSignInsToday",
+    "kpiKnownUsersTotal", "kpiActiveUsers7d", "kpiActiveUsers30d"
+  ],
   tripsChartsSection: ["tripsTimelineCard", "tripsDonutRow"],
   writesChartsSection: [
     "writesByContextCard", "serverCallsByFunctionCard", "serverCallsTokensCard",
@@ -2036,6 +2074,33 @@ function countTodaySignIns(signInsObj) {
     }
   });
   return uids.size;
+}
+
+// Unique-users tracking (_analytics/knownUsers/{uid} = {firstSeen,
+// lastSeen}, both ISO strings - see knownUsers.js). "total" is every key
+// under the node - genuinely "since the metric went live" only, not true
+// all-time (a user who was active before this feature existed and hasn't
+// signed in again since has no entry at all) - the kpiKnownUsersTotal
+// card's own .kpi-caption states this in the UI itself, not just here.
+// active7d/active30d filter by lastSeen age, computed fresh on every call
+// (no caching), same rule as every other derived stat on this page.
+function computeKnownUsersStats(knownUsersObj) {
+  const entries = Object.values(knownUsersObj || {});
+  const now = Date.now();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+  let active7d = 0, active30d = 0;
+  entries.forEach(u => {
+    if (!u || !u.lastSeen) return;
+    const lastSeenMs = new Date(u.lastSeen).getTime();
+    if (isNaN(lastSeenMs)) return; // malformed/missing date - don't count as active, don't crash
+    const ageMs = now - lastSeenMs;
+    if (ageMs <= SEVEN_DAYS_MS) active7d++;
+    if (ageMs <= THIRTY_DAYS_MS) active30d++;
+  });
+
+  return { total: entries.length, active7d, active30d };
 }
 
 // Daily success-rate series shared by write/server-call anomaly detection
@@ -3333,10 +3398,23 @@ async function loadAndRender() {
   }
 
   // Sixth independent try/catch, same reasoning as the 5 above - a failure
-  // here must not block anything else. Different in kind from the other
-  // 5 though: this reads an external GitHub URL, not this app's own RTDB -
-  // a real network hiccup or GitHub outage is a more likely failure mode
-  // here than anywhere else on this page, exactly why it stays isolated.
+  // reading _analytics/knownUsers must not block anything else.
+  try {
+    const knownUsersSnapshot = await get(ref(db, "_analytics/knownUsers"));
+    const knownUsersStats = computeKnownUsersStats(knownUsersSnapshot.val());
+    updateKPI("kpiKnownUsersTotal", knownUsersStats.total, null);
+    updateKPI("kpiActiveUsers7d", knownUsersStats.active7d, null);
+    updateKPI("kpiActiveUsers30d", knownUsersStats.active30d, null);
+  } catch (error) {
+    console.warn("[dashboard] failed to load _analytics/knownUsers", error);
+    if (window.toast) window.toast("טעינת נתוני המשתמשים הידועים נכשלה", "error");
+  }
+
+  // Seventh independent try/catch, same reasoning as the 6 above. Separate
+  // from the sixth (this app's own RTDB) on purpose - different source (an
+  // external GitHub URL, not this app's own RTDB) and different failure
+  // mode - a real network hiccup or GitHub outage is a more likely failure
+  // mode here than anywhere else on this page, exactly why it stays isolated.
   try {
     const changelogText = await fetchChangelogText();
     const versions = parseChangelogVersions(changelogText);
@@ -3346,8 +3424,8 @@ async function loadAndRender() {
     if (window.toast) window.toast("טעינת היסטוריית הגרסאות נכשלה", "error");
   }
 
-  // Seventh independent try/catch, same reasoning as the 6 above. Separate
-  // from the sixth (GitHub-sourced) on purpose - different source (this
+  // Eighth independent try/catch, same reasoning as the 7 above. Separate
+  // from the seventh (GitHub-sourced) on purpose - different source (this
   // app's own Firebase Hosting, not GitHub), different failure mode (a
   // missing/stale version-history.json - forgot to re-run the generator
   // script and redeploy - not a GitHub outage), so a failure here
