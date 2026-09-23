@@ -33,6 +33,16 @@
         }
       },
 
+      "knownUsers": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+
+          "lastSeen": {
+            ".validate": "!data.parent().child('firstSeen').exists() || newData.val() >= data.parent().child('firstSeen').val()"
+          }
+        }
+      },
+
       "dashboardLayout": {
         ".write": "auth != null && auth.uid === 'ne56ZOFgDMRfaH03WAvO7jbinty2'"
       }
