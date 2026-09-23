@@ -1,6 +1,13 @@
 [
   {
     "major": 4,
+    "minor": 93,
+    "patch": 0,
+    "summary": "מעקב משתמשים ייחודיים (UU): רישום, 7 עמודי האפליקציה + דשבורד",
+    "date": "2026-09-23T07:07:57+03:00"
+  },
+  {
+    "major": 4,
     "minor": 92,
     "patch": 0,
     "summary": "achievements.html: drill-down ל-states בארה\"ב על הגלובוס (commit 4/4, סוגר את הפיצ'ר)",
