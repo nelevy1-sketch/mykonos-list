@@ -366,6 +366,42 @@ function applyTheme(){try{localStorage.setItem(`trip-${tripId||'legacy'}-type`,t
 function applyAccent(){document.documentElement.classList.remove('character-pride','character-ski');if(trip.showAccent===false)return;if(trip.tripCharacter==='pride'||trip.tripCharacter==='ski')document.documentElement.classList.add(`character-${trip.tripCharacter}`)}
 function pad2(n){return String(n).padStart(2,'0')}
 function dateKey(d){return`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
+// Christmas-market seasonal window (investigation-stage infrastructure,
+// same shape as castles.js's own commit 1 - built and tested ahead of a
+// data source, not wired to any UI yet). Real markets typically run
+// late-November through Dec 24-31, some to Jan 6 (Epiphany) depending on
+// country - no single authoritative source for exact per-year dates
+// exists (checked before picking this), so this is a deliberately
+// generous, year-independent approximation: December 1 through January 6
+// inclusive, not tied to any specific year. Wikidata was investigated as
+// a grounding source for the markets themselves (the castles.js
+// precedent) and rejected - real coverage is only ~74-105 entities
+// worldwide (vs. castles' 40,092 raw candidates), several of the most
+// famous markets (Vienna, Strasbourg, Cologne) have no findable Wikidata
+// item at all, and many entries are single-year event instances rather
+// than the recurring market itself. Overpass remains the fallback source
+// (already known unstable - see castles.js's own commit-1 investigation,
+// 2 of 3 real test calls failed with 504) - not built here, this
+// function's date-window logic is independent of whatever source is
+// eventually chosen.
+//
+// Lives here, not in datetime.js (the shared "what day/time is it in
+// zone X" file) - this depends on window.tripDayDates() (a TRIP's own
+// day range), not a bare timezone question, and today has exactly one
+// real consumer-in-waiting (this page). datetime.js's own header
+// explains the same reasoning for keeping it separate from legs.js. Move
+// it to a shared file only if a second page genuinely needs it - not
+// preemptively (the three independent scopedTripUrl copies documented in
+// CLAUDE.md are exactly the "unify without a real second need" mistake
+// this avoids).
+function isInChristmasMarketWindow(date){const month=date.getMonth()+1,day=date.getDate();return month===12||(month===1&&day<=6)}
+// {relevant, days} - not just a boolean, so a future consumer (the UI
+// this is waiting on) doesn't have to re-scan tripDayDates() itself to
+// know WHICH days to show the feature on. days are already-familiar
+// "YYYY-MM-DD" keys (dateKey() above, same format every other day-keyed
+// write in this file already uses) - no new date-string format
+// introduced for this one feature.
+function christmasMarketRelevantDays(tripArg,tripIdArg){const days=window.tripDayDates(tripArg,tripIdArg);const matching=days.filter(d=>isInChristmasMarketWindow(d.date)).map(d=>dateKey(d.date));return{relevant:matching.length>0,days:matching}}
 // tripDayDates moved to legs.js (docs/schema-legs.md §8, step 4) - shared
 // with places.html, which held a byte-for-byte copy of the old local
 // version. window.tripDayDates(trip, tripId) now returns {date, leg}[].
