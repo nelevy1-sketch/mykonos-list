@@ -958,7 +958,7 @@
       <div class="metric-card">
         <h2>כמויות פעילות לפי תאריך</h2>
         <div class="chart-wrap">
-          <canvas id="activityTimelineChart" role="img" aria-label="גרף קו - כמות פעילות מצטברת לפי תאריך, לפי קטגוריה: מוזיקה, תמונות, מקומות, ציוד וקניות"></canvas>
+          <canvas id="activityTimelineChart" role="img" aria-label="גרף קו - כמות פעילות מצטברת לפי תאריך, לפי קטגוריה: מוזיקה, תמונות, מקומות, ציוד, קניות ותוכנית יומית"></canvas>
         </div>
         <p class="metric-note" id="activityTimelineNote"></p>
       </div>
@@ -1660,10 +1660,27 @@ const CHART_ACCENT = CATEGORICAL_PALETTE[0];
 // never got backfilled in. A grocery item IS the same kind of "user adds
 // real trip content" event as a song/photo/place/packing item - no
 // principled reason to leave it out.
+//
+// "תוכנית יומית" ADDED LATER STILL, WITH A REAL FIX INSIDE IT (not just
+// an addition): saveActivity-add/saveActivity-update (manual activity
+// creation - the single most basic action on itinerary.html) were NEVER
+// in any category, discovered only while checking where two brand-new
+// contexts (addCastleToPlaces, importIcsEvent) should go. addPlaceToDay
+// MOVES here too, out of "places" - it was filed there by category
+// (originally the only itinerary-activity-creation context that
+// happened to exist), but it writes to itinerary/days/.../activities,
+// the same path as saveActivity - an activity created from a saved
+// place, not a place itself. Keeping it under "places" would have kept
+// splitting the same content type (itinerary activities) across two
+// categories for no principled reason. addCastleToPlaces, by contrast,
+// STAYS a genuine "places" context below - it writes to places/items,
+// the exact same path and record shape as savePlace-add, just reached
+// via route-discovery instead of the manual form - there's no
+// activity/place ambiguity for it the way there was for addPlaceToDay.
 const ACTIVITY_CATEGORIES = {
   music: { label: "מוזיקה", contexts: ["saveMusic-add", "saveMusic-update"] },
   photos: { label: "תמונות", contexts: ["uploadPhotos"] },
-  places: { label: "מקומות", contexts: ["savePlace-add", "savePlace-update", "addPlaceToDay"] },
+  places: { label: "מקומות", contexts: ["savePlace-add", "savePlace-update", "addCastleToPlaces"] },
   packing: {
     label: "ציוד",
     contexts: [
@@ -1678,21 +1695,26 @@ const ACTIVITY_CATEGORIES = {
       "addModalForm-newItem", "addModalForm-updateQty",
       "mergeOrCreateItem-create", "mergeOrCreateItem-merge"
     ]
+  },
+  itinerary: {
+    label: "תוכנית יומית",
+    contexts: ["saveActivity-add", "saveActivity-update", "addPlaceToDay", "importIcsEvent"]
   }
 };
 // Fixed per-category color (not palette-index-by-sort-order) - so music
 // is always the same color across reloads regardless of which category
 // happens to have the most events that day, same reasoning as every
 // other CHART_* constant on this page being hardcoded rather than
-// computed at render time. shopping takes the next unused palette slot
-// (index 4, orange) - indices 0-3 already taken by music/photos/places/
-// packing, indices 5-6 (pink/lime) left free for a future category.
+// computed at render time. shopping took palette index 4 (orange);
+// itinerary takes index 5 (pink) - the next unused slot at the time it
+// was added. Index 6 (lime) is the one remaining free slot.
 const ACTIVITY_CATEGORY_COLORS = {
   music: CATEGORICAL_PALETTE[0],
   photos: CATEGORICAL_PALETTE[1],
   places: CATEGORICAL_PALETTE[2],
   packing: CATEGORICAL_PALETTE[3],
-  shopping: CATEGORICAL_PALETTE[4]
+  shopping: CATEGORICAL_PALETTE[4],
+  itinerary: CATEGORICAL_PALETTE[5]
 };
 
 // Redesign stage 4/5 - flat SVG dot map. [lat, lon] centroid per ISO
