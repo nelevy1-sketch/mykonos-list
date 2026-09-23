@@ -958,7 +958,7 @@
       <div class="metric-card">
         <h2>כמויות פעילות לפי תאריך</h2>
         <div class="chart-wrap">
-          <canvas id="activityTimelineChart" role="img" aria-label="גרף קו - כמות פעילות מצטברת לפי תאריך, לפי קטגוריה: מוזיקה, תמונות, מקומות וציוד"></canvas>
+          <canvas id="activityTimelineChart" role="img" aria-label="גרף קו - כמות פעילות מצטברת לפי תאריך, לפי קטגוריה: מוזיקה, תמונות, מקומות, ציוד וקניות"></canvas>
         </div>
         <p class="metric-note" id="activityTimelineNote"></p>
       </div>
@@ -1634,22 +1634,32 @@ const CHART_ACCENT = CATEGORICAL_PALETTE[0];
 // framing. Each context string verified directly against every
 // logWriteEvent() call site in the repo (packing/places/itinerary/
 // shopping/index/achievements.html), not guessed. Deliberately NOT every
-// context that exists under these 4 pages - only ones where a user is
+// context that exists under these pages - only ones where a user is
 // actually adding/editing real trip content (a song, a photo, a place, a
-// packing item). Excluded on purpose: list-management/toggle/
-// administrative contexts that share a file with an included one but
-// aren't "content" themselves - ensureStarterLists/createListReturningId/
-// duplicateList/setListVisibility/renameList (packing list-level admin,
-// not an item), subItemCheck/bulkToggleDone/bulkToggleShared/
-// confirmBulkMove (packing - toggling/reorganizing existing items, not
-// adding content), and everything under shopping.html/index.html/
-// achievements.html (a different domain entirely - grocery lists,
-// membership/locker/flight admin, manual country visits). "Update"
-// contexts ARE included for music/places/packing (saveMusic-update,
-// savePlace-update, saveEdit/saveEdit-move) - an edit to real content is
-// still activity on that content, same as an add; this is why "ציוד"
-// isn't just addItem alone despite the task's own shorthand naming only
-// that one context by name.
+// packing item, a shopping item). Excluded on purpose: list-management/
+// toggle/administrative contexts that share a file with an included one
+// but aren't "content" themselves - ensureStarterLists/
+// createListReturningId/duplicateList/setListVisibility/renameList
+// (packing list-level admin, not an item), subItemCheck/bulkToggleDone/
+// bulkToggleShared/confirmBulkMove (packing - toggling/reorganizing
+// existing items, not adding content), and everything under index.html/
+// achievements.html (a different domain entirely - membership/locker/
+// flight admin, manual country visits). "Update" contexts ARE included
+// for music/places/packing/shopping (saveMusic-update, savePlace-update,
+// saveEdit/saveEdit-move, addModalForm-updateQty) - an edit to real
+// content is still activity on that content, same as an add.
+//
+// SHOPPING ADDED LATER (this stage) - not part of the original 4. NOT
+// because shopping.html was ever judged "a different domain" on purpose
+// (an earlier version of this comment said that - wrong, corrected here):
+// shopping.html's own contexts (addModalForm-newItem/-updateQty,
+// mergeOrCreateItem-create/-merge - all already going through
+// safeWrite/logWriteEvent with real error handling, verified directly by
+// reading shopping.html itself) were simply built and wired to safeWrite
+// at a later point than when this category list was first written, and
+// never got backfilled in. A grocery item IS the same kind of "user adds
+// real trip content" event as a song/photo/place/packing item - no
+// principled reason to leave it out.
 const ACTIVITY_CATEGORIES = {
   music: { label: "מוזיקה", contexts: ["saveMusic-add", "saveMusic-update"] },
   photos: { label: "תמונות", contexts: ["uploadPhotos"] },
@@ -1661,18 +1671,28 @@ const ACTIVITY_CATEGORIES = {
       "addToSuggestedCategory-createParent", "addToSuggestedCategory-subItem",
       "importItem"
     ]
+  },
+  shopping: {
+    label: "קניות",
+    contexts: [
+      "addModalForm-newItem", "addModalForm-updateQty",
+      "mergeOrCreateItem-create", "mergeOrCreateItem-merge"
+    ]
   }
 };
 // Fixed per-category color (not palette-index-by-sort-order) - so music
 // is always the same color across reloads regardless of which category
 // happens to have the most events that day, same reasoning as every
 // other CHART_* constant on this page being hardcoded rather than
-// computed at render time.
+// computed at render time. shopping takes the next unused palette slot
+// (index 4, orange) - indices 0-3 already taken by music/photos/places/
+// packing, indices 5-6 (pink/lime) left free for a future category.
 const ACTIVITY_CATEGORY_COLORS = {
   music: CATEGORICAL_PALETTE[0],
   photos: CATEGORICAL_PALETTE[1],
   places: CATEGORICAL_PALETTE[2],
-  packing: CATEGORICAL_PALETTE[3]
+  packing: CATEGORICAL_PALETTE[3],
+  shopping: CATEGORICAL_PALETTE[4]
 };
 
 // Redesign stage 4/5 - flat SVG dot map. [lat, lon] centroid per ISO
