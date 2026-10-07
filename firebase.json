@@ -129,6 +129,18 @@
       }
     ]
   },
+  "emulators": {
+    "ui": { "enabled": true, "port": 6400 },
+    "hub": { "port": 6401 },
+    "logging": { "port": 6402 },
+    "auth": { "port": 6403 },
+    "functions": { "port": 6405 },
+    "storage": { "port": 6406 },
+    "hosting": { "port": 6407 },
+    "tasks": { "port": 6408 },
+    "eventarc": { "port": 6409 },
+    "database": { "port": 6415 }
+  },
   "functions": [
     {
       "source": "functions",
